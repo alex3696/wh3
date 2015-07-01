@@ -1,0 +1,383 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}</ProjectGuid>
+    <RootNamespace>wh3</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(BOOST);c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\include;$(PGSQL)\include;$(IncludePath)</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(WXWIN)\lib\vc_dll;c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\lib\vc_dll;$(LibraryPath)</LibraryPath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(BOOST);C:\_prog\lib\databaselayer_src_1.8\databaselayer\include;$(PGSQL)\include;$(IncludePath)</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(WXWIN)\lib\vc_dll;C:\_prog\lib\databaselayer_src_1.8\databaselayer\lib\vc_dll;$(LibraryPath);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
+    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</PreBuildEventUseInBuild>
+    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreBuildEventUseInBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(WXWIN)\include\msvc;$(WXWIN)\include;..\..\RESOURCES;..\..\INCLUDE;..\..\INCLUDE\FB_FORMS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__DEBUG;_WINDOWS;STRICT;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;__WXMSW__;__WX__;__WXDEBUG__;wxUSE_UNICODE;WXUSINGDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>_pch.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalOptions>/Zm200 %(AdditionalOptions)</AdditionalOptions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <EnablePREfast>false</EnablePREfast>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>wxcode_msw28ud_databaselayer_postgresql.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+    <ResourceCompile>
+      <ResourceOutputFileName>$(IntDir)%(Filename).res</ResourceOutputFileName>
+    </ResourceCompile>
+    <PreBuildEvent>
+      <Command>autobuildnumber.exe wh3.rc "VER_FILEVERSION"</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>version increment</Message>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(WXWIN)\include\msvc;$(WXWIN)\include;..\..\RESOURCES;..\..\INCLUDE;..\..\INCLUDE\FB_FORMS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;STRICT;_CRT_SECURE_NO_DEPRECATE;__WXMSW__;__WX__;__WXNEBUG__;wxUSE_UNICODE;WXUSINGDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>wxcode_msw28u_databaselayer_postgresql.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <PreBuildEvent>
+      <Command>autobuildnumber.exe wh3.rc "VER_FILEVERSION"</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>version increment</Message>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>
+      </Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\SRC\AdminMainForm.cpp" />
+    <ClCompile Include="..\..\SRC\BaseControlPanel.cpp" />
+    <ClCompile Include="..\..\SRC\BaseRefControlPanel.cpp" />
+    <ClCompile Include="..\..\SRC\BaseTable.cpp" />
+    <ClCompile Include="..\..\SRC\BtnProperty.cpp" />
+    <ClCompile Include="..\..\SRC\DActEditor.cpp" />
+    <ClCompile Include="..\..\SRC\DClsActEditor.cpp" />
+    <ClCompile Include="..\..\SRC\DClsEditor.cpp" />
+    <ClCompile Include="..\..\SRC\DClsFavoriteActPropEditor.cpp" />
+    <ClCompile Include="..\..\SRC\DClsFavoriteProp.cpp" />
+    <ClCompile Include="..\..\SRC\DClsMoveEditor.cpp" />
+    <ClCompile Include="..\..\SRC\DClsObjNumEditor.cpp" />
+    <ClCompile Include="..\..\SRC\DClsObjQtyEditor.cpp" />
+    <ClCompile Include="..\..\SRC\DClsPropEditor.cpp" />
+    <ClCompile Include="..\..\SRC\DGroupEditor.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_act_model_Act.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_act_model_ActProp.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_act_model_Obj.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_act_viewActList.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_act_view_ActListDvModel.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_act_view_Frame.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_act_view_PnlActArray.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_act_view_PnlPropGrid.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_mkobj_model_Obj.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_mkobj_view_Frame.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_move_model_DstType.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_move_model_MovableObj.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_move_view_CtrlPanel.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_move_view_DvModel.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_move_view_Frame.cpp" />
+    <ClCompile Include="..\..\SRC\DUserEditor.cpp" />
+    <ClCompile Include="..\..\SRC\DUserGroupEditor.cpp" />
+    <ClCompile Include="..\..\SRC\MAct.cpp" />
+    <ClCompile Include="..\..\SRC\MClsAct.cpp" />
+    <ClCompile Include="..\..\SRC\MClsActProp.cpp" />
+    <ClCompile Include="..\..\SRC\MClsBase.cpp" />
+    <ClCompile Include="..\..\SRC\MClsFavoriteActProp.cpp" />
+    <ClCompile Include="..\..\SRC\MClsMove.cpp" />
+    <ClCompile Include="..\..\SRC\MClsObjNum.cpp" />
+    <ClCompile Include="..\..\SRC\MClsObjQty.cpp" />
+    <ClCompile Include="..\..\SRC\MClsProp.cpp" />
+    <ClCompile Include="..\..\SRC\MClsTree.cpp" />
+    <ClCompile Include="..\..\SRC\MFavProp.cpp" />
+    <ClCompile Include="..\..\SRC\MGroup.cpp" />
+    <ClCompile Include="..\..\SRC\MObjItem.cpp" />
+    <ClCompile Include="..\..\SRC\MProp.cpp" />
+    <ClCompile Include="..\..\SRC\MRProp.cpp" />
+    <ClCompile Include="..\..\SRC\MTypeNode.cpp" />
+    <ClCompile Include="..\..\SRC\MUser2.cpp" />
+    <ClCompile Include="..\..\SRC\MUserGroup.cpp" />
+    <ClCompile Include="..\..\SRC\MObjCatalog.cpp" />
+    <ClCompile Include="..\..\SRC\MObjCatPath.cpp" />
+    <ClCompile Include="..\..\SRC\DPropEditor.cpp" />
+    <ClCompile Include="..\..\SRC\DActPropEditor.cpp" />
+    <ClCompile Include="..\..\SRC\rdbsIndex.cpp" />
+    <ClCompile Include="..\..\SRC\rdbsRecord.cpp" />
+    <ClCompile Include="..\..\SRC\rdbsTable.cpp" />
+    <ClCompile Include="..\..\SRC\VActPanel.cpp" />
+    <ClCompile Include="..\..\SRC\VClsDataEditorPanel.cpp" />
+    <ClCompile Include="..\..\SRC\VClsFavActPropCtrl.cpp" />
+    <ClCompile Include="..\..\SRC\VClsTreeCtrl.cpp" />
+    <ClCompile Include="..\..\SRC\VGrid.cpp" />
+    <ClCompile Include="..\..\SRC\VObjCatalogCtrl.cpp" />
+    <ClCompile Include="..\..\SRC\VObjCatalogDataViewModel.cpp" />
+    <ClCompile Include="..\..\SRC\VObjCatalogTable.cpp" />
+    <ClCompile Include="..\..\SRC\VUserPanel.cpp" />
+    <ClCompile Include="..\..\SRC\whParser.cpp" />
+    <ClCompile Include="..\..\SRC\whPnlFavorites.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\whTableMgr.cpp" />
+    <ClCompile Include="..\..\SRC\_pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\App.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\globaldata.cpp" />
+    <ClCompile Include="..\..\SRC\MainFrame.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\wxDataViewRenderer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="..\..\INCLUDE\FB_FORMS\dlgBaseLogin.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\INCLUDE\FB_FORMS\whLogin.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\whModel_MovHistory.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\whViewCtrl_MovHistory.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\whPnlCtrl_MovHistory.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\whViewCtrl_Sorter.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\whViewCtrl_Filter.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\whDB.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\BaseOkCancelDialog.cpp" />
+    <ClCompile Include="..\..\SRC\MActProp.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_move_view_Tree.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\INCLUDE\BaseOkCancelDialog.h" />
+    <ClInclude Include="..\..\INCLUDE\BaseRefControlPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\BtnProperty.h" />
+    <ClInclude Include="..\..\INCLUDE\DActEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\DclsActEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\DClsEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\DClsFavoriteActPropEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\DClsFavoriteProp.h" />
+    <ClInclude Include="..\..\INCLUDE\DClsMoveEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\DClsObjNumEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\DClsObjQtyEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\DClsPropEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\DGroupEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_act_model_Act.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_act_model_ActProp.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_act_model_Obj.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_act_view_ActList.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_act_view_ActListDvModel.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_act_view_Frame.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_act_view_PnlActArray.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_act_view_PnlPropGrid.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_mkobj_model_Obj.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_mkobj_view_Frame.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_move_model_DstObj.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_move_model_DstType.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_move_model_MovableObj.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_move_view_CtrlPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_move_view_DvModel.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_move_view_Frame.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_move_view_Tree.h" />
+    <ClInclude Include="..\..\INCLUDE\DUserEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\DUserGroupEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\MFavProp.h" />
+    <ClInclude Include="..\..\INCLUDE\MRProp.h" />
+    <ClInclude Include="..\..\INCLUDE\rdbsField.h" />
+    <ClInclude Include="..\..\INCLUDE\MAct.h" />
+    <ClInclude Include="..\..\INCLUDE\MActProp.h" />
+    <ClInclude Include="..\..\INCLUDE\MClsAct.h" />
+    <ClInclude Include="..\..\INCLUDE\MClsActProp.h" />
+    <ClInclude Include="..\..\INCLUDE\MClsBase.h" />
+    <ClInclude Include="..\..\INCLUDE\MClsFavoriteActProp.h" />
+    <ClInclude Include="..\..\INCLUDE\MClsMove.h" />
+    <ClInclude Include="..\..\INCLUDE\MClsObjNum.h" />
+    <ClInclude Include="..\..\INCLUDE\MClsObjQty.h" />
+    <ClInclude Include="..\..\INCLUDE\MClsTree.h" />
+    <ClInclude Include="..\..\INCLUDE\MGroup.h" />
+    <ClInclude Include="..\..\INCLUDE\MObjItem.h" />
+    <ClInclude Include="..\..\INCLUDE\MProp.h" />
+    <ClInclude Include="..\..\INCLUDE\MTypeNode.h" />
+    <ClInclude Include="..\..\INCLUDE\MUser2.h" />
+    <ClInclude Include="..\..\INCLUDE\MUserGroup.h" />
+    <ClInclude Include="..\..\INCLUDE\MObjCatalog.h" />
+    <ClInclude Include="..\..\INCLUDE\MObjCatPath.h" />
+    <ClInclude Include="..\..\INCLUDE\RDBS.h" />
+    <ClInclude Include="..\..\INCLUDE\rdbsIndex.h" />
+    <ClInclude Include="..\..\INCLUDE\rdbsRecord.h" />
+    <ClInclude Include="..\..\INCLUDE\rdbsTrigger.h" />
+    <ClInclude Include="..\..\INCLUDE\rdbsTTable.h" />
+    <ClInclude Include="..\..\INCLUDE\TModel.h" />
+    <ClInclude Include="..\..\INCLUDE\EventBase.h" />
+    <ClInclude Include="..\..\INCLUDE\EMVP.h" />
+    <ClInclude Include="..\..\INCLUDE\EVENT.h" />
+    <ClInclude Include="..\..\INCLUDE\EViewTemplates.h" />
+    <ClInclude Include="..\..\INCLUDE\AdminMainForm.h" />
+    <ClInclude Include="..\..\INCLUDE\BaseControlPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\BaseTable.h" />
+    <ClInclude Include="..\..\INCLUDE\db_rec.h" />
+    <ClInclude Include="..\..\INCLUDE\Favorites.h" />
+    <ClInclude Include="..\..\INCLUDE\TModelArray.h" />
+    <ClInclude Include="..\..\INCLUDE\TPresenter.h" />
+    <ClInclude Include="..\..\INCLUDE\TVec.h" />
+    <ClInclude Include="..\..\INCLUDE\TView.h" />
+    <ClInclude Include="..\..\INCLUDE\TViewCtrlPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\TViewTable.h" />
+    <ClInclude Include="..\..\INCLUDE\DPropEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\VActCtrlPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\DActPropEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\VActPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\MClsProp.h" />
+    <ClInclude Include="..\..\INCLUDE\VClsActEditorPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\VClsDataEditorPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\VClsFavActPropCtrl.h" />
+    <ClInclude Include="..\..\INCLUDE\VClsMoveEditorPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\VClsObjEditorPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\VClsPropEditorPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\VClsTreeCtrl.h" />
+    <ClInclude Include="..\..\INCLUDE\VGrid.h" />
+    <ClInclude Include="..\..\INCLUDE\VGroupCtrlPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\VObjCatalogCtrl.h" />
+    <ClInclude Include="..\..\INCLUDE\VObjCatalogDataViewModel.h" />
+    <ClInclude Include="..\..\INCLUDE\VObjCatalogTable.h" />
+    <ClInclude Include="..\..\INCLUDE\VPropCtrlPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\VUserCtrlPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\VUserPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\wxComboBtn.h" />
+    <ClInclude Include="..\..\INCLUDE\_pch.h" />
+    <ClInclude Include="..\..\INCLUDE\App.h" />
+    <ClInclude Include="..\..\INCLUDE\globaldata.h" />
+    <ClInclude Include="..\..\INCLUDE\ResManager.h" />
+    <ClInclude Include="..\..\INCLUDE\singleton.h" />
+    <ClInclude Include="..\..\INCLUDE\MainFrame.h" />
+    <ClInclude Include="..\..\INCLUDE\wxDataViewRenderer.h" />
+    <ClInclude Include="..\..\INCLUDE\FB_FORMS\whLogin.h" />
+    <ClInclude Include="..\..\INCLUDE\FB_FORMS\dlgBaseLogin.h" />
+    <ClInclude Include="..\..\INCLUDE\whModel_MovHistory.h" />
+    <ClInclude Include="..\..\INCLUDE\whTableMgr.h" />
+    <ClInclude Include="..\..\INCLUDE\whViewCtrl_MovHistory.h" />
+    <ClInclude Include="..\..\INCLUDE\whPnlCtrl_MovHistory.h" />
+    <ClInclude Include="..\..\INCLUDE\whViewCtrl_Sorter.h" />
+    <ClInclude Include="..\..\INCLUDE\whViewCtrl_Filter.h" />
+    <ClInclude Include="..\..\INCLUDE\whDB.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="wh3.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

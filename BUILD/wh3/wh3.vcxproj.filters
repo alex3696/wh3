@@ -1,0 +1,740 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Common">
+      <UniqueIdentifier>{01d47dc7-c08b-4afd-a538-4b34f9305847}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI">
+      <UniqueIdentifier>{1062ef55-6146-4c26-8f79-006d0025f9fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\MainFrame">
+      <UniqueIdentifier>{9db9f8be-b87b-4552-912c-d8db5b4a8876}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\Controls">
+      <UniqueIdentifier>{7ab4606c-7f9c-43a3-aeff-512cb274b008}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\Controls\DataViewExtension">
+      <UniqueIdentifier>{8d33963c-ee60-4716-8f4a-bd3139281442}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\History">
+      <UniqueIdentifier>{8c793408-5d7b-44c9-9930-eaf74dce667f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\History\Model">
+      <UniqueIdentifier>{d0d92e0b-3501-4e57-9a00-7a68cbf88646}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\History\ViewCtrl">
+      <UniqueIdentifier>{d1efcdcf-8073-44ce-9c33-c22db067d080}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\History\Panel">
+      <UniqueIdentifier>{51779d33-6263-4e0d-bf3b-9db526d77948}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\History\_Sorter">
+      <UniqueIdentifier>{fa57983c-b6f6-44d7-aec0-8b3965d0eb49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\History\_FilterGUI">
+      <UniqueIdentifier>{de387c20-e5bf-4c85-b26f-a6b053688e14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DataBase">
+      <UniqueIdentifier>{2c83b040-8e1a-46f3-b19f-407f40b72e15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DataBase\Парсер+Генератор">
+      <UniqueIdentifier>{8a92dac4-c33b-4501-b2ef-699eb026c4ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\MainFrame\Панель избранного">
+      <UniqueIdentifier>{0f33df8f-12bd-4c0e-b36d-6ae826cc03b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Администрирование">
+      <UniqueIdentifier>{62591b3d-3f5d-49d8-be2b-a3b825bb767a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL">
+      <UniqueIdentifier>{27026848-f53a-488f-9b47-c172972b5e64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\Controls\Base">
+      <UniqueIdentifier>{95cc57b4-1a8a-45dd-9534-b690435e10b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\Controls\Form_Builder">
+      <UniqueIdentifier>{2c0de943-6488-4cd9-b553-2f4183a2f260}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\Controls\Form_Builder\dlgLogin">
+      <UniqueIdentifier>{a7a3f226-49ab-4e2d-94eb-9c723a052dad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\Controls\PropertyGridExt">
+      <UniqueIdentifier>{bbc13c25-6046-4343-a21f-67d9ce5fb900}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\Templates">
+      <UniqueIdentifier>{51e3b3f8-3007-4205-a1a3-8f1476b62c46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\VAct">
+      <UniqueIdentifier>{6110611f-7510-40de-a9a1-34c10b8dd4da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\VAct\View">
+      <UniqueIdentifier>{549e3848-41e4-42e6-9306-c5333549985a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\VCls">
+      <UniqueIdentifier>{cfd87a43-a4b0-4fd1-b1e2-d5d01bea7925}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\VCls\View">
+      <UniqueIdentifier>{54d00d83-ec1e-4a0c-b821-d7e07c86f96b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\VClsTree">
+      <UniqueIdentifier>{322f42bb-4295-43ed-ae62-1c76cc4b1b27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\VFavoriteClsActProp">
+      <UniqueIdentifier>{79c1dbd2-ba09-46fe-a08d-366e033eaf27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\VFavoriteClsActProp\Редактор избранных свойств">
+      <UniqueIdentifier>{c9f3f68e-5880-404a-9892-a02e460e9650}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\VFavoriteClsActProp\Диалог выбора из доступных свойств">
+      <UniqueIdentifier>{6c2e2a3b-ea8e-41a2-9f19-54b7ad769e63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\VGroup">
+      <UniqueIdentifier>{5bf3780d-9ff3-4718-ae10-fab2a0738cff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\VProp">
+      <UniqueIdentifier>{a8e1c10f-26c5-4dfc-ad3a-914a3f0df6e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\VUser">
+      <UniqueIdentifier>{dadf0880-f150-407b-b49f-ac3cdbf0a4a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\VUser\View">
+      <UniqueIdentifier>{1fc5b56d-7dc5-433a-af43-5a2fde4d5123}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\Каталог объектов">
+      <UniqueIdentifier>{4a58ad93-2974-41da-8c93-d14279ea97de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\Templates\RDBS">
+      <UniqueIdentifier>{e8265704-2cc3-41d8-865d-221ed08518b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\Templates\RDBS\Prop">
+      <UniqueIdentifier>{b1e4eb35-1538-408e-bfc0-ca3770124fed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\Каталог объектов\Диалог перемещения">
+      <UniqueIdentifier>{55674807-9aa3-44b3-805e-52621cd34ae4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\Каталог объектов\Основная панель">
+      <UniqueIdentifier>{2c32a792-3b27-4139-97cc-0637420e9721}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\Каталог объектов\Основная панель\GUI">
+      <UniqueIdentifier>{128968a0-efce-4dc4-9322-9b6c326a07fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\Каталог объектов\Основная панель\модель пути">
+      <UniqueIdentifier>{1ce26fd6-1c92-4d47-9701-a7be0ffdca25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\Каталог объектов\Основная панель\модель узлов-типов">
+      <UniqueIdentifier>{51fa9859-667e-4b53-b8fe-466f4e2d44e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\Каталог объектов\Основная панель\модель избранных свойств">
+      <UniqueIdentifier>{2f270684-075a-4446-bec2-b50f899e2d76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\Каталог объектов\Диалог действий">
+      <UniqueIdentifier>{b1ecf124-405c-4102-9a79-f38a356c5ce9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\Каталог объектов\Диалог действий\view_ActList">
+      <UniqueIdentifier>{f7b0e9de-2772-480c-b532-f856905d0d96}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\Каталог объектов\Диалог действий\model">
+      <UniqueIdentifier>{8f97d403-a18b-46be-ad6e-6e3afc138270}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\Каталог объектов\Создание объекта">
+      <UniqueIdentifier>{2a545cbd-ca0b-440b-8e92-6d14012aac1d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\SRC\_pch.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\App.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\globaldata.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MainFrame.cpp">
+      <Filter>GUI\MainFrame</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\wxDataViewRenderer.cpp">
+      <Filter>GUI\Controls\DataViewExtension</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\INCLUDE\FB_FORMS\dlgBaseLogin.cpp">
+      <Filter>GUI\Controls\Form_Builder\dlgLogin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\INCLUDE\FB_FORMS\whLogin.cpp">
+      <Filter>GUI\Controls\Form_Builder\dlgLogin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\whModel_MovHistory.cpp">
+      <Filter>GUI\History\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\whViewCtrl_MovHistory.cpp">
+      <Filter>GUI\History\ViewCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\whPnlCtrl_MovHistory.cpp">
+      <Filter>GUI\History\Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\whViewCtrl_Sorter.cpp">
+      <Filter>GUI\History\_Sorter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\whViewCtrl_Filter.cpp">
+      <Filter>GUI\History\_FilterGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\whDB.cpp">
+      <Filter>DataBase</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\whParser.cpp">
+      <Filter>DataBase\Парсер+Генератор</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\whPnlFavorites.cpp">
+      <Filter>GUI\MainFrame\Панель избранного</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\AdminMainForm.cpp">
+      <Filter>Администрирование</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\whTableMgr.cpp">
+      <Filter>GUI\History\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\BaseTable.cpp">
+      <Filter>GUI\Controls\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\BaseRefControlPanel.cpp">
+      <Filter>GUI\Controls\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\BaseOkCancelDialog.cpp">
+      <Filter>GUI\Controls\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\BaseControlPanel.cpp">
+      <Filter>GUI\Controls\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\BtnProperty.cpp">
+      <Filter>GUI\Controls\PropertyGridExt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MProp.cpp">
+      <Filter>SIG_MODEL\VProp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\DPropEditor.cpp">
+      <Filter>SIG_MODEL\VProp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MActProp.cpp">
+      <Filter>SIG_MODEL\VAct</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MAct.cpp">
+      <Filter>SIG_MODEL\VAct</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\DActPropEditor.cpp">
+      <Filter>SIG_MODEL\VAct\View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\VActPanel.cpp">
+      <Filter>SIG_MODEL\VAct\View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\DActEditor.cpp">
+      <Filter>SIG_MODEL\VAct\View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MGroup.cpp">
+      <Filter>SIG_MODEL\VGroup</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\DGroupEditor.cpp">
+      <Filter>SIG_MODEL\VGroup</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MUser2.cpp">
+      <Filter>SIG_MODEL\VUser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MUserGroup.cpp">
+      <Filter>SIG_MODEL\VUser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\DUserEditor.cpp">
+      <Filter>SIG_MODEL\VUser\View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\DUserGroupEditor.cpp">
+      <Filter>SIG_MODEL\VUser\View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\VUserPanel.cpp">
+      <Filter>SIG_MODEL\VUser\View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MClsTree.cpp">
+      <Filter>SIG_MODEL\VClsTree</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\VClsTreeCtrl.cpp">
+      <Filter>SIG_MODEL\VClsTree</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MClsProp.cpp">
+      <Filter>SIG_MODEL\VCls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MClsMove.cpp">
+      <Filter>SIG_MODEL\VCls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MClsAct.cpp">
+      <Filter>SIG_MODEL\VCls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MClsObjNum.cpp">
+      <Filter>SIG_MODEL\VCls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MClsObjQty.cpp">
+      <Filter>SIG_MODEL\VCls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\VClsDataEditorPanel.cpp">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\DClsEditor.cpp">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\DClsPropEditor.cpp">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\DClsObjNumEditor.cpp">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\DClsObjQtyEditor.cpp">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\DClsActEditor.cpp">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\DClsMoveEditor.cpp">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MClsBase.cpp">
+      <Filter>SIG_MODEL\VClsTree</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MClsFavoriteActProp.cpp">
+      <Filter>SIG_MODEL\VFavoriteClsActProp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MClsActProp.cpp">
+      <Filter>SIG_MODEL\VFavoriteClsActProp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\VClsFavActPropCtrl.cpp">
+      <Filter>SIG_MODEL\VFavoriteClsActProp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\DClsFavoriteProp.cpp">
+      <Filter>SIG_MODEL\VFavoriteClsActProp\Диалог выбора из доступных свойств</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\DClsFavoriteActPropEditor.cpp">
+      <Filter>SIG_MODEL\VFavoriteClsActProp\Редактор избранных свойств</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MObjCatPath.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\модель пути</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MTypeNode.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\модель узлов-типов</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\VObjCatalogDataViewModel.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MObjItem.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\модель узлов-типов</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\VObjCatalogTable.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\VObjCatalogCtrl.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\rdbsRecord.cpp">
+      <Filter>SIG_MODEL\Templates\RDBS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\rdbsIndex.cpp">
+      <Filter>SIG_MODEL\Templates\RDBS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MRProp.cpp">
+      <Filter>SIG_MODEL\Templates\RDBS\Prop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\rdbsTable.cpp">
+      <Filter>SIG_MODEL\Templates\RDBS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\VGrid.cpp">
+      <Filter>SIG_MODEL\Templates\RDBS\Prop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_move_model_MovableObj.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_move_model_DstType.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_move_view_DvModel.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_move_view_Tree.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_move_view_CtrlPanel.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MObjCatalog.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MFavProp.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\модель избранных свойств</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_move_view_Frame.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_act_view_Frame.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог действий</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_act_view_PnlActArray.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог действий</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_act_view_PnlPropGrid.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог действий</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_act_model_Act.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог действий\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_act_model_ActProp.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог действий\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_act_model_Obj.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог действий\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_act_viewActList.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог действий\view_ActList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_act_view_ActListDvModel.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог действий\view_ActList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_mkobj_model_Obj.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Создание объекта</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_mkobj_view_Frame.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Создание объекта</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\INCLUDE\_pch.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\App.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\globaldata.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ResManager.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\singleton.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MainFrame.h">
+      <Filter>GUI\MainFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\wxDataViewRenderer.h">
+      <Filter>GUI\Controls\DataViewExtension</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\FB_FORMS\whLogin.h">
+      <Filter>GUI\Controls\Form_Builder\dlgLogin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\whModel_MovHistory.h">
+      <Filter>GUI\History\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\whTableMgr.h">
+      <Filter>GUI\History\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\whViewCtrl_MovHistory.h">
+      <Filter>GUI\History\ViewCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\whPnlCtrl_MovHistory.h">
+      <Filter>GUI\History\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\whViewCtrl_Sorter.h">
+      <Filter>GUI\History\_Sorter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\whViewCtrl_Filter.h">
+      <Filter>GUI\History\_FilterGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\whDB.h">
+      <Filter>DataBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\wxComboBtn.h">
+      <Filter>GUI\Controls\DataViewExtension</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\Favorites.h">
+      <Filter>GUI\MainFrame\Панель избранного</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\AdminMainForm.h">
+      <Filter>Администрирование</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\EMVP.h">
+      <Filter>Администрирование</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\EVENT.h">
+      <Filter>Администрирование</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\db_rec.h">
+      <Filter>Администрирование</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\EViewTemplates.h">
+      <Filter>Администрирование</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\EventBase.h">
+      <Filter>Администрирование</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\FB_FORMS\dlgBaseLogin.h">
+      <Filter>GUI\Controls\Form_Builder\dlgLogin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\BaseTable.h">
+      <Filter>GUI\Controls\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\BaseRefControlPanel.h">
+      <Filter>GUI\Controls\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\BaseOkCancelDialog.h">
+      <Filter>GUI\Controls\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\BaseControlPanel.h">
+      <Filter>GUI\Controls\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\BtnProperty.h">
+      <Filter>GUI\Controls\PropertyGridExt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MProp.h">
+      <Filter>SIG_MODEL\VProp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\TViewTable.h">
+      <Filter>SIG_MODEL\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\TViewCtrlPanel.h">
+      <Filter>SIG_MODEL\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VPropCtrlPanel.h">
+      <Filter>SIG_MODEL\VProp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\TModel.h">
+      <Filter>SIG_MODEL\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\TVec.h">
+      <Filter>SIG_MODEL\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\TPresenter.h">
+      <Filter>SIG_MODEL\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DPropEditor.h">
+      <Filter>SIG_MODEL\VProp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\TView.h">
+      <Filter>SIG_MODEL\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MActProp.h">
+      <Filter>SIG_MODEL\VAct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MAct.h">
+      <Filter>SIG_MODEL\VAct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VActPanel.h">
+      <Filter>SIG_MODEL\VAct\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VActCtrlPanel.h">
+      <Filter>SIG_MODEL\VAct\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DActPropEditor.h">
+      <Filter>SIG_MODEL\VAct\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DActEditor.h">
+      <Filter>SIG_MODEL\VAct\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MGroup.h">
+      <Filter>SIG_MODEL\VGroup</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VGroupCtrlPanel.h">
+      <Filter>SIG_MODEL\VGroup</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DGroupEditor.h">
+      <Filter>SIG_MODEL\VGroup</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MUser2.h">
+      <Filter>SIG_MODEL\VUser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MUserGroup.h">
+      <Filter>SIG_MODEL\VUser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DUserEditor.h">
+      <Filter>SIG_MODEL\VUser\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DUserGroupEditor.h">
+      <Filter>SIG_MODEL\VUser\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VUserCtrlPanel.h">
+      <Filter>SIG_MODEL\VUser\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VUserPanel.h">
+      <Filter>SIG_MODEL\VUser\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MClsTree.h">
+      <Filter>SIG_MODEL\VClsTree</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VClsTreeCtrl.h">
+      <Filter>SIG_MODEL\VClsTree</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MClsProp.h">
+      <Filter>SIG_MODEL\VCls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MClsAct.h">
+      <Filter>SIG_MODEL\VCls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MClsMove.h">
+      <Filter>SIG_MODEL\VCls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MClsObjNum.h">
+      <Filter>SIG_MODEL\VCls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MClsObjQty.h">
+      <Filter>SIG_MODEL\VCls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VClsPropEditorPanel.h">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VClsActEditorPanel.h">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VClsMoveEditorPanel.h">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VClsObjEditorPanel.h">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DClsEditor.h">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VClsDataEditorPanel.h">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DClsPropEditor.h">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DClsObjNumEditor.h">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DClsObjQtyEditor.h">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DclsActEditor.h">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DClsMoveEditor.h">
+      <Filter>SIG_MODEL\VCls\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MClsBase.h">
+      <Filter>SIG_MODEL\VClsTree</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MClsFavoriteActProp.h">
+      <Filter>SIG_MODEL\VFavoriteClsActProp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MClsActProp.h">
+      <Filter>SIG_MODEL\VFavoriteClsActProp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VClsFavActPropCtrl.h">
+      <Filter>SIG_MODEL\VFavoriteClsActProp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DClsFavoriteActPropEditor.h">
+      <Filter>SIG_MODEL\VFavoriteClsActProp\Редактор избранных свойств</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DClsFavoriteProp.h">
+      <Filter>SIG_MODEL\VFavoriteClsActProp\Диалог выбора из доступных свойств</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MObjCatPath.h">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\модель пути</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MTypeNode.h">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\модель узлов-типов</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\TModelArray.h">
+      <Filter>SIG_MODEL\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VObjCatalogDataViewModel.h">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MObjItem.h">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\модель узлов-типов</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VObjCatalogTable.h">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VObjCatalogCtrl.h">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\RDBS.h">
+      <Filter>SIG_MODEL\Templates\RDBS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\rdbsTrigger.h">
+      <Filter>SIG_MODEL\Templates\RDBS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\rdbsRecord.h">
+      <Filter>SIG_MODEL\Templates\RDBS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\rdbsField.h">
+      <Filter>SIG_MODEL\Templates\RDBS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\rdbsIndex.h">
+      <Filter>SIG_MODEL\Templates\RDBS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MRProp.h">
+      <Filter>SIG_MODEL\Templates\RDBS\Prop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VGrid.h">
+      <Filter>SIG_MODEL\Templates\RDBS\Prop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\rdbsTTable.h">
+      <Filter>SIG_MODEL\Templates\RDBS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_move_model_MovableObj.h">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_move_model_DstType.h">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_move_model_DstObj.h">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_move_view_Tree.h">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_move_view_DvModel.h">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_move_view_CtrlPanel.h">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_move_view_Frame.h">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MObjCatalog.h">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MFavProp.h">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\модель избранных свойств</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_act_view_Frame.h">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог действий</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_act_view_PnlActArray.h">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог действий</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_act_view_PnlPropGrid.h">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог действий</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_act_model_Act.h">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог действий\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_act_model_ActProp.h">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог действий\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_act_model_Obj.h">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог действий\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_act_view_ActList.h">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог действий\view_ActList</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_act_view_ActListDvModel.h">
+      <Filter>SIG_MODEL\Каталог объектов\Диалог действий\view_ActList</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_mkobj_model_Obj.h">
+      <Filter>SIG_MODEL\Каталог объектов\Создание объекта</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_mkobj_view_Frame.h">
+      <Filter>SIG_MODEL\Каталог объектов\Создание объекта</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="wh3.rc">
+      <Filter>Common</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

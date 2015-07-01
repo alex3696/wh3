@@ -1,0 +1,61 @@
+#ifndef __MPROP_H
+#define __MPROP_H
+
+#include "TModel.h"
+#include "db_rec.h"
+
+namespace wh{
+
+
+//-------------------------------------------------------------------------
+class MProp
+	: public TModelData<rec::Prop>
+{
+public:
+	MProp(const char option
+		= ModelOption::EnableParentNotify
+		| ModelOption::EnableNotifyFromChild
+		| ModelOption::CommitSave);
+
+	
+
+	virtual bool GetFieldValue(unsigned int col, wxVariant &variant)override;
+	virtual const std::vector<Field>& GetFieldVector()const override;
+protected:
+	virtual bool GetSelectQuery(wxString&)const override;
+	virtual bool GetInsertQuery(wxString&)const override;
+	virtual bool GetUpdateQuery(wxString&)const override;
+	virtual bool GetDeleteQuery(wxString&)const override;
+	virtual bool LoadThisDataFromDb(std::shared_ptr<whTable>&, const size_t)override;
+	
+};
+
+//-------------------------------------------------------------------------
+//-------------------------------------------------------------------------
+class MPropArray
+	: public IModel
+{
+public:
+	typedef  MProp		T_Item;
+
+	MPropArray(const char option
+		= ModelOption::EnableParentNotify
+		| ModelOption::EnableNotifyFromChild);
+
+	virtual std::shared_ptr<IModel> CreateChild()override;
+	virtual const std::vector<Field>& GetFieldVector()const override;
+protected:
+	virtual bool GetSelectChildsQuery(wxString& query)const override;
+	
+	virtual bool LoadChildDataFromDb(std::shared_ptr<IModel>& child, 
+		std::shared_ptr<whTable>&, const size_t)override;
+
+};
+
+
+
+
+
+
+}//namespace wh{
+#endif // __****_H

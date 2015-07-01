@@ -1,0 +1,122 @@
+#include "_pch.h"
+#include "dlg_move_model_MovableObj.h"
+
+using namespace wh;
+using namespace wh::dlg_move::model;
+
+
+//-----------------------------------------------------------------------------
+// class DstType: public TModelData<rec::TypeNode>
+//-----------------------------------------------------------------------------
+DstType::DstType()
+	:TModelData<DataType>(ModelOption::EnableNotifyFromChild)
+	, mObjects(new DstObjArray)
+{
+	this->AddChild(std::dynamic_pointer_cast<IModel>(mObjects));
+}
+
+//-----------------------------------------------------------------------------
+std::shared_ptr<DstObjArray> DstType::GetObjects()const
+{
+	return mObjects;
+}
+
+//-----------------------------------------------------------------------------
+
+void DstType::LoadChilds()
+{
+	//mObjects->Load();
+}
+
+//-------------------------------------------------------------------------
+bool DstType::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
+{
+	T_Data dst_cls;
+	dst_cls.mType = "1";
+	table->GetAsString(0, row, dst_cls.mID);
+	table->GetAsString(1, row, dst_cls.mLabel);
+	
+	DstObj::DataType dst_obj;
+	dst_obj.mID = table->GetAsString(2, row);
+	dst_obj.mLabel = table->GetAsString(3, row);
+	dst_obj.mPID = ObjArrayToPath(table->GetAsString(4, row));
+
+	auto dstObjModel = std::make_shared<DstObj>();
+	dstObjModel->SetData(dst_obj);
+
+	mObjects->AddChild(std::dynamic_pointer_cast<IModel>(dstObjModel));
+	SetData(dst_cls);
+
+	return true;
+	
+};
+
+
+//-----------------------------------------------------------------------------
+// DstTypeArray
+//-----------------------------------------------------------------------------
+DstTypeArray::DstTypeArray()
+	: TModelArray<ItemType>(ModelOption::EnableParentNotify | ModelOption::CascadeLoad)
+{
+}
+
+//-----------------------------------------------------------------------------
+bool DstTypeArray::GetSelectChildsQuery(wxString& query)const 
+{
+	auto movableModel = dynamic_cast<MovableObj*>(GetParent());
+	if (!movableModel)
+		return false;
+	
+	const rec::PathItem& movable = movableModel->GetData();
+
+	query = wxString::Format(
+		" SELECT _dst_cls_id, cls.label as dst_cls_label "
+		", _dst_obj_id, _dst_obj_label "
+		", (SELECT fn_oidarray_to_path(fget_get_oid_path(_dst_obj_pid))) AS DST_PATH "
+		" FROM lock_for_move(%s,%s,%s) "
+		" LEFT JOIN t_cls cls ON cls.id = _dst_cls_id "
+		" ORDER BY _dst_cls_id "
+		, movable.mCls.mID
+		, movable.mObj.mID
+		, movable.mObj.mPID
+		);
+	return true;
+}
+//-----------------------------------------------------------------------------
+void DstTypeArray::LoadChilds()
+{
+	mTypeUnique.clear();
+	TModelArray::LoadChilds();
+}
+//-----------------------------------------------------------------------------
+bool DstTypeArray::LoadChildDataFromDb(std::shared_ptr<IModel>& child,
+	std::shared_ptr<whTable>& table, const size_t pos)
+{
+	wxString cls_id;
+	table->GetAsString(0, pos, cls_id);
+	
+	auto it = mTypeUnique.find(cls_id);
+	if (mTypeUnique.end() != it)
+	{
+		DstObj::DataType dst_obj;
+
+		dst_obj.mID = table->GetAsString(2, pos);
+		dst_obj.mLabel = table->GetAsString(3, pos);
+		dst_obj.mPID = ObjArrayToPath(table->GetAsString(4, pos));
+		
+		auto dstObjModel = std::make_shared<DstObj>();
+		dstObjModel->SetData(dst_obj,true);
+					
+		it->second->mObjects->AddChild(std::dynamic_pointer_cast<IModel>(dstObjModel));
+		return false;
+	}
+
+	
+	bool is_loaded =  TModelArray::LoadChildDataFromDb(child, table, pos);
+	if (is_loaded)
+	{
+		auto dst_type = std::dynamic_pointer_cast<DstType>(child);
+		mTypeUnique.emplace(cls_id, dst_type);
+	}
+	return is_loaded;
+}

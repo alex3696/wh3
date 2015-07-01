@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="1">
+    <root name="c:/_SAV_DOC/VS/Projects/wh3/"/>
+    <includedir>
+        <dir name="INCLUDE/"/>
+    </includedir>
+    <defines>
+        <define name="WIN32"/>
+        <define name="__DEBUG"/>
+        <define name="_WINDOWS"/>
+        <define name="STRICT"/>
+        <define name="_CRT_SECURE_NO_DEPRECATE"/>
+        <define name="_SCL_SECURE_NO_WARNINGS"/>
+        <define name="__WXMSW__"/>
+        <define name="__WX__"/>
+        <define name="__WXDEBUG__"/>
+        <define name="wxUSE_UNICODE"/>
+        <define name="WXUSINGDLL"/>
+    </defines>
+    <libraries>
+        <library>windows</library>
+    </libraries>
+</project>
