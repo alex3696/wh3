@@ -17,25 +17,6 @@ enum ModelState
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
-/*
-enum whDataType
-{
-	whTypeUnknown=0,
-	whTypeID,
-	whRuleID,
-	whObjectID,
-	whFolderID,
-	whTrashFolderID,
-	//Virual Folders
-	whTypeObjects,
-	whTypeMoveRules,
-	whTypeProp,
-	wxTypeActions
-
-
-};
-*/
-// ----------------------------------------------------------------------------
 #define wxID_NEW_FOLDER		1000
 #define wxID_NEW_TYPE		1001
 #define wxID_NEW_OBJECT		1002
@@ -44,47 +25,11 @@ enum whDataType
 #define wxID_MKOBJ			1004
 #define wxID_MKCLS			1005
 // ----------------------------------------------------------------------------
-#define whID_UNKNOWN		0
-#define whID_DB				1
-#define whID_TABLE			2
-#define whID_TYPEIDENT		3
-#define whID_OBJIDENT		4
-#define whID_IDENT			5
-#define whID_BASEDIR		6
-#define whID_RULEIDENT		7
-#define whID_FOLDERIDENT	8
-
-
-#define whID_TYPERULESLIST		9
-#define whID_TYPEOBJSLIST		10
-#define whID_TYPEVIRTUALLIST	11
-#define whID_TYPEFOLDERLIST		12
-#define whID_TYPEACTLIST		13
-#define whID_TYPEPROPLIST		14
-
-#define whID_GROUPIDENT			15
-#define whID_USERIDENT			16
-
-#define whNODE_GROUPIDENT		17
-
-#define whID_NODE_WHCLASSES		20
-#define whID_NODE_WHSLOTS		21
-#define whID_NODEPERM			22
-#define whID_NODE_NULL			0
-
-#define whID_NODE_SLOTLIST		30
-
 
 #define whID_CATALOG_SELECT		1100
 #define whID_CATALOG_PATH		1101
 #define whID_CATALOG_TYPE		1102
 
-
-
-
-
-
-typedef Base whBase;
 
 //----------------------------------------------------------------------------
 class	whTable;
@@ -109,7 +54,7 @@ public:
 	whTable*			ExecWithResults(const wxString& query);
 	whTable_shared_ptr	ExecWithResultsSPtr(const wxString& query);
 
-	int			Exec(const wxString& query);
+	int			Exec(const wxString& query, bool with_result = true);
 	int			Exec(const wxString& query,whTable* table);
 	whTable*	Exec(const wxString& query,std::deque<wxString>& pathes);
 

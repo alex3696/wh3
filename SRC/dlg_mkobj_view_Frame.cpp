@@ -144,5 +144,9 @@ void Frame::OnCancel(wxCommandEvent& evt )
 //---------------------------------------------------------------------------
 void Frame::OnOk(wxCommandEvent& evt )
 {
+	auto data = mObj->GetData();
+	GetData(data);
+	mObj->SetData(data);
 	mObj->Save();
+	EndModal(wxID_OK);
 }

@@ -997,7 +997,7 @@ protected:
 private:
 	void ExecSaveWithoutResult(const wxString& query)
 	{
-		int result = whDataMgr::GetDB().Exec(query);
+		int result = whDataMgr::GetDB().Exec(query, false);
 		if (!result)
 			MarkSavedData();
 		else
