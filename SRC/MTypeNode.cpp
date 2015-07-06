@@ -31,6 +31,7 @@ bool MTypeItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t
 	table->GetAsString(2, row, data.mID);
 	table->GetAsString(3, row, data.mType);
 	table->GetAsString(4, row, data.mMeasure);
+	table->GetAsString(5, row, data.mDefaultPid);
 	SetData(data);
 	return true;
 };
@@ -88,17 +89,19 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 	if (catalog->mCfg->GetData().mObjCatalog)
 	{
 		query = wxString::Format(
-			"SELECT cls_label, COALESCE(SUM(qty),0), cls_id,  type, measurename "
+			"SELECT cls_label, COALESCE(SUM(qty),0), "
+			"cls_id,  type, measurename, cls_default_pid "
 			" FROM w_obj "
 			" WHERE obj_pid = %s "
-			" GROUP BY cls_label, cls_id, type, measurename "
+			" GROUP BY cls_label, cls_id, type, measurename, cls_default_pid"
 			, root.mObj.mID );
 		return true;
 	}
 	else
 	{
 		query = wxString::Format(
-			"SELECT label, COALESCE(SUM(w_obj.qty),0), id, t_cls.type, t_cls.measurename "
+			"SELECT label, COALESCE(SUM(w_obj.qty),0), id, t_cls.type, "
+			"t_cls.measurename, t_cls.default_pid "
 			" FROM t_cls "
 			" LEFT JOIN w_obj ON w_obj.cls_id = t_cls.id "
 			" WHERE pid = %s "

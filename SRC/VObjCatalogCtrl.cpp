@@ -265,7 +265,41 @@ void VObjCatalogCtrl::OnCmdAct(wxCommandEvent& evt)
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnMkObj(wxCommandEvent& evt)
 {
+	using namespace object_catalog;
+	
+	
+	MTypeItem* typeItem(nullptr);
 
+	auto selectedItem = mTableView->GetSelection();
+	if (selectedItem.IsOk())
+	{
+		auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
+		auto objItem = dynamic_cast<MObjItem*> (modelInterface);
+		
+		if (objItem)
+		{
+			auto objArray = dynamic_cast<MObjArray*> (objItem->GetParent());
+			typeItem = dynamic_cast<MTypeItem*> (objArray->GetParent());
+		}
+		else
+			typeItem = dynamic_cast<MTypeItem*> (modelInterface);
+	}
+
+	if (!typeItem)
+		return;
+
+	auto newObjModel = typeItem->mObjArray->CreateChild();
+	typeItem->mObjArray->AddChild(newObjModel);
+
+	auto newObj = std::dynamic_pointer_cast<MObjItem>(newObjModel);
+
+	object_catalog::view::Frame dlg;
+	dlg.SetModel(newObj);
+	auto result = dlg.ShowModal();
+	if (wxID_OK != result)
+		typeItem->mObjArray->DelChild(newObjModel);
+
+	OnCmdReload(wxCommandEvent(wxID_REFRESH));
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnMkCls(wxCommandEvent& evt)

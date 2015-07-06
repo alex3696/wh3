@@ -52,6 +52,44 @@ const MTypeItem* MObjItem::GetCls()const
 	return nullptr;
 }
 //-------------------------------------------------------------------------
+wxString MObjItem::GetPathString() 
+{
+	const auto obj_array = this->GetParent();
+	if (obj_array)
+	{
+		const auto cls = dynamic_cast<MTypeItem*>(obj_array->GetParent());
+		if (cls)
+		{ 
+			const auto cls_array = dynamic_cast<MTypeArray*>(cls->GetParent());
+			if (cls_array)
+			{ 
+				const auto catalog = dynamic_cast<MObjCatalog*>(cls_array->GetParent());
+				if (catalog)
+				{
+					if (catalog->mCfg->GetData().mObjCatalog)
+					{
+						const auto obj_data = this->GetData();
+						const auto cls_data = cls->GetData();
+
+						return catalog->mPath->GetPathStr() 
+							+ wxString::Format("[%s]%s/"
+							, cls_data.mLabel
+							, obj_data.mLabel);
+					}
+					else
+					{
+						auto path = std::make_shared<model::ObjPath>();
+						this->AddChild(std::dynamic_pointer_cast<IModel>(path));
+						path->Load();
+						return path->AsString();
+					}
+				}
+			}//if (cls_array)
+		}//if (cls)
+	} //if(obj_array)
+	return wxEmptyString;
+}
+//-------------------------------------------------------------------------
 bool MObjItem::GetInsertQuery(wxString& query)const
 {
 	auto parentArray = dynamic_cast<MObjArray*>(this->mParent);

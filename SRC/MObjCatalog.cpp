@@ -9,7 +9,7 @@ using namespace wh::object_catalog;
 //-------------------------------------------------------------------------
 MObjCatalog::MObjCatalog(const char option)
 	:TModelData<rec::PathItem>(option)
-	, mPath(new MPath)
+	, mPath(new model::MPath)
 	, mTypeArray(new MTypeArray)
 	, mFavProps(new MFavProp)
 	, mCfg(new MCatalogCfg)

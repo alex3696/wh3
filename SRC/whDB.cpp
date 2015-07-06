@@ -132,9 +132,11 @@ int whTable::Exec(const wxString& query,bool with_result)
 	catch(DatabaseLayerException & e)
 	{
 		result = e.GetErrorCode();
-		if (result != 0)
+		auto estr = e.GetErrorMessage().GetData().AsString();
+
+		if (result != 0 || !estr.IsEmpty() )
 		{
-			wxString str = wxString::Format(("%d %s"), e.GetErrorCode(), e.GetErrorMessage().GetData());
+			wxString str = wxString::Format(("%d %s"), result, estr);
 			wxMessageBox(str);
 		}
 	}

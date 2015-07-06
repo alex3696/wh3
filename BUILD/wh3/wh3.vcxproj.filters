@@ -139,6 +139,9 @@
     <Filter Include="SIG_MODEL\Каталог объектов\Создание объекта">
       <UniqueIdentifier>{2a545cbd-ca0b-440b-8e92-6d14012aac1d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SIG_MODEL\Каталог объектов\Основная панель\model">
+      <UniqueIdentifier>{bcbf5ed3-683c-4abe-8ecd-cffd64a455c6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -389,9 +392,6 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\dlg_act_view_ActListDvModel.cpp">
       <Filter>SIG_MODEL\Каталог объектов\Диалог действий\view_ActList</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\dlg_mkobj_model_Obj.cpp">
-      <Filter>SIG_MODEL\Каталог объектов\Создание объекта</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\dlg_mkobj_view_Frame.cpp">
       <Filter>SIG_MODEL\Каталог объектов\Создание объекта</Filter>
@@ -724,9 +724,6 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dlg_act_view_ActListDvModel.h">
       <Filter>SIG_MODEL\Каталог объектов\Диалог действий\view_ActList</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\dlg_mkobj_model_Obj.h">
-      <Filter>SIG_MODEL\Каталог объектов\Создание объекта</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dlg_mkobj_view_Frame.h">
       <Filter>SIG_MODEL\Каталог объектов\Создание объекта</Filter>

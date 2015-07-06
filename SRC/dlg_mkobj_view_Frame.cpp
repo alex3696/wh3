@@ -1,6 +1,5 @@
 #include "_pch.h"
 #include "dlg_mkobj_view_Frame.h"
-#include "BtnProperty.h"
 #include "MObjCatalog.h"
 
 
@@ -18,11 +17,10 @@ Frame::Frame(wxWindow* parent,
 	//: wh::view::DlgBaseOkCancel(parent, id, title, pos, size, style, name)
 	: wxDialog(parent, id, title, pos, size, style, name)
 {
-	this->SetTitle("Создание объекта");
 	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
 
 	auto mgr = ResMgr::GetInstance();
-	this->SetIcon(wxIcon(mgr->m_ico_classprop16));
+	this->SetIcon(wxIcon(mgr->m_icoObj24));
 	mgr->FreeInst();
 	
 	mPropGrid = new wxPropertyGrid(this);
@@ -46,7 +44,8 @@ Frame::Frame(wxWindow* parent,
 	mPropGrid->Append(pg_mainInfo);
 
 	pg_mainInfo->AppendChild(new wxStringProperty(L"Имя", wxPG_LABEL));
-	pg_mainInfo->AppendChild(new wxStringProperty(L"Количество", wxPG_LABEL));
+	mPGQty = new wxFloatProperty(L"Количество", wxPG_LABEL);
+	pg_mainInfo->AppendChild(mPGQty);
 	pg_mainInfo->AppendChild(new wxStringProperty(L"ID", wxPG_LABEL))->Enable(false);
 
 	auto pg_pathInfo = new wxPropertyCategory("Местоположение");
@@ -56,11 +55,12 @@ Frame::Frame(wxWindow* parent,
 
 	std::function<bool(wxPGProperty*)> selectProp =
 		std::bind(&Frame::OnSelectPath, this, std::placeholders::_1);
-	BtnProperty* btnProp = new BtnProperty("Путь");
-	btnProp->SetOnClickButonFunc(selectProp);
-	pg_pathInfo->AppendChild(btnProp);
+	mPGPath = new BtnProperty("Путь");
+	mPGPath->SetOnClickButonFunc(selectProp);
+	pg_pathInfo->AppendChild(mPGPath);
 	
-	pg_pathInfo->AppendChild(new wxStringProperty(L"PID", wxPG_LABEL))->Enable(false);
+	mPGPid = new wxStringProperty(L"PID", wxPG_LABEL);
+	pg_pathInfo->AppendChild(mPGPid)->Enable(false);
 	
 	
 }
@@ -86,9 +86,40 @@ void Frame::OnChangeModel(const IModel& model)
 {
 	if (mObj && mObj.get() == &model)
 	{
-		const auto state = model.GetState();
-		const auto& data = mObj->GetData();
-		SetData(data);
+		const auto& cls_data = mObj->GetCls()->GetData();
+		const auto& obj_data = mObj->GetData();
+		const auto  obj_state = model.GetState();
+		
+		SetData(obj_data);
+
+		ClsType ct;
+		if (cls_data.GetClsType(ct))
+			switch (ct)
+			{
+			case ctSingle: 
+				mPGQty->SetValueFromString("1"); 
+				mPGQty->Enable(false);
+				break;
+			case ctQtyByOne:
+			case ctQtyByFloat:
+				mPGQty->SetValueFromString(obj_data.mQty);
+				mPGQty->Enable(true);
+			default:break;
+			}
+		
+		switch (obj_state)
+		{
+		default:		SetTitle("**error**");			break;
+		case msCreated: 
+			SetTitle("Создание объекта");
+			mPGPid->SetValueFromString(cls_data.mDefaultPid);
+			break;
+		case msExist:
+		case msUpdated:	
+			SetTitle("Редактирование объекта");
+			mPGPath->SetValueFromString(mObj->GetPathString());
+			break;
+		}
 	}
 }
 //---------------------------------------------------------------------------
@@ -98,7 +129,7 @@ void Frame::GetData(object_catalog::MObjItem::T_Data& data) const
 
 	// значение свойства получается из диалоа
 	data.mLabel = mPropGrid->GetPropertyByLabel("Имя")->GetValueAsString();
-	data.mQty = mPropGrid->GetPropertyByLabel("Количество")->GetValueAsString();
+	data.mQty = mPGQty->GetValueAsString();
 	//data.mObj.??? = mPropGrid->GetPropertyByLabel("Путь")->GetValueAsString();
 	data.mID = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
 	data.mPID = mPropGrid->GetPropertyByLabel("PID")->GetValueAsString();
@@ -111,17 +142,10 @@ void Frame::SetData(const object_catalog::MObjItem::T_Data& data)
 	mPropGrid->CommitChangesFromEditor();
 
 	mPropGrid->GetPropertyByLabel(L"Имя")->SetValueFromString(data.mLabel);
-	mPropGrid->GetPropertyByLabel(L"Количество")->SetValueFromString(data.mQty);
+	
 	
 	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(data.mID);
 	mPropGrid->GetPropertyByLabel(L"PID")->SetValueFromString(data.mPID);
-
-	auto catalog = dynamic_cast<object_catalog::MObjCatalog*>(mObj->GetParent());
-	if (catalog)
-	{
-		mPropGrid->GetPropertyByLabel(L"Путь")->SetValueFromString(catalog->mPath->GetPathStr());
-	}
-
 }
 //---------------------------------------------------------------------------
 bool Frame::OnSelectPath(wxPGProperty* prop)

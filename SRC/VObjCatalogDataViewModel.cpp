@@ -389,13 +389,14 @@ void VObjCatalogDataViewModel::OnObjAppend(const IModel& newVec,
 {
 	auto clsItem = dynamic_cast<object_catalog::MTypeItem*>(newVec.GetParent());
 	
-	wxDataViewItemArray itemArray;
+	wxDataViewItemArray newObjArray;
 	for (const unsigned int& i : itemVec)
 	{
-		wxDataViewItem typeItem(newVec.GetChild(i).get());
-		itemArray.Add(typeItem);
+		auto child = newVec.GetChild(i);
+		wxDataViewItem objItem(child.get());
+		newObjArray.Add(objItem);
 	}
-	ItemsAdded(wxDataViewItem(NULL), itemArray);
+	ItemsAdded(wxDataViewItem(clsItem), newObjArray);
 }
 //---------------------------------------------------------------------------
 void VObjCatalogDataViewModel::OnObjRemove(const IModel& newVec,

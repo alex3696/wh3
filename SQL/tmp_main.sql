@@ -97,7 +97,7 @@ DROP FUNCTION IF EXISTS move_num_object(anyarray, anyarray);
 
 -- таблица содеоржащая иерархическую структуру наследования КЛАССОВ 
 CREATE TABLE t_cls ( 
-    id           SERIAL   NOT NULL           CHECK (id>=0)  -- идентификатор записи
+    id           SERIAL   NOT NULL           -- идентификатор записи
     ,vid         SERIAL   NOT NULL           CHECK (vid>=0)  -- идентификатор версии
     ,label       NAME     NOT NULL                          -- имя класса
     ,type        SMALLINT NOT NULL DEFAULT 1 --(class_type=0[abstract] class_type=1[numbered] OR class_type=2[quantity]),
@@ -105,7 +105,7 @@ CREATE TABLE t_cls (
     ,description TEXT              DEFAULT NULL
     ,measurename TEXT              DEFAULT 'ед.'
 
-    ,default_pid BIGINT   NOT NULL DEFAULT 0 -- местоположение объектов по умолчанию
+    ,default_pid BIGINT   NOT NULL DEFAULT 1 -- местоположение объектов по умолчанию
 
 
 ,CONSTRAINT pk_cls_label      PRIMARY KEY ( label )
@@ -118,7 +118,9 @@ CREATE TABLE t_cls (
     REFERENCES                    t_cls( id )
     MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
 
-,CONSTRAINT ck_class_root    CHECK ( id<>pid OR (id=0 AND pid=0)) -- один корень
+,CONSTRAINT ck_cls_root CHECK (  (id=0 AND pid=0) -- main root
+                               OR(id=1 AND pid=0) -- Object0
+                               OR(id>1 AND pid>0 AND id<>pid)   )  -- один корень
 ,CONSTRAINT ck_class_mess    CHECK (  
        ( type=0            AND measurename IS NULL ) --если нет единиц измерения класс должен быть абстрактным
     OR ( type=1            AND measurename = 'ед.' ) --если номерной класс
@@ -347,7 +349,7 @@ CREATE TABLE t_objnum (
     ,obj_label   NAME     NOT NULL
     ,last_log_id BIGINT                                          CHECK (last_log_id>=0)
     ,pid         BIGINT   NOT NULL DEFAULT 1 
-    ,id          BIGINT   NOT NULL DEFAULT nextval('seq_obj_id') CHECK (id>=0)
+    ,id          BIGINT   NOT NULL DEFAULT nextval('seq_obj_id') 
 
 
 ,CONSTRAINT pk_objnum        PRIMARY KEY(obj_label, cls_id) 
@@ -364,7 +366,9 @@ CREATE TABLE t_objnum (
     REFERENCES                 t_clsnum    (cls_id)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 
-,CONSTRAINT ck_objnum_one_root CHECK ( (id=0 AND pid=0) OR id<>pid   )  -- один корень
+,CONSTRAINT ck_objnum_one_root CHECK (  (id=0 AND pid=0) -- main root
+                                      OR(id=1 AND pid=0) -- Object0
+                                      OR(id>1 AND pid>0 AND id<>pid)   )  -- один корень
 
 );
 GRANT SELECT                  ON TABLE t_objnum TO "Guest";
@@ -1372,7 +1376,7 @@ LANGUAGE 'plpgsql';
 -----------------------------------------------------------------------------------------------------------------------------
 DROP VIEW IF EXISTS w_obj;
 CREATE OR REPLACE VIEW w_obj AS 
-SELECT obj.*, t_cls.label AS cls_label, t_cls.type, t_cls.measurename
+SELECT obj.*, t_cls.label AS cls_label, t_cls.type, t_cls.measurename, t_cls.default_pid AS cls_default_pid
   FROM t_cls
   RIGHT JOIN ( SELECT id AS obj_id, pid AS obj_pid, cls_id , obj_label, last_log_id, 1::NUMERIC AS qty
                  FROM t_objnum   

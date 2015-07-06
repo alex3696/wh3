@@ -156,7 +156,6 @@
     <ClCompile Include="..\..\SRC\dlg_act_view_Frame.cpp" />
     <ClCompile Include="..\..\SRC\dlg_act_view_PnlActArray.cpp" />
     <ClCompile Include="..\..\SRC\dlg_act_view_PnlPropGrid.cpp" />
-    <ClCompile Include="..\..\SRC\dlg_mkobj_model_Obj.cpp" />
     <ClCompile Include="..\..\SRC\dlg_mkobj_view_Frame.cpp" />
     <ClCompile Include="..\..\SRC\dlg_move_model_DstType.cpp" />
     <ClCompile Include="..\..\SRC\dlg_move_model_MovableObj.cpp" />
@@ -283,7 +282,6 @@
     <ClInclude Include="..\..\INCLUDE\dlg_act_view_Frame.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_act_view_PnlActArray.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_act_view_PnlPropGrid.h" />
-    <ClInclude Include="..\..\INCLUDE\dlg_mkobj_model_Obj.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_mkobj_view_Frame.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_move_model_DstObj.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_move_model_DstType.h" />

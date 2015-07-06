@@ -57,7 +57,7 @@ public:
 	}
 	
 	
-	std::shared_ptr<MPath>			mPath;
+	std::shared_ptr<model::MPath>	mPath;
 
 	std::shared_ptr<MCatalogCfg>	mCfg;
 	std::shared_ptr<MTypeArray>		mTypeArray;

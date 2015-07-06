@@ -24,6 +24,7 @@ public:
 	virtual bool LoadThisDataFromDb(std::shared_ptr<whTable>&, const size_t)override;
 
 	const MTypeItem* GetCls()const;
+	wxString GetPathString() ;
 
 protected:
 	virtual bool GetInsertQuery(wxString&)const override;
