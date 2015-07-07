@@ -35,10 +35,13 @@ VObjCatalogTable::VObjCatalogTable(wxWindow*		parent,
 	AppendTextColumn("Количество", 2, wxDATAVIEW_CELL_INERT, 100,
 		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 	AppendTextColumn("ID", 3, wxDATAVIEW_CELL_INERT, 50,
-		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);// ->SetHidden(true);
+		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 	AppendTextColumn("PID", 4, wxDATAVIEW_CELL_INERT, 50,
 		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 	AppendTextColumn("LastLogId", 5, wxDATAVIEW_CELL_INERT, 100,
+		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
+
+	AppendTextColumn("Местоположение", 6, wxDATAVIEW_CELL_INERT, 100,
 		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 
 }
@@ -94,9 +97,9 @@ void VObjCatalogTable::OnCatalogUpdate(const IModel& model)
 //---------------------------------------------------------------------------
 void VObjCatalogTable::ResetColumns()
 {
-	while (this->GetColumnCount() > 5)
+	while (this->GetColumnCount() > 6)
 	{
-		auto column = GetColumn(5);
+		auto column = GetColumn(6);
 		DeleteColumn(column);
 	}
 
@@ -106,12 +109,24 @@ void VObjCatalogTable::ResetColumns()
 		GetColumn(2)->SetHidden(hidden);
 		GetColumn(3)->SetHidden(hidden);
 		GetColumn(4)->SetHidden(hidden);
+
+		if (mCatalogModel->mCfg->GetData().mObjCatalog)
+		{
+			GetColumn(5)->SetHidden(true);
+			this->DisableAutosizeColumn(5);
+		}
+		else
+		{
+			GetColumn(5)->SetHidden(false);
+			EnableAutosizeColumn(5);
+		}
+			
 	}
 }
 //---------------------------------------------------------------------------
 void VObjCatalogTable::BuildColumns()
 {
-	int colIndex = 6;
+	int colIndex = 7;
 
 	for (const auto& prop : mCatalogModel->GetFavProps())
 	{

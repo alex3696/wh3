@@ -27,6 +27,7 @@ bool MObjItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t 
 	table->GetAsString(col++, row, data.mQty);
 	table->GetAsString(col++, row, data.mLastLogId);
 
+	table->GetAsString(col++, row, mPath);
 	while (col < table->GetColumnCount())
 	{
 		wxString str_data;
@@ -227,7 +228,8 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 		if (catalogModel->mCfg->GetData().mObjCatalog)
 		{
 			query = wxString::Format(
-				"SELECT w_obj.obj_id, obj_pid, w_obj.obj_label, qty, last_log_id %s "
+				"SELECT w_obj.obj_id, obj_pid, w_obj.obj_label, qty "
+				", last_log_id, NULL AS path %s "
 				" FROM w_obj "
 				" %s "
 				" WHERE obj_pid = %s AND w_obj.cls_id = %s "
@@ -241,7 +243,8 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 		else
 		{
 			query = wxString::Format(
-				"SELECT w_obj.obj_id, obj_pid, w_obj.obj_label, qty, last_log_id %s "
+				"SELECT w_obj.obj_id, obj_pid, w_obj.obj_label, qty "
+				 ", last_log_id, get_path( obj_pid) %s "
 				" FROM w_obj "
 				" %s "
 				" WHERE w_obj.cls_id = %s "

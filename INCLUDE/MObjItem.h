@@ -26,6 +26,7 @@ public:
 	const MTypeItem* GetCls()const;
 	wxString GetPathString() ;
 
+	wxString mPath;
 protected:
 	virtual bool GetInsertQuery(wxString&)const override;
 	virtual bool GetUpdateQuery(wxString&)const override;

@@ -36,9 +36,7 @@ bool VObjCatalogDataViewModel::IsContainer(const wxDataViewItem &dataViewItem)co
 	auto modelInterface = static_cast<IModel*> (dataViewItem.GetID());
 	auto typeItem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
 
-	if (typeItem && !typeItem->IsAbstract() )
-		return true;
-	return false;
+	return (bool)typeItem;
 }
 //---------------------------------------------------------------------------
 
@@ -97,8 +95,9 @@ void VObjCatalogDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 		case 3:		val = obj.mID;			break;
 		case 4:		val = obj.mPID;			break;
 		case 5:		val = obj.mLastLogId;	break;
-		default:	if (obj.mProp.size() > (col - 6) )
-						val = obj.mProp[col - 6];
+		case 6:		val = objItem->mPath;	break;
+		default:	if (obj.mProp.size() > (col - 7) )
+						val = obj.mProp[col - 7];
 					break;
 		}
 			
@@ -126,7 +125,7 @@ bool VObjCatalogDataViewModel::GetAttr(const wxDataViewItem &dataViewItem, unsig
 		{
 			attr.SetBold(true);
 			typeItem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
-			if (col > 5)
+			if (col > 6)
 				attr.SetBackgroundColour(wxColour(240, 240, 240));
 			//return true;
 
@@ -141,15 +140,15 @@ bool VObjCatalogDataViewModel::GetAttr(const wxDataViewItem &dataViewItem, unsig
 			auto catalog = dynamic_cast<object_catalog::MObjCatalog*> (typeArray->GetParent());
 			
 			ClsType clsType;
-			if (typeItem->GetData().GetClsType(clsType) && ctSingle!=clsType && col > 5)
+			if (typeItem->GetData().GetClsType(clsType) && ctSingle!=clsType && col > 6)
 				//attr.SetBackgroundColour(wxColour(240, 240, 240));
 				has_bg = false;
 			else
 			{
 				auto favProp = catalog->GetFavProps();
-				if (col > 5 && favProp.size())
+				if (col > 6 && favProp.size())
 				{
-					const auto& field = favProp[col - 6];
+					const auto& field = favProp[col - 7];
 					const auto& typeId = typeItem->GetData().mID;
 
 					auto it = field.mCls->find(typeId);
@@ -343,14 +342,14 @@ void VObjCatalogDataViewModel::OnClsAppend(const IModel& newVec,
 	wxDataViewItemArray typeItemArray;
 	for (const unsigned int& i : itemVec)
 	{
-		auto clsModel =
-			std::dynamic_pointer_cast<object_catalog::MTypeItem>(typeArray->GetChild(i));
+		auto clsModel = std::dynamic_pointer_cast<object_catalog::MTypeItem>
+			(typeArray->GetChild(i));
 						
 		wxDataViewItem typeItem(clsModel.get());
 		typeItemArray.Add(typeItem);
 
 		mConnAddObj[typeItem] = clsModel->mObjArray->ConnectAppendSlot(
-				std::bind(&VObjCatalogDataViewModel::OnObjAppend, this, sph::_1, sph::_2));
+			std::bind(&VObjCatalogDataViewModel::OnObjAppend, this, sph::_1, sph::_2));
 
 		mConnDelObj[typeItem] = clsModel->mObjArray->ConnectBeforeRemove(
 			std::bind(&VObjCatalogDataViewModel::OnObjRemove, this, sph::_1, sph::_2));
@@ -358,30 +357,7 @@ void VObjCatalogDataViewModel::OnClsAppend(const IModel& newVec,
 	}
 	ItemsAdded(wxDataViewItem(NULL), typeItemArray);
 
-	/*
-	for (const unsigned int& i : itemVec)
-	{
-		auto typeModel = std::dynamic_pointer_cast<object_catalog::MTypeItem>
-			(typeArray->GetChild(i));
-		const auto  objArray = typeModel->mObjArray;
-		const auto objQty = objArray->GetChildQty();
-		if (objQty)
-		{
-			wxDataViewItemArray objItemArray;
-			for (unsigned int j = 0; j < objArray->GetChildQty(); ++j)
-			{
-				wxDataViewItem objItem(objArray->GetChild(j).get());
-				objItemArray.Add(objItem);
-			}
-			ItemsAdded(typeItemArray[i], objItemArray);
-		}
-	}
-	*/
-	
-	//Select(wxDataViewItem(nullptr));
-
 }//OnAppend
-
 
 //---------------------------------------------------------------------------
 void VObjCatalogDataViewModel::OnObjAppend(const IModel& newVec,
