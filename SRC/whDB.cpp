@@ -130,7 +130,7 @@ int whTable::Exec(const wxString& query,bool with_result)
 		result = e.GetErrorCode();
 		auto estr = e.GetErrorMessage().GetData().AsString();
 
-		if ((result != 2 && !with_result) /* && result != 0 */)
+		if ((result != 2 && !with_result) || !estr.IsEmpty() )
 		{
 			wxString str = wxString::Format(("%d %s"), result, estr);
 			wxMessageBox(str);

@@ -204,15 +204,16 @@ DECLARE
     _insert_log_query TEXT;
     _select_state     TEXT;
     _prop_val_array     TEXT[];
-    _prop_val_item      TEXT;
     
+    _hdr_qty INTEGER;
 BEGIN
+    _hdr_qty :=0;
     _hdr_str :='';
     _val_str :='';
     FOR rec IN _all_prop_names LOOP
         _hdr_str := concat_ws(',',_hdr_str,quote_ident(rec.label) );
+        _hdr_qty := _hdr_qty+1;
     END LOOP;
-    
 
 
     IF _hdr_str<>'' THEN
@@ -222,13 +223,9 @@ BEGIN
         RAISE DEBUG '_select_state= %',_select_state;
         EXECUTE _select_state INTO _prop_val_array;
         
-        IF _prop_val_array IS NOT NULL THEN
-            _val_str :='';
-            FOREACH _prop_val_item IN ARRAY _prop_val_array
-            LOOP
-                _val_str := concat_ws(',',_val_str,COALESCE(quote_literal(_prop_val_item),'NULL'));
-            END LOOP;
-        END IF;
+        FOR i IN 1.._hdr_qty LOOP
+            _val_str := concat_ws(',',_val_str,COALESCE(quote_literal(_prop_val_array[i]),'NULL'));
+        END LOOP;
         _val_str:=TRIM(leading ',' from _val_str);
 
         _hdr_str:=_hdr_str||',';
