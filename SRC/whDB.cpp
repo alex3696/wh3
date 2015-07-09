@@ -110,7 +110,6 @@ void whTable::Close()
 	if(m_DB && m_Result)
 	{
 		m_DB->GetConn()->CloseResultSet(m_Result);
-		//m_Connection->CloseResultSet(m_Result);
 		m_Result=NULL;
 	}
 }
@@ -125,20 +124,20 @@ int whTable::Exec(const wxString& query,bool with_result)
 			m_Result=m_DB->GetConn()->RunQueryWithResults(query); 
 		else
 			result=!m_DB->GetConn()->RunQuery(query, false);
-		//m_Result = m_DB->GetConn()->RunQueryWithResults(query);
-		//if (!with_result)
-		//	Close();
 	}
 	catch(DatabaseLayerException & e)
 	{
 		result = e.GetErrorCode();
 		auto estr = e.GetErrorMessage().GetData().AsString();
 
-		if (result != 0 || !estr.IsEmpty() )
+		if ((result != 2 && !with_result) /* && result != 0 */)
 		{
 			wxString str = wxString::Format(("%d %s"), result, estr);
 			wxMessageBox(str);
 		}
+		else
+			result = 0;
+
 	}
 
 	return result;	

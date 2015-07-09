@@ -50,7 +50,7 @@ bool MPropChild::GetDeleteQuery(wxString& query)const
 {
 	const auto& data = GetData();
 	query = wxString::Format(
-		"DELETE FROM t_act WHERE id = %s "
+		"DELETE FROM t_prop WHERE id = %s "
 		, data.mID);
 	return true;
 }

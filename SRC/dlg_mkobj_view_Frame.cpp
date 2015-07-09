@@ -113,11 +113,13 @@ void Frame::OnChangeModel(const IModel& model)
 		case msCreated: 
 			SetTitle("Создание объекта");
 			mPGPid->SetValueFromString(cls_data.mDefaultPid);
+			mPGPath->Enable(true);
 			break;
 		case msExist:
 		case msUpdated:	
 			SetTitle("Редактирование объекта");
 			mPGPath->SetValueFromString(mObj->GetPathString());
+			mPGPath->Enable(false);
 			break;
 		}
 	}
