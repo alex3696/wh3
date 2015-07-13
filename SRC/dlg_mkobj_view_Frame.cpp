@@ -84,44 +84,84 @@ void Frame::SetModel(std::shared_ptr<object_catalog::MObjItem>& newModel)
 //---------------------------------------------------------------------------
 void Frame::OnChangeModel(const IModel& model)
 {
-	if (mObj && mObj.get() == &model)
-	{
-		const auto& cls_data = mObj->GetCls()->GetData();
-		const auto& obj_data = mObj->GetData();
-		const auto  obj_state = model.GetState();
-		
-		SetData(obj_data);
+	if (!mObj || mObj.get() != &model)
+		return;
+	auto obj_array = mObj->GetParent();
+	if (!obj_array)
+		return;
+	auto cls_model = dynamic_cast<MTypeItem*>(obj_array->GetParent());
+	if (!cls_model)
+		return;
+	auto cls_array = cls_model->GetParent();
+	if (!cls_array)
+		return;
+	auto catalog = dynamic_cast<MObjCatalog*>(cls_array->GetParent());
+	if (!catalog)
+		return;
 
-		ClsType ct;
-		if (cls_data.GetClsType(ct))
-			switch (ct)
-			{
-			case ctSingle: 
-				mPGQty->SetValueFromString("1"); 
-				mPGQty->Enable(false);
-				break;
-			case ctQtyByOne:
-			case ctQtyByFloat:
-				mPGQty->SetValueFromString(obj_data.mQty);
-				mPGQty->Enable(true);
-			default:break;
-			}
+
+	const auto& cls_data = cls_model->GetData();
+	const auto& obj_data = mObj->GetData();
+	const auto  obj_state = model.GetState();
 		
-		switch (obj_state)
+	SetData(obj_data);
+
+
+
+
+	ClsType ct;
+	if (cls_data.GetClsType(ct))
+		switch (ct)
 		{
-		default:		SetTitle("**error**");			break;
-		case msCreated: 
-			SetTitle("Создание объекта");
-			mPGPid->SetValueFromString(cls_data.mDefaultPid);
-			mPGPath->Enable(true);
+		case ctSingle: 
+			mPGQty->SetValueFromString("1"); 
+			mPGQty->Enable(false);
 			break;
-		case msExist:
-		case msUpdated:	
-			SetTitle("Редактирование объекта");
-			mPGPath->SetValueFromString(mObj->GetPathString());
-			mPGPath->Enable(false);
-			break;
+		case ctQtyByOne:
+		case ctQtyByFloat:
+			mPGQty->SetValueFromString(obj_data.mQty);
+			mPGQty->Enable(true);
+		default:break;
 		}
+		
+	switch (obj_state)
+	{
+	default:		SetTitle("**error**");			break;
+	case msCreated: 
+		SetTitle("Создание объекта");
+		
+		if (catalog->mCfg->GetData().mObjCatalog)
+		{
+			mPGPath->SetValueFromString(mObj->GetPathString());
+			mPGPid->SetValueFromString(catalog->GetData().mObj.mID);
+		}
+		else
+		{
+			rec::Obj tmp_obj_data;
+			tmp_obj_data.mPID = cls_data.mDefaultPid;
+			auto obj_model = std::make_shared<MObjItem>();
+			obj_model->SetData(tmp_obj_data);
+
+			auto opath = std::make_shared<object_catalog::model::ObjPath>();
+
+			obj_model->AddChild( std::dynamic_pointer_cast<IModel>(opath));
+			opath->Load();
+
+			mPGPath->SetValueFromString(opath->AsString());
+			mPGPid->SetValueFromString(cls_data.mDefaultPid);
+		}
+		
+		mPGPath->Enable(true);
+		break;
+	case msExist:
+	case msUpdated:	
+		SetTitle("Редактирование объекта");
+		mPGPath->SetValueFromString(mObj->GetPathString());
+		mPGPid->SetValueFromString(obj_data.mPID);
+		mPGPath->Enable(false);
+
+			
+		break;
 	}
 }
 //---------------------------------------------------------------------------
@@ -144,10 +184,8 @@ void Frame::SetData(const object_catalog::MObjItem::T_Data& data)
 	mPropGrid->CommitChangesFromEditor();
 
 	mPropGrid->GetPropertyByLabel(L"Имя")->SetValueFromString(data.mLabel);
-	
-	
 	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(data.mID);
-	mPropGrid->GetPropertyByLabel(L"PID")->SetValueFromString(data.mPID);
+	//mPropGrid->GetPropertyByLabel(L"PID")->SetValueFromString(data.mPID);
 }
 //---------------------------------------------------------------------------
 bool Frame::OnSelectPath(wxPGProperty* prop)
@@ -170,6 +208,8 @@ void Frame::OnCancel(wxCommandEvent& evt )
 //---------------------------------------------------------------------------
 void Frame::OnOk(wxCommandEvent& evt )
 {
+	mChangeConnection.disconnect();// нет смысла перед закрытием апдейтить форму
+
 	auto data = mObj->GetData();
 	GetData(data);
 	mObj->SetData(data);

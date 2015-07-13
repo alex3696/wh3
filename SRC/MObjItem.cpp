@@ -69,13 +69,7 @@ wxString MObjItem::GetPathString()
 				{
 					if (catalog->mCfg->GetData().mObjCatalog)
 					{
-						const auto obj_data = this->GetData();
-						const auto cls_data = cls->GetData();
-
-						return catalog->mPath->GetPathStr() 
-							+ wxString::Format("[%s]%s/"
-							, cls_data.mLabel
-							, obj_data.mLabel);
+						return catalog->mPath->GetPathStr();
 					}
 					else
 					{
@@ -107,13 +101,13 @@ bool MObjItem::GetInsertQuery(wxString& query)const
 		case ctSingle:
 			query = wxString::Format(
 				"INSERT INTO t_objnum (cls_id, obj_label, pid ) "
-				" VALUES (%s, '%s', %s ) RETURNING id ",
+				" VALUES (%s, '%s', %s ) RETURNING id,pid,obj_label,1  ",
 				cls.mID, newObj.mLabel, pid);
 			return true;
 		case ctQtyByOne:
 		case ctQtyByFloat:	
 			query = wxString::Format(
-				" SELECT fn_insert_objqty(%s, '%s', %s, %s) "
+				" SELECT id_,pid_,obj_label_,qty_ FROM fn_insert_objqty(%s, '%s', %s, %s)"
 				, cls.mID, newObj.mLabel, pid, newObj.mQty);
 			return true;
 		default://ctAbstract

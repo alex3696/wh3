@@ -188,7 +188,7 @@ bool ObjPath::GetSelectChildsQuery(wxString& query)const
 		query = wxString::Format(
 				" SELECT _id, _obj_label, _cls_id, _cls_label "
 				" FROM fget_objnum_pathinfo_table(%s)"
-				, obj_data.mID
+				, obj_data.mPID
 				);
 		return true;
 	}

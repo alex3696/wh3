@@ -1158,7 +1158,7 @@ CREATE TRIGGER tr_aiu_ref_class_act
 ---------------------------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS fn_insert_objqty(IN _cls_id INTEGER, IN _label NAME, IN _pid BIGINT, IN _qty NUMERIC) CASCADE;
 CREATE OR REPLACE FUNCTION fn_insert_objqty(IN _cls_id INTEGER, IN _label NAME, IN _pid BIGINT, IN _qty NUMERIC)
-    RETURNS BIGINT AS
+    RETURNS TABLE(id_ BIGINT, pid_ BIGINT, obj_label_ name, qty_ NUMERIC) AS
 $body$
 DECLARE
     
@@ -1171,7 +1171,12 @@ BEGIN
     END IF;
 
     INSERT INTO t_objqty(objqty_id, pid, qty) VALUES (v_objqty_id, _pid, _qty);
-    RETURN v_objqty_id;
+    id_:=v_objqty_id;
+    pid_:=_pid;
+    obj_label_:=_label;
+    qty_=_qty;
+    return next;
+    RETURN ;
 END;
 $body$
 LANGUAGE 'plpgsql';
