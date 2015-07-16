@@ -19,7 +19,7 @@ namespace wh
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-class Cfg: public TSingletonSptr<Cfg>
+class Cfg
 {
 public:
 	class DbConnect
@@ -52,7 +52,7 @@ public:
 };//class Cfg: public TSingletonSptr<Cfg>
 //---------------------------------------------------------------------------
 
-class Ftp: public TSingletonSptr<Ftp>
+class Ftp
 {
 public:
 	struct ftp_error:				virtual exception_base { };
@@ -66,11 +66,6 @@ public:
 			struct ftp_error_rename:	virtual ftp_error_io { };
 			struct ftp_not_exists:		virtual ftp_error_io { };
 
-protected:
-	friend class TSingletonSptr<Ftp>;
-
-	wxFTP						mFtp;
-	std::shared_ptr<wh::Cfg>	mCfg;
 
 	Ftp();
 
@@ -88,6 +83,13 @@ public:
 		DoConnect();
 		return mFtp.GetFilesList(files,wildcard);
 	}
+
+protected:
+
+	wxFTP						mFtp;
+	//std::shared_ptr<wh::Cfg>	mCfg;
+	wh::Cfg*	mCfg;
+
 };
 //---------------------------------------------------------------------------
 
@@ -111,34 +113,32 @@ public:
 /** менеджер данных приложения 
 Все основные действия и комманды изменения данных выполняем через него
 */
-class whDataMgr: public  TSingleton<whDataMgr>
+class whDataMgr
 {
-protected:
-	friend class TSingleton<whDataMgr>;
-	whDataMgr();
-	~whDataMgr();
+private:
+	whDataMgr() {};                   // Constructor? (the {} brackets) are needed here.
+	whDataMgr(whDataMgr const&) = delete;
+	void operator=(whDataMgr const&) = delete;
 public:
+	static whDataMgr* GetInstance()
+	{
+		static whDataMgr instance; // Guaranteed to be destroyed.
+		// Instantiated on first use.
+		return &instance;
+	}
+
 	struct data_is_null: virtual exception_base { };
 
-	whDB						m_DB;
-	MainFrame*					m_MainFrame;
-	wh::favorites::DataModel*	mFavoritesModel;
-	
-	std::shared_ptr<wh::Cfg>	mCfg;
-	std::shared_ptr<wh::Ftp>	mFtp;
+	whDB		mDb;
+	wh::Cfg		mCfg;
+	wh::Ftp		mFtp;
 
+	MainFrame*					m_MainFrame = nullptr;
+	wh::favorites::DataModel	mFavoritesModel;
 
-
-	static whDB& GetDB()//throw(data_is_null)
+	static whDB& GetDB()
 	{	
-		whDataMgr* ptr = GetInstance();
-		whDB* retDB=nullptr;
-		if (!ptr)
-			throw data_is_null();//?????
-
-		retDB = &ptr->m_DB;
-		ptr->FreeInst();
-		return *retDB;
+		return GetInstance()->mDb;
 	}
 
 

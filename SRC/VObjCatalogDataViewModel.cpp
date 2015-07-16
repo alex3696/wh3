@@ -77,7 +77,6 @@ void VObjCatalogDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 								cls.mLabel, typeItem->GetQty(), cls.mMeasure);
 							break;
 			} // switch (clsType)
-			mgr->FreeInst();
 		} // if (cls.GetClsType(clsType))
 	}
 	else if (objItem)

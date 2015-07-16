@@ -49,7 +49,6 @@ class InternalBaseTableModel;
 //---------------------------------------------------------------------------
 /// Контрол табличка
 class BaseTable
-	//: public wxDataViewCtrl , public ctrlWithResMgr
 	: public BaseDataView
 {
 public:

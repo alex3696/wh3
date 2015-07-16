@@ -21,7 +21,6 @@ Frame::Frame(wxWindow* parent,
 
 	auto mgr = ResMgr::GetInstance();
 	this->SetIcon(wxIcon(mgr->m_icoObj24));
-	mgr->FreeInst();
 	
 	mPropGrid = new wxPropertyGrid(this);
 	szrMain->Add(mPropGrid, 1, wxALL | wxEXPAND, 1);

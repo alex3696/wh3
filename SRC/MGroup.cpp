@@ -77,7 +77,6 @@ bool MGroup::GetFieldValue(unsigned int col, wxVariant &variant)
 	case 2: variant = data.mComment; break;
 	case 3: variant = data.mID; break;
 	}//switch(col) 
-	mgr->FreeInst();
 	return true;
 }
 //-------------------------------------------------------------------------

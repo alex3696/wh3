@@ -199,8 +199,7 @@ MainFrame::~MainFrame()
 	m_AuiMgr.UnInit();
 
 	whDataMgr* mgr = whDataMgr::GetInstance();
-	mgr->m_DB.Close();
-	mgr->FreeInst();
+	mgr->mDb.Close();
 
 }
 //---------------------------------------------------------------------------
@@ -220,7 +219,7 @@ void MainFrame::CreateTypeCatalog(const wxString& _type)
 	//m_Notebook->Freeze();
 	//ListPanel* typ_panel=new ListPanel(m_Notebook);
 	//typ_panel->SetParentType(_type);
-	////bp1->SetDataModel(new whDir_TypeTreeFolder(whClass("Object","Object"),NULL,&mgr->m_DB));
+	////bp1->SetDataModel(new whDir_TypeTreeFolder(whClass("Object","Object"),NULL,&mgr->mDb));
 	//m_Notebook->AddPage(typ_panel,"Каталог типов");
 	//
 	//m_Notebook->Thaw();
@@ -270,8 +269,7 @@ void MainFrame::OnMakeHistoryWnd(wxCommandEvent& evt)
 	hist->SetLogQueryDataDefault();
 
 	whDataMgr* mgr = whDataMgr::GetInstance();
-	hist->ConnectDB(&mgr->m_DB);
-	mgr->FreeInst();
+	hist->ConnectDB(&mgr->mDb);
 
 	m_Notebook->AddPage(hist,"История");
 	m_Notebook->Thaw();
@@ -288,13 +286,11 @@ void MainFrame::OnShowLoginWnd(wxCommandEvent& evt)
 	
 	whDataMgr* mgr = whDataMgr::GetInstance();
 
-	if(mgr->m_DB.IsOpen())
+	if(mgr->mDb.IsOpen())
 		OnDisconnectDB();
 	
-	wh::Cfg::DbConnect& dbcfg = wh::Cfg::Instance()->Db;
+	wh::Cfg::DbConnect& dbcfg = whDataMgr::GetInstance()->mCfg.Db;
 	dbcfg.Load();
-
-
 
 	whLogin dlg(this);
 
@@ -307,9 +303,9 @@ void MainFrame::OnShowLoginWnd(wxCommandEvent& evt)
 
 	if(dlg.ShowModal()==wxID_OK)
 	{
-		mgr->m_DB.Open(dbcfg.mServer, dbcfg.mPort, dbcfg.mDB, dlg.GetUserName(),dlg.GetPass());
+		mgr->mDb.Open(dbcfg.mServer, dbcfg.mPort, dbcfg.mDB, dlg.GetUserName(),dlg.GetPass());
 
-		if(mgr->m_DB.IsOpen())
+		if(mgr->mDb.IsOpen())
 		{
 			int toolId=CMD_DB_CONNECT;
 			wxAuiToolBarItem* tool=	m_MainToolBar->FindTool(toolId);
@@ -319,9 +315,9 @@ void MainFrame::OnShowLoginWnd(wxCommandEvent& evt)
 			dbcfg.mUser = dlg.GetUserName();
 			dbcfg.mPass = dlg.GetStorePass() ? dlg.GetPass(): wxEmptyString;
 			
-			wh::Cfg::Instance()->Prop.Load();
+			whDataMgr::GetInstance()->mCfg.Prop.Load();
 
-		}//if(mgr->m_DB.IsOpen())
+		}//if(mgr->mDb.IsOpen())
 		
 	
 	}//if(dlg.ShowModal()==wxID_OK)
@@ -330,7 +326,6 @@ void MainFrame::OnShowLoginWnd(wxCommandEvent& evt)
 
 	dbcfg.Save();
 	
-	mgr->FreeInst();
 	
 }
 //---------------------------------------------------------------------------
@@ -343,8 +338,7 @@ void MainFrame::OnDisconnectDB(wxCommandEvent& evt)
 	}
 	
 	whDataMgr* mgr = whDataMgr::GetInstance();
-	mgr->m_DB.Close();
-	mgr->FreeInst();
+	mgr->mDb.Close();
 
 	wxAuiToolBarItem* tool=	m_MainToolBar->FindTool(CMD_DB_DISCONNECT);
 	tool->SetState(wxAUI_BUTTON_STATE_CHECKED);

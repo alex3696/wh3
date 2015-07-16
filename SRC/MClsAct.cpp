@@ -173,7 +173,6 @@ bool MClsAct::GetFieldValue(unsigned int col, wxVariant &variant)
 	case 5: variant = data.mPath;		break;
 	case 6: variant = data.mID;			break;
 	}//switch(col) 
-	mgr->FreeInst();
 	return true;
 }
 //-------------------------------------------------------------------------

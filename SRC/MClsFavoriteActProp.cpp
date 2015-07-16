@@ -109,7 +109,6 @@ bool MClsFavorite::GetFieldValue(unsigned int col, wxVariant &val)
 			}
 		val = tmpPropArr; break;
 	}//switch(col) 
-	mgr->FreeInst();
 	return true;
 }
 

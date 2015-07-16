@@ -3,30 +3,6 @@
 #include "MainFrame.h"
 #include "whPnlCtrl_MovHistory.h"
 
-//---------------------------------------------------------------------------
-//protected:
-whDataMgr::whDataMgr()
-	:TSingleton<whDataMgr>()
-	,m_MainFrame(NULL)
-	,mFavoritesModel(new wh::favorites::DataModel())
-	,mCfg(wh::Cfg::Instance() )
-	,mFtp(wh::Ftp::Instance() )
-{
-	
-}
-//---------------------------------------------------------------------------
-//protected:
-whDataMgr::~whDataMgr()
-{
-	delete mFavoritesModel;
-	TSingleton<whDataMgr>::~TSingleton();
-}
-
-
-
-
-
-
 using namespace wh;
 //using namespace std;
 
@@ -108,7 +84,7 @@ void Cfg::DbProp::Load()
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 Ftp::Ftp()
-	:mCfg(Cfg::Instance() )
+	: mCfg(&whDataMgr::GetInstance()->mCfg)
 {}
 
 

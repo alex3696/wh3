@@ -410,9 +410,6 @@
     <ClInclude Include="..\..\INCLUDE\ResManager.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\singleton.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MainFrame.h">
       <Filter>GUI\MainFrame</Filter>
     </ClInclude>

@@ -75,7 +75,6 @@ void DvModel::GetValue(wxVariant &variant, const wxDataViewItem &dataViewItem, u
 			} // switch (clsType)
 
 			variant << wxDataViewIconText( cls.mLabel, *ico);
-			mgr->FreeInst();
 		} // if (cls.GetClsType(clsType))
 	}
 	else if (objItem)

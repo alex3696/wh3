@@ -62,7 +62,6 @@ using namespace std::tr1;
 #include <DatabaseLayerException.h>
 
 /* SAV headers */
-#include "singleton.h"
 #include "wxComboBtn.h"
 
 

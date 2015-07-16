@@ -172,7 +172,6 @@ bool MClsMove::GetFieldValue(unsigned int col, wxVariant &variant)
 	case 4: variant = data.mSrcPath;							break;
 	case 5: variant = data.mDstPath + "/[THIS]" + data.mDstObj;	break;
 	}//switch(col) 
-	mgr->FreeInst();
 	return true;
 }
 //-------------------------------------------------------------------------

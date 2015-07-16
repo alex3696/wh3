@@ -16,15 +16,18 @@
 	LOAD_ICO(name,24,1);	\
 	LOAD_ICO(name,16,2);	
 
-class ResMgr: public  TSingleton<ResMgr>
+class ResMgr
 {
-protected:
-
-	
-	
-
+private:
+	ResMgr(ResMgr const&) = delete;
+	void operator=(ResMgr const&) = delete;
 public:
-
+	static ResMgr* GetInstance()
+	{
+		static ResMgr instance; // Guaranteed to be destroyed.
+		// Instantiated on first use.
+		return &instance;
+	}
 
 	DEFINE_ICO(rule,24);
 
@@ -133,10 +136,8 @@ public:
 	//wxImageList m_Img;
 
 protected:
-	friend class TSingleton<ResMgr>;
 
 	ResMgr()
-		:TSingleton<ResMgr>()
 	{
 		LOAD_ICO(rule,24,1);
 
@@ -249,11 +250,6 @@ public:
 	ctrlWithResMgr()
 	{
 		m_ResMgr = ResMgr::GetInstance();
-	}
-
-	~ctrlWithResMgr()
-	{
-		m_ResMgr->FreeInst();
 	}
 
 	const ResMgr*	GetResMgr()const

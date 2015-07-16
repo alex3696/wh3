@@ -359,7 +359,6 @@
     <ClInclude Include="..\..\INCLUDE\App.h" />
     <ClInclude Include="..\..\INCLUDE\globaldata.h" />
     <ClInclude Include="..\..\INCLUDE\ResManager.h" />
-    <ClInclude Include="..\..\INCLUDE\singleton.h" />
     <ClInclude Include="..\..\INCLUDE\MainFrame.h" />
     <ClInclude Include="..\..\INCLUDE\wxDataViewRenderer.h" />
     <ClInclude Include="..\..\INCLUDE\FB_FORMS\whLogin.h" />

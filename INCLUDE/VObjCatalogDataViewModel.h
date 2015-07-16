@@ -16,7 +16,6 @@ namespace view{
 
 class VObjCatalogDataViewModel
 	: public wxDataViewModel 
-	, public ctrlWithResMgr
 {
 	
 	
@@ -75,7 +74,7 @@ protected:
 	//void GetObjRowValue( wxVariant &variant,const model::ObjInfo* groupInfo, 
 	//unsigned int col ) const;
 
-};//class DataModel: public wxDataViewModel, public ctrlWithResMgr
+};//class DataModel: public wxDataViewModel
 
 }//namespace view
 }//namespace wh

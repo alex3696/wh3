@@ -132,7 +132,6 @@ bool MClsBase::GetFieldValue(unsigned int col, wxVariant &val)
 	case 3: val = rec.mMeasure; break;
 	case 4: val = rec.mID; break;
 	}//switch(col) 
-	mgr->FreeInst();
 	return true;
 }
 //-------------------------------------------------------------------------

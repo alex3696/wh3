@@ -134,7 +134,6 @@ bool MClsObjQty::GetFieldValue(unsigned int col, wxVariant &variant)
 	case 2: variant = data.mQty; break;
 	case 3: variant = data.mPID; break;
 	}//switch(col) 
-	mgr->FreeInst();
 	return true;
 }
 //-------------------------------------------------------------------------

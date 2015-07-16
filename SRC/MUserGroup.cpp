@@ -113,7 +113,6 @@ bool MUserGroup::GetFieldValue(unsigned int col, wxVariant &variant)
 	case 1: variant = variant << wxDataViewIconText(data.mLabel, mgr->m_ico_usergroup24); break;
 	case 2: variant = data.mID; break;
 	}//switch(col) 
-	mgr->FreeInst();
 	return true;
 }
 

@@ -449,8 +449,7 @@ void Panel::InitDataView()
 
 
 	whDataMgr* mgr = 	whDataMgr::GetInstance();	
-	m_Model = mgr->mFavoritesModel;
-	mgr->FreeInst();	
+	m_Model = &mgr->mFavoritesModel;
 
 	m_View->AssociateModel(m_Model );
 	
@@ -548,13 +547,12 @@ void Panel::OnToolBarBtn_MakeFoder(wxCommandEvent& evt)
 		whDataMgr* mgr = 	whDataMgr::GetInstance();	
 
 		wxDataViewItem item = m_View->GetSelection();
-		wxDataViewItem parent = mgr->mFavoritesModel->GetParent(item);
+		wxDataViewItem parent = mgr->mFavoritesModel.GetParent(item);
 		//m_View->GetCurrentItem
 
 		
-		mgr->mFavoritesModel->MakeFolder(parent,dialog.GetValue());
-		//mgr->mFavoritesModel->Resort();
-		mgr->FreeInst();	
+		mgr->mFavoritesModel.MakeFolder(parent,dialog.GetValue());
+		//mgr->mFavoritesModel.Resort();
 
     }	
 	
@@ -571,14 +569,13 @@ void Panel::OnToolBarBtn_Delete(wxCommandEvent& evt)
 		const wxString	str_favorites_confirm_del= "Вы действительно ходите удалить из избранного '%s'?";
 		const wxString	str_confirm = "Подтверждение";
 
-		int res = wxMessageBox( wxString::Format(str_favorites_confirm_del, mgr->mFavoritesModel->GetLinkLabel(item) ) ,
+		int res = wxMessageBox( wxString::Format(str_favorites_confirm_del, mgr->mFavoritesModel.GetLinkLabel(item) ) ,
 								str_confirm,
 								wxYES_NO);
 		if (res == wxYES)
-			mgr->mFavoritesModel->DeleteLink(item);
+			mgr->mFavoritesModel.DeleteLink(item);
 	}//if(item.IsOk())
 
-	mgr->FreeInst();	
 }//void whPnlFavorites::OnToolBarBtn_Delete(wxCommandEvent& evt)
 //---------------------------------------------------------------------------
 
@@ -591,16 +588,15 @@ void Panel::OnToolBarBtn_UpdateLabel(wxCommandEvent& evt)
 		wxTextEntryDialog dialog(this,
 							"Измените название ярлыка 'Избранного'",
                              wxT("Изменение нимени ярлыка"),
-                             mgr->mFavoritesModel->GetLinkLabel(item),
+                             mgr->mFavoritesModel.GetLinkLabel(item),
                              wxOK | wxCANCEL);
 		if (dialog.ShowModal() == wxID_OK)
 		{
-			mgr->mFavoritesModel->UpdateLabel(item,dialog.GetValue());
+			mgr->mFavoritesModel.UpdateLabel(item,dialog.GetValue());
 			
 		}
 			
 	}//if(item.IsOk())
-	mgr->FreeInst();	
 }
 //---------------------------------------------------------------------------
 
@@ -609,8 +605,7 @@ void Panel::OnActivated( wxDataViewEvent &event )
 	wxDataViewItem  item = event.GetItem();
 	
 	whDataMgr* mgr = 	whDataMgr::GetInstance();	
-	Link* lnk = mgr->mFavoritesModel->GetLink(item );
-	mgr->FreeInst();	
+	Link* lnk = mgr->mFavoritesModel.GetLink(item );
 		
 	if(lnk)
 	{
@@ -636,7 +631,6 @@ void Panel::OnActivated( wxDataViewEvent &event )
 			break;
 		}//switch
 				
-		mgr->FreeInst();	
 	
 	
 	}//if(lnk)

@@ -123,7 +123,6 @@ bool MClsProp::GetFieldValue(unsigned int col, wxVariant &variant)
 	case 4: variant = data.mProp.mID;				break;
 	case 5: variant = data.mID;						break;
 	}//switch(col) 
-	mgr->FreeInst();
 	return true;
 }
 //-------------------------------------------------------------------------

@@ -110,11 +110,8 @@ whPnlCtrl_MovHistory::whPnlCtrl_MovHistory( wxWindow* parent, wxWindowID id, con
 	InitDataView();
 
 	whDataMgr* mgr = 	whDataMgr::GetInstance();
-	if(mgr && mgr->m_DB.IsOpen() )
-	{
-		ConnectDB(&mgr->m_DB);
-		mgr->FreeInst();
-	}
+	if(mgr->mDb.IsOpen() )
+		ConnectDB(&mgr->mDb);
 	
 
 	m_AuiMgr.Update();

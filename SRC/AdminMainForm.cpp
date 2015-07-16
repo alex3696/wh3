@@ -75,7 +75,6 @@ AdminMainForm::AdminMainForm(	wxWindow* parent,
 	images->Add(mgr->m_ico_folder_type24);	// 5
 	
 	m_ObjTree->AssignImageList(images);
-	mgr->FreeInst();
 
 
 	wxTreeItemId root=m_ObjTree->GetRootItem();

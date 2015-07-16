@@ -120,7 +120,6 @@ bool MUser2::GetFieldValue(unsigned int col, wxVariant &variant)
 	case 4:	variant = data.mConnLimit;		break;
 	case 5:	variant = data.mValidUntil;		break;
 	}//switch(col) 
-	mgr->FreeInst();
 	return true;
 }
 //-------------------------------------------------------------------------

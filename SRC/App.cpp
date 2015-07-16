@@ -34,15 +34,6 @@ bool App::OnInit()
 //---------------------------------------------------------------------------
 App::~App()
 {
-	gdm->FreeInst();
-	mgr->FreeInst();
-
-	if(ResMgr::GetRefCount() )
-		MessageBox(NULL,L"Singleton isn`t null",L"Error",0);
-
-	if(whDataMgr::GetRefCount() )
-		MessageBox(NULL,L"Singleton isn`t null",L"Error",0);
-
 //	delete login;
 //	delete mainframe;
 }
