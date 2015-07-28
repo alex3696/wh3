@@ -106,9 +106,9 @@ void DataModel::GetValue( wxVariant &variant,const wxDataViewItem &item, unsigne
 		switch( data->GetLinkType() )
 		{
 			default:	break;
-			case Link::lnkFolder:		ico=&(GetResMgr()->m_icoFolder24);	break;
-			case Link::lnkClass :		ico=&(GetResMgr()->m_icoType24);	break;
-			case Link::lnkObjNum :		ico=&(GetResMgr()->m_icoObj24);		break;
+			case Link::lnkFolder:		ico=&(GetResMgr()->m_ico_folder24);	break;
+			case Link::lnkClass :		ico=&(GetResMgr()->m_ico_type24);	break;
+			case Link::lnkObjNum :		ico=&(GetResMgr()->m_ico_obj24);	break;
 			case Link::lnkObjNumFilter:	ico=&(GetResMgr()->m_ico_objtype24);break;
 		}//switch
 		variant << wxDataViewIconText(str,*ico);				

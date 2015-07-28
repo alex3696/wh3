@@ -45,12 +45,12 @@ VObjCatalogCtrl::VObjCatalogCtrl(wxWindow* parent,
 	// делаем тулбар
 	
 	mCatalogTool = mToolBar->AddTool(whID_CATALOG_SELECT, "Группировать", 
-		m_ResMgr->m_icoDirObj24,wxEmptyString, wxITEM_NORMAL);
+		m_ResMgr->m_ico_folder_obj24,wxEmptyString, wxITEM_NORMAL);
 	mCatalogTool->SetHasDropDown(true);
 	AppendBitmapMenu(&mCatalogToolMenu, whID_CATALOG_TYPE, "по &типу"
 		, m_ResMgr->m_ico_folder_type24);
 	AppendBitmapMenu(&mCatalogToolMenu, whID_CATALOG_PATH, "по &месту+типу"
-		, m_ResMgr->m_icoDirObj24);
+		, m_ResMgr->m_ico_folder_obj24);
 	Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, [this](wxAuiToolBarEvent& evt)
 		{
 			mCatalogTool->SetSticky(true);
@@ -69,7 +69,7 @@ VObjCatalogCtrl::VObjCatalogCtrl(wxWindow* parent,
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdReload, this, wxID_REFRESH);
 	
 	mUpTool = mToolBar->AddTool(wxID_BACKWARD, "Назад",
-		m_ResMgr->m_icoBack24, wxEmptyString, wxITEM_NORMAL);
+		m_ResMgr->m_ico_back24, wxEmptyString, wxITEM_NORMAL);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdUp, this, wxID_BACKWARD);
 
 	mMoveTool = mToolBar->AddTool(wxID_REPLACE, "Переместить",
@@ -127,7 +127,7 @@ void VObjCatalogCtrl::OnCmdSetPathDir(wxCommandEvent& evt)
 		mCatalogModel->SetObjCatalog(1);
 		mTableView->ExpandAll();
 	}
-	mCatalogTool->SetBitmap(m_ResMgr->m_icoDirObj24);
+	mCatalogTool->SetBitmap(m_ResMgr->m_ico_folder_obj24);
 	mToolBar->Refresh();
 }
 //-----------------------------------------------------------------------------
@@ -353,7 +353,7 @@ void VObjCatalogCtrl::SetModel(std::shared_ptr<IModel> model)
 		mTableView->SetModel(model);
 
 		if (mCatalogModel->mCfg->GetData().mObjCatalog)
-			mCatalogTool->SetBitmap(m_ResMgr->m_icoDirObj24);
+			mCatalogTool->SetBitmap(m_ResMgr->m_ico_folder_obj24);
 		else
 			mCatalogTool->SetBitmap(m_ResMgr->m_ico_folder_type24);
 	

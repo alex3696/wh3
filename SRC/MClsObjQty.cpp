@@ -130,7 +130,7 @@ bool MClsObjQty::GetFieldValue(unsigned int col, wxVariant &variant)
 	switch (col)
 	{
 	default: break;
-	case 1: variant = variant << wxDataViewIconText(data.mLabel, mgr->m_icoObj24); break;
+	case 1: variant = variant << wxDataViewIconText(data.mLabel, mgr->m_ico_obj24); break;
 	case 2: variant = data.mQty; break;
 	case 3: variant = data.mPID; break;
 	}//switch(col) 

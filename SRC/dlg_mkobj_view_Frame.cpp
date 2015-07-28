@@ -20,7 +20,7 @@ Frame::Frame(wxWindow* parent,
 	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
 
 	auto mgr = ResMgr::GetInstance();
-	this->SetIcon(wxIcon(mgr->m_icoObj24));
+	this->SetIcon(wxIcon(mgr->m_ico_obj24));
 	
 	mPropGrid = new wxPropertyGrid(this);
 	szrMain->Add(mPropGrid, 1, wxALL | wxEXPAND, 1);

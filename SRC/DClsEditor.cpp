@@ -64,7 +64,7 @@ DClsEditor::DClsEditor(wxWindow*		parent,
 	image_list->Add(m_ResMgr->m_ico_classprop24);
 	image_list->Add(m_ResMgr->m_ico_rule24);
 	image_list->Add(m_ResMgr->m_ico_act24);
-	image_list->Add(m_ResMgr->m_icoObj24);
+	image_list->Add(m_ResMgr->m_ico_obj24);
 	image_list->Add(m_ResMgr->m_ico_move24);
 
 

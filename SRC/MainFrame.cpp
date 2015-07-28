@@ -118,8 +118,8 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 
 	m_btnFavorites=m_MainToolBar->AddTool(CMD_SHOWFAVORITES,"Открыть избранное",m_ResMgr->m_ico_favorites24,"Открыть избранное",wxITEM_CHECK);
 	
-	m_MainToolBar->AddTool(CMD_MAKEOBJWND,"Открыть каталог объектов",m_ResMgr->m_AddObjTab24,"Открыть каталог объектов");
-	m_MainToolBar->AddTool(CMD_MAKETYPEWND,"Открыть каталог типов",m_ResMgr->m_AddTypeTab24,"Открыть каталог типов");
+	m_MainToolBar->AddTool(CMD_MAKEOBJWND,"Открыть каталог объектов",m_ResMgr->m_ico_add_obj_tab24,"Открыть каталог объектов");
+	m_MainToolBar->AddTool(CMD_MAKETYPEWND,"Открыть каталог типов",m_ResMgr->m_ico_add_type_tab24,"Открыть каталог типов");
 	
 	
 	Bind(wxEVT_COMMAND_MENU_SELECTED,&MainFrame::DoMenuPreferences,this,wxID_PREFERENCES);

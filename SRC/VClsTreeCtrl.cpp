@@ -30,7 +30,7 @@ void VClsTreeCtrl::BuildGoUpItem()
 	const int		winid(wxID_BACKWARD);
 	const wxString	label(L"Назад");
 	const wxBitmap&	ico16 = m_ResMgr->m_ico_slot_list16;
-	const wxBitmap&	ico24 = m_ResMgr->m_icoBack24;
+	const wxBitmap&	ico24 = m_ResMgr->m_ico_back24;
 
 	BuildCtrlItem(winid, label, itemFunc, ico16, ico24);
 	

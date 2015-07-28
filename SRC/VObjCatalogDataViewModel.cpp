@@ -36,7 +36,7 @@ bool VObjCatalogDataViewModel::IsContainer(const wxDataViewItem &dataViewItem)co
 	auto modelInterface = static_cast<IModel*> (dataViewItem.GetID());
 	auto typeItem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
 
-	return (bool)typeItem;
+	return typeItem ? true : false;
 }
 //---------------------------------------------------------------------------
 

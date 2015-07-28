@@ -34,7 +34,7 @@ void whPnlCtrl_MovHistory::InitToolBar()
 	m_ToolBar->AddTool(wxID_ADD, wxT("Добавить фильтр"),GetResMgr()->m_ico_addfilter24, wxT("Добавить фильтр (?)"));
 	m_ToolBar->AddTool(wxID_REFRESH, wxT("Обновть"),GetResMgr()->m_ico_refresh24, wxT("Обновть (CTRL+R)"));
 	
-	wxAuiToolBarItem* vc=m_ToolBar->AddTool(wxID_MORE, wxT("Компактный вид ВКЛ/ВЫКЛ"),GetResMgr()->m_icoViews24, wxT("Компактный вид ВКЛ/ВЫКЛ(CTRL+M)"),wxITEM_CHECK);
+	wxAuiToolBarItem* vc=m_ToolBar->AddTool(wxID_MORE, wxT("Компактный вид ВКЛ/ВЫКЛ"),GetResMgr()->m_ico_views24, wxT("Компактный вид ВКЛ/ВЫКЛ(CTRL+M)"),wxITEM_CHECK);
 	vc->SetState(wxAUI_BUTTON_STATE_CHECKED);
 	
 	// 
