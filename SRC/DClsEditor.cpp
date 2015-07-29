@@ -168,7 +168,7 @@ void DClsEditor::OnChangeModel(const IModel& model)
 		const auto& cls = mClsNode->GetData();
 
 		wxBusyCursor		busyCursor;
-		wxWindowDisabler	wndDisabler(mNotebook);
+		wxWindowUpdateLocker	wndDisabler(mNotebook);
 
 		while (mNotebook->GetPageCount() > 1)
 			mNotebook->RemovePage(1);

@@ -71,7 +71,7 @@ void ActList::OnResize(wxSizeEvent& evt)
 {
 	if (!mAutosizeColumn.empty())
 	{
-		wxWindowDisabler	wndDisabler(this);
+		wxWindowUpdateLocker	wndDisabler(this);
 
 		int sum = 0, asum = 0;
 		for (unsigned int i = 0; i<GetColumnCount(); i++)

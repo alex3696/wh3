@@ -56,7 +56,7 @@ void CtrlPanel::BuildLoadItem()
 {
 	std::function<void()> itemFunc = [this]()
 	{
-		wxWindowDisabler	wndDisabler(mTree);
+		wxWindowUpdateLocker	wndDisabler(mTree);
 		mMovable->Load();
 		//mTableView->RebuildColumns();
 		mTree->ExpandAll();

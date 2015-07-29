@@ -216,7 +216,7 @@ void MainFrame::OnMakeTypeWnd(wxCommandEvent& evt)
 //---------------------------------------------------------------------------
 void MainFrame::CreateTypeCatalog(const wxString& _type)
 {
-	//wxWindowDisabler	wndDisabler(m_Notebook);
+	//wxWindowUpdateLocker	wndDisabler(m_Notebook);
 	//ListPanel* typ_panel=new ListPanel(m_Notebook);
 	//typ_panel->SetParentType(_type);
 	////bp1->SetDataModel(new whDir_TypeTreeFolder(whClass("Object","Object"),NULL,&mgr->mDb));
@@ -229,7 +229,7 @@ void MainFrame::CreateTypeCatalog(const wxString& _type)
 void MainFrame::CreateObjCatalog(const wxString& _objclass,const wxString& _objname,const wxString& _classfilter)
 {
 	wxBusyCursor		busyCursor;
-	wxWindowDisabler	wndDisabler(m_Notebook);
+	wxWindowUpdateLocker	wndDisabler(m_Notebook);
 
 	auto obj_cat = new wh::view::VObjCatalogCtrl(m_Notebook);
 
@@ -264,7 +264,7 @@ void MainFrame::OnMakeObjWnd(wxCommandEvent& evt)
 void MainFrame::OnMakeHistoryWnd(wxCommandEvent& evt)
 {
 	wxBusyCursor		busyCursor;
-	wxWindowDisabler	wndDisabler(m_Notebook);
+	wxWindowUpdateLocker	wndDisabler(m_Notebook);
 
 	whPnlCtrl_MovHistory* hist=new whPnlCtrl_MovHistory(m_Notebook);
 	hist->SetLogQueryDataDefault();

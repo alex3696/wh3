@@ -248,7 +248,8 @@ void VObjCatalogTable::OnResize(wxSizeEvent& evt)
 {
 	if (!mAutosizeColumn.empty())
 	{
-		wxWindowDisabler	wndDisabler(this);
+		wxWindowUpdateLocker  wndStopRefresh(this);
+		//this->Freeze();
 		int sum = 0, asum = 0;
 		for (unsigned int i = 0; i<GetColumnCount(); i++)
 			if (mAutosizeColumn.end() == mAutosizeColumn.find(i))
@@ -263,6 +264,7 @@ void VObjCatalogTable::OnResize(wxSizeEvent& evt)
 			if (*it < GetColumnCount())
 				GetColumn(*it)->SetWidth(auto_width);
 		}
+		//this->Thaw();
 	}//if ( mAutosizeColumn.size() )
 	evt.Skip();
 }//virtual void OnResize

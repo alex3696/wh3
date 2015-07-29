@@ -127,7 +127,7 @@ void AdminMainForm::OnSelectCategoryTreeItem(wxTreeEvent& evt)
 	{
 		auto pane = m_AuiMgr.GetPane(L"ContentPanel_1");
 
-		wxWindowDisabler	wndDisabler(pane.window);
+		wxWindowUpdateLocker	wndDisabler(pane.window);
 		
 		//pane.window->GetSizer()->Clear(true);
 		pane.window->GetSizer()->DeleteWindows();

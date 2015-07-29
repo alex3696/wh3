@@ -135,7 +135,7 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 {
 	//wxBusyInfo		busyInfo("Please wait, working...");
 	wxBusyCursor		busyCursor;
-	wxWindowDisabler	wndDisabler(mTableView);
+	wxWindowUpdateLocker	wndDisabler(mTableView);
 
 	auto selectedItem = mTableView->GetSelection();
 
@@ -170,6 +170,17 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 	mCatalogModel->Load();
 	mTableView->ExpandAll();
 
+	if ("OnActivated" == evt.GetString())
+	{
+		auto qty = mCatalogModel->mTypeArray->GetChildQty();
+		if (qty)
+		{
+			auto firstChild = mCatalogModel->mTypeArray->GetChild(0);
+			mTableView->SetCurrentItem(wxDataViewItem(firstChild.get()));
+		}
+		return;
+	}
+
 	std::shared_ptr<object_catalog::MTypeItem> selCls;
 	std::shared_ptr<object_catalog::MObjItem> selObj;
 
@@ -198,7 +209,6 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 
 	if (selectedItem.IsOk())
 		mTableView->SetCurrentItem(selectedItem);
-
 
 }
 //-----------------------------------------------------------------------------
@@ -407,6 +417,7 @@ void VObjCatalogCtrl::OnActivated(wxDataViewEvent& evt)
 					new_root.mCls.mLabel = typeData.mLabel;
 					mCatalogModel->SetData(new_root);
 					wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, wxID_REFRESH);
+					evt.SetString("OnActivated");
 					this->ProcessEvent(evt);
 				}
 			}//if (objItem)
@@ -426,6 +437,7 @@ void VObjCatalogCtrl::OnActivated(wxDataViewEvent& evt)
 					new_root.mCls.mParent = mCatalogModel->GetData().mCls.mParent;
 					mCatalogModel->SetData(new_root);
 					wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, wxID_REFRESH);
+					evt.SetString("OnActivated");
 					this->ProcessEvent(evt);
 				}
 

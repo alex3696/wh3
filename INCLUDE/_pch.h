@@ -51,6 +51,7 @@ using namespace std::tr1;
 #include <wx/msgdlg.h>
 #include <wx/utils.h>
 #include <wx/busyinfo.h>
+#include <wx/wupdlock.h>
 
 
 #if wxUSE_DATEPICKCTRL
