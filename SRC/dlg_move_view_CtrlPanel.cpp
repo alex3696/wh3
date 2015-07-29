@@ -56,12 +56,11 @@ void CtrlPanel::BuildLoadItem()
 {
 	std::function<void()> itemFunc = [this]()
 	{
-		mTree->Freeze();
+		wxWindowDisabler	wndDisabler(mTree);
 		mMovable->Load();
 		//mTableView->RebuildColumns();
 		mTree->ExpandAll();
 		//mTableView->Select(wxDataViewItem(nullptr));
-		mTree->Thaw();
 	};
 
 	const int		winid(wxID_REFRESH);

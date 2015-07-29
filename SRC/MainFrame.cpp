@@ -216,20 +216,20 @@ void MainFrame::OnMakeTypeWnd(wxCommandEvent& evt)
 //---------------------------------------------------------------------------
 void MainFrame::CreateTypeCatalog(const wxString& _type)
 {
-	//m_Notebook->Freeze();
+	//wxWindowDisabler	wndDisabler(m_Notebook);
 	//ListPanel* typ_panel=new ListPanel(m_Notebook);
 	//typ_panel->SetParentType(_type);
 	////bp1->SetDataModel(new whDir_TypeTreeFolder(whClass("Object","Object"),NULL,&mgr->mDb));
 	//m_Notebook->AddPage(typ_panel,"Каталог типов");
 	//
-	//m_Notebook->Thaw();
 	//typ_panel->SetFocus();
 	//m_AuiMgr.Update();	
 }
 //---------------------------------------------------------------------------
 void MainFrame::CreateObjCatalog(const wxString& _objclass,const wxString& _objname,const wxString& _classfilter)
 {
-	m_Notebook->Freeze();
+	wxBusyCursor		busyCursor;
+	wxWindowDisabler	wndDisabler(m_Notebook);
 
 	auto obj_cat = new wh::view::VObjCatalogCtrl(m_Notebook);
 
@@ -250,7 +250,6 @@ void MainFrame::CreateObjCatalog(const wxString& _objclass,const wxString& _objn
 
 
 	m_Notebook->AddPage(obj_cat, "каталог объектов");
-	m_Notebook->Thaw();
 	obj_cat->SetFocus();
 	m_AuiMgr.Update();	
 
@@ -264,7 +263,9 @@ void MainFrame::OnMakeObjWnd(wxCommandEvent& evt)
 //---------------------------------------------------------------------------
 void MainFrame::OnMakeHistoryWnd(wxCommandEvent& evt)
 {
-	m_Notebook->Freeze();
+	wxBusyCursor		busyCursor;
+	wxWindowDisabler	wndDisabler(m_Notebook);
+
 	whPnlCtrl_MovHistory* hist=new whPnlCtrl_MovHistory(m_Notebook);
 	hist->SetLogQueryDataDefault();
 
@@ -272,7 +273,6 @@ void MainFrame::OnMakeHistoryWnd(wxCommandEvent& evt)
 	hist->ConnectDB(&mgr->mDb);
 
 	m_Notebook->AddPage(hist,"История");
-	m_Notebook->Thaw();
 	hist->SetFocus();
 	m_AuiMgr.Update();	
 

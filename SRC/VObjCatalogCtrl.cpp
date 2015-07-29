@@ -133,6 +133,10 @@ void VObjCatalogCtrl::OnCmdSetPathDir(wxCommandEvent& evt)
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 {
+	//wxBusyInfo		busyInfo("Please wait, working...");
+	wxBusyCursor		busyCursor;
+	wxWindowDisabler	wndDisabler(mTableView);
+
 	auto selectedItem = mTableView->GetSelection();
 
 	if (!mCatalogModel)
@@ -163,10 +167,6 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 		}
 	}
 		
-
-
-		
-	mTableView->Freeze();
 	mCatalogModel->Load();
 	mTableView->ExpandAll();
 
@@ -199,7 +199,6 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 	if (selectedItem.IsOk())
 		mTableView->SetCurrentItem(selectedItem);
 
-	mTableView->Thaw();
 
 }
 //-----------------------------------------------------------------------------

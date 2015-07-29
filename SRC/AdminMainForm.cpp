@@ -112,7 +112,6 @@ AdminMainForm::~AdminMainForm()
 	m_ObjTree->Unbind(wxEVT_COMMAND_TREE_SEL_CHANGING, &AdminMainForm::OnSelectCategoryTreeItem,this);
 
 	auto pane = m_AuiMgr.GetPane(L"ContentPanel_1");
-	pane.window->Freeze();
 	pane.window->GetSizer()->Clear(true);
 
 
@@ -127,7 +126,8 @@ void AdminMainForm::OnSelectCategoryTreeItem(wxTreeEvent& evt)
 	try
 	{
 		auto pane = m_AuiMgr.GetPane(L"ContentPanel_1");
-		pane.window->Freeze();
+
+		wxWindowDisabler	wndDisabler(pane.window);
 		
 		//pane.window->GetSizer()->Clear(true);
 		pane.window->GetSizer()->DeleteWindows();
@@ -212,10 +212,8 @@ void AdminMainForm::OnSelectCategoryTreeItem(wxTreeEvent& evt)
 
 		if(viewpanel)
 			pane.window->GetSizer()->Add( viewpanel, 1, wxEXPAND | wxALL, 5 );
-		pane.window->Thaw();
 		pane.window->Layout();
-
-		
+				
 	
 	}//try
 	catch(boost::exception & e)

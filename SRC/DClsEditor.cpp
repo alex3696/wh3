@@ -167,7 +167,8 @@ void DClsEditor::OnChangeModel(const IModel& model)
 	{
 		const auto& cls = mClsNode->GetData();
 
-		mNotebook->Freeze();
+		wxBusyCursor		busyCursor;
+		wxWindowDisabler	wndDisabler(mNotebook);
 
 		while (mNotebook->GetPageCount() > 1)
 			mNotebook->RemovePage(1);
@@ -202,6 +203,5 @@ void DClsEditor::OnChangeModel(const IModel& model)
 			mNotebook->AddPage(mClsPropPanel, "Свойства", false, 1);
 			mNotebook->AddPage(mClsObjQtyPanel, "Объекты", false, 4);
 		}
-		mNotebook->Thaw();
 	}
 }

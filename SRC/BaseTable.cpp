@@ -93,7 +93,7 @@ void BaseDataView::OnResize(wxSizeEvent& evt)
 {
 	if ( !mAutosizeColumn.empty() ) 
 	{
-		this->Freeze();
+		wxWindowDisabler	wndDisabler(this);
 		int sum =0,asum =0;
 		for(unsigned int i=0;i<GetColumnCount();i++)
 			if(mAutosizeColumn.end()==mAutosizeColumn.find(i) )
@@ -108,7 +108,6 @@ void BaseDataView::OnResize(wxSizeEvent& evt)
 			if( *it < GetColumnCount() )
 				GetColumn(*it)->SetWidth(auto_width);
 		}
-		this->Thaw();
 	}//if ( mAutosizeColumn.size() )
 	evt.Skip(); 	
 }//virtual void OnResize

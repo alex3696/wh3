@@ -155,13 +155,12 @@ void whPnlCtrl_MovHistory::CreateFilterGroupGUI(unsigned int gid)
 {
 	if(gid<m_LogQueryData.m_Filter.size() /*&& TODO не создавать если такой уже есть*/ )
 	{
-		this->Freeze();
+		wxWindowDisabler	wndDisabler(this);
 		whPanel_Filter* pnl=new whPanel_Filter(this);
 		pnl->SetLogQueryData(&m_LogQueryData,gid);
 		m_AuiMgr.AddPane(pnl, wxAuiPaneInfo().Caption(pnl->GetName()).Name(pnl->GetName()).Top()
 						.Row(1).Position(gid+1).MinSize(350,100).DestroyOnClose(true)        );
 		m_AuiMgr.Update();
-		this->Thaw();
 	}
 }
 //---------------------------------------------------------------------------
@@ -214,7 +213,7 @@ void whPnlCtrl_MovHistory::SetLogQueryData(const whLogQueryData& data)
 //---------------------------------------------------------------------------
 void whPnlCtrl_MovHistory::UpdateView()
 {
-	this->Freeze();
+	wxWindowDisabler	wndDisabler(this);
 	ClearFilterGroup();		// убиваем все существующие фильтры
 
 	//создаём панельки для всех групп
@@ -226,7 +225,6 @@ void whPnlCtrl_MovHistory::UpdateView()
 	m_View->UpdateView();
 	
 	m_AuiMgr.Update();
-	this->Thaw();
 }
 //---------------------------------------------------------------------------
 // добавляем группу фильтров фильтр
