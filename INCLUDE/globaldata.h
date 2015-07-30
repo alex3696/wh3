@@ -45,6 +45,7 @@ public:
 
 	struct DbProp: public std::map<wxString,wxString>
 	{
+		BaseGroup	mBaseGroup = bgNull;
 		void Load();
 		//wxString FtpServer()	{	return (*this)[wxString("FTP server")];	}
 

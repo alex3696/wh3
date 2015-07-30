@@ -96,9 +96,6 @@ VObjCatalogCtrl::VObjCatalogCtrl(wxWindow* parent,
 		m_ResMgr->m_ico_delete24, wxEmptyString, wxITEM_NORMAL);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnDelete, this, wxID_DELETE);
 
-
-
-
 	mToolBar->Realize();
 	Layout();
 }//
@@ -117,6 +114,12 @@ void VObjCatalogCtrl::OnCmdSetTypeDir(wxCommandEvent& evt)
 		mTableView->ExpandAll();
 	}
 	mCatalogTool->SetBitmap(m_ResMgr->m_ico_folder_type24);
+	
+	const auto currBaseGroup = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+	if ((int)currBaseGroup >= (int)bgTypeDesigner)
+		mToolBar->EnableTool(wxID_MKCLS, true);
+		
+
 	mToolBar->Refresh();
 }
 //-----------------------------------------------------------------------------
@@ -128,6 +131,9 @@ void VObjCatalogCtrl::OnCmdSetPathDir(wxCommandEvent& evt)
 		mTableView->ExpandAll();
 	}
 	mCatalogTool->SetBitmap(m_ResMgr->m_ico_folder_obj24);
+	
+	mToolBar->EnableTool(wxID_MKCLS, false);
+
 	mToolBar->Refresh();
 }
 //-----------------------------------------------------------------------------

@@ -73,6 +73,17 @@ void Cfg::DbProp::Load()
 			propTable[propLabel] = table->GetAsString(1, i);
 		}
 	}
+
+	query = "SELECT idx, groupname "
+		" FROM fn_array1_to_table( "
+		"  '{Guest,User,ObjDesigner,TypeDesigner,Admin}'::NAME[]) stdGroup "
+		" INNER JOIN wh_membership ON wh_membership.groupname = stdGroup.id "
+		" WHERE username = CURRENT_USER "
+		" ORDER BY idx DESC LIMIT 1 ";
+	table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+	if (table && table->GetRowCount())
+		mBaseGroup = (BaseGroup)table->GetAsInt(0, 0);
+
 	
 }//void Load()
 //---------------------------------------------------------------------------
