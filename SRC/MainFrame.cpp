@@ -13,6 +13,10 @@
 #include "AdminMainForm.h"
 #include "VObjCatalogCtrl.h"
 
+#include "VPropCtrlPanel.h"
+#include "VActCtrlPanel.h"
+#include "VGroupCtrlPanel.h"
+#include "VUserCtrlPanel.h"
 
 #include "RDBS.h"
 //---------------------------------------------------------------------------
@@ -35,131 +39,22 @@ END_EVENT_TABLE()
 //---------------------------------------------------------------------------
 MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title, 
 						const wxPoint& pos, const wxSize& size, long style)
-	: wxFrame( parent, ID_MAINFRAME, "wxPGTest", wxDefaultPosition, wxSize( 700,600 ), wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL )
+	: wxFrame(parent, ID_MAINFRAME, title, wxDefaultPosition, size, style)
 {
-	
-	
-	m_wndFavorites =NULL;
-
-	
-
-
-	this->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
-	this->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
-
-
 	m_AuiMgr.SetManagedWindow(this);
 
-	wxMenuBar*	menu_bar = new wxMenuBar(0);
-	wxMenuItem* item= NULL;
+	BuildMenu();
+	BuildToolbar();
+	BuildStatusbar();
+ 
 
-	wxMenu* dbmenu = new wxMenu();
-	item = new wxMenuItem(dbmenu,CMD_DB_CONNECT,"Подключиться к БД");
-	item->SetBitmap(m_ResMgr->m_ico_connect16);	
-    dbmenu->Append(item);
-	item = new wxMenuItem(dbmenu,CMD_DB_DISCONNECT, "Отключиться от БД");
-	item->SetBitmap(m_ResMgr->m_ico_disconnect16);
-    dbmenu->Append(item);
-	dbmenu->AppendSeparator();
-	item = new wxMenuItem(dbmenu,wxID_PREFERENCES,"Конфигурация");
-	item->SetBitmap(m_ResMgr->m_ico_db16);
-    dbmenu->Append(item);
-	dbmenu->AppendSeparator();
-	item = new wxMenuItem(dbmenu,wxID_EXIT, "Выход");
-	dbmenu->Append(item);
-	menu_bar->Append(dbmenu, "Подключение");
+	m_Notebook = new wxAuiNotebook(this);
 
-	wxMenu* view = new wxMenu();
-	item = new wxMenuItem(view,CMD_SHOWFAVORITES,"Показать/скрыть избранное",wxEmptyString,wxITEM_CHECK);
-	//item->SetBitmap(m_ResMgr->m_ico_favorites16);
-	view->Append(item);
-	menu_bar->Append(view, "Вид");
-
-	
-	wxMenu* dir = new wxMenu();
-	item = new wxMenuItem(dir,CMD_MAKEOBJWND,"Открыть каталог объектов" );
-    dir->Append(item);
-	item = new wxMenuItem(dir,CMD_MAKETYPEWND,"Открыть каталог типов");
-    dir->Append(item);
-	item = new wxMenuItem(dir,CMD_MAKEHISTORYWND,"Открыть историю");
-    dir->Append(item);
-	menu_bar->Append(dir, "Каталоги данных");
-
-
-	wxMenu* xrcmenu = new wxMenu();
-	item = new wxMenuItem(xrcmenu,wxID_ANY,"About");
-    xrcmenu->Append(item);
-	menu_bar->Append(xrcmenu, "Help");
-
-
-	SetMenuBar(menu_bar);
-
-	
-
-
-    m_MainToolBar = new wxAuiToolBar(this, 555, wxDefaultPosition, wxDefaultSize,
-															wxAUI_TB_DEFAULT_STYLE 
-															//| wxAUI_TB_OVERFLOW
-															//| wxAUI_TB_TEXT
-															//| wxAUI_TB_HORZ_TEXT
-															//| wxAUI_TB_GRIPPER
-															);
-
-	//wxAuiToolBarArt* art=m_MainToolBar->GetArtProvider();
-	//wxVisualAttributes atr=	m_MainToolBar->GetDefaultAttributes();
-	//m_MainToolBar->SetDefaultAttributes(atr);
-
-	//m_MainToolBar->SetToolBitmapSize(wxSize(48,48));
-
-	//wxAuiToolBarItem* tool=	
-	m_MainToolBar->AddTool(CMD_DB_CONNECT,"Подключиться к БД",m_ResMgr->m_ico_connect24,"Подключиться к БД",wxITEM_RADIO);
-	m_MainToolBar->AddTool(CMD_DB_DISCONNECT,"Отключиться от БД",m_ResMgr->m_ico_disconnect24,"Отключиться от БД",wxITEM_RADIO);
-	m_MainToolBar->AddSeparator();
-
-	m_btnFavorites=m_MainToolBar->AddTool(CMD_SHOWFAVORITES,"Открыть избранное",m_ResMgr->m_ico_favorites24,"Открыть избранное",wxITEM_CHECK);
-	
-	m_MainToolBar->AddTool(CMD_MAKEOBJWND,"Открыть каталог объектов",m_ResMgr->m_ico_add_obj_tab24,"Открыть каталог объектов");
-	m_MainToolBar->AddTool(CMD_MAKETYPEWND,"Открыть каталог типов",m_ResMgr->m_ico_add_type_tab24,"Открыть каталог типов");
-	
-	
-	Bind(wxEVT_COMMAND_MENU_SELECTED,&MainFrame::DoMenuPreferences,this,wxID_PREFERENCES);
-
-
-	
-	m_MainToolBar->Realize();
-
-	// create the notebook off-window to avoid flicker
-	wxSize client_size = GetClientSize();
-	m_Notebook = new wxAuiNotebook(this, wxID_ANY,
-                                    wxPoint(client_size.x, client_size.y),
-                                    wxSize(430,200),
-									wxAUI_NB_DEFAULT_STYLE  | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER);
-    
-	m_AuiMgr.AddPane(m_MainToolBar, wxAuiPaneInfo().
-		Name(wxT("m_MainToolBar")).Caption(wxT("Main toolbar"))
-					.CaptionVisible(false)
-					 //ToolbarPane().
-					 .Top()
-					 .Fixed()
-					 .Dockable(false)
-					 .PaneBorder(false)
-					 .Layer(1)
-					 .Position(1)
-					 //.LeftDockable(false)
-					 //.RightDockable(false)
-					 );
 
 	m_AuiMgr.AddPane(m_Notebook, wxAuiPaneInfo().
 					Name(wxT("NotebookPane")).Caption(wxT("Notebook")).
 					CenterPane().Layer(1).Position(1).CloseButton(true).MaximizeButton(true).PaneBorder(false));
 
-
-/*
-	wxStatusBar *statbarNew = NULL;
-	statbarNew = new wxStatusBar(this, wxID_ANY, style, "wxStatusBar");
-	statbarNew->SetFieldsCount(2);
-*/
-	CreateStatusBar(3);
 	m_AuiMgr.Update();
 	OnShowLoginWnd();
 	
@@ -183,10 +78,10 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 	OnShowFavorites();
 	*/
 
-	DoMenuPreferences();
+	//DoMenuPreferences();
 
 
-	//wh::rdbs::RunTest();
+	ShowDevToolBar();
 }
 //---------------------------------------------------------------------------
 MainFrame::~MainFrame()
@@ -201,6 +96,166 @@ MainFrame::~MainFrame()
 	whDataMgr* mgr = whDataMgr::GetInstance();
 	mgr->mDb.Close();
 
+}
+//---------------------------------------------------------------------------
+void MainFrame::BuildMenu()
+{
+	wxMenuBar*	menu_bar = new wxMenuBar(0);
+	wxMenuItem* item = NULL;
+
+	wxMenu* dbmenu = new wxMenu();
+	item = new wxMenuItem(dbmenu, CMD_DB_CONNECT, "Подключиться к БД");
+	item->SetBitmap(m_ResMgr->m_ico_connect16);
+	dbmenu->Append(item);
+	item = new wxMenuItem(dbmenu, CMD_DB_DISCONNECT, "Отключиться от БД");
+	item->SetBitmap(m_ResMgr->m_ico_disconnect16);
+	dbmenu->Append(item);
+	dbmenu->AppendSeparator();
+	item = new wxMenuItem(dbmenu, wxID_PREFERENCES, "Конфигурация");
+	item->SetBitmap(m_ResMgr->m_ico_db16);
+	dbmenu->Append(item);
+	dbmenu->AppendSeparator();
+	item = new wxMenuItem(dbmenu, wxID_EXIT, "Выход");
+	dbmenu->Append(item);
+	menu_bar->Append(dbmenu, "Подключение");
+
+	wxMenu* view = new wxMenu();
+	item = new wxMenuItem(view, CMD_SHOWFAVORITES, "Показать/скрыть избранное", wxEmptyString, wxITEM_CHECK);
+	//item->SetBitmap(m_ResMgr->m_ico_favorites16);
+	view->Append(item);
+	menu_bar->Append(view, "Вид");
+
+
+	wxMenu* dir = new wxMenu();
+	item = new wxMenuItem(dir, CMD_MAKEOBJWND, "Открыть каталог объектов");
+	dir->Append(item);
+	item = new wxMenuItem(dir, CMD_MAKETYPEWND, "Открыть каталог типов");
+	dir->Append(item);
+	item = new wxMenuItem(dir, CMD_MAKEHISTORYWND, "Открыть историю");
+	dir->Append(item);
+	menu_bar->Append(dir, "Каталоги данных");
+
+
+	wxMenu* xrcmenu = new wxMenu();
+	item = new wxMenuItem(xrcmenu, wxID_ANY, "About");
+	xrcmenu->Append(item);
+	menu_bar->Append(xrcmenu, "Help");
+
+
+	SetMenuBar(menu_bar);
+
+
+
+}
+//---------------------------------------------------------------------------
+void MainFrame::BuildToolbar()
+{
+	m_MainToolBar = new wxAuiToolBar(this, 555, wxDefaultPosition, wxDefaultSize,
+		wxAUI_TB_DEFAULT_STYLE
+		//| wxAUI_TB_OVERFLOW
+		//| wxAUI_TB_TEXT
+		//| wxAUI_TB_HORZ_TEXT
+		| wxAUI_TB_GRIPPER
+		);
+
+	m_MainToolBar->AddTool(CMD_DB_CONNECT, "Подключиться к БД", m_ResMgr->m_ico_connect24, "Подключиться к БД", wxITEM_RADIO);
+	m_MainToolBar->AddTool(CMD_DB_DISCONNECT, "Отключиться от БД", m_ResMgr->m_ico_disconnect24, "Отключиться от БД", wxITEM_RADIO);
+	m_MainToolBar->AddSeparator();
+
+	m_btnFavorites = m_MainToolBar->AddTool(CMD_SHOWFAVORITES, "Открыть избранное", m_ResMgr->m_ico_favorites24, "Открыть избранное", wxITEM_CHECK);
+
+	m_MainToolBar->AddTool(CMD_MAKEOBJWND, "Открыть каталог объектов", m_ResMgr->m_ico_add_obj_tab24, "Открыть каталог объектов");
+
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::DoMenuPreferences, this, wxID_PREFERENCES);
+
+	m_MainToolBar->Realize();
+
+	m_AuiMgr.AddPane(m_MainToolBar, wxAuiPaneInfo().
+		Name(wxT("m_MainToolBar")).Caption(wxT("Main toolbar"))
+		.CaptionVisible(false)
+		.ToolbarPane()
+		.Top()
+		.Fixed()
+		.Dockable(false)
+		.PaneBorder(false)
+		.Layer(1)
+		.Position(1)
+		//.LeftDockable(false)
+		//.RightDockable(false)
+		);
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::BuildStatusbar()
+{
+	/*
+	wxStatusBar *statbarNew = NULL;
+	statbarNew = new wxStatusBar(this, wxID_ANY, style, "wxStatusBar");
+	statbarNew->SetFieldsCount(2);
+	*/
+
+	CreateStatusBar(3);
+}
+
+//---------------------------------------------------------------------------
+void MainFrame::ShowDevToolBar(bool show)
+{
+	if (!m_DevToolBar)
+	{ 
+		m_DevToolBar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+			wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_GRIPPER);
+
+		m_DevToolBar->AddTool(CMD_PNLSHOWGROUP, "Групп",
+			m_ResMgr->m_ico_usergroup24, wxEmptyString, wxITEM_NORMAL);
+		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowGroup, this, CMD_PNLSHOWGROUP);
+		m_DevToolBar->AddTool(CMD_PNLSHOWUSER, "Пользователи",
+			m_ResMgr->m_ico_user24, wxEmptyString, wxITEM_NORMAL);
+		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowUser, this, CMD_PNLSHOWUSER);
+		m_DevToolBar->AddTool(CMD_PNLSHOWPROP, "Свойства",
+			m_ResMgr->m_ico_classprop24, wxEmptyString, wxITEM_NORMAL);
+		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowProp, this, CMD_PNLSHOWPROP);
+		m_DevToolBar->AddTool(CMD_PNLSHOWACT, "Действия",
+			m_ResMgr->m_ico_act24, wxEmptyString, wxITEM_NORMAL);
+		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowAct, this, CMD_PNLSHOWACT);
+		m_DevToolBar->Realize();
+
+		m_AuiMgr.AddPane(m_DevToolBar, wxAuiPaneInfo().Name(wxT("DevToolBar")).
+			Caption(wxT("Developer toolbar")).CaptionVisible(false)
+			.ToolbarPane()
+			.Top()
+			.Fixed()
+			.Dockable(false)
+			.PaneBorder(false)
+			.Layer(1)
+			.Position(1)
+			);
+	}
+
+	BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+	switch (bg)
+	{
+	default:
+	case bgNull:
+		m_DevToolBar->EnableTool(CMD_PNLSHOWGROUP, false);
+		m_DevToolBar->EnableTool(CMD_PNLSHOWUSER, false);
+		m_DevToolBar->EnableTool(CMD_PNLSHOWPROP, false);
+		m_DevToolBar->EnableTool(CMD_PNLSHOWACT, false);
+		break;
+	case bgGuest:
+	case bgUser:
+	case bgObjDesigner:
+	case bgTypeDesigner:
+		m_DevToolBar->EnableTool(CMD_PNLSHOWPROP, true);
+		m_DevToolBar->EnableTool(CMD_PNLSHOWACT, true);
+	case bgAdmin:
+		m_DevToolBar->EnableTool(CMD_PNLSHOWGROUP, true);
+		m_DevToolBar->EnableTool(CMD_PNLSHOWUSER, true);
+		break;
+	}
+
+	show ? m_DevToolBar->Show() : m_DevToolBar->Hide();
+
+	m_AuiMgr.Update();
 }
 //---------------------------------------------------------------------------
 void MainFrame::DoMenuPreferences( wxCommandEvent& evt) 
@@ -229,7 +284,7 @@ void MainFrame::CreateTypeCatalog(const wxString& _type)
 void MainFrame::CreateObjCatalog(const wxString& _objclass,const wxString& _objname,const wxString& _classfilter)
 {
 	wxBusyCursor		busyCursor;
-	wxWindowUpdateLocker	wndDisabler(m_Notebook);
+	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 
 	auto obj_cat = new wh::view::VObjCatalogCtrl(m_Notebook);
 
@@ -368,5 +423,77 @@ void MainFrame::OnShowFavorites(wxCommandEvent& evt)
 	
 }
 
+//---------------------------------------------------------------------------
+void MainFrame::PnlShowGroup(wxCommandEvent& WXUNUSED(evt))
+{
+	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	using namespace wh;
+	using namespace wh::gui;
+	using namespace wh::view;
+	auto model = std::make_shared<MGroupArray>();
+	auto view = new VGroupCtrlPanel(m_Notebook);
+	BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+	if ((int)bg < (int)bgAdmin)
+		view->DisableCreateDelete();
+	model->Load();
+	view->SetModel(model);
+	m_Notebook->AddPage(view, "Группы", true, ResMgr::GetInstance()->m_ico_usergroup24);
+	view->SetFocus();
+	m_AuiMgr.Update();
+}
+//---------------------------------------------------------------------------
+void MainFrame::PnlShowUser(wxCommandEvent& WXUNUSED(evt))
+{
+	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	using namespace wh;
+	using namespace wh::gui;
+	using namespace wh::view;
+	auto model = std::make_shared<MUserArray>();
+	auto view = new VUserCtrlPanel(m_Notebook);
+	BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+	if ((int)bg < (int)bgAdmin)
+		view->DisableCreateDelete();
+	model->Load();
+	view->SetModel(model);
+	m_Notebook->AddPage(view, "Пользователи", true, ResMgr::GetInstance()->m_ico_user24);
+	view->SetFocus();
+	m_AuiMgr.Update();
+}
+//---------------------------------------------------------------------------
+void MainFrame::PnlShowProp(wxCommandEvent& WXUNUSED(evt))
+{
+	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	using namespace wh;
+	using namespace wh::gui;
+	using namespace wh::view;
+	auto model = std::make_shared<MPropArray>();
+	auto view = new VPropCtrlPanel(m_Notebook);
+	BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+	if ((int)bg < (int)bgTypeDesigner)
+		view->DisableCreateDelete();
+	model->Load();
+	view->SetModel(model);
+	m_Notebook->AddPage(view, "Свойства", true, ResMgr::GetInstance()->m_ico_classprop24);
+	view->SetFocus();
+	m_AuiMgr.Update();
+}
+//---------------------------------------------------------------------------
+void MainFrame::PnlShowAct(wxCommandEvent& WXUNUSED(evt))
+{
+	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	using namespace wh;
+	using namespace wh::gui;
+	using namespace wh::view;
+	auto model = std::make_shared<MActArray>();
+	auto view = new VActCtrlPanel(m_Notebook);
+	BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+	if ((int)bg < (int)bgTypeDesigner)
+		view->DisableCreateDelete();
+	model->Load();
+	view->SetModel(model);
+	m_Notebook->AddPage(view, "Действия", true, ResMgr::GetInstance()->m_ico_act24);
+	view->SetFocus();
+	m_AuiMgr.Update();
+}
 
 	

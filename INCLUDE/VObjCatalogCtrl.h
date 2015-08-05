@@ -20,24 +20,24 @@ class VObjCatalogCtrl
 	// hold parent node 
 	std::shared_ptr<wh::object_catalog::MObjCatalog> mCatalogModel;
 	
-	wxAuiToolBar*		mToolBar = nullptr;
+	wxToolBar*			mToolBar = nullptr;
 	wxStaticText*		mPathSring = nullptr;
 	
 	VObjCatalogTable*	mTableView = nullptr;
 
-	wxMenu				mCatalogToolMenu;
+	wxMenu*				mCatalogToolMenu;
 	wxMenu				mContextMenu;
 
-	wxAuiToolBarItem* mCatalogTool;
-	wxAuiToolBarItem* mReloadTool;
-	wxAuiToolBarItem* mUpTool;
-	wxAuiToolBarItem* mMoveTool;
-	wxAuiToolBarItem* mActTool;
+	wxToolBarToolBase* mCatalogTool;
+	wxToolBarToolBase* mReloadTool;
+	wxToolBarToolBase* mUpTool;
+	wxToolBarToolBase* mMoveTool;
+	wxToolBarToolBase* mActTool;
 
-	wxAuiToolBarItem* mMkObjTool;
-	wxAuiToolBarItem* mMkClsTool;
-	wxAuiToolBarItem* mEditTool;
-	wxAuiToolBarItem* mDeleteTool;
+	wxToolBarToolBase* mMkObjTool;
+	wxToolBarToolBase* mMkClsTool;
+	wxToolBarToolBase* mEditTool;
+	wxToolBarToolBase* mDeleteTool;
 
 	void OnCmdSetTypeDir(wxCommandEvent& evt);
 	void OnCmdSetPathDir(wxCommandEvent& evt);

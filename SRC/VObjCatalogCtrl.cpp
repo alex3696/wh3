@@ -22,7 +22,8 @@ VObjCatalogCtrl::VObjCatalogCtrl(wxWindow* parent,
 	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
 	SetSizer(szrMain);
 
-	mToolBar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT);
+	mToolBar = new wxToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
+		wxTB_FLAT | wxTB_TEXT);
 	GetSizer()->Add(mToolBar, 0, wxALL | wxEXPAND, 0);
 
 	mPathSring = new wxStaticText(this, wxID_ANY, "/[CLS]OBJ/");
@@ -41,29 +42,21 @@ VObjCatalogCtrl::VObjCatalogCtrl(wxWindow* parent,
 	Bind(wxEVT_MENU, &VObjCatalogCtrl::OnCmdUp, this, wxID_BACKWARD);
 	Bind(wxEVT_COMMAND_DATAVIEW_ITEM_ACTIVATED, &VObjCatalogCtrl::OnActivated, this);
 	
+	const auto currBaseGroup = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
 
 	// делаем тулбар
-	
 	mCatalogTool = mToolBar->AddTool(whID_CATALOG_SELECT, "Группировать", 
-		m_ResMgr->m_ico_folder_obj24,wxEmptyString, wxITEM_NORMAL);
-	mCatalogTool->SetHasDropDown(true);
-	AppendBitmapMenu(&mCatalogToolMenu, whID_CATALOG_TYPE, "по &типу"
+		m_ResMgr->m_ico_folder_obj24,wxEmptyString, wxITEM_DROPDOWN);
+	
+	mCatalogToolMenu = new wxMenu();
+	AppendBitmapMenu(mCatalogToolMenu, whID_CATALOG_TYPE, "по &типу"
 		, m_ResMgr->m_ico_folder_type24);
-	AppendBitmapMenu(&mCatalogToolMenu, whID_CATALOG_PATH, "по &месту+типу"
+	AppendBitmapMenu(mCatalogToolMenu, whID_CATALOG_PATH, "по &месту+типу"
 		, m_ResMgr->m_ico_folder_obj24);
-	Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, [this](wxAuiToolBarEvent& evt)
-		{
-			mCatalogTool->SetSticky(true);
-			wxRect rect = mToolBar->GetToolRect(mCatalogTool->GetId());
-			wxPoint pt = mToolBar->ClientToScreen(rect.GetBottomLeft());
-			pt = ScreenToClient(pt);
-			PopupMenu(&mCatalogToolMenu, pt);
-			mCatalogTool->SetSticky(false);
-		}
-		, whID_CATALOG_SELECT);
+	mCatalogTool->SetDropdownMenu(mCatalogToolMenu);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdSetPathDir,this, whID_CATALOG_PATH);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdSetTypeDir,this, whID_CATALOG_TYPE);
-	
+
 	mReloadTool = mToolBar->AddTool(wxID_REFRESH, "Обновить",
 		m_ResMgr->m_ico_refresh24, wxEmptyString, wxITEM_NORMAL);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdReload, this, wxID_REFRESH);
@@ -71,6 +64,8 @@ VObjCatalogCtrl::VObjCatalogCtrl(wxWindow* parent,
 	mUpTool = mToolBar->AddTool(wxID_BACKWARD, "Назад",
 		m_ResMgr->m_ico_back24, wxEmptyString, wxITEM_NORMAL);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdUp, this, wxID_BACKWARD);
+
+	mToolBar->AddSeparator();
 
 	mMoveTool = mToolBar->AddTool(wxID_REPLACE, "Переместить",
 		m_ResMgr->m_ico_move24, wxEmptyString, wxITEM_NORMAL);
@@ -80,6 +75,8 @@ VObjCatalogCtrl::VObjCatalogCtrl(wxWindow* parent,
 		m_ResMgr->m_ico_act24, wxEmptyString, wxITEM_NORMAL);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdAct, this, wxID_EXECUTE);
 
+	mToolBar->AddSeparator();
+
 	mMkObjTool = mToolBar->AddTool(wxID_MKOBJ, "Создать объект",
 		m_ResMgr->m_ico_add_obj24, wxEmptyString, wxITEM_NORMAL);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnMkObj, this, wxID_MKOBJ);
@@ -87,6 +84,12 @@ VObjCatalogCtrl::VObjCatalogCtrl(wxWindow* parent,
 	mMkClsTool = mToolBar->AddTool(wxID_MKCLS, "Создать класс",
 		m_ResMgr->m_ico_add_type24, wxEmptyString, wxITEM_NORMAL);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnMkCls, this, wxID_MKCLS);
+		
+	if ((int)currBaseGroup < (int)bgTypeDesigner)
+	{
+		Unbind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnMkCls, this, wxID_MKCLS);
+		mToolBar->RemoveTool(wxID_MKCLS);
+	}
 
 	mEditTool = mToolBar->AddTool(wxID_EDIT, "Редактировать",
 		m_ResMgr->m_ico_edit24, wxEmptyString, wxITEM_NORMAL);
@@ -103,44 +106,65 @@ VObjCatalogCtrl::VObjCatalogCtrl(wxWindow* parent,
 //-----------------------------------------------------------------------------
 VObjCatalogCtrl::~VObjCatalogCtrl()
 {
-
+	auto toolMkCls = mToolBar->FindById(wxID_MKCLS);
+	if (!toolMkCls)
+		delete mMkClsTool;
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdSetTypeDir(wxCommandEvent& evt)
 {
+	wxWindowUpdateLocker	wndLockUpdater(mToolBar);
+	wxWindowDisabler		wndDisabler(mToolBar);
+	mToolBar->SetToolNormalBitmap(whID_CATALOG_SELECT, m_ResMgr->m_ico_folder_type24);
+	const auto currBaseGroup = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+	if ((int)currBaseGroup >= (int)bgTypeDesigner)
+	{
+		auto toolMkCls = mToolBar->FindById(wxID_MKCLS);
+		if (!toolMkCls)
+		{
+			mToolBar->InsertTool(6, mMkClsTool);
+			mToolBar->Realize();
+			Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnMkCls, this, wxID_MKCLS);
+			
+		}
+	}
+	mToolBar->Refresh();
 	if (mCatalogModel)
 	{
+		wxWindowUpdateLocker	wndLockUpdater(mTableView);
+		wxBusyCursor			busyCursor;
 		mCatalogModel->SetClsCatalog(1);
 		mTableView->ExpandAll();
 	}
-	mCatalogTool->SetBitmap(m_ResMgr->m_ico_folder_type24);
-	
-	const auto currBaseGroup = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
-	if ((int)currBaseGroup >= (int)bgTypeDesigner)
-		mToolBar->EnableTool(wxID_MKCLS, true);
-		
-
-	mToolBar->Refresh();
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdSetPathDir(wxCommandEvent& evt)
 {
+	wxWindowUpdateLocker	wndLockUpdater(mToolBar);
+	wxWindowDisabler		wndDisabler(mToolBar);
+	mToolBar->SetToolNormalBitmap(whID_CATALOG_SELECT, m_ResMgr->m_ico_folder_obj24);
+	auto toolMkCls = mToolBar->FindById(wxID_MKCLS);
+	if (toolMkCls)
+	{
+		Unbind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnMkCls, this, wxID_MKCLS);
+		mToolBar->RemoveTool(wxID_MKCLS);
+	}
+	//mToolBar->Realize();
+	//mToolBar->Refresh();
 	if (mCatalogModel)
 	{
+		wxWindowUpdateLocker	wndLockUpdater(mTableView);
+		wxBusyCursor			busyCursor;
 		mCatalogModel->SetObjCatalog(1);
 		mTableView->ExpandAll();
 	}
-	mCatalogTool->SetBitmap(m_ResMgr->m_ico_folder_obj24);
-	
-	mToolBar->EnableTool(wxID_MKCLS, false);
 
-	mToolBar->Refresh();
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 {
 	//wxBusyInfo		busyInfo("Please wait, working...");
-	wxBusyCursor		busyCursor;
+	wxBusyCursor			busyCursor;
 	wxWindowUpdateLocker	wndDisabler(mTableView);
 
 	auto selectedItem = mTableView->GetSelection();
@@ -319,6 +343,17 @@ void VObjCatalogCtrl::OnMkObj(wxCommandEvent& evt)
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnMkCls(wxCommandEvent& evt)
 {
+	/*
+	auto tool = mToolBar->FindById(wxID_DELETE);
+	if (!tool)
+	{
+		mToolBar->InsertTool(6, mDeleteTool);
+		mToolBar->Realize();
+	}
+	mToolBar->RemoveTool(wxID_DELETE);
+	*/
+	
+
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnEdit(wxCommandEvent& evt)
@@ -368,9 +403,9 @@ void VObjCatalogCtrl::SetModel(std::shared_ptr<IModel> model)
 		mTableView->SetModel(model);
 
 		if (mCatalogModel->mCfg->GetData().mObjCatalog)
-			mCatalogTool->SetBitmap(m_ResMgr->m_ico_folder_obj24);
+			mToolBar->SetToolNormalBitmap(whID_CATALOG_SELECT,m_ResMgr->m_ico_folder_obj24);
 		else
-			mCatalogTool->SetBitmap(m_ResMgr->m_ico_folder_type24);
+			mToolBar->SetToolNormalBitmap(whID_CATALOG_SELECT,m_ResMgr->m_ico_folder_type24);
 	
 		mConnPathChange.disconnect();
 		auto funcOnChange = std::bind(&VObjCatalogCtrl::OnChangePath,

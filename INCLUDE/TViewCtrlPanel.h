@@ -67,12 +67,17 @@ public:
 		mAutoSaveEdited = val;
 	}
 
+	void DisableCreateDelete()
+	{
+		mDisableCreateDelete = true;
+	}
 protected:
 	wxAuiToolBar*		mToolBar = nullptr;
 	wxMenu				mContextMenu;
 	T_TableType*		mTableView = nullptr;
 
 	bool				mAutoSaveEdited = AutoSaveEdited;
+	bool				mDisableCreateDelete = false;
 
 	std::shared_ptr<IModel> mVecModel;
 
@@ -238,6 +243,14 @@ void TViewCtrlPanel < mTools, T_ItemEditor, AutoSaveEdited >
 	BuildAddItem();
 	BuildEditItem();
 	BuildDelItem();
+
+	if (mDisableCreateDelete)
+	{
+		mToolBar->EnableTool(wxID_SAVE, false);
+		mToolBar->EnableTool(wxID_ADD, false);
+		mToolBar->EnableTool(wxID_REMOVE, false);
+	}
+		
 
 
 	mToolBar->Realize();

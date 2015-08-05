@@ -144,7 +144,7 @@ bool VObjCatalogDataViewModel::GetAttr(const wxDataViewItem &dataViewItem, unsig
 				has_bg = false;
 			else
 			{
-				auto favProp = catalog->GetFavProps();
+				const rec::FavProps& favProp = catalog->GetFavProps();
 				if (col > 6 && favProp.size())
 				{
 					const auto& field = favProp[col - 7];

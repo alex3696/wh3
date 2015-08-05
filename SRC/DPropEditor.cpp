@@ -79,6 +79,9 @@ void DPropEditor::SetModel(std::shared_ptr<IModel>& newModel)
 											this, std::placeholders::_1);
 			mChangeConnection = mModel->ConnectChangeSlot(funcOnChange);
 			OnChangeModel(*mModel.get());
+			BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+			if ((int)bg < (int)bgTypeDesigner)
+				m_btnOK->Enable(false);
 		}//if (mModel)
 	}//if
 }//SetModel

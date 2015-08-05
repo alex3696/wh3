@@ -98,6 +98,9 @@ void DActEditor::SetModel(std::shared_ptr<IModel>& newModel)
 
 		mActPanel->SetModel(newModel);
 		mPropsPanel->SetModel(actModel->GetPropArray());
+		BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+		if ((int)bg < (int)bgTypeDesigner)
+			mBtnOK->Enable(false);
 	}
 
 	

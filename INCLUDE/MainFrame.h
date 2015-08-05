@@ -11,7 +11,7 @@
 enum GUIID
 {
 	// GUI controls IDs
-	ID_MAINFRAME,
+	ID_MAINFRAME=1100,
 
 	// CMD
 	CMD_DB_CONNECT,
@@ -23,8 +23,12 @@ enum GUIID
 	CMD_MAKEOBJWND,
 	CMD_MAKEHISTORYWND,
 
-	CMD_SHOWFAVORITES
+	CMD_SHOWFAVORITES,
 
+	CMD_PNLSHOWGROUP,
+	CMD_PNLSHOWUSER,
+	CMD_PNLSHOWPROP,
+	CMD_PNLSHOWACT
 
 };
 //---------------------------------------------------------------------------
@@ -37,16 +41,29 @@ class MainFrame :  public wxFrame, public ctrlWithResMgr
 // соблюдать порядок наследования: первыми идут WX классы
 private:
 
-	wxAuiToolBar*		m_MainToolBar;
-	wxAuiToolBarItem*	m_btnFavorites;
+	wxAuiToolBar*		m_MainToolBar = nullptr;
+	wxAuiToolBar*		m_DevToolBar = nullptr;
 
-	wxWindow*			m_wndFavorites;
+	wxAuiToolBarItem*	m_btnFavorites = nullptr;;
+
+	wxWindow*			m_wndFavorites = nullptr;;
+
+	void BuildMenu();
+	void BuildToolbar();
+	void BuildStatusbar();
+
+	void ShowDevToolBar(bool show = true);
+	void PnlShowGroup(wxCommandEvent& WXUNUSED(evt));
+	void PnlShowUser(wxCommandEvent& WXUNUSED(evt));
+	void PnlShowProp(wxCommandEvent& WXUNUSED(evt));
+	void PnlShowAct(wxCommandEvent& WXUNUSED(evt));
 public:
 	wxAuiManager	m_AuiMgr;
 	wxAuiNotebook*	m_Notebook;
 
-	MainFrame( wxWindow* parent = NULL, wxWindowID id = wxID_ANY, const wxString& title = wxT("Hub GUI"), 
-		const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 653,523 ), 
+	MainFrame( wxWindow* parent = NULL, wxWindowID id = wxID_ANY, 
+		const wxString& title = wxT("wh3"), 
+		const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 700,600 ), 
 		long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL);
 	~MainFrame();
 

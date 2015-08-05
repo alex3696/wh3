@@ -98,6 +98,9 @@ void DUserEditor::SetModel(std::shared_ptr<IModel>& newModel)
 
 		mUserPanel->SetModel(newModel);
 		mGroupsPanel->SetModel(userModel->GetGroupArray());
+		BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+		if ((int)bg < (int)bgAdmin)
+			mBtnOK->Enable(false);
 	}
 
 
