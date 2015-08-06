@@ -41,6 +41,8 @@ public:
 		return &instance;
 	}
 
+	DEF_INIT_ICO24(acts);
+
 	DEF_INIT_ICO24(rule);
 	DEF_INIT_ICO24(folder);
 	

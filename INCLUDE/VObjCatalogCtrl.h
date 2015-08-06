@@ -20,35 +20,39 @@ class VObjCatalogCtrl
 	// hold parent node 
 	std::shared_ptr<wh::object_catalog::MObjCatalog> mCatalogModel;
 	
-	wxToolBar*			mToolBar = nullptr;
+	wxAuiToolBar*		mToolBar = nullptr;
 	wxStaticText*		mPathSring = nullptr;
 	
 	VObjCatalogTable*	mTableView = nullptr;
 
-	wxMenu*				mCatalogToolMenu;
+	wxMenu				mCatalogToolMenu;
 	wxMenu				mContextMenu;
 
-	wxToolBarToolBase* mCatalogTool;
-	wxToolBarToolBase* mReloadTool;
-	wxToolBarToolBase* mUpTool;
-	wxToolBarToolBase* mMoveTool;
-	wxToolBarToolBase* mActTool;
+	wxAuiToolBarItem* mCatalogTool;
+	wxAuiToolBarItem* mReloadTool;
+	wxAuiToolBarItem* mUpTool;
+	wxAuiToolBarItem* mMoveTool;
+	wxAuiToolBarItem* mActTool;
 
-	wxToolBarToolBase* mMkObjTool;
-	wxToolBarToolBase* mMkClsTool;
-	wxToolBarToolBase* mEditTool;
-	wxToolBarToolBase* mDeleteTool;
+	wxAuiToolBarItem* mMkObjTool;
+	wxAuiToolBarItem* mMkClsTool;
+	wxAuiToolBarItem* mEditTool;
+	wxAuiToolBarItem* mDeleteTool;
 
 	void OnCmdSetTypeDir(wxCommandEvent& evt);
 	void OnCmdSetPathDir(wxCommandEvent& evt);
 	void OnCmdReload(wxCommandEvent& evt);
 	void OnCmdUp(wxCommandEvent& evt);
+	void OnCmdDetail(wxCommandEvent& evt);
 	void OnCmdMove(wxCommandEvent& evt);
 	void OnCmdAct(wxCommandEvent& evt);
 	void OnMkObj(wxCommandEvent& evt);
 	void OnMkCls(wxCommandEvent& evt);
 	void OnEdit(wxCommandEvent& evt);
 	void OnDelete(wxCommandEvent& evt);
+
+	void UpdateToolsStates();
+
 
 
 	void OnSelect(wxDataViewEvent& evt);

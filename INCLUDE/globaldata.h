@@ -41,7 +41,7 @@ public:
 		void Save();
 
 	
-	}	Db;
+	}	mConnect;
 
 	struct DbProp: public std::map<wxString,wxString>
 	{

@@ -215,7 +215,7 @@ void MainFrame::ShowDevToolBar(bool show)
 			m_ResMgr->m_ico_classprop24, wxEmptyString, wxITEM_NORMAL);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowProp, this, CMD_PNLSHOWPROP);
 		m_DevToolBar->AddTool(CMD_PNLSHOWACT, "Действия",
-			m_ResMgr->m_ico_act24, wxEmptyString, wxITEM_NORMAL);
+			m_ResMgr->m_ico_acts24, wxEmptyString, wxITEM_NORMAL);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowAct, this, CMD_PNLSHOWACT);
 		m_DevToolBar->Realize();
 
@@ -241,15 +241,15 @@ void MainFrame::ShowDevToolBar(bool show)
 		m_DevToolBar->EnableTool(CMD_PNLSHOWPROP, false);
 		m_DevToolBar->EnableTool(CMD_PNLSHOWACT, false);
 		break;
-	case bgGuest:
-	case bgUser:
-	case bgObjDesigner:
-	case bgTypeDesigner:
-		m_DevToolBar->EnableTool(CMD_PNLSHOWPROP, true);
-		m_DevToolBar->EnableTool(CMD_PNLSHOWACT, true);
 	case bgAdmin:
 		m_DevToolBar->EnableTool(CMD_PNLSHOWGROUP, true);
 		m_DevToolBar->EnableTool(CMD_PNLSHOWUSER, true);
+	case bgTypeDesigner:
+		m_DevToolBar->EnableTool(CMD_PNLSHOWPROP, true);
+		m_DevToolBar->EnableTool(CMD_PNLSHOWACT, true);
+	case bgObjDesigner:
+	case bgUser:
+	case bgGuest:
 		break;
 	}
 
@@ -344,7 +344,7 @@ void MainFrame::OnShowLoginWnd(wxCommandEvent& evt)
 	if(mgr->mDb.IsOpen())
 		OnDisconnectDB();
 	
-	wh::Cfg::DbConnect& dbcfg = whDataMgr::GetInstance()->mCfg.Db;
+	wh::Cfg::DbConnect& dbcfg = whDataMgr::GetInstance()->mCfg.mConnect;
 	dbcfg.Load();
 
 	whLogin dlg(this);
@@ -491,7 +491,7 @@ void MainFrame::PnlShowAct(wxCommandEvent& WXUNUSED(evt))
 		view->DisableCreateDelete();
 	model->Load();
 	view->SetModel(model);
-	m_Notebook->AddPage(view, "Действия", true, ResMgr::GetInstance()->m_ico_act24);
+	m_Notebook->AddPage(view, "Действия", true, ResMgr::GetInstance()->m_ico_acts24);
 	view->SetFocus();
 	m_AuiMgr.Update();
 }
