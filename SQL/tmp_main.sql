@@ -1033,7 +1033,7 @@ BEGIN
             INSERT INTO t_ref_class_act(cls_id, act_id) VALUES (NEW.cls_id, NEW.act_id);
         END IF;
     WHEN 'UPDATE' THEN
-        IF NEW.cls_id<>OLD.cls_id OR NEW.act_id<>old.act_id FOUND THEN
+        IF NEW.cls_id<>OLD.cls_id OR NEW.act_id<>old.act_id THEN
             UPDATE t_ref_class_act SET cls_id=NEW.cls_id, act_id=NEW.act_id WHERE 
                 cls_id=OLD.cls_id AND act_id=OLD.act_id;
         END IF;                

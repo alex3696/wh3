@@ -6,6 +6,8 @@
 #include "dlg_act_view_Frame.h"
 #include "dlg_mkobj_view_Frame.h"
 
+#include "DClsEditor.h"
+
 
 using namespace wh;
 using namespace view;
@@ -378,17 +380,25 @@ void VObjCatalogCtrl::OnMkObj(wxCommandEvent& evt)
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnMkCls(wxCommandEvent& evt)
 {
-	/*
-	auto tool = mToolBar->FindById(wxID_DELETE);
-	if (!tool)
+	if (mCatalogModel && !mCatalogModel->mCfg->GetData().mObjCatalog)
 	{
-		mToolBar->InsertTool(6, mDeleteTool);
-		mToolBar->Realize();
-	}
-	mToolBar->RemoveTool(wxID_DELETE);
-	*/
-	
+		const auto& root = mCatalogModel->GetData();
 
+		auto newItem = std::make_shared<MClsNode>();
+
+		rec::Cls cls_data;
+		cls_data.mParent = root.mCls.mID;
+		newItem->SetData(cls_data);
+
+		DClsEditor editor;
+		editor.SetModel(std::dynamic_pointer_cast<IModel>(newItem));
+		if (wxID_OK == editor.ShowModal())
+		{
+			editor.UpdateModel();
+			newItem->Save();
+		}
+		OnCmdReload(wxCommandEvent(wxID_REFRESH));
+	}
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnEdit(wxCommandEvent& evt)
@@ -396,8 +406,6 @@ void VObjCatalogCtrl::OnEdit(wxCommandEvent& evt)
 	rec::PathItem data;
 	if (GetSelectedObjKey(data))
 	{
-
-
 		auto subj = GetSelectedObj();
 		if (subj)
 		{
@@ -406,8 +414,28 @@ void VObjCatalogCtrl::OnEdit(wxCommandEvent& evt)
 			dlg.ShowModal();
 			OnCmdReload(wxCommandEvent(wxID_REFRESH));
 		}
+	}//if (GetSelectedObjKey(data))
 
+	wxDataViewItem selectedItem = mTableView->GetSelection();
+	if (selectedItem.IsOk())
+	{
+		auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
+		auto typeItem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
+		if (!typeItem)
+			return;
+		const auto& edited_cls = typeItem->GetData();
+		auto newItem = std::make_shared<MClsNode>();
+		newItem->SetData(edited_cls);
+		newItem->Load();
 
+		DClsEditor editor;
+		editor.SetModel(std::dynamic_pointer_cast<IModel>(newItem));
+		if (wxID_OK == editor.ShowModal())
+		{
+			editor.UpdateModel();
+			newItem->Save();
+		}
+		OnCmdReload(wxCommandEvent(wxID_REFRESH));
 	}
 }
 //-----------------------------------------------------------------------------

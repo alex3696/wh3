@@ -56,8 +56,6 @@ public:
 	DEF_INIT_ICO24(move);
 
 	DEF_INIT_ICO24(add_obj_tab);
-	DEF_INIT_ICO24(add_type_tab);
-
 	
 	DEF_INIT_ICO24(refresh);
 	DEF_INIT_ICO24(folderup);
