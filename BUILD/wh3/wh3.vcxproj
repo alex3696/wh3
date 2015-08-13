@@ -156,6 +156,11 @@
     <ClCompile Include="..\..\SRC\dlg_act_view_Frame.cpp" />
     <ClCompile Include="..\..\SRC\dlg_act_view_PnlActArray.cpp" />
     <ClCompile Include="..\..\SRC\dlg_act_view_PnlPropGrid.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_favprop_ctrlpnl.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_favprop_dvmodel.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_favprop_dvtable.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_favprop_model.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_favprop_SelectFrame.cpp" />
     <ClCompile Include="..\..\SRC\dlg_mkobj_view_Frame.cpp" />
     <ClCompile Include="..\..\SRC\dlg_move_model_DstType.cpp" />
     <ClCompile Include="..\..\SRC\dlg_move_model_MovableObj.cpp" />
@@ -282,6 +287,10 @@
     <ClInclude Include="..\..\INCLUDE\dlg_act_view_Frame.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_act_view_PnlActArray.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_act_view_PnlPropGrid.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_favprop_ctrlpnl.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_favprop_dvmodel.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_favprop_dvtable.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_favprop_model.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_mkobj_view_Frame.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_move_model_DstObj.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_move_model_DstType.h" />
@@ -290,6 +299,7 @@
     <ClInclude Include="..\..\INCLUDE\dlg_move_view_DvModel.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_move_view_Frame.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_move_view_Tree.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_favprop_SelectFrame.h" />
     <ClInclude Include="..\..\INCLUDE\DUserEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DUserGroupEditor.h" />
     <ClInclude Include="..\..\INCLUDE\MFavProp.h" />

@@ -5,6 +5,7 @@
 #include "dlg_move_view_Frame.h"
 #include "dlg_act_view_Frame.h"
 #include "dlg_mkobj_view_Frame.h"
+#include "dlg_favprop_SelectFrame.h"
 
 #include "DClsEditor.h"
 
@@ -76,6 +77,10 @@ VObjCatalogCtrl::VObjCatalogCtrl(wxWindow* parent,
 	mUpTool = mToolBar->AddTool(wxID_VIEW_DETAILS, "Подробно", m_ResMgr->m_ico_views24);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdDetail, this, wxID_VIEW_DETAILS);
 
+	mUpTool = mToolBar->AddTool(wxID_PROPERTIES, "Выбрать свойства", 
+		m_ResMgr->m_ico_favprop_select24);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdFavProp, this, wxID_PROPERTIES);
+
 	// ---------- User кнопки ---------- 
 	mToolBar->AddSeparator();
 
@@ -124,41 +129,142 @@ VObjCatalogCtrl::~VObjCatalogCtrl()
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::UpdateToolsStates()
 {
+	mToolDisable[whID_CATALOG_SELECT] = 0;
+	mToolDisable[wxID_REFRESH] = 0;
+	mToolDisable[wxID_BACKWARD] = 0;
+	mToolDisable[wxID_VIEW_DETAILS] = 0;
+	mToolDisable[wxID_PROPERTIES] = 0;
+	mToolDisable[wxID_REPLACE] = 0;
+	mToolDisable[wxID_EXECUTE] = 0;
+	mToolDisable[wxID_MKCLS] = 0;
+	mToolDisable[wxID_MKOBJ] = 0;
+	mToolDisable[wxID_EDIT] = 0;
+	mToolDisable[wxID_DELETE] = 0;
+	// ограничения кнопок по логину
 	BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
 	switch (bg)
 	{
 	default:
 	case bgNull:
-		mToolBar->EnableTool(whID_CATALOG_SELECT, false);
-		mToolBar->EnableTool(wxID_REFRESH, false);
-		mToolBar->EnableTool(wxID_BACKWARD, false);
-		mToolBar->EnableTool(wxID_VIEW_DETAILS, false);
-		mToolBar->EnableTool(wxID_REPLACE, false);
-		mToolBar->EnableTool(wxID_EXECUTE, false);
-		mToolBar->EnableTool(wxID_MKCLS, false);
-		mToolBar->EnableTool(wxID_MKOBJ, false);
-		mToolBar->EnableTool(wxID_EDIT, false);
-		mToolBar->EnableTool(wxID_DELETE, false);
+	case bgGuest:
+		mToolDisable[wxID_REPLACE] += 1;
+		mToolDisable[wxID_EXECUTE] += 1;
+		mToolDisable[wxID_MKCLS] += 1;
+		mToolDisable[wxID_MKOBJ] += 1;
+		mToolDisable[wxID_EDIT] += 1;
+		mToolDisable[wxID_DELETE] += 1;
+		break;
+	case bgUser:
+		mToolDisable[wxID_MKCLS] += 1;
+		mToolDisable[wxID_MKOBJ] += 1;
+		mToolDisable[wxID_EDIT] += 1;
+		mToolDisable[wxID_DELETE] += 1;
+		break;
+	case bgObjDesigner:
+		mToolDisable[wxID_MKCLS] += 1;
 		break;
 	case bgAdmin:
 	case bgTypeDesigner:
-		mToolBar->EnableTool(wxID_MKCLS, true);
-	case bgObjDesigner:
-		mToolBar->EnableTool(wxID_MKOBJ, true);
-		mToolBar->EnableTool(wxID_EDIT, true);
-		mToolBar->EnableTool(wxID_DELETE, true);
-	case bgUser:
-		mToolBar->EnableTool(wxID_VIEW_DETAILS, true);
-		mToolBar->EnableTool(wxID_REPLACE, true);
-		mToolBar->EnableTool(wxID_EXECUTE, true);
-	case bgGuest:
-		mToolBar->EnableTool(whID_CATALOG_SELECT, true);
-		mToolBar->EnableTool(wxID_REFRESH, true);
-		mToolBar->EnableTool(wxID_BACKWARD, true);
 		break;
+
+	}
+	// ограничения кнопок по типу каталога
+
+
+	
+	if (mCatalogModel)
+	{
+		enum CatalogType
+		{
+			ctNone = 0, // Find results
+			ctObj,
+			ctType
+		};
+
+		CatalogType ct(ctNone);
+		ct = mCatalogModel->mCfg->GetData().mObjCatalog ? ctObj : ctType;
+
+		switch (ct)
+		{
+		case ctObj:	mToolDisable[wxID_MKCLS] += 1;
+		default: //ctNone, ctType:	
+			break;
+		}
+	}
+	
+
+
+
+	auto selectedItem = mTableView->GetSelection();
+	if (selectedItem.IsOk())
+	{
+		using namespace object_catalog;
+
+		auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
+		MTypeItem* typeItem = dynamic_cast<MTypeItem*> (modelInterface);
+
+		if (typeItem)
+		{
+			const auto& cls_data = typeItem->GetData();
+			ClsType clsType;
+			cls_data.GetClsType(clsType);
+			switch (clsType)
+			{
+			case ctSingle:
+				mToolDisable[wxID_REPLACE] += 1;
+				mToolDisable[wxID_EXECUTE] += 1;
+				break;
+			case ctQtyByOne:
+			case ctQtyByFloat:
+				mToolDisable[wxID_EXECUTE] += 1;
+				mToolDisable[wxID_PROPERTIES] += 1;
+			default://ctAbstract
+				mToolDisable[wxID_REPLACE] += 1;
+				mToolDisable[wxID_EXECUTE] += 1;
+				mToolDisable[wxID_PROPERTIES] += 1;
+				break;
+			}
+		}
+		else
+		{
+			MObjItem* objItem = dynamic_cast<MObjItem*> (modelInterface);
+			MObjArray* objArray = dynamic_cast<MObjArray*> (objItem->GetParent());
+			if (objArray)
+			{
+				typeItem = dynamic_cast<MTypeItem*> (objArray->GetParent());
+				const auto& cls_data = typeItem->GetData();
+				ClsType clsType;
+				cls_data.GetClsType(clsType);
+				switch (clsType)
+				{
+				case ctSingle:
+					break;
+				case ctQtyByOne:
+				case ctQtyByFloat:
+					mToolDisable[wxID_EXECUTE] += 1;
+					mToolDisable[wxID_PROPERTIES] += 1;
+					break;
+				default://ctAbstract
+					mToolDisable[wxID_EXECUTE] += 1;
+					mToolDisable[wxID_PROPERTIES] += 1;
+					mToolDisable[wxID_REPLACE] += 1;
+					mToolDisable[wxID_VIEW_DETAILS] += 1;
+					break;
+				}
+
+			}//if (typeItem)
+		}
+
 	}
 
 
+
+
+	for (const auto& tool : mToolDisable)
+		mToolBar->EnableTool(tool.first, !tool.second);
+
+
+	mToolBar->Refresh();
 
 }
 //-----------------------------------------------------------------------------
@@ -168,13 +274,15 @@ void VObjCatalogCtrl::OnCmdSetTypeDir(wxCommandEvent& evt)
 	wxWindowDisabler		wndDisabler(mToolBar);
 	wxBusyCursor			busyCursor;
 	mToolBar->SetToolBitmap(whID_CATALOG_SELECT, m_ResMgr->m_ico_folder_type24);
-	mToolBar->EnableTool(wxID_MKCLS, true);
+	
 	//mToolBar->Refresh();
 	if (mCatalogModel)
 	{
 		mCatalogModel->SetClsCatalog(1);
 		mTableView->ExpandAll();
 	}
+
+	UpdateToolsStates();
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdSetPathDir(wxCommandEvent& evt)
@@ -183,7 +291,6 @@ void VObjCatalogCtrl::OnCmdSetPathDir(wxCommandEvent& evt)
 	wxWindowDisabler		wndDisabler(mToolBar);
 	wxBusyCursor			busyCursor;
 	mToolBar->SetToolBitmap(whID_CATALOG_SELECT, m_ResMgr->m_ico_folder_obj24);
-	mToolBar->EnableTool(wxID_MKCLS, false);
 	//mToolBar->Refresh();
 	if (mCatalogModel)
 	{
@@ -191,6 +298,7 @@ void VObjCatalogCtrl::OnCmdSetPathDir(wxCommandEvent& evt)
 		mTableView->ExpandAll();
 	}
 
+	UpdateToolsStates();
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
@@ -249,20 +357,28 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 
 	if (clsIdx.first)
 	{
-		while (!selCls && mCatalogModel->mTypeArray->GetChildQty()>clsIdx.second)
+		while (!selCls)
 		{
-			selCls = std::dynamic_pointer_cast<object_catalog::MTypeItem>
-				(mCatalogModel->mTypeArray->GetChild(clsIdx.second));
+			if (mCatalogModel->mTypeArray->GetChildQty() > clsIdx.second)
+			{
+				selCls = std::dynamic_pointer_cast<object_catalog::MTypeItem>
+					(mCatalogModel->mTypeArray->GetChild(clsIdx.second));
+				break;
+			}
 			clsIdx.second--;
 		}
 	}
 
 	if (selCls && objIdx.first)
 	{
-		while (!selObj && selCls->mObjArray->GetChildQty()>objIdx.second )
+		while (!selObj) 
 		{
-			selObj = std::dynamic_pointer_cast<object_catalog::MObjItem>
-				(selCls->mObjArray->GetChild(objIdx.second));
+			if (selCls->mObjArray->GetChildQty() > objIdx.second)
+			{
+				selObj = std::dynamic_pointer_cast<object_catalog::MObjItem>
+					(selCls->mObjArray->GetChild(objIdx.second));
+				break;
+			}
 			objIdx.second--;
 		}
 	}
@@ -272,6 +388,7 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 	if (selectedItem.IsOk())
 		mTableView->SetCurrentItem(selectedItem);
 
+	UpdateToolsStates();
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdUp(wxCommandEvent& evt)
@@ -301,6 +418,38 @@ void VObjCatalogCtrl::OnCmdUp(wxCommandEvent& evt)
 void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 {
 
+}
+//-----------------------------------------------------------------------------
+void VObjCatalogCtrl::OnCmdFavProp(wxCommandEvent& evt)
+{
+	auto selectedItem = mTableView->GetSelection();
+	if (!selectedItem.IsOk())
+		return;
+	
+	using namespace object_catalog;
+
+	auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
+	MTypeItem* typeItem = dynamic_cast<MTypeItem*> (modelInterface);
+
+	if (!typeItem)
+	{
+		MObjItem* objItem = dynamic_cast<MObjItem*> (modelInterface);
+		if (objItem)
+		{
+			MObjArray* objArray = dynamic_cast<MObjArray*> (objItem->GetParent());
+			if (objArray)
+				typeItem = dynamic_cast<MTypeItem*> (objArray->GetParent());
+		}
+	}
+	if (!typeItem)
+		return;
+
+	dlg::favprop::view::SelectFrame dlg(this);
+
+	typeItem->mFavProp->Load();
+	dlg.SetModel(std::dynamic_pointer_cast<IModel>(typeItem->mFavProp));
+	dlg.ShowModal();
+	OnCmdReload(wxCommandEvent(wxID_REFRESH));
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdMove(wxCommandEvent& evt)
@@ -598,50 +747,7 @@ std::shared_ptr<object_catalog::MObjItem> VObjCatalogCtrl::GetSelectedObj()const
 //-------------------------------------------------------------------------
 void VObjCatalogCtrl::OnSelect(wxDataViewEvent& evt)
 {
-	wxDataViewItem item = evt.GetItem();
-	if (!item.IsOk())
-		return;
-	
-	const auto modelInterface = static_cast<const IModel*> (item.GetID());
-	const auto objItem = dynamic_cast<const object_catalog::MObjItem*> (modelInterface);
-	const object_catalog::MTypeItem* typeItem(nullptr);
-	if (objItem)
-	{
-		typeItem = objItem->GetCls();
-		const auto clsData = typeItem->GetData();
-			
-
-		ClsType ct;
-		clsData.GetClsType(ct);
-		switch (ct)
-		{
-		case ctSingle:
-			mToolBar->EnableTool(mMoveTool->GetId(), true);
-			mToolBar->EnableTool(mActTool->GetId(), true);
-			break;
-		case ctQtyByOne:
-		case ctQtyByFloat:
-			mToolBar->EnableTool(mMoveTool->GetId(), true);
-			mToolBar->EnableTool(mActTool->GetId(), false);
-			break;
-		
-		default://ctAbstract
-			mToolBar->EnableTool(mMoveTool->GetId(), false);
-			mToolBar->EnableTool(mActTool->GetId(), false);
-				break;
-		}
-		
-		mToolBar->Refresh();
-	}
-	else // MTypeItem*
-	{
-		mToolBar->EnableTool(wxID_REPLACE, false);
-		mToolBar->EnableTool(wxID_EXECUTE, false);
-		mToolBar->Refresh();
-
-		//typeItem = dynamic_cast<const object_catalog::MTypeItem*> (modelInterface);
-	}
-
+	UpdateToolsStates();
 }
 //-------------------------------------------------------------------------
 void VObjCatalogCtrl::OnChangePath(const IModel& model, const std::vector<unsigned int>& vec)
@@ -649,3 +755,4 @@ void VObjCatalogCtrl::OnChangePath(const IModel& model, const std::vector<unsign
 	if (mCatalogModel)
 		mPathSring->SetLabel(mCatalogModel->mPath->GetPathStr());
 }
+

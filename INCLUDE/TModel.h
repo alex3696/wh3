@@ -831,14 +831,6 @@ public:
 protected:
 	void SaveRange(ModelState state)
 	{
-		#ifdef __DEBUG
-		if (mVec->size())
-		{
-			auto item = mVec->operator[](0);
-			auto itemState = item->GetState();
-		}
-		#endif
-		
 		StateIdx& stateIdx = mVec->get<2>();
 		auto range = stateIdx.equal_range(state);
 		auto qty = std::distance(range.first, range.second);

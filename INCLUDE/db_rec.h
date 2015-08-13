@@ -422,7 +422,42 @@ struct PathItem
 	Cls			mCls;
 	ObjTitle	mObj;
 };
+//-----------------------------------------------------------------------------
+struct FavProp
+{
 
+	wxString	mID;
+	wxString	mLabel;
+	wxString	mType;
+
+	std::shared_ptr<std::set<wxString> > mCls;
+
+	FavProp()
+		:mCls(new std::set<wxString>)
+	{}
+	FavProp(const FavProp& r)
+	{
+		mID = r.mID;
+		mLabel = r.mLabel;
+		mType = r.mType;
+		mCls.reset(new std::set<wxString>(*r.mCls));
+	}
+};
+
+using FavProps = boost::multi_index_container	
+	<
+		FavProp,
+		indexed_by	
+		<
+			random_access<>
+			, ordered_unique< BOOST_MULTI_INDEX_MEMBER(FavProp, wxString, mLabel)> 
+		>
+	>;
+//-----------------------------------------------------------------------------
+struct FavoriteProp : public Prop
+{
+	bool mSelected;
+};
 
 
 //-----------------------------------------------------------------------------
@@ -441,6 +476,27 @@ struct CatalogCfg
     //#endif
 };
 //-----------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 }//namespace rec

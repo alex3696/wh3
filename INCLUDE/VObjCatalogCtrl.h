@@ -44,6 +44,7 @@ class VObjCatalogCtrl
 	void OnCmdReload(wxCommandEvent& evt);
 	void OnCmdUp(wxCommandEvent& evt);
 	void OnCmdDetail(wxCommandEvent& evt);
+	void OnCmdFavProp(wxCommandEvent& evt);
 	void OnCmdMove(wxCommandEvent& evt);
 	void OnCmdAct(wxCommandEvent& evt);
 	void OnMkObj(wxCommandEvent& evt);
@@ -56,6 +57,7 @@ class VObjCatalogCtrl
 
 
 	void OnSelect(wxDataViewEvent& evt);
+	std::map<int, int> mToolDisable;
 
 	std::shared_ptr<object_catalog::MObjItem> GetSelectedObj()const;
 

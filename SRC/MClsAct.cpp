@@ -63,19 +63,21 @@ bool MClsAct::GetInsertQuery(wxString& query)const
 		//const rec::ClsActAccess& oldClsAct = this->GetStored();
 		const rec::ClsActAccess& newClsAct = this->GetData();
 		
+		const wxString obj_id = newClsAct.mObjLabel.IsEmpty() ? "NULL" : newClsAct.mObjLabel;
+
 		query = wxString::Format("INSERT INTO t_access_act("
 			" access_group, access_disabled, script_restrict "
 			", act_id "
-			", cls_id, obj_label"
+			", cls_id, obj_id"
 			", src_path  "
-			") VALUES ('%s', %s, '%s', %s, %s, '%s', '%s') "
+			") VALUES ('%s', %s, '%s', %s, %s, %s, '%s') "
 			" RETURNING id, access_group, access_disabled, script_restrict "
 			", act_id, NULL "
-			", cls_id, NULL, obj_label "
+			", cls_id, NULL, obj_id "
 			", src_path "
 			, newClsAct.mAcessGroup, newClsAct.mAccessDisabled, newClsAct.mScriptRestrict
 			, newClsAct.mActID
-			, cls.mID, newClsAct.mObjLabel
+			, cls.mID, obj_id
 			, newClsAct.mPath
 			);
 		return true;

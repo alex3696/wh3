@@ -15,8 +15,10 @@ const std::vector<Field> gTypeItemFieldVec =
 MTypeItem::MTypeItem(const char option)
 	:TModelData<rec::Cls>(option)
 	, mObjArray(new MObjArray)
+	, mFavProp(new dlg::favprop::model::FavPropArray)
 {
 	this->AddChild(std::dynamic_pointer_cast<IModel>(mObjArray));
+	this->AddChild(std::dynamic_pointer_cast<IModel>(mFavProp));
 }
 
 

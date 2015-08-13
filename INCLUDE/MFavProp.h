@@ -8,44 +8,6 @@
 
 //-------------------------------------------------------------------------
 namespace wh{
-//-------------------------------------------------------------------------
-namespace rec
-{
-
-	struct FavProp
-	{
-		FavProp()
-			:mCls(new std::set<wxString>)
-		{}
-
-		wxString	mID;
-		wxString	mLabel;
-		wxString	mType;
-
-		std::shared_ptr<std::set<wxString> > mCls;
-
-		FavProp(const FavProp& r)
-		{
-			mID = r.mID;
-			mLabel = r.mLabel;
-			mType = r.mType;
-			mCls.reset(new std::set<wxString>(*r.mCls));
-			//(*mCls) = *r.mCls;
-		}
-	};
-
-	using FavProps = boost::multi_index_container
-		<
-			FavProp,
-			indexed_by
-			<
-				random_access<>
-				, ordered_unique< BOOST_MULTI_INDEX_MEMBER(FavProp, wxString, mLabel) >
-			>
-		>;
-
-};
-//-------------------------------------------------------------------------	
 namespace object_catalog {
 
 

@@ -212,7 +212,7 @@ void MainFrame::ShowDevToolBar(bool show)
 			m_ResMgr->m_ico_user24, wxEmptyString, wxITEM_NORMAL);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowUser, this, CMD_PNLSHOWUSER);
 		m_DevToolBar->AddTool(CMD_PNLSHOWPROP, "Свойства",
-			m_ResMgr->m_ico_classprop24, wxEmptyString, wxITEM_NORMAL);
+			m_ResMgr->m_ico_list_prop24, wxEmptyString, wxITEM_NORMAL);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowProp, this, CMD_PNLSHOWPROP);
 		m_DevToolBar->AddTool(CMD_PNLSHOWACT, "Действия",
 			m_ResMgr->m_ico_acts24, wxEmptyString, wxITEM_NORMAL);
@@ -473,7 +473,7 @@ void MainFrame::PnlShowProp(wxCommandEvent& WXUNUSED(evt))
 		view->DisableCreateDelete();
 	model->Load();
 	view->SetModel(model);
-	m_Notebook->AddPage(view, "Свойства", true, ResMgr::GetInstance()->m_ico_classprop24);
+	m_Notebook->AddPage(view, "Свойства", true, ResMgr::GetInstance()->m_ico_list_prop24);
 	view->SetFocus();
 	m_AuiMgr.Update();
 }
@@ -496,4 +496,3 @@ void MainFrame::PnlShowAct(wxCommandEvent& WXUNUSED(evt))
 	m_AuiMgr.Update();
 }
 
-	
