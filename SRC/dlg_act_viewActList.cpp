@@ -16,7 +16,7 @@ ActList::ActList(wxWindow*		parent,
 	const wxSize &	size,
 	long			style)
 	: wxDataViewCtrl(parent, id, pos, size, style
-	/*| wxDV_ROW_LINES | wxDV_VERT_RULES */ | wxDV_HORIZ_RULES)
+	| wxDV_ROW_LINES /* | wxDV_VERT_RULES */ | wxDV_HORIZ_RULES)
 {
 	this->SetRowHeight(24);
 

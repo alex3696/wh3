@@ -62,23 +62,27 @@ bool MClsAct::GetInsertQuery(wxString& query)const
 			return false;
 		//const rec::ClsActAccess& oldClsAct = this->GetStored();
 		const rec::ClsActAccess& newClsAct = this->GetData();
-		
-		const wxString obj_id = newClsAct.mObjLabel.IsEmpty() ? "NULL" : newClsAct.mObjLabel;
+
+		const wxString script = newClsAct.mScriptRestrict.IsEmpty() ? "NULL"
+			: wxString::Format("'%s'", newClsAct.mScriptRestrict);
+		const wxString obj_id = newClsAct.mObjLabel.IsEmpty() ? "NULL" : newClsAct.mObjID;
+		const wxString path = newClsAct.mPath.IsEmpty() ? "NULL" 
+			: wxString::Format("'%s'", newClsAct.mPath);
 
 		query = wxString::Format("INSERT INTO t_access_act("
 			" access_group, access_disabled, script_restrict "
 			", act_id "
 			", cls_id, obj_id"
 			", src_path  "
-			") VALUES ('%s', %s, '%s', %s, %s, %s, '%s') "
+			") VALUES ('%s', %s, %s, %s, %s, %s, %s) "
 			" RETURNING id, access_group, access_disabled, script_restrict "
 			", act_id, NULL "
 			", cls_id, NULL, obj_id "
 			", src_path "
-			, newClsAct.mAcessGroup, newClsAct.mAccessDisabled, newClsAct.mScriptRestrict
+			, newClsAct.mAcessGroup, newClsAct.mAccessDisabled, script
 			, newClsAct.mActID
 			, cls.mID, obj_id
-			, newClsAct.mPath
+			, path
 			);
 		return true;
 	}
@@ -98,17 +102,23 @@ bool MClsAct::GetUpdateQuery(wxString& query)const
 		const rec::ClsActAccess& oldClsAct = this->GetStored();
 		const rec::ClsActAccess& newClsAct = this->GetData();
 
+		const wxString script = newClsAct.mScriptRestrict.IsEmpty() ? "NULL"
+			: wxString::Format("'%s'", newClsAct.mScriptRestrict);
+		const wxString obj_id = newClsAct.mObjLabel.IsEmpty() ? "NULL" : newClsAct.mObjID;
+		const wxString path = newClsAct.mPath.IsEmpty() ? "NULL"
+			: wxString::Format("'%s'", newClsAct.mPath);
+
 		query = wxString::Format(
 			"UPDATE	t_access_act "
-			" SET access_group='%s', access_disabled=%s, script_restrict='%s'  "
+			" SET access_group='%s', access_disabled=%s, script_restrict=%s  "
 			", act_id=%s "
-			", cls_id=%s, obj_label='%s' "
-			", src_path='%s' "
+			", cls_id=%s, obj_id=%s "
+			", src_path=%s "
 			" WHERE id=%s "
-			, newClsAct.mAcessGroup, newClsAct.mAccessDisabled, newClsAct.mScriptRestrict
+			, newClsAct.mAcessGroup, newClsAct.mAccessDisabled, script
 			, newClsAct.mActID
-			, cls.mID, newClsAct.mObjLabel
-			, newClsAct.mPath
+			, cls.mID, obj_id
+			, path
 			, oldClsAct.mID);
 
 		return true;

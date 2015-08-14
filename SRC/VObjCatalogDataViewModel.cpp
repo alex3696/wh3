@@ -35,7 +35,11 @@ bool VObjCatalogDataViewModel::IsContainer(const wxDataViewItem &dataViewItem)co
 
 	auto modelInterface = static_cast<IModel*> (dataViewItem.GetID());
 	auto typeItem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
-
+	if (typeItem)
+	{ 
+		const auto& cls_data = typeItem->GetData();
+		return !cls_data.IsAbstract();
+	}
 	return typeItem ? true : false;
 }
 //---------------------------------------------------------------------------
@@ -62,9 +66,14 @@ void VObjCatalogDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 			auto mgr = ResMgr::GetInstance();
 			switch (clsType)
 			{
-			default/*0*/:	ico = &mgr->m_ico_type_abstract24;
-							val = wxString::Format("%s", cls.mLabel);
-							break;
+			
+			default: //ctAbstract
+				if (1 == col)
+				{
+					ico = &mgr->m_ico_type_abstract24;
+					val = wxString::Format("%s", cls.mLabel);
+				}
+				break;
 			case ctQtyByFloat:
 			case ctQtyByOne:ico = &mgr->m_ico_type_qty24;
 							val = wxString::Format("%s - %s (%s)",

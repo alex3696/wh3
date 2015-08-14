@@ -118,7 +118,9 @@ void MainFrame::BuildMenu()
 
 	wxMenu* view = new wxMenu();
 	item = new wxMenuItem(view, CMD_SHOWFAVORITES, "Показать/скрыть избранное", wxEmptyString, wxITEM_CHECK);
-	//item->SetBitmap(m_ResMgr->m_ico_favorites16);
+	view->Append(item);
+
+	item = new wxMenuItem(view, CMD_SHOWEDITOROPTIONS, "Опции редактора", wxEmptyString, wxITEM_CHECK);
 	view->Append(item);
 	menu_bar->Append(view, "Вид");
 
@@ -126,11 +128,9 @@ void MainFrame::BuildMenu()
 	wxMenu* dir = new wxMenu();
 	item = new wxMenuItem(dir, CMD_MAKEOBJWND, "Открыть каталог объектов");
 	dir->Append(item);
-	item = new wxMenuItem(dir, CMD_MAKETYPEWND, "Открыть каталог типов");
-	dir->Append(item);
 	item = new wxMenuItem(dir, CMD_MAKEHISTORYWND, "Открыть историю");
 	dir->Append(item);
-	menu_bar->Append(dir, "Каталоги данных");
+	menu_bar->Append(dir, "Каталоги");
 
 
 	wxMenu* xrcmenu = new wxMenu();

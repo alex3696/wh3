@@ -27,7 +27,8 @@ VClsDataEditorPanel::VClsDataEditorPanel(wxWindow*		parent,
 	wxPGChoices soc;
 	soc.Add(L"Абстрактный", 0);
 	soc.Add(L"Номерной", 1);
-	soc.Add(L"Количественный", 2);
+	soc.Add(L"Количественный(целочисленный)", 2);
+	soc.Add(L"Количественный(дробный)", 3);
 
 	mPropGrid->Append(new wxStringProperty(L"Имя"));
 	mPropGrid->Append(new wxLongStringProperty(L"Описание"));

@@ -157,7 +157,11 @@ void DClsActEditor::GetData(rec::ClsActAccess& rec) const
 	wh::ObjKeyPath path;
 	path.ParsePath(mPropGrid->GetPropertyByLabel("Путь")->GetValueAsString());
 
-	path.GenerateArray(rec.mPath, true);
+	if (path.size())
+		path.GenerateArray(rec.mPath, true);
+	else
+		rec.mPath.clear();
+
 	rec.mID = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
 }
 //---------------------------------------------------------------------------
