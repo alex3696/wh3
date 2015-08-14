@@ -1,10 +1,10 @@
 #ifndef __DCLSACTEDITOR_H
 #define __DCLSACTEDITOR_H
 
+#include "MTypeNode.h"
 #include "MAct.h"
 #include "MGroup.h"
 #include "MClsAct.h"
-#include "MClsTree.h"
 #include "TPresenter.h"
 #include "TViewCtrlPanel.h"
 

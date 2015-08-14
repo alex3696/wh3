@@ -74,7 +74,103 @@ wxString MTypeItem::GetQty()const
 	return result;
 }
 //-------------------------------------------------------------------------
+std::shared_ptr<MClsPropArray> MTypeItem::GetClsPropArray()
+{
+	if (!mPropArray)
+	{
+		mPropArray.reset(new MClsPropArray);
+		std::shared_ptr<IModel> item = std::dynamic_pointer_cast<IModel>(mPropArray);
+		this->AddChild(item);
+	}
+	return mPropArray;
+}
+//-------------------------------------------------------------------------
+std::shared_ptr<MClsActArray> MTypeItem::GetClsActArray()
+{
+	if (!mActArray)
+	{
+		mActArray.reset(new MClsActArray);
+		std::shared_ptr<IModel> item = std::dynamic_pointer_cast<IModel>(mActArray);
+		this->AddChild(item);
+	}
+	return mActArray;
+}
+//-------------------------------------------------------------------------
+std::shared_ptr<MClsMoveArray> MTypeItem::GetClsMoveArray()
+{
+	if (!mMoveArray)
+	{
+		mMoveArray.reset(new MClsMoveArray);
+		std::shared_ptr<IModel> item = std::dynamic_pointer_cast<IModel>(mMoveArray);
+		this->AddChild(item);
+	}
+	return mMoveArray;
+}
+//-------------------------------------------------------------------------
+//-------------------------------------------------------------------------
+bool MTypeItem::GetInsertQuery(wxString& query)const
+{
+	const auto& cls = GetData();
 
+	wxString parent = cls.mParent.IsEmpty() ? "1" : cls.mParent;
+
+	wxString measure;
+	if ("0" == cls.mType)
+		measure = "NULL";
+	else if ("1" == cls.mType)
+		measure = "'ед.'";
+	else
+		measure = "'" + cls.mMeasure + "'";
+
+	query = wxString::Format(
+		"INSERT INTO t_cls "
+		" (label, description, type, measurename, pid) VALUES "
+		" ('%s', %s, %s, %s, '%s') "
+		" RETURNING id, label, description, type, measurename, pid, vid"
+		, cls.mLabel
+		, cls.mComment.IsEmpty() ? L"NULL" : wxString::Format(L"'%s'", cls.mComment)
+		, cls.mType
+		, measure
+		, parent
+		);
+	return true;
+}
+//-------------------------------------------------------------------------
+bool MTypeItem::GetUpdateQuery(wxString& query)const
+{
+	const auto& cls = GetData();
+
+	wxString parent = cls.mParent.IsEmpty() ? "1" : cls.mParent;
+
+	wxString measure;
+	if ("0" == cls.mType)
+		measure = "NULL";
+	else if ("1" == cls.mType)
+		measure = "'ед.'";
+	else
+		measure = "'" + cls.mMeasure + "'";
+
+	query = wxString::Format(
+		"UPDATE t_cls SET "
+		" label='%s', description=%s, type=%s, measurename=%s, pid=%s "
+		" WHERE id = %s "
+		, cls.mLabel
+		, cls.mComment.IsEmpty() ? L"NULL" : wxString::Format(L"'%s'", cls.mComment)
+		, cls.mType
+		, measure
+		, parent
+		, cls.mID);
+	return true;
+}
+//-------------------------------------------------------------------------
+bool MTypeItem::GetDeleteQuery(wxString& query)const
+{
+	const auto& cls = GetData();
+	query = wxString::Format(
+		"DELETE FROM t_cls WHERE id = %s ",
+		cls.mID);
+	return true;
+}
 
 
 //-------------------------------------------------------------------------

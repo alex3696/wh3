@@ -4,6 +4,10 @@
 
 #include "MObjItem.h"
 #include "dlg_favprop_model.h"
+//#include "MObjCatalog.h"
+#include "MClsProp.h"
+#include "MClsAct.h"
+#include "MClsMove.h"
 
 //-------------------------------------------------------------------------
 namespace wh{
@@ -27,8 +31,21 @@ MTypeItem(const char option
 	inline bool IsAbstract()const { return GetData().IsAbstract(); }
 	
 	virtual bool LoadThisDataFromDb(std::shared_ptr<whTable>&, const size_t)override;
+
+	std::shared_ptr<MClsPropArray>	GetClsPropArray();
+	std::shared_ptr<MClsActArray>	GetClsActArray();
+	std::shared_ptr<MClsMoveArray>	GetClsMoveArray();
 protected:
 	virtual void LoadChilds()override;
+
+	std::shared_ptr<MClsPropArray>	mPropArray;
+	std::shared_ptr<MClsActArray>	mActArray;
+	std::shared_ptr<MClsMoveArray>	mMoveArray;
+
+	virtual bool GetInsertQuery(wxString&)const override;
+	virtual bool GetUpdateQuery(wxString&)const override;
+	virtual bool GetDeleteQuery(wxString&)const override;
+
 };
 //-------------------------------------------------------------------------	
 
@@ -38,7 +55,7 @@ class MTypeArray
 public:
 	MTypeArray(const char option
 		= ModelOption::EnableParentNotify
-		//| ModelOption::EnableNotifyFromChild
+		| ModelOption::EnableNotifyFromChild
 		| ModelOption::CascadeLoad )
 	: TModelArray<MTypeItem>(option)
 	{

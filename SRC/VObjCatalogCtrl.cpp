@@ -9,7 +9,6 @@
 
 #include "DClsEditor.h"
 
-
 using namespace wh;
 using namespace view;
 
@@ -533,7 +532,7 @@ void VObjCatalogCtrl::OnMkCls(wxCommandEvent& evt)
 	{
 		const auto& root = mCatalogModel->GetData();
 
-		auto newItem = std::make_shared<MClsNode>();
+		auto newItem = std::make_shared<object_catalog::MTypeItem>();
 
 		rec::Cls cls_data;
 		cls_data.mParent = root.mCls.mID;
@@ -572,17 +571,19 @@ void VObjCatalogCtrl::OnEdit(wxCommandEvent& evt)
 		auto typeItem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
 		if (!typeItem)
 			return;
-		const auto& edited_cls = typeItem->GetData();
-		auto newItem = std::make_shared<MClsNode>();
-		newItem->SetData(edited_cls);
-		newItem->Load();
+
+		//const auto& edited_cls = typeItem->GetData();
+		//auto newItem = std::make_shared<object_catalog::MTypeItem>();
+		//newItem->SetData(edited_cls);
+		//newItem->Load();
 
 		DClsEditor editor;
-		editor.SetModel(std::dynamic_pointer_cast<IModel>(newItem));
+		editor.SetModel(std::dynamic_pointer_cast<IModel>(typeItem->shared_from_this()));
+
 		if (wxID_OK == editor.ShowModal())
 		{
 			editor.UpdateModel();
-			newItem->Save();
+			typeItem->Save();
 		}
 		OnCmdReload(wxCommandEvent(wxID_REFRESH));
 	}

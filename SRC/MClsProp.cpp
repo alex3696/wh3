@@ -1,6 +1,6 @@
 #include "_pch.h"
 #include "MClsProp.h"
-#include "MClsTree.h"
+#include "MObjCatalog.h"
 
 using namespace wh;
 
@@ -36,7 +36,7 @@ bool MClsProp::GetSelectQuery(wxString& query)const
 bool MClsProp::GetInsertQuery(wxString& query)const
 {
 	auto parentArray = dynamic_cast<MClsPropArray*>(this->mParent);
-	auto parentCls = dynamic_cast<MClsNode*>(parentArray->GetParent());
+	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
 
 	if (parentCls)
 	{
@@ -58,7 +58,7 @@ bool MClsProp::GetInsertQuery(wxString& query)const
 bool MClsProp::GetUpdateQuery(wxString& query)const
 {
 	auto parentArray = dynamic_cast<MClsPropArray*>(this->mParent);
-	auto parentCls = dynamic_cast<MClsNode*>(parentArray->GetParent());
+	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
 
 	if (parentCls)
 	{
@@ -81,7 +81,7 @@ bool MClsProp::GetUpdateQuery(wxString& query)const
 bool MClsProp::GetDeleteQuery(wxString& query)const
 {
 	auto parentArray = dynamic_cast<MClsPropArray*>(this->mParent);
-	auto parentCls = dynamic_cast<MClsNode*>(parentArray->GetParent());
+	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
 
 	if (parentCls)
 	{
@@ -144,7 +144,7 @@ MClsPropArray::MClsPropArray(const char option)
 //-------------------------------------------------------------------------
 bool MClsPropArray::GetSelectChildsQuery(wxString& query)const
 {
-	auto parentCls = dynamic_cast<MClsNode*>(this->mParent);
+	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(this->mParent);
 	if (parentCls)
 	{
 		auto cls = parentCls->GetData();

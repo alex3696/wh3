@@ -1,6 +1,6 @@
 #include "_pch.h"
 #include "MClsAct.h"
-#include "MClsTree.h"
+#include "MObjCatalog.h"
 
 using namespace wh;
 
@@ -25,7 +25,7 @@ MClsAct::MClsAct(const char option)
 bool MClsAct::GetSelectQuery(wxString& query)const
 {
 	auto parentArray = dynamic_cast<MClsActArray*>(this->mParent);
-	auto parentCls = dynamic_cast<MClsNode*>(parentArray->GetParent());
+	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
 
 	if (parentCls)
 	{
@@ -53,7 +53,7 @@ bool MClsAct::GetSelectQuery(wxString& query)const
 bool MClsAct::GetInsertQuery(wxString& query)const
 {
 	auto parentArray = dynamic_cast<MClsActArray*>(this->mParent);
-	auto parentCls = dynamic_cast<MClsNode*>(parentArray->GetParent());
+	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
 
 	if (parentCls)
 	{
@@ -88,7 +88,7 @@ bool MClsAct::GetInsertQuery(wxString& query)const
 bool MClsAct::GetUpdateQuery(wxString& query)const
 {
 	auto parentArray = dynamic_cast<MClsActArray*>(this->mParent);
-	auto parentCls = dynamic_cast<MClsNode*>(parentArray->GetParent());
+	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
 
 	if (parentCls)
 	{
@@ -119,7 +119,7 @@ bool MClsAct::GetUpdateQuery(wxString& query)const
 bool MClsAct::GetDeleteQuery(wxString& query)const
 {
 	auto parentArray = dynamic_cast<MClsActArray*>(this->mParent);
-	auto parentCls = dynamic_cast<MClsNode*>(parentArray->GetParent());
+	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
 
 	if (parentCls)
 	{
@@ -193,7 +193,7 @@ MClsActArray::MClsActArray(const char option)
 //-------------------------------------------------------------------------
 bool MClsActArray::GetSelectChildsQuery(wxString& query)const
 {
-	auto parentCls = dynamic_cast<MClsNode*>(this->mParent);
+	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(this->mParent);
 	if (parentCls)
 	{
 		const auto& cls = parentCls->GetStored();

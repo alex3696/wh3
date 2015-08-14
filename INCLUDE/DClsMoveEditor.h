@@ -3,7 +3,6 @@
 
 #include "MClsMove.h"
 #include "MGroup.h"
-#include "MClsTree.h"
 #include "TPresenter.h"
 #include "TViewCtrlPanel.h"
 

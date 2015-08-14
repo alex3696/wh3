@@ -4,9 +4,6 @@
 #include "MClsProp.h"
 #include "MClsAct.h"
 #include "MClsMove.h"
-#include "MClsObjQty.h"
-#include "MClsObjNum.h"
-
 
 using namespace wh;
 using namespace wh::view;
@@ -72,8 +69,6 @@ DClsEditor::DClsEditor(wxWindow*		parent,
 	mClsPropPanel = new VClsPropPanel(mNotebook);
 	mClsActPanel = new VClsActPanel(mNotebook);
 	mClsMovePanel = new VClsMovePanel(mNotebook);
-	mClsObjNumPanel = new VClsObjNumPanel(mNotebook);
-	mClsObjQtyPanel = new VClsObjQtyPanel(mNotebook);
 
 	mNotebook->AssignImageList(image_list);
 
@@ -101,7 +96,7 @@ void DClsEditor::SetModel(std::shared_ptr<IModel>& newModel)
 	if (newModel != mClsNode)
 	{
 		mChangeConnection.disconnect();
-		mClsNode = std::dynamic_pointer_cast<MClsNode>(newModel);
+		mClsNode = std::dynamic_pointer_cast<object_catalog::MTypeItem>(newModel);
 		if (mClsNode)
 		{
 			mClsPanel->SetModel(newModel);
@@ -116,12 +111,10 @@ void DClsEditor::SetModel(std::shared_ptr<IModel>& newModel)
 				{
 					mClsNode->GetClsActArray()->Load();
 					mClsNode->GetClsMoveArray()->Load();
-					mClsNode->GetClsObjNumArray()->Load();
 				}
 				else if (cls.mType == "2" || cls.mType == "3")
 				{
 					mClsNode->GetClsMoveArray()->Load();
-					mClsNode->GetClsObjQtyArray()->Load();
 				}
 			}
 
@@ -132,12 +125,6 @@ void DClsEditor::SetModel(std::shared_ptr<IModel>& newModel)
 				std::dynamic_pointer_cast<IModel>(mClsNode->GetClsActArray()));
 			mClsMovePanel->SetModel(
 				std::dynamic_pointer_cast<IModel>(mClsNode->GetClsMoveArray()));
-			mClsObjNumPanel->SetModel(
-				std::dynamic_pointer_cast<IModel>(mClsNode->GetClsObjNumArray()));
-			mClsObjQtyPanel->SetModel(
-				std::dynamic_pointer_cast<IModel>(mClsNode->GetClsObjQtyArray()));
-			
-
 			
 			auto funcOnChange = std::bind(&DClsEditor::OnChangeModel,
 				this, std::placeholders::_1);
@@ -152,6 +139,7 @@ void DClsEditor::SetModel(std::shared_ptr<IModel>& newModel)
 //---------------------------------------------------------------------------
 void DClsEditor::UpdateModel()const
 {
+	//mClsPanel->UpdateModel();
 	//mUserPanel->UpdateModel();
 	//??mGroupsPanel->UpdateModel();
 }
@@ -176,8 +164,6 @@ void DClsEditor::OnChangeModel(const IModel& model)
 		mClsPropPanel->Show(false);
 		mClsActPanel->Show(false);
 		mClsMovePanel->Show(false);
-		mClsObjNumPanel->Show(false);
-		mClsObjQtyPanel->Show(false);
 
 		if (cls.mType == "0")
 		{
@@ -188,20 +174,16 @@ void DClsEditor::OnChangeModel(const IModel& model)
 			mClsPropPanel->Show(true);
 			mClsActPanel->Show(true);
 			mClsMovePanel->Show(true);
-			mClsObjNumPanel->Show(true);
 
 			mNotebook->AddPage(mClsPropPanel, "Свойства", false, 1);
 			mNotebook->AddPage(mClsActPanel, "Действия", false, 3);
 			mNotebook->AddPage(mClsMovePanel, "Перемещения", false, 5);
-			mNotebook->AddPage(mClsObjNumPanel, "Объекты", false, 4);
 		}
 		else if (cls.mType == "2" || cls.mType == "3")
 		{
 			mClsPropPanel->Show(true);
-			mClsObjQtyPanel->Show(true);
 
 			mNotebook->AddPage(mClsPropPanel, "Свойства", false, 1);
-			mNotebook->AddPage(mClsObjQtyPanel, "Объекты", false, 4);
 		}
 	}
 }

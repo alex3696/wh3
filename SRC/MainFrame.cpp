@@ -8,9 +8,6 @@
 
 #include "favorites.h"
 
-
-
-#include "AdminMainForm.h"
 #include "VObjCatalogCtrl.h"
 
 #include "VPropCtrlPanel.h"
@@ -260,8 +257,7 @@ void MainFrame::ShowDevToolBar(bool show)
 //---------------------------------------------------------------------------
 void MainFrame::DoMenuPreferences( wxCommandEvent& evt) 
 {
-	wh::gui::AdminMainForm admin;
-	admin.ShowModal();
+
 }
 //---------------------------------------------------------------------------
 void MainFrame::OnMakeTypeWnd(wxCommandEvent& evt)
@@ -428,7 +424,6 @@ void MainFrame::PnlShowGroup(wxCommandEvent& WXUNUSED(evt))
 {
 	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 	using namespace wh;
-	using namespace wh::gui;
 	using namespace wh::view;
 	auto model = std::make_shared<MGroupArray>();
 	auto view = new VGroupCtrlPanel(m_Notebook);
@@ -446,7 +441,6 @@ void MainFrame::PnlShowUser(wxCommandEvent& WXUNUSED(evt))
 {
 	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 	using namespace wh;
-	using namespace wh::gui;
 	using namespace wh::view;
 	auto model = std::make_shared<MUserArray>();
 	auto view = new VUserCtrlPanel(m_Notebook);
@@ -464,7 +458,6 @@ void MainFrame::PnlShowProp(wxCommandEvent& WXUNUSED(evt))
 {
 	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 	using namespace wh;
-	using namespace wh::gui;
 	using namespace wh::view;
 	auto model = std::make_shared<MPropArray>();
 	auto view = new VPropCtrlPanel(m_Notebook);
@@ -482,7 +475,6 @@ void MainFrame::PnlShowAct(wxCommandEvent& WXUNUSED(evt))
 {
 	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 	using namespace wh;
-	using namespace wh::gui;
 	using namespace wh::view;
 	auto model = std::make_shared<MActArray>();
 	auto view = new VActCtrlPanel(m_Notebook);

@@ -133,7 +133,6 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\SRC\AdminMainForm.cpp" />
     <ClCompile Include="..\..\SRC\BaseControlPanel.cpp" />
     <ClCompile Include="..\..\SRC\BaseRefControlPanel.cpp" />
     <ClCompile Include="..\..\SRC\BaseTable.cpp" />
@@ -141,11 +140,7 @@
     <ClCompile Include="..\..\SRC\DActEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsActEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsEditor.cpp" />
-    <ClCompile Include="..\..\SRC\DClsFavoriteActPropEditor.cpp" />
-    <ClCompile Include="..\..\SRC\DClsFavoriteProp.cpp" />
     <ClCompile Include="..\..\SRC\DClsMoveEditor.cpp" />
-    <ClCompile Include="..\..\SRC\DClsObjNumEditor.cpp" />
-    <ClCompile Include="..\..\SRC\DClsObjQtyEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsPropEditor.cpp" />
     <ClCompile Include="..\..\SRC\DGroupEditor.cpp" />
     <ClCompile Include="..\..\SRC\dlg_act_model_Act.cpp" />
@@ -171,14 +166,8 @@
     <ClCompile Include="..\..\SRC\DUserGroupEditor.cpp" />
     <ClCompile Include="..\..\SRC\MAct.cpp" />
     <ClCompile Include="..\..\SRC\MClsAct.cpp" />
-    <ClCompile Include="..\..\SRC\MClsActProp.cpp" />
-    <ClCompile Include="..\..\SRC\MClsBase.cpp" />
-    <ClCompile Include="..\..\SRC\MClsFavoriteActProp.cpp" />
     <ClCompile Include="..\..\SRC\MClsMove.cpp" />
-    <ClCompile Include="..\..\SRC\MClsObjNum.cpp" />
-    <ClCompile Include="..\..\SRC\MClsObjQty.cpp" />
     <ClCompile Include="..\..\SRC\MClsProp.cpp" />
-    <ClCompile Include="..\..\SRC\MClsTree.cpp" />
     <ClCompile Include="..\..\SRC\MFavProp.cpp" />
     <ClCompile Include="..\..\SRC\MGroup.cpp" />
     <ClCompile Include="..\..\SRC\MObjItem.cpp" />
@@ -196,8 +185,6 @@
     <ClCompile Include="..\..\SRC\rdbsTable.cpp" />
     <ClCompile Include="..\..\SRC\VActPanel.cpp" />
     <ClCompile Include="..\..\SRC\VClsDataEditorPanel.cpp" />
-    <ClCompile Include="..\..\SRC\VClsFavActPropCtrl.cpp" />
-    <ClCompile Include="..\..\SRC\VClsTreeCtrl.cpp" />
     <ClCompile Include="..\..\SRC\VGrid.cpp" />
     <ClCompile Include="..\..\SRC\VObjCatalogCtrl.cpp" />
     <ClCompile Include="..\..\SRC\VObjCatalogDataViewModel.cpp" />
@@ -272,11 +259,7 @@
     <ClInclude Include="..\..\INCLUDE\DActEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DclsActEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DClsEditor.h" />
-    <ClInclude Include="..\..\INCLUDE\DClsFavoriteActPropEditor.h" />
-    <ClInclude Include="..\..\INCLUDE\DClsFavoriteProp.h" />
     <ClInclude Include="..\..\INCLUDE\DClsMoveEditor.h" />
-    <ClInclude Include="..\..\INCLUDE\DClsObjNumEditor.h" />
-    <ClInclude Include="..\..\INCLUDE\DClsObjQtyEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DClsPropEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DGroupEditor.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_act_model_Act.h" />
@@ -308,13 +291,7 @@
     <ClInclude Include="..\..\INCLUDE\MAct.h" />
     <ClInclude Include="..\..\INCLUDE\MActProp.h" />
     <ClInclude Include="..\..\INCLUDE\MClsAct.h" />
-    <ClInclude Include="..\..\INCLUDE\MClsActProp.h" />
-    <ClInclude Include="..\..\INCLUDE\MClsBase.h" />
-    <ClInclude Include="..\..\INCLUDE\MClsFavoriteActProp.h" />
     <ClInclude Include="..\..\INCLUDE\MClsMove.h" />
-    <ClInclude Include="..\..\INCLUDE\MClsObjNum.h" />
-    <ClInclude Include="..\..\INCLUDE\MClsObjQty.h" />
-    <ClInclude Include="..\..\INCLUDE\MClsTree.h" />
     <ClInclude Include="..\..\INCLUDE\MGroup.h" />
     <ClInclude Include="..\..\INCLUDE\MObjItem.h" />
     <ClInclude Include="..\..\INCLUDE\MProp.h" />
@@ -333,7 +310,6 @@
     <ClInclude Include="..\..\INCLUDE\EMVP.h" />
     <ClInclude Include="..\..\INCLUDE\EVENT.h" />
     <ClInclude Include="..\..\INCLUDE\EViewTemplates.h" />
-    <ClInclude Include="..\..\INCLUDE\AdminMainForm.h" />
     <ClInclude Include="..\..\INCLUDE\BaseControlPanel.h" />
     <ClInclude Include="..\..\INCLUDE\BaseTable.h" />
     <ClInclude Include="..\..\INCLUDE\db_rec.h" />
@@ -351,11 +327,8 @@
     <ClInclude Include="..\..\INCLUDE\MClsProp.h" />
     <ClInclude Include="..\..\INCLUDE\VClsActEditorPanel.h" />
     <ClInclude Include="..\..\INCLUDE\VClsDataEditorPanel.h" />
-    <ClInclude Include="..\..\INCLUDE\VClsFavActPropCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\VClsMoveEditorPanel.h" />
-    <ClInclude Include="..\..\INCLUDE\VClsObjEditorPanel.h" />
     <ClInclude Include="..\..\INCLUDE\VClsPropEditorPanel.h" />
-    <ClInclude Include="..\..\INCLUDE\VClsTreeCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\VGrid.h" />
     <ClInclude Include="..\..\INCLUDE\VGroupCtrlPanel.h" />
     <ClInclude Include="..\..\INCLUDE\VObjCatalogCtrl.h" />

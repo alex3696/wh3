@@ -76,18 +76,6 @@
     <Filter Include="SIG_MODEL\VCls\View">
       <UniqueIdentifier>{54d00d83-ec1e-4a0c-b821-d7e07c86f96b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="SIG_MODEL\VClsTree">
-      <UniqueIdentifier>{322f42bb-4295-43ed-ae62-1c76cc4b1b27}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="SIG_MODEL\VFavoriteClsActProp">
-      <UniqueIdentifier>{79c1dbd2-ba09-46fe-a08d-366e033eaf27}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="SIG_MODEL\VFavoriteClsActProp\Редактор избранных свойств">
-      <UniqueIdentifier>{c9f3f68e-5880-404a-9892-a02e460e9650}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="SIG_MODEL\VFavoriteClsActProp\Диалог выбора из доступных свойств">
-      <UniqueIdentifier>{6c2e2a3b-ea8e-41a2-9f19-54b7ad769e63}</UniqueIdentifier>
-    </Filter>
     <Filter Include="SIG_MODEL\VGroup">
       <UniqueIdentifier>{5bf3780d-9ff3-4718-ae10-fab2a0738cff}</UniqueIdentifier>
     </Filter>
@@ -198,9 +186,6 @@
     <ClCompile Include="..\..\SRC\whPnlFavorites.cpp">
       <Filter>GUI\MainFrame\Панель избранного</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SRC\AdminMainForm.cpp">
-      <Filter>Администрирование</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\whTableMgr.cpp">
       <Filter>GUI\History\Model</Filter>
     </ClCompile>
@@ -261,12 +246,6 @@
     <ClCompile Include="..\..\SRC\VUserPanel.cpp">
       <Filter>SIG_MODEL\VUser\View</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SRC\MClsTree.cpp">
-      <Filter>SIG_MODEL\VClsTree</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\VClsTreeCtrl.cpp">
-      <Filter>SIG_MODEL\VClsTree</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\MClsProp.cpp">
       <Filter>SIG_MODEL\VCls</Filter>
     </ClCompile>
@@ -274,12 +253,6 @@
       <Filter>SIG_MODEL\VCls</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\MClsAct.cpp">
-      <Filter>SIG_MODEL\VCls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\MClsObjNum.cpp">
-      <Filter>SIG_MODEL\VCls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\MClsObjQty.cpp">
       <Filter>SIG_MODEL\VCls</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\VClsDataEditorPanel.cpp">
@@ -291,35 +264,11 @@
     <ClCompile Include="..\..\SRC\DClsPropEditor.cpp">
       <Filter>SIG_MODEL\VCls\View</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SRC\DClsObjNumEditor.cpp">
-      <Filter>SIG_MODEL\VCls\View</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\DClsObjQtyEditor.cpp">
-      <Filter>SIG_MODEL\VCls\View</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\DClsActEditor.cpp">
       <Filter>SIG_MODEL\VCls\View</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\DClsMoveEditor.cpp">
       <Filter>SIG_MODEL\VCls\View</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\MClsBase.cpp">
-      <Filter>SIG_MODEL\VClsTree</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\MClsFavoriteActProp.cpp">
-      <Filter>SIG_MODEL\VFavoriteClsActProp</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\MClsActProp.cpp">
-      <Filter>SIG_MODEL\VFavoriteClsActProp</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\VClsFavActPropCtrl.cpp">
-      <Filter>SIG_MODEL\VFavoriteClsActProp</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\DClsFavoriteProp.cpp">
-      <Filter>SIG_MODEL\VFavoriteClsActProp\Диалог выбора из доступных свойств</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\DClsFavoriteActPropEditor.cpp">
-      <Filter>SIG_MODEL\VFavoriteClsActProp\Редактор избранных свойств</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\MObjCatPath.cpp">
       <Filter>SIG_MODEL\Каталог объектов\Основная панель\модель пути</Filter>
@@ -470,9 +419,6 @@
     <ClInclude Include="..\..\INCLUDE\Favorites.h">
       <Filter>GUI\MainFrame\Панель избранного</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\AdminMainForm.h">
-      <Filter>Администрирование</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\EMVP.h">
       <Filter>Администрирование</Filter>
     </ClInclude>
@@ -514,9 +460,6 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\TViewCtrlPanel.h">
       <Filter>SIG_MODEL\Templates</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\VPropCtrlPanel.h">
-      <Filter>SIG_MODEL\VProp</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\TModel.h">
       <Filter>SIG_MODEL\Templates</Filter>
@@ -578,12 +521,6 @@
     <ClInclude Include="..\..\INCLUDE\VUserPanel.h">
       <Filter>SIG_MODEL\VUser\View</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MClsTree.h">
-      <Filter>SIG_MODEL\VClsTree</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\VClsTreeCtrl.h">
-      <Filter>SIG_MODEL\VClsTree</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MClsProp.h">
       <Filter>SIG_MODEL\VCls</Filter>
     </ClInclude>
@@ -591,12 +528,6 @@
       <Filter>SIG_MODEL\VCls</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MClsMove.h">
-      <Filter>SIG_MODEL\VCls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MClsObjNum.h">
-      <Filter>SIG_MODEL\VCls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MClsObjQty.h">
       <Filter>SIG_MODEL\VCls</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\VClsPropEditorPanel.h">
@@ -608,9 +539,6 @@
     <ClInclude Include="..\..\INCLUDE\VClsMoveEditorPanel.h">
       <Filter>SIG_MODEL\VCls\View</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\VClsObjEditorPanel.h">
-      <Filter>SIG_MODEL\VCls\View</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\DClsEditor.h">
       <Filter>SIG_MODEL\VCls\View</Filter>
     </ClInclude>
@@ -620,35 +548,11 @@
     <ClInclude Include="..\..\INCLUDE\DClsPropEditor.h">
       <Filter>SIG_MODEL\VCls\View</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\DClsObjNumEditor.h">
-      <Filter>SIG_MODEL\VCls\View</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\DClsObjQtyEditor.h">
-      <Filter>SIG_MODEL\VCls\View</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\DclsActEditor.h">
       <Filter>SIG_MODEL\VCls\View</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\DClsMoveEditor.h">
       <Filter>SIG_MODEL\VCls\View</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MClsBase.h">
-      <Filter>SIG_MODEL\VClsTree</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MClsFavoriteActProp.h">
-      <Filter>SIG_MODEL\VFavoriteClsActProp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MClsActProp.h">
-      <Filter>SIG_MODEL\VFavoriteClsActProp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\VClsFavActPropCtrl.h">
-      <Filter>SIG_MODEL\VFavoriteClsActProp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\DClsFavoriteActPropEditor.h">
-      <Filter>SIG_MODEL\VFavoriteClsActProp\Редактор избранных свойств</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\DClsFavoriteProp.h">
-      <Filter>SIG_MODEL\VFavoriteClsActProp\Диалог выбора из доступных свойств</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MObjCatPath.h">
       <Filter>SIG_MODEL\Каталог объектов\Основная панель\модель пути</Filter>
@@ -763,6 +667,9 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dlg_favprop_SelectFrame.h">
       <Filter>SIG_MODEL\Каталог объектов\Диалог выбора свойств\view</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VPropCtrlPanel.h">
+      <Filter>SIG_MODEL\VProp</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

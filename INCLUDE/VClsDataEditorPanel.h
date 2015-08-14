@@ -4,8 +4,8 @@
 
 #include "BaseOkCancelDialog.h"
 
-#include "MClsTree.h"
 #include "TPresenter.h"
+#include "MTypeNode.h"
 
 
 namespace wh{
@@ -20,7 +20,7 @@ class VClsDataEditorPanel
 	, public T_View
 {
 public:
-	typedef MClsNode T_Model;
+	typedef object_catalog::MTypeItem T_Model;
 
 	VClsDataEditorPanel(wxWindow* parent = nullptr,
 		wxWindowID id = wxID_ANY,

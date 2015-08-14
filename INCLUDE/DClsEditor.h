@@ -3,7 +3,6 @@
 
 #include "BaseOkCancelDialog.h"
 
-#include "MClsTree.h"
 #include "TPresenter.h"
 #include "TViewCtrlPanel.h"
 #include "VClsDataEditorPanel.h"
@@ -13,8 +12,7 @@
 #include "DClsActEditor.h"
 #include "DClsMoveEditor.h"
 
-#include "DClsObjNumEditor.h"
-#include "DClsObjQtyEditor.h"
+#include "MTypeNode.h"
 
 namespace wh{
 namespace view{
@@ -41,21 +39,17 @@ public:
 	virtual int  ShowModal() override;
 	virtual void OnChangeModel(const IModel& model)override;
 private:
-	std::shared_ptr<MClsNode>	mClsNode;
+	std::shared_ptr<object_catalog::MTypeItem>	mClsNode;
 	scoped_connection			mChangeConnection;
 
 	typedef TViewCtrlPanel <CtrlTool::All, DClsPropEditor, false>	VClsPropPanel;
 	typedef TViewCtrlPanel <CtrlTool::All, DClsActEditor, false>	VClsActPanel;
 	typedef TViewCtrlPanel <CtrlTool::All, DClsMoveEditor, false>	VClsMovePanel;
-	typedef TViewCtrlPanel <CtrlTool::All, DClsObjQtyEditor, false> VClsObjQtyPanel;
-	typedef TViewCtrlPanel <CtrlTool::All, DClsObjNumEditor, false> VClsObjNumPanel;
 
 	VClsDataEditorPanel*	mClsPanel;
 	VClsPropPanel*			mClsPropPanel;
 	VClsActPanel*			mClsActPanel;
 	VClsMovePanel*			mClsMovePanel;
-	VClsObjNumPanel*		mClsObjNumPanel;
-	VClsObjQtyPanel*		mClsObjQtyPanel;
 
 	wxAuiNotebook*			mNotebook;
 	wxAuiManager			mAuiMgr;

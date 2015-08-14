@@ -3,7 +3,6 @@
 
 #include "MProp.h"
 #include "MClsProp.h"
-#include "MClsTree.h"
 #include "TPresenter.h"
 #include "TViewCtrlPanel.h"
 
