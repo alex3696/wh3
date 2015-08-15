@@ -172,7 +172,6 @@
     <ClCompile Include="..\..\SRC\MGroup.cpp" />
     <ClCompile Include="..\..\SRC\MObjItem.cpp" />
     <ClCompile Include="..\..\SRC\MProp.cpp" />
-    <ClCompile Include="..\..\SRC\MRProp.cpp" />
     <ClCompile Include="..\..\SRC\MTypeNode.cpp" />
     <ClCompile Include="..\..\SRC\MUser2.cpp" />
     <ClCompile Include="..\..\SRC\MUserGroup.cpp" />
@@ -180,12 +179,8 @@
     <ClCompile Include="..\..\SRC\MObjCatPath.cpp" />
     <ClCompile Include="..\..\SRC\DPropEditor.cpp" />
     <ClCompile Include="..\..\SRC\DActPropEditor.cpp" />
-    <ClCompile Include="..\..\SRC\rdbsIndex.cpp" />
-    <ClCompile Include="..\..\SRC\rdbsRecord.cpp" />
-    <ClCompile Include="..\..\SRC\rdbsTable.cpp" />
     <ClCompile Include="..\..\SRC\VActPanel.cpp" />
     <ClCompile Include="..\..\SRC\VClsDataEditorPanel.cpp" />
-    <ClCompile Include="..\..\SRC\VGrid.cpp" />
     <ClCompile Include="..\..\SRC\VObjCatalogCtrl.cpp" />
     <ClCompile Include="..\..\SRC\VObjCatalogDataViewModel.cpp" />
     <ClCompile Include="..\..\SRC\VObjCatalogTable.cpp" />
@@ -286,8 +281,6 @@
     <ClInclude Include="..\..\INCLUDE\DUserEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DUserGroupEditor.h" />
     <ClInclude Include="..\..\INCLUDE\MFavProp.h" />
-    <ClInclude Include="..\..\INCLUDE\MRProp.h" />
-    <ClInclude Include="..\..\INCLUDE\rdbsField.h" />
     <ClInclude Include="..\..\INCLUDE\MAct.h" />
     <ClInclude Include="..\..\INCLUDE\MActProp.h" />
     <ClInclude Include="..\..\INCLUDE\MClsAct.h" />
@@ -300,16 +293,7 @@
     <ClInclude Include="..\..\INCLUDE\MUserGroup.h" />
     <ClInclude Include="..\..\INCLUDE\MObjCatalog.h" />
     <ClInclude Include="..\..\INCLUDE\MObjCatPath.h" />
-    <ClInclude Include="..\..\INCLUDE\RDBS.h" />
-    <ClInclude Include="..\..\INCLUDE\rdbsIndex.h" />
-    <ClInclude Include="..\..\INCLUDE\rdbsRecord.h" />
-    <ClInclude Include="..\..\INCLUDE\rdbsTrigger.h" />
-    <ClInclude Include="..\..\INCLUDE\rdbsTTable.h" />
     <ClInclude Include="..\..\INCLUDE\TModel.h" />
-    <ClInclude Include="..\..\INCLUDE\EventBase.h" />
-    <ClInclude Include="..\..\INCLUDE\EMVP.h" />
-    <ClInclude Include="..\..\INCLUDE\EVENT.h" />
-    <ClInclude Include="..\..\INCLUDE\EViewTemplates.h" />
     <ClInclude Include="..\..\INCLUDE\BaseControlPanel.h" />
     <ClInclude Include="..\..\INCLUDE\BaseTable.h" />
     <ClInclude Include="..\..\INCLUDE\db_rec.h" />
@@ -329,7 +313,6 @@
     <ClInclude Include="..\..\INCLUDE\VClsDataEditorPanel.h" />
     <ClInclude Include="..\..\INCLUDE\VClsMoveEditorPanel.h" />
     <ClInclude Include="..\..\INCLUDE\VClsPropEditorPanel.h" />
-    <ClInclude Include="..\..\INCLUDE\VGrid.h" />
     <ClInclude Include="..\..\INCLUDE\VGroupCtrlPanel.h" />
     <ClInclude Include="..\..\INCLUDE\VObjCatalogCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\VObjCatalogDataViewModel.h" />

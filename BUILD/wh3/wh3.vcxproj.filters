@@ -43,9 +43,6 @@
     <Filter Include="GUI\MainFrame\Панель избранного">
       <UniqueIdentifier>{0f33df8f-12bd-4c0e-b36d-6ae826cc03b8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Администрирование">
-      <UniqueIdentifier>{62591b3d-3f5d-49d8-be2b-a3b825bb767a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="SIG_MODEL">
       <UniqueIdentifier>{27026848-f53a-488f-9b47-c172972b5e64}</UniqueIdentifier>
     </Filter>
@@ -90,12 +87,6 @@
     </Filter>
     <Filter Include="SIG_MODEL\Каталог объектов">
       <UniqueIdentifier>{4a58ad93-2974-41da-8c93-d14279ea97de}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="SIG_MODEL\Templates\RDBS">
-      <UniqueIdentifier>{e8265704-2cc3-41d8-865d-221ed08518b3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="SIG_MODEL\Templates\RDBS\Prop">
-      <UniqueIdentifier>{b1e4eb35-1538-408e-bfc0-ca3770124fed}</UniqueIdentifier>
     </Filter>
     <Filter Include="SIG_MODEL\Каталог объектов\Диалог перемещения">
       <UniqueIdentifier>{55674807-9aa3-44b3-805e-52621cd34ae4}</UniqueIdentifier>
@@ -288,21 +279,6 @@
     <ClCompile Include="..\..\SRC\VObjCatalogCtrl.cpp">
       <Filter>SIG_MODEL\Каталог объектов\Основная панель\GUI</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SRC\rdbsRecord.cpp">
-      <Filter>SIG_MODEL\Templates\RDBS</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\rdbsIndex.cpp">
-      <Filter>SIG_MODEL\Templates\RDBS</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\MRProp.cpp">
-      <Filter>SIG_MODEL\Templates\RDBS\Prop</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\rdbsTable.cpp">
-      <Filter>SIG_MODEL\Templates\RDBS</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\VGrid.cpp">
-      <Filter>SIG_MODEL\Templates\RDBS\Prop</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\dlg_move_model_MovableObj.cpp">
       <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
     </ClCompile>
@@ -418,21 +394,6 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\Favorites.h">
       <Filter>GUI\MainFrame\Панель избранного</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\EMVP.h">
-      <Filter>Администрирование</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\EVENT.h">
-      <Filter>Администрирование</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\db_rec.h">
-      <Filter>Администрирование</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\EViewTemplates.h">
-      <Filter>Администрирование</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\EventBase.h">
-      <Filter>Администрирование</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\FB_FORMS\dlgBaseLogin.h">
       <Filter>GUI\Controls\Form_Builder\dlgLogin</Filter>
@@ -575,30 +536,6 @@
     <ClInclude Include="..\..\INCLUDE\VObjCatalogCtrl.h">
       <Filter>SIG_MODEL\Каталог объектов\Основная панель\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\RDBS.h">
-      <Filter>SIG_MODEL\Templates\RDBS</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\rdbsTrigger.h">
-      <Filter>SIG_MODEL\Templates\RDBS</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\rdbsRecord.h">
-      <Filter>SIG_MODEL\Templates\RDBS</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\rdbsField.h">
-      <Filter>SIG_MODEL\Templates\RDBS</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\rdbsIndex.h">
-      <Filter>SIG_MODEL\Templates\RDBS</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MRProp.h">
-      <Filter>SIG_MODEL\Templates\RDBS\Prop</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\VGrid.h">
-      <Filter>SIG_MODEL\Templates\RDBS\Prop</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\rdbsTTable.h">
-      <Filter>SIG_MODEL\Templates\RDBS</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dlg_move_model_MovableObj.h">
       <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
     </ClInclude>
@@ -670,6 +607,9 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\VPropCtrlPanel.h">
       <Filter>SIG_MODEL\VProp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\db_rec.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

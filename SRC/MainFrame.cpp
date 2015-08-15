@@ -15,7 +15,6 @@
 #include "VGroupCtrlPanel.h"
 #include "VUserCtrlPanel.h"
 
-#include "RDBS.h"
 //---------------------------------------------------------------------------
 BEGIN_EVENT_TABLE( MainFrame, wxFrame )
 
