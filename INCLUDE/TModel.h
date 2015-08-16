@@ -84,116 +84,130 @@ public:
 //-----------------------------------------------------------------------------
 class IModel;
 
-/*
+
 //-----------------------------------------------------------------------------
-/// Сигналы для массива
-template<class MODEL, class DataType>
+/// Сигналы для элемента
+template < class DATA >
 class SigData
-	: public boost::noncopyable
+	//: public boost::noncopyable
 {
-	enum class SigOp
+public:
+	enum class Op
 	{
-		sigBeforeChange = 0,
-		sigAfterChange
+		BeforeChange = 0,
+		AfterChange
 	};
 
-	//using DataType = typename MODEL::DataType;
+	using Signal = sig::signal<void(const IModel*, const DATA*)>;
+	//using Slot = std::function< void(const IModel*, const DATA*) >;
+	using Slot = typename Signal::slot_type;
 
-	using SigChange = sig::signal
-		<void(const SigOp op, const IModel&, const DataType& data)>;
-	using SlotChange = typename SigChange::slot_type;
+	sig::connection DoConnect(Op op, const Slot &slot)
+	{
+		CheckSignalOp(op);
+		return mSig->at((size_t)op)->connect(slot);
 
-	sig::connection Connect(SigOp op, const SlotChange &slot)
-	{
-		if (mSig.size() <= (int)op)
-			BOOST_THROW_EXCEPTION(error() << wxstr("Out of range SigOp"));
-		if (!mSig[(int)op])
-			mSig[(int)op].reset(new SigChange());
-		return mSig[(int)op]->connect(slot);
 	}
-	void Disconnect(SigOp op, const SlotChange &slot)
+	void DoDisconnect(Op op, const Slot &slot)
 	{
-		if (mSig.size() <= (int)op)
-			BOOST_THROW_EXCEPTION(error() << wxstr("Out of range SigOp"));
-		if (mSig[(int)op])
-			mSig[(int)op]->disconnect(&slot);
+		CheckSignalOp(op);
+		return mSig->at((size_t)op)->disconnect(&slot);
 	}
-protected:
-	void Signal(SigOp op, const MODEL& model, const DataType& data)const
+	void DoSignal(Op op, const IModel* model, const DATA* data)
 	{
-		if (mSig.size() <= (int)op)
-			BOOST_THROW_EXCEPTION(error() << wxstr("Out of range SigOp"));
-		if (mSig[(int)op])
-			mSig[(int)op]->operator()(op, model, data);
+		CheckSignalOp(op);
+		mSig->at((size_t)op)->operator()(model, data);
 	}
 private:
-	//struct error : virtual exception_base {};
-	std::array<std::unique_ptr<SigChange>, 2> mSig;
+	struct error : virtual exception_base {};
 
+	inline void CheckSignalOp(Op op)
+	{
+		if ((size_t)Op::AfterChange < (size_t)op)
+			BOOST_THROW_EXCEPTION(error() << wxstr("Out of range SigOp"));
+		if (!mSig)
+			mSig.reset(new SignalArray);
+		if (!(*mSig)[(unsigned int)op])
+			(*mSig)[(unsigned int)op].reset(new Signal);
+	}
+
+	using UnqSignal = std::unique_ptr<Signal>;
+	using SignalArray = std::array<UnqSignal, 2 >;
+	using UnqSignalArray = std::unique_ptr<SignalArray>;
+
+	UnqSignalArray mSig;
 };
-
+//-------------------------------------------------------------------------
 
 class SigArray
 	//: public boost::noncopyable
 {
 public:
-	enum class SigOp
+	enum class Op
 	{
-		sigBeforeInsert = 0,// $1=nonconst, 2$=NULL
-		sigAfterInsert,		// $1=const, 2$=NULL
-		sigBeforeUpdate,	// $1=new=nonconst, 2$=old=const
-		sigAfterUpdate,		// $1=new=const, 2$=old=nonconst
-		sigBeforeDelete,	// $1=NULL, 2$=old=const
-		sigAfterDelete,		// $1=NULL, 2$=old=nonconst
+		BeforeInsert = 0,// $1=nonconst, 2$=NULL
+		AfterInsert,		// $1=const, 2$=NULL
+		BeforeUpdate,	// $1=new=nonconst, 2$=old=const
+		AfterUpdate,		// $1=new=const, 2$=old=nonconst
+		BeforeDelete,	// $1=NULL, 2$=old=const
+		AfterDelete,		// $1=NULL, 2$=old=nonconst
 
-		sigAfterBeforeLoad,
-		sigAfterAfterLoad,
-		sigAfterBeforeSave,
-		sigAfterAfterSave,
-
-		sigAfterBeforeClear,
-		sigAfterAfterClear
+		BeforeLoad,
+		AfterLoad,
+		BeforeSave,
+		AfterSave,
+		
+		BeforeClear,
+		AfterClear
 	};
-	using VecChange = std::vector < IModel& >;
+	using ArrayChange = std::vector <const IModel >;
 
-	using SigVecChange = sig::signal 
-		< void(const IModel&, const VecChange&, VecChange&) >;
+	using Signal = sig::signal< void(const IModel*, const ArrayChange*, const ArrayChange*) >;
 
-	using SlotVecChange = SigVecChange::slot_type;
+	using Slot = Signal::slot_type;
+	//using Slot = std::function< void(const IModel*, const ArrayChange*, const ArrayChange*) >;
 
-	sig::connection Connect(SigOp op, const SlotVecChange &slot)
+	sig::connection DoConnect(Op op, const Slot &slot)
 	{
-		if (mSig.size() <= (unsigned int)op)
-			BOOST_THROW_EXCEPTION(error() << wxstr("Out of range SigOp"));
-		if (!mSig[(unsigned int)op])
-			mSig[(unsigned int)op].reset(new SigVecChange());
-		return mSig[(unsigned int)op]->connect(slot);
+		CheckSignalOp(op);
+		return mSig->at((size_t)op)->connect(slot);
 	}
-	void Disconnect(SigOp op, const SlotVecChange &slot)
+	void DoDisconnect(Op op, const Slot &slot)
 	{
-		if (mSig.size() <= (unsigned int)op)
-			BOOST_THROW_EXCEPTION(error() << wxstr("Out of range SigOp"));
-		if (mSig[(unsigned int)op])
-			mSig[(unsigned int)op]->disconnect(&slot);
+		CheckSignalOp(op);
+		return mSig->at((size_t)op)->disconnect(&slot);
+	}
+
+	void DoSignal(Op op, const IModel* model
+		, const ArrayChange* newItem, const ArrayChange* oldItem)
+	{
+		CheckSignalOp(op);
+		mSig->at((size_t)op)->operator()(model, newItem, oldItem);
 	}
 protected:
-	void Signal(SigOp op, const IModel& model, const VecChange& vec)const
-	{
-		if (mSig.size() <= (unsigned int)op)
-			BOOST_THROW_EXCEPTION(error() << wxstr("Out of range SigOp"));
-		if (mSig[(unsigned int)op])
-			mSig[(unsigned int)op]->operator()(model, vec);
-	}
 private:
 	struct error : virtual exception_base {};
-	std::array<std::unique_ptr<SigVecChange>, 12> mSig;
-};
-*/
 
+	inline void CheckSignalOp(Op op)
+	{
+		if ((size_t)Op::AfterClear < (size_t)op)
+			BOOST_THROW_EXCEPTION(error() << wxstr("Out of range SigOp"));
+		if (!mSig)
+			mSig.reset(new SignalArray);
+		if (!(*mSig)[(unsigned int)op])
+			(*mSig)[(unsigned int)op].reset(new Signal);
+	}
+
+	using UnqSignal = std::unique_ptr<Signal>;
+	using SignalArray = std::array<UnqSignal, 12>;
+	using UnqSignalArray = std::unique_ptr<SignalArray>;
+
+	UnqSignalArray mSig;
+};
+//-------------------------------------------------------------------------
 
 class IModelNotifier
 {
-	//using TriggVecChange = sig::signal<bool(const IModel& vec, const IModel& newItem) >;
 public:
 	virtual ~IModelNotifier(){}
 
@@ -359,11 +373,6 @@ protected:
 	std::unique_ptr<BaseStore> mVec;
 
 	char mOption;
-
-	//bool mEnableChildNotify = true;
-	//bool mCommitSave = true;
-	//bool mLoadCascade = false;
-
 
 	bool AppendChildWithoutSignal(std::shared_ptr<IModel>& newItem)
 	{
