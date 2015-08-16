@@ -36,7 +36,7 @@ public:
 	virtual void UpdateModel()const override;
 	virtual int  ShowModal() override;
 private:
-	virtual void OnChangeModel(const IModel& model) override;
+	void OnChangeModel(const IModel* model, const T_Model::T_Data* data);
 
 	wxPropertyGrid*		mPropGrid = nullptr;
 	//wxAuiToolBar*		mToolBar = nullptr;
@@ -45,7 +45,7 @@ private:
 
 
 	std::shared_ptr<T_Model>		mModel;
-	sig::scoped_connection				mChangeConnection;
+	sig::scoped_connection			mChangeConnection;
 	//boost::signals2::scoped_connection	slotOnChange;
 
 };

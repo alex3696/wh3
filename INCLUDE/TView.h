@@ -11,7 +11,7 @@ class T_View
 {
 public:
 	virtual void SetModel(std::shared_ptr<IModel>& model) {}
-	virtual void OnChangeModel(const IModel& model) {}
+	//virtual void OnChangeModel(const IModel& model) {}
 	
 	virtual void UpdateModel()const {};
 	virtual int  ShowModal() { return wxID_CANCEL;  };

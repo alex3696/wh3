@@ -34,7 +34,7 @@ class Frame
 	boost::signals2::scoped_connection				mChangeConnection;
 	void GetData(MObjItem::T_Data& data) const;
 	void SetData(const MObjItem::T_Data& data);
-	void OnChangeModel(const IModel& model);
+	void OnChangeModel(const IModel* model, const MObjItem::T_Data* data);
 
 //	void OnClose(wxCloseEvent& evt);
 //	void OnCancel(wxCommandEvent& evt = wxCommandEvent());

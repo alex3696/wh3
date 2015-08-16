@@ -132,9 +132,9 @@ void DClsActEditor::SetModel(std::shared_ptr<IModel>& newModel)
 		if (mModel)
 		{
 			auto funcOnChange = std::bind(&DClsActEditor::OnChangeModel,
-				this, std::placeholders::_1);
-			mChangeConnection = mModel->ConnectChangeDataSlot(funcOnChange);
-			OnChangeModel(*mModel.get());
+				this, std::placeholders::_1, std::placeholders::_2);
+			mChangeConnection = mModel->DoConnect(MClsAct::Op::AfterChange, funcOnChange);
+			OnChangeModel( mModel.get(), nullptr);
 		}//if (mModel)
 	}//if
 }//SetModel
@@ -186,11 +186,11 @@ void DClsActEditor::SetData(const rec::ClsActAccess& rec)
 }
 //---------------------------------------------------------------------------
 
-void DClsActEditor::OnChangeModel(const IModel& model)
+void DClsActEditor::OnChangeModel(const IModel* model, const MClsAct::T_Data* data)
 {
-	if (mModel && mModel.get() == &model)
+	if (mModel && mModel.get() == model)
 	{
-		const auto state = model.GetState();
+		const auto state = model->GetState();
 		const auto& rec = mModel->GetData();
 		SetData(rec);
 	}

@@ -38,15 +38,15 @@ void DUserGroupEditor::SetModel(std::shared_ptr<IModel>& newModel)
 		if (mModel)
 		{
 			auto funcOnChange = std::bind(&DUserGroupEditor::OnChangeModel,
-				this, std::placeholders::_1);
-			mChangeConnection = mModel->ConnectChangeSlot(funcOnChange);
-			OnChangeModel(*mModel.get());
+				this, std::placeholders::_1, std::placeholders::_2);
+			mChangeConnection = mModel->DoConnect(T_Model::Op::AfterChange, funcOnChange);
+			OnChangeModel(mModel.get(), nullptr);
 		}//if (mModel)
 	}//if
 }//SetModel
 //---------------------------------------------------------------------------
 
-void DUserGroupEditor::OnChangeModel(const IModel& model)
+void DUserGroupEditor::OnChangeModel(const IModel* model,const T_Model::T_Data* data)
 {
 	auto userGroupModel = std::dynamic_pointer_cast<MUserGroup>(mModel);
 	if (userGroupModel)

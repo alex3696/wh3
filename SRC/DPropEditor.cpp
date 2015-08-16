@@ -76,9 +76,10 @@ void DPropEditor::SetModel(std::shared_ptr<IModel>& newModel)
 		if (mModel)
 		{
 			auto funcOnChange =	std::bind(&DPropEditor::OnChangeModel, 
-											this, std::placeholders::_1);
-			mChangeConnection = mModel->ConnectChangeSlot(funcOnChange);
-			OnChangeModel(*mModel.get());
+				this, std::placeholders::_1, std::placeholders::_2);
+			mChangeConnection = mModel->DoConnect(T_Model::Op::AfterChange, funcOnChange);
+			OnChangeModel(mModel.get(), nullptr);
+
 			BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
 			if ((int)bg < (int)bgTypeDesigner)
 				m_btnOK->Enable(false);
@@ -87,11 +88,11 @@ void DPropEditor::SetModel(std::shared_ptr<IModel>& newModel)
 }//SetModel
 //---------------------------------------------------------------------------
 
-void DPropEditor::OnChangeModel(const IModel& model)
+void DPropEditor::OnChangeModel(const IModel* model, const T_Model::T_Data* data)
 {
-	if (mModel && mModel.get() == &model)
+	if (mModel && mModel.get() == model)
 	{
-		const auto state = model.GetState();
+		const auto state = model->GetState();
 		const auto& rec = mModel->GetData();
 		SetData(rec);
 	}

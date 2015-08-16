@@ -23,14 +23,14 @@ public:
 		long style = wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER,
 		const wxString& name = wxDialogNameStr);
 
-	virtual void SetModel(std::shared_ptr<IModel>& model)override;
-	virtual void UpdateModel()const override;
-	virtual int  ShowModal() override;
+	void SetModel(std::shared_ptr<IModel>& model)override;
+	void UpdateModel()const override;
+	int  ShowModal() override;
 private:
 	void GetData(rec::ClsSlotAccess& rec) const;
 	void SetData(const rec::ClsSlotAccess& rec);
 
-	virtual void OnChangeModel(const IModel& model) override;
+	void OnChangeModel(const IModel* model, const MClsMove::T_Data* data);
 
 	wxPropertyGrid*					mPropGrid;
 
@@ -40,7 +40,7 @@ private:
 
 	/// Модель свойства класса
 	std::shared_ptr<MClsMove>		mModel;
-	sig::scoped_connection				mChangeConnection;
+	sig::scoped_connection			mChangeConnection;
 };
 //-----------------------------------------------------------------------------	
 

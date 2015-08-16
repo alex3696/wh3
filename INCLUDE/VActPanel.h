@@ -35,12 +35,12 @@ public:
 	virtual void SetModel(std::shared_ptr<IModel>& model)override;
 	virtual void UpdateModel()const override;
 private:
-	virtual void OnChangeModel(const IModel& model) override;
+	void OnChangeModel(const IModel* model, const MAct::T_Data* data);
 
 	wxPropertyGrid*		mPropGrid = nullptr;
 
 	std::shared_ptr<T_Model>		mModel;
-	sig::scoped_connection				mChangeConnection;
+	sig::scoped_connection			mChangeConnection;
 
 };
 //---------------------------------------------------------------------------

@@ -37,7 +37,7 @@ public:
 	virtual void SetModel(std::shared_ptr<IModel>& model)override;
 	virtual void UpdateModel()const override;
 	virtual int  ShowModal() override;
-	virtual void OnChangeModel(const IModel& model)override;
+	void OnChangeModel(const IModel* model, const object_catalog::MTypeItem::T_Data* data);
 private:
 	std::shared_ptr<object_catalog::MTypeItem>	mClsNode;
 	sig::scoped_connection			mChangeConnection;

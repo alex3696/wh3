@@ -96,9 +96,9 @@ void DClsMoveEditor::SetModel(std::shared_ptr<IModel>& newModel)
 		if (mModel)
 		{
 			auto funcOnChange = std::bind(&DClsMoveEditor::OnChangeModel,
-				this, std::placeholders::_1);
-			mChangeConnection = mModel->ConnectChangeDataSlot(funcOnChange);
-			OnChangeModel(*mModel.get());
+				this, std::placeholders::_1, std::placeholders::_2);
+			mChangeConnection = mModel->DoConnect(MClsMove::Op::AfterChange, funcOnChange);
+			OnChangeModel(mModel.get(), nullptr);
 		}//if (mModel)
 	}//if
 }//SetModel
@@ -155,11 +155,11 @@ void DClsMoveEditor::SetData(const rec::ClsSlotAccess& rec)
 }
 //---------------------------------------------------------------------------
 
-void DClsMoveEditor::OnChangeModel(const IModel& model)
+void DClsMoveEditor::OnChangeModel(const IModel* model, const MClsMove::T_Data* data)
 {
-	if (mModel && mModel.get() == &model)
+	if (mModel && mModel.get() == model)
 	{
-		const auto state = model.GetState();
+		const auto state = model->GetState();
 		const auto& rec = mModel->GetData();
 		SetData(rec);
 	}

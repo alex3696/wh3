@@ -127,9 +127,10 @@ void DClsEditor::SetModel(std::shared_ptr<IModel>& newModel)
 				std::dynamic_pointer_cast<IModel>(mClsNode->GetClsMoveArray()));
 			
 			auto funcOnChange = std::bind(&DClsEditor::OnChangeModel,
-				this, std::placeholders::_1);
-			mChangeConnection = mClsNode->ConnectChangeDataSlot(funcOnChange);
-			OnChangeModel(*mClsNode.get());
+				this, std::placeholders::_1, std::placeholders::_2);
+			mChangeConnection = mClsNode->DoConnect(
+				object_catalog::MTypeItem::Op::AfterChange, funcOnChange);
+			OnChangeModel(mClsNode.get(), nullptr);
 
 		}//if (mModel)
 	}
@@ -149,7 +150,8 @@ int DClsEditor::ShowModal()
 	return wxDialog::ShowModal();
 }
 //---------------------------------------------------------------------------
-void DClsEditor::OnChangeModel(const IModel& model)
+void DClsEditor::OnChangeModel(const IModel* model, 
+	const object_catalog::MTypeItem::T_Data* data)
 {
 	if (mClsNode)
 	{

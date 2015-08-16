@@ -32,7 +32,7 @@ private:
 	void GetData(rec::ClsActAccess& rec) const;
 	void SetData(const rec::ClsActAccess& rec);
 
-	virtual void OnChangeModel(const IModel& model) override;
+	void OnChangeModel(const IModel* model, const MClsAct::T_Data* data);
 
 	wxPropertyGrid*					mPropGrid;
 
@@ -44,7 +44,7 @@ private:
 
 	/// Модель свойства класса
 	std::shared_ptr<MClsAct>		mModel; 
-	sig::scoped_connection				mChangeConnection;
+	sig::scoped_connection			mChangeConnection;
 };
 //-----------------------------------------------------------------------------	
 

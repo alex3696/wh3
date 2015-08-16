@@ -72,19 +72,20 @@ void VUserPanel::SetModel(std::shared_ptr<IModel>& newModel)
 		if (mModel)
 		{
 			auto funcOnChange = std::bind(&VUserPanel::OnChangeModel,
-				this, std::placeholders::_1);
-			mChangeConnection = mModel->ConnectChangeDataSlot(funcOnChange);
-			OnChangeModel(*mModel.get());
+				this, std::placeholders::_1, std::placeholders::_2);
+			mChangeConnection = mModel->DoConnect(MUser2::Op::AfterChange, funcOnChange);
+			OnChangeModel(mModel.get(), nullptr);
+
 		}//if (mModel)
 	}//if
 }//SetModel
 //---------------------------------------------------------------------------
 
-void VUserPanel::OnChangeModel(const IModel& model)
+void VUserPanel::OnChangeModel(const IModel* model, const MUser2::T_Data* data)
 {
-	if (mModel && mModel.get() == &model)
+	if (mModel && mModel.get() == model)
 	{
-		const auto state = model.GetState();
+		const auto state = model->GetState();
 		const auto& rec = mModel->GetData();
 		SetData(rec);
 

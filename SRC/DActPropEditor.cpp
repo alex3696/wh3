@@ -38,15 +38,14 @@ void DActPropEditor::SetModel(std::shared_ptr<IModel>& newModel)
 		if (mModel)
 		{
 			auto funcOnChange = std::bind(&DActPropEditor::OnChangeModel,
-				this, std::placeholders::_1);
-			mChangeConnection = mModel->ConnectChangeSlot(funcOnChange);
-			OnChangeModel(*mModel.get());
+				this, std::placeholders::_1, std::placeholders::_2);
+			mChangeConnection = mModel->DoConnect(T_Model::Op::AfterChange, funcOnChange);
+			OnChangeModel(mModel.get(), nullptr);
 		}//if (mModel)
 	}//if
 }//SetModel
 //---------------------------------------------------------------------------
-
-void DActPropEditor::OnChangeModel(const IModel& model)
+void DActPropEditor::OnChangeModel(const IModel* model, const T_Model::T_Data* data)
 {
 	auto propModel = std::dynamic_pointer_cast<MActProp>(mModel);
 	if (propModel)

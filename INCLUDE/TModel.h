@@ -105,37 +105,38 @@ public:
 	sig::connection DoConnect(Op op, const Slot &slot)
 	{
 		CheckSignalOp(op);
-		return mSig->at((size_t)op)->connect(slot);
+		return mSignal->at((size_t)op)->connect(slot);
 
 	}
 	void DoDisconnect(Op op, const Slot &slot)
 	{
 		CheckSignalOp(op);
-		return mSig->at((size_t)op)->disconnect(&slot);
+		return mSignal->at((size_t)op)->disconnect(&slot);
 	}
+protected:
 	void DoSignal(Op op, const IModel* model, const DATA* data)
 	{
 		CheckSignalOp(op);
-		mSig->at((size_t)op)->operator()(model, data);
+		mSignal->at((size_t)op)->operator()(model, data);
 	}
 private:
-	struct error : virtual exception_base {};
+	struct sig_error : virtual exception_base {};
 
 	inline void CheckSignalOp(Op op)
 	{
 		if ((size_t)Op::AfterChange < (size_t)op)
-			BOOST_THROW_EXCEPTION(error() << wxstr("Out of range SigOp"));
-		if (!mSig)
-			mSig.reset(new SignalArray);
-		if (!(*mSig)[(unsigned int)op])
-			(*mSig)[(unsigned int)op].reset(new Signal);
+			BOOST_THROW_EXCEPTION(sig_error() << wxstr("Out of range SigOp"));
+		if (!mSignal)
+			mSignal.reset(new SignalArray);
+		if (!(*mSignal)[(unsigned int)op])
+			(*mSignal)[(unsigned int)op].reset(new Signal);
 	}
 
 	using UnqSignal = std::unique_ptr<Signal>;
 	using SignalArray = std::array<UnqSignal, 2 >;
 	using UnqSignalArray = std::unique_ptr<SignalArray>;
 
-	UnqSignalArray mSig;
+	UnqSignalArray mSignal;
 };
 //-------------------------------------------------------------------------
 
@@ -186,12 +187,12 @@ public:
 	}
 protected:
 private:
-	struct error : virtual exception_base {};
+	struct sig_error : virtual exception_base {};
 
 	inline void CheckSignalOp(Op op)
 	{
 		if ((size_t)Op::AfterClear < (size_t)op)
-			BOOST_THROW_EXCEPTION(error() << wxstr("Out of range SigOp"));
+			BOOST_THROW_EXCEPTION(sig_error() << wxstr("Out of range SigOp"));
 		if (!mSig)
 			mSig.reset(new SignalArray);
 		if (!(*mSig)[(unsigned int)op])
@@ -218,12 +219,15 @@ public:
 	using SigVecChange = sig::signal<void(const IModel&, const VecChange&) >;
 	using SlotVecChange = std::function<void(const IModel&, const VecChange&)>;
 
+	/*
 	sig::connection ConnectChangeDataSlot(const SlotChange &subscriber)const
 	{
 		if (!mSig)
 			mSig.reset(new SigImpl);
 		return mSig->Change.connect(subscriber);
 	}
+	*/
+
 	sig::connection ConnectAppendSlot(const SlotVecChange &subscriber)const
 	{
 		if (!mSig)
@@ -252,11 +256,14 @@ public:
 		return mSig->ChangeChild.connect(subscriber);
 	}
 
+	/*
 	inline void DisconnectChangeDataSlot(const SlotVecChange &subscriber)const
 	{
 		if (mSig)
 			mSig->Change.disconnect(&subscriber);
 	}
+	*/
+
 	inline void DisconnectAppendSlot(const SlotVecChange &subscriber)const
 	{
 		if (mSig)
@@ -285,7 +292,7 @@ protected:
 		SigVecChange	BeforeRemove;
 		SigVecChange	RemoveChild;
 		SigVecChange	ChangeChild;
-		SigChange		Change;
+		//SigChange		Change;
 	};
 
 	mutable std::unique_ptr<SigImpl>	mSig;
@@ -787,6 +794,7 @@ protected:
 template< typename T_Data, bool mItemWithId = true >
 class TModelData
 	: public IModel
+	, public SigData<T_Data>
 {
 public:
 	TModelData(const char option = ModelOption::EnableParentNotify)
@@ -824,7 +832,9 @@ public:
 			*mCurrent.get() = current;
 			if (stored)
 				mStored = mCurrent;
-			DoSigChangeData();
+			//DoSigChangeData();
+			DoSignal(Op::AfterChange, this, &current);
+			DoNotifyParent();
 			break;
 		}
 	}
@@ -837,14 +847,18 @@ public:
 	virtual void MarkDeletedData()override
 	{
 		mCurrent = nullptr;
-		DoSigChangeData();
+		//DoSigChangeData();
+		DoSignal(Op::AfterChange, this, nullptr);
+		DoNotifyParent();
 	}
 	virtual void MarkSavedData()override
 	{
 		if (mStored != mCurrent)
 		{
 			mStored = mCurrent;
-			DoSigChangeData();
+			//DoSigChangeData();
+			DoSignal(Op::AfterChange, this, mCurrent.get() );
+			DoNotifyParent();
 		}
 	}
 
@@ -950,12 +964,14 @@ private:
 			ExecSaveWithoutResult(query);
 	}
 	
+	/*
 	void DoSigChangeData()
 	{
 		if (mSig)
 			mSig->Change(*this);
 		DoNotifyParent();
 	}
+	*/
 
 	std::shared_ptr<T_Data>		mStored;
 	std::shared_ptr<T_Data>		mCurrent;

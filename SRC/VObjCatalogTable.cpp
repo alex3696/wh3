@@ -62,8 +62,12 @@ void VObjCatalogTable::SetModel(std::shared_ptr<IModel> model)
 		mCatalogModel = std::dynamic_pointer_cast<wh::object_catalog::MObjCatalog>(model);
 		mDataViewModel->SetModel(model);
 		
-		mCatalogUpdate = mCatalogModel->mFavProps->ConnectChangeDataSlot(
-			std::bind(&VObjCatalogTable::OnCatalogUpdate, this, sph::_1));
+		auto funcOnChange = std::bind(&VObjCatalogTable::OnAfterUpdateFavProp,
+			this, std::placeholders::_1, std::placeholders::_2);
+
+
+		mCatalogUpdate = mCatalogModel->mFavProps->
+			DoConnect(object_catalog::MFavProp::Op::AfterChange, funcOnChange);
 
 		/*
 		mConnAppend = mCatalogModel->mTypeArray->ConnectAppendSlot(
@@ -80,7 +84,7 @@ void VObjCatalogTable::SetModel(std::shared_ptr<IModel> model)
 		for (unsigned int i = 0; i < typeQty; i++)
 			addedItems[i] = i;
 
-		OnCatalogUpdate(*mCatalogModel->mFavProps);
+		OnAfterUpdateFavProp(mCatalogModel->mFavProps.get(), nullptr);
 		OnAppend(*model, addedItems);
 		
 		//mDataViewModel->Reset();
@@ -88,7 +92,8 @@ void VObjCatalogTable::SetModel(std::shared_ptr<IModel> model)
 	}
 }
 //---------------------------------------------------------------------------
-void VObjCatalogTable::OnCatalogUpdate(const IModel& model)
+void VObjCatalogTable::OnAfterUpdateFavProp(const IModel* model,
+	const object_catalog::MFavProp::T_Data* data)
 {
 	ResetColumns();
 	BuildColumns();

@@ -73,17 +73,17 @@ void Frame::SetModel(std::shared_ptr<object_catalog::MObjItem>& newModel)
 		if (mObj)
 		{
 			auto funcOnChange = std::bind(&Frame::OnChangeModel,
-				this, std::placeholders::_1);
-			mChangeConnection = mObj->ConnectChangeDataSlot(funcOnChange);
-			OnChangeModel(*mObj.get());
+				this, std::placeholders::_1, std::placeholders::_2);
+			mChangeConnection = mObj->DoConnect(MObjItem::Op::AfterChange, funcOnChange);
+			OnChangeModel(mObj.get(), nullptr);
 		}//if (mModel)
 	}//if
 
 }
 //---------------------------------------------------------------------------
-void Frame::OnChangeModel(const IModel& model)
+void Frame::OnChangeModel(const IModel* model, const object_catalog::MObjItem::T_Data* data)
 {
-	if (!mObj || mObj.get() != &model)
+	if (!mObj || mObj.get() != model)
 		return;
 	auto obj_array = mObj->GetParent();
 	if (!obj_array)
@@ -101,7 +101,7 @@ void Frame::OnChangeModel(const IModel& model)
 
 	const auto& cls_data = cls_model->GetData();
 	const auto& obj_data = mObj->GetData();
-	const auto  obj_state = model.GetState();
+	const auto  obj_state = model->GetState();
 		
 	SetData(obj_data);
 
