@@ -1,7 +1,7 @@
 #ifndef __MCLSPROP_H
 #define __MCLSPROP_H
 
-#include "TVec.h"
+#include "TModelArray.h"
 #include "db_rec.h"
 
 namespace wh{
@@ -27,7 +27,7 @@ protected:
 
 };
 //-------------------------------------------------------------------------
-class MClsPropArray : public IModel
+class MClsPropArray : public TModelArray<MClsProp>
 {
 public:
 	typedef  MClsProp		T_Item;

@@ -125,7 +125,7 @@ const std::vector<Field>& MActProp::GetFieldVector()const
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
 MActPropArray::MActPropArray(const char option)
-	:IModel(option)
+	:TModelArray<T_Item>(option)
 {
 }
 //-------------------------------------------------------------------------

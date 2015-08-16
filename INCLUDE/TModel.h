@@ -477,7 +477,10 @@ public:
 		}
 		return std::shared_ptr<IModel>();
 	}
-	
+	virtual std::shared_ptr<IModel> CreateChild()
+	{
+		return std::shared_ptr<IModel>();
+	};
 
 	bool GetItemPosition(const IModel* item, size_t& pos)const
 	{
@@ -522,36 +525,7 @@ public:
 	{
 		return ModelOption::CommitSave & mOption;
 	}
-	
-
-	//virtual const std::vector<Field>& GetFieldVector()const
-	//{
-	//	return gEmptyFieldVec;
-	//}
-	//unsigned int GetFieldQty()const
-	//{
-	//	return GetFieldVector().size();
-	//}
-	//const wxString& GetFieldName(unsigned int col)const
-	//{
-	//	return GetFieldVector()[col].mName;
-	//}
-	//const FieldType& GetFieldType(unsigned int col)const
-	//{
-	//	return GetFieldVector()[col].mType;
-	//}
-	//virtual bool GetFieldValue(unsigned int col, wxVariant &variant)
-	//{
-	//	return false;
-	//}
-
-
-	virtual std::shared_ptr<IModel> CreateChild()
-	{
-		return std::shared_ptr<IModel>();
-	};
-	
-	
+		
 	ModelState GetState()const
 	{
 		auto thisState = GetStateData();
@@ -592,87 +566,11 @@ public:
 		LoadData();
 		LoadChilds();
 	}
-	virtual void LoadChilds()
-	{
-		DWORD pos0(0), pos1(0), pos2(0), pos3(0);
-		pos0 = GetTickCount();
-		// 1 отключаем уведомления родителю, нет необходимости дёргать это событие более одного раза
-		mOption = mOption & ~ModelOption::EnableParentNotify;
-		Clear(); // очищаем, если у детишек есть клиенты, то они отвалятся
-		// загружаем детишек
-		wxString query;
-		const bool queryExist = GetSelectChildsQuery(query);
-		if (queryExist)
-		{
-			pos1 = GetTickCount();
-			pos2 = GetTickCount();
-			auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
-			if (table)
-			{
-				unsigned int rowQty = table->GetRowCount();
-				for (unsigned int i = 0; i < rowQty; ++i)
-				{
-					auto child = CreateChild();
-					if (child)
-					{
-						if (LoadChildDataFromDb(child, table, i))//2
-							child->MarkSaved();
-						this->AddChild(child);//1
-					}
-				}
-				// загружаем каскадно детишек
-				if (mOption & ModelOption::CascadeLoad && rowQty)
-				{
-					for (auto item: *mVec)
-						item->LoadChilds();
-				}
-			}//if(table)
-
-		}
-		// 3 Каскадно уведомить родителей об изменении
-		mOption = mOption | ModelOption::EnableParentNotify;
-		DoNotifyParent();
-
-		pos3 = GetTickCount();
-		//wxMessageBox(wxString::Format("Clear %d \t Load %d", pos1 - pos0, pos3 - pos2));
-
-	}
-	virtual void LoadData()	{}
-
 	void Save()
 	{
 		SaveData();
 		SaveChilds();
 	}
-	void SaveChilds()
-	{
-		if (!mVec)
-			return;
-
-		SaveRange(msCreated);
-		SaveRange(msUpdated);
-		SaveRange(msDeleted);
-
-		auto& stateIdx = mVec->get<2>();
-		auto range = stateIdx.equal_range(msNull);
-		auto qty = std::distance(range.first, range.second);
-		size_t i = 0;
-		std::vector< std::shared_ptr<IModel>>     tmpVec(qty);
-		while (range.first != range.second)
-		{
-			auto item = *range.first;
-			tmpVec[i] = item;
-			++i;
-			++range.first;
-		}
-		for ( auto& item : tmpVec)
-			DelChild(item);
-
-		
-		//stateIdx.erase(range.first, range.second);
-
-	}
-	virtual void SaveData(){}
 	
 	void MarkDeleted()
 	{
@@ -702,6 +600,91 @@ public:
 			child->MarkSaved();
 	}
 
+
+protected:
+	virtual void LoadData(){}
+	virtual void SaveData(){}
+
+	virtual void LoadChilds()
+	{
+		// 1 отключаем уведомления родителю, если включено, нет необходимости дёргать это событие более одного раза
+		auto enableParentNotify = (mOption & ModelOption::EnableParentNotify);
+		mOption = mOption & ~ModelOption::EnableParentNotify;
+		Clear(); // очищаем, если у детишек есть клиенты, то они отвалятся
+		// загружаем детишек
+		wxString query;
+		const bool queryExist = GetSelectChildsQuery(query);
+		if (queryExist)
+		{
+			auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+			if (table)
+			{
+				VecChange sigVec;
+				unsigned int rowQty = table->GetRowCount();
+				if (rowQty)
+				{
+					if (!mVec)
+						mVec.reset(new BaseStore);
+
+					unsigned int dbNo = 0;
+					unsigned int elemNo = 0;
+					while (dbNo < rowQty)
+					{
+						std::shared_ptr<IModel> child = CreateChild();
+						if (child && LoadChildDataFromDb(child, table, dbNo))
+						{
+							child->MarkSaved();
+							if (AppendChildWithoutSignal(child))
+								sigVec.emplace_back(elemNo++);
+						}
+						dbNo++;
+					}
+
+				}//if (rowQty)
+
+				// загружаем каскадно детишек
+				if (rowQty && (mOption & ModelOption::CascadeLoad))
+					for (auto item : *mVec)
+						item->LoadChilds();
+
+				DoSigAppendChild(sigVec);
+			}//if(table)
+		}
+		// 3 Каскадно уведомить родителей об изменении
+		if (enableParentNotify)
+			mOption = mOption | ModelOption::EnableParentNotify;
+		DoNotifyParent();
+	}
+	virtual void SaveChilds()
+	{
+		if (!mVec)
+			return;
+
+		SaveRange(msCreated);
+		SaveRange(msUpdated);
+		SaveRange(msDeleted);
+
+		auto& stateIdx = mVec->get<2>();
+		auto range = stateIdx.equal_range(msNull);
+		auto qty = std::distance(range.first, range.second);
+		size_t i = 0;
+		std::vector< std::shared_ptr<IModel>>     tmpVec(qty);
+		while (range.first != range.second)
+		{
+			auto item = *range.first;
+			tmpVec[i] = item;
+			++i;
+			++range.first;
+		}
+		for (auto& item : tmpVec)
+			DelChild(item);
+
+
+		//stateIdx.erase(range.first, range.second);
+
+	}
+
+	
 	void OnChildChage(IModel* sender)
 	{
 		if (mVec && (mOption & ModelOption::EnableNotifyFromChild))
@@ -738,63 +721,7 @@ public:
 	{
 		return false;
 	}
-
-	
-	/*
-	using SigChange = sig::signal<void(const IModel&) >;
-	using SlotChange = std::function<void(const IModel&)>;
-	
-	using VecChange = std::vector<unsigned int>;
-	using SigVecChange = sig::signal<void(const IModel&, const VecChange&) >;
-	using SlotVecChange = std::function<void(const IModel&, const VecChange&)>;
-
-	sig::connection ConnectChangeDataSlot(const SlotChange &subscriber)const
-	{
-		if (!mSig)
-			mSig.reset(new SigImpl);
-		return mSig->Change.connect(subscriber);
-	}
-	sig::connection ConnectAppendSlot(const SlotVecChange &subscriber)const
-	{
-		if (!mSig)
-			mSig.reset(new SigImpl);
-		return mSig->AppendChild.connect(subscriber);
-	}
-	sig::connection ConnectRemoveSlot(const SlotVecChange &subscriber)const
-	{
-		if (!mSig)
-			mSig.reset(new SigImpl);
-		return mSig->RemoveChild.connect(subscriber);
-
-	}
-	sig::connection ConnectChangeSlot(const SlotVecChange &subscriber)const
-	{
-		if (!mSig)
-			mSig.reset(new SigImpl);
-		return mSig->ChangeChild.connect(subscriber);
-	}
-
-	inline void DisconnectChangeDataSlot(const SlotVecChange &subscriber)const
-	{
-		if (mSig)
-			mSig->Change.disconnect(&subscriber);
-	}
-	inline void DisconnectAppendSlot(const SlotVecChange &subscriber)const
-	{
-		if (mSig)
-			mSig->AppendChild.disconnect(&subscriber);
-	}
-	inline void DisconnectRemoveSlot(const SlotVecChange &subscriber)const
-	{
-		if (mSig)
-			mSig->RemoveChild.disconnect(&subscriber);
-	}
-	inline void DisconnectChangeSlot(const SlotVecChange &subscriber)const
-	{
-		if (mSig)
-			mSig->ChangeChild.disconnect(&subscriber);
-	}
-	*/
+		
 	void DoNotifyParent()
 	{
 		if (mParent && (mOption & ModelOption::EnableParentNotify))
@@ -819,16 +746,6 @@ public:
 		DoNotifyParent();
 	}
 
-	void DoSigChangeData()
-	{
-		if (mSig)
-			mSig->Change(*this);
-		DoNotifyParent();
-	}
-
-
-
-protected:
 	void SaveRange(ModelState state)
 	{
 		StateIdx& stateIdx = mVec->get<2>();
@@ -850,21 +767,10 @@ protected:
 		{
 			item->Save();
 		}
-			
+
 
 	}
 
-	/*
-	struct SigImpl
-	{
-		SigVecChange	AppendChild;
-		SigVecChange	RemoveChild;
-		SigVecChange	ChangeChild;
-		SigChange		Change;
-	};
-	
-	mutable std::unique_ptr<SigImpl>	mSig;
-	*/
 };
 
 
@@ -986,6 +892,8 @@ protected:
 		return false;
 	}
 	
+	//virtual void LoadChilds()override{};
+	//virtual void SaveChilds()override{};
 private:
 	void ExecSaveWithoutResult(const wxString& query)
 	{
@@ -1033,10 +941,16 @@ private:
 			ExecSaveWithoutResult(query);
 	}
 	
+	void DoSigChangeData()
+	{
+		if (mSig)
+			mSig->Change(*this);
+		DoNotifyParent();
+	}
+
 	std::shared_ptr<T_Data>		mStored;
 	std::shared_ptr<T_Data>		mCurrent;
-
-
+	
 };
 
 

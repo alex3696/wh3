@@ -1,7 +1,7 @@
 #ifndef __OBJCATALOG_H
 #define __OBJCATALOG_H
 
-#include "TVec.h"
+#include "TModelArray.h"
 #include "db_rec.h"
 
 #include "MObjCatPath.h"

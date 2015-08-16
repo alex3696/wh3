@@ -184,13 +184,13 @@ const std::vector<Field>& MClsMove::GetFieldVector()const
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
 MClsMoveArray::MClsMoveArray(const char option)
-:IModel(option)
+	:TModelArray<T_Item>(option)
 {
 }
 //-------------------------------------------------------------------------
 bool MClsMoveArray::GetSelectChildsQuery(wxString& query)const
 {
-	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(this->mParent);
+	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(GetParent());
 	if (parentCls)
 	{
 		const auto& cls = parentCls->GetStored();

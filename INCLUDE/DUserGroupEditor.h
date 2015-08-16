@@ -37,7 +37,7 @@ private:
 	GroupTable*						mGroupArrayView;
 
 	std::shared_ptr<T_Model>		mModel; // std::shared_ptr<MUserGroup>
-	scoped_connection				mChangeConnection;
+	sig::scoped_connection				mChangeConnection;
 };
 //-----------------------------------------------------------------------------	
 

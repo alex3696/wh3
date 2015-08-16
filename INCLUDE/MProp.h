@@ -1,9 +1,7 @@
 #ifndef __MPROP_H
 #define __MPROP_H
 
-#include "TVec.h"
 #include "db_rec.h"
-
 #include "TModelArray.h"
 
 namespace wh{
@@ -21,9 +19,6 @@ public:
 		= ModelOption::EnableParentNotify
 		| ModelOption::EnableNotifyFromChild
 		| ModelOption::CommitSave);
-
-	
-
 	
 	virtual bool GetFieldValue(unsigned int col, wxVariant &variant)override;
 	virtual const std::vector<Field>& GetFieldVector()const override;

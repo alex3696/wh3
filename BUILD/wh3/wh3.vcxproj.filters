@@ -425,9 +425,6 @@
     <ClInclude Include="..\..\INCLUDE\TModel.h">
       <Filter>SIG_MODEL\Templates</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\TVec.h">
-      <Filter>SIG_MODEL\Templates</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\TPresenter.h">
       <Filter>SIG_MODEL\Templates</Filter>
     </ClInclude>

@@ -39,7 +39,7 @@ private:
 
 	/// Модель свойства класса
 	std::shared_ptr<MClsProp>		mModel; // std::shared_ptr<MActProp>
-	scoped_connection				mChangeConnection;
+	sig::scoped_connection				mChangeConnection;
 };
 //-----------------------------------------------------------------------------	
 

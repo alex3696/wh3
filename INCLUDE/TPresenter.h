@@ -1,7 +1,7 @@
 #ifndef __TPRESENTER_H
 #define __TPRESENTER_H
 
-#include "TVec.h"
+#include "TModelArray.h"
 #include "TView.h"
 
 
@@ -130,7 +130,7 @@ class T_PresenterEditor
 	std::shared_ptr<T_Model>	mModel;
 	T_View*						mView = nullptr;
 	
-	scoped_connection				mChangeConnection;
+	sig::scoped_connection				mChangeConnection;
 	//const typename T_Model::SlotChange	mChaneSlot;//	const std::function<void(const T_Model&)>
 
 	void Clear()

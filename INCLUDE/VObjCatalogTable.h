@@ -41,9 +41,9 @@ protected:
 	VObjCatalogDataViewModel* mDataViewModel = nullptr;
 
 
-	scoped_connection		mConnAppend;
-	scoped_connection		mConnRemove;
-	scoped_connection		mConnChange;
+	sig::scoped_connection		mConnAppend;
+	sig::scoped_connection		mConnRemove;
+	sig::scoped_connection		mConnChange;
 
 	void OnAppend(const IModel&, const std::vector<unsigned int>&);
 	void OnRemove(const IModel&, const std::vector<unsigned int>&);
@@ -53,7 +53,7 @@ protected:
 	//virtual void OnChange(const IModel&, const std::vector<unsigned int>&)override;
 
 
-	scoped_connection mCatalogUpdate;
+	sig::scoped_connection mCatalogUpdate;
 	void OnCatalogUpdate(const IModel&);
 	void RebuildColumns();
 	void ResetColumns();

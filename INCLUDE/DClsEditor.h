@@ -40,7 +40,7 @@ public:
 	virtual void OnChangeModel(const IModel& model)override;
 private:
 	std::shared_ptr<object_catalog::MTypeItem>	mClsNode;
-	scoped_connection			mChangeConnection;
+	sig::scoped_connection			mChangeConnection;
 
 	typedef TViewCtrlPanel <CtrlTool::All, DClsPropEditor, false>	VClsPropPanel;
 	typedef TViewCtrlPanel <CtrlTool::All, DClsActEditor, false>	VClsActPanel;

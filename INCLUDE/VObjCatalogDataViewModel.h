@@ -52,9 +52,9 @@ protected:
 
 
 
-	scoped_connection		mConnClsAppend;
-	scoped_connection		mConnClsRemove;
-	scoped_connection		mConnClsChange;
+	sig::scoped_connection		mConnClsAppend;
+	sig::scoped_connection		mConnClsRemove;
+	sig::scoped_connection		mConnClsChange;
 
 	void OnClsAppend(const IModel&, const std::vector<unsigned int>&);
 	void OnClsRemove(const IModel&, const std::vector<unsigned int>&);
@@ -63,9 +63,9 @@ protected:
 	void OnObjAppend(const IModel&, const std::vector<unsigned int>&);
 	void OnObjRemove(const IModel&, const std::vector<unsigned int>&);
 	//void OnObjChange(const IModel&, const std::vector<unsigned int>&);
-	std::map<wxDataViewItem, scoped_connection> mConnAddObj;
-	std::map<wxDataViewItem, scoped_connection> mConnDelObj;
-	std::map<wxDataViewItem, scoped_connection> mConnEditObj;
+	std::map<wxDataViewItem, sig::scoped_connection> mConnAddObj;
+	std::map<wxDataViewItem, sig::scoped_connection> mConnDelObj;
+	std::map<wxDataViewItem, sig::scoped_connection> mConnEditObj;
 
 
 

@@ -130,7 +130,7 @@ const std::vector<Field>& MUserGroup::GetFieldVector()const
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
 MUserGroupArray::MUserGroupArray(const char option)
-:IModel(option)
+	:TModelArray<T_Item>(option)
 {
 }
 //-------------------------------------------------------------------------

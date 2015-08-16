@@ -7,7 +7,6 @@
 #include "BaseControlPanel.h"
 #include "BaseTable.h"
 
-#include "TVec.h"
 #include "TView.h"
 
 namespace wh{
@@ -170,9 +169,9 @@ public:
 
 protected:
 	std::shared_ptr<IModel>		mModel;
-	scoped_connection		mConnAppend;
-	scoped_connection		mConnRemove;
-	scoped_connection		mConnChange;
+	sig::scoped_connection		mConnAppend;
+	sig::scoped_connection		mConnRemove;
+	sig::scoped_connection		mConnChange;
 
 
 

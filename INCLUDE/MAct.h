@@ -31,14 +31,14 @@ protected:
 
 };
 //-------------------------------------------------------------------------
-class MActArray : public IModel
+class MActArray : public TModelArray<MAct>
 {
 public:
+	typedef  MAct		T_Item;
+
 	MActArray(const char option
 		= ModelOption::EnableParentNotify
 		| ModelOption::EnableNotifyFromChild);
-
-	typedef  MAct		T_Item;
 
 	virtual std::shared_ptr<IModel> CreateChild()override;
 	virtual const std::vector<Field>& GetFieldVector()const override;

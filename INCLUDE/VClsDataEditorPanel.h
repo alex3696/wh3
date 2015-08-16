@@ -41,7 +41,7 @@ private:
 	wxPropertyGrid*		mPropGrid = nullptr;
 
 	std::shared_ptr<T_Model>		mModel;
-	scoped_connection				mChangeConnection;
+	sig::scoped_connection				mChangeConnection;
 
 };
 //---------------------------------------------------------------------------

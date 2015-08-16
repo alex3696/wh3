@@ -35,7 +35,7 @@ bool MClsProp::GetSelectQuery(wxString& query)const
 //-------------------------------------------------------------------------
 bool MClsProp::GetInsertQuery(wxString& query)const
 {
-	auto parentArray = dynamic_cast<MClsPropArray*>(this->mParent);
+	auto parentArray = dynamic_cast<MClsPropArray*>(GetParent());
 	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
 
 	if (parentCls)
@@ -80,7 +80,7 @@ bool MClsProp::GetUpdateQuery(wxString& query)const
 //-------------------------------------------------------------------------
 bool MClsProp::GetDeleteQuery(wxString& query)const
 {
-	auto parentArray = dynamic_cast<MClsPropArray*>(this->mParent);
+	auto parentArray = dynamic_cast<MClsPropArray*>(GetParent());
 	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
 
 	if (parentCls)
@@ -138,13 +138,13 @@ const std::vector<Field>& MClsProp::GetFieldVector()const
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
 MClsPropArray::MClsPropArray(const char option)
-:IModel(option)
+	:TModelArray<T_Item>(option)
 {
 }
 //-------------------------------------------------------------------------
 bool MClsPropArray::GetSelectChildsQuery(wxString& query)const
 {
-	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(this->mParent);
+	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(GetParent());
 	if (parentCls)
 	{
 		auto cls = parentCls->GetData();

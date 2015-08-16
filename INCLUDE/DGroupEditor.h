@@ -45,7 +45,7 @@ private:
 
 
 	std::shared_ptr<T_Model>		mModel;
-	scoped_connection				mChangeConnection;
+	sig::scoped_connection				mChangeConnection;
 	//boost::signals2::scoped_connection	slotOnChange;
 
 };

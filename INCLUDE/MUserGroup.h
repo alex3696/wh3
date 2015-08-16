@@ -1,7 +1,7 @@
 #ifndef __MUSERGROUP_H
 #define __MUSERGROUP_H
 
-#include "TVec.h"
+#include "TModelArray.h"
 #include "db_rec.h"
 
 namespace wh{
@@ -27,7 +27,7 @@ protected:
 
 };
 //-------------------------------------------------------------------------
-class MUserGroupArray : public IModel
+class MUserGroupArray : public TModelArray<MUserGroup>
 {
 public:
 	typedef  MUserGroup		T_Item;

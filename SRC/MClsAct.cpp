@@ -197,7 +197,7 @@ const std::vector<Field>& MClsAct::GetFieldVector()const
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
 MClsActArray::MClsActArray(const char option)
-:IModel(option)
+	:TModelArray<T_Item>(option)
 {
 }
 //-------------------------------------------------------------------------

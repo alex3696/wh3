@@ -82,7 +82,7 @@ bool PnlPropGrid::UpdateModel()
 			auto pgProp = mPropGrid->GetProperty(propData.mProp.mLabel);
 			if (pgProp)
 			{
-				propData.mVal = pgProp->GetValueAsString(wxPG_FULL_VALUE); 
+				propData.mVal = pgProp->GetValueAsString(); 
 				if (!propData.mVal.IsEmpty())
 					prop->SetData(propData);
 				else

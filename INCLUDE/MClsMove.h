@@ -1,7 +1,7 @@
 #ifndef __MCLSMOVE_H
 #define __MCLSMOVE_H
 
-#include "TVec.h"
+#include "TModelArray.h"
 #include "db_rec.h"
 
 namespace wh{
@@ -27,7 +27,7 @@ protected:
 
 };
 //-------------------------------------------------------------------------
-class MClsMoveArray : public IModel
+class MClsMoveArray : public TModelArray<MClsMove>
 {
 public:
 	typedef  MClsMove		T_Item;

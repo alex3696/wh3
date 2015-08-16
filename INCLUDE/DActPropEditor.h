@@ -37,7 +37,7 @@ private:
 	PropTable*						mPropArrayView;
 		
 	std::shared_ptr<T_Model>		mModel; // std::shared_ptr<MActProp>
-	scoped_connection				mChangeConnection;
+	sig::scoped_connection				mChangeConnection;
 };
 //-----------------------------------------------------------------------------	
 

@@ -40,7 +40,7 @@ private:
 
 	/// Модель свойства класса
 	std::shared_ptr<MClsMove>		mModel;
-	scoped_connection				mChangeConnection;
+	sig::scoped_connection				mChangeConnection;
 };
 //-----------------------------------------------------------------------------	
 

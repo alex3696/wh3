@@ -90,7 +90,7 @@ void DUserEditor::SetModel(std::shared_ptr<IModel>& newModel)
 		{
 		default:
 			newModel->Load();
-			newModel->LoadChilds();
+			//newModel->LoadChilds();
 			break;
 		case msCreated:
 			break;

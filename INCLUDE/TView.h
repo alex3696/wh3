@@ -1,7 +1,7 @@
 #ifndef __TVIEW_H
 #define __TVIEW_H
 
-#include "TVec.h"
+#include "TModelArray.h"
 
 
 namespace wh{

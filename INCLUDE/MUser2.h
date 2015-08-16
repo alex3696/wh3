@@ -33,7 +33,7 @@ protected:
 
 };
 //-------------------------------------------------------------------------
-class MUserArray : public IModel
+class MUserArray : public TModelArray<MUser2>
 {
 public:
 	MUserArray(const char option

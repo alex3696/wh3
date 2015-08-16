@@ -2,7 +2,7 @@
 #define __MGROUP_H
 
 
-#include "TVec.h"
+#include "TModelArray.h"
 #include "db_rec.h"
 
 namespace wh{
@@ -21,19 +21,20 @@ public:
 
 	virtual bool GetFieldValue(unsigned int col, wxVariant &variant)override;
 	virtual const std::vector<Field>& GetFieldVector()const override;
+	virtual bool LoadThisDataFromDb(std::shared_ptr<whTable>&, const size_t)override;
 protected:
 	virtual bool GetSelectQuery(wxString&)const override;
 	virtual bool GetInsertQuery(wxString&)const override;
 	virtual bool GetUpdateQuery(wxString&)const override;
 	virtual bool GetDeleteQuery(wxString&)const override;
-	virtual bool LoadThisDataFromDb(std::shared_ptr<whTable>&, const size_t)override;
+	
 	
 };
 
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
 class MGroupArray
-	: public IModel
+	: public TModelArray<MGroup>
 {
 public:
 	typedef  MGroup		T_Item;

@@ -89,7 +89,7 @@ const std::vector<Field>& MGroup::GetFieldVector()const
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
 MGroupArray::MGroupArray(const char option)
-	:IModel(option)
+	:TModelArray<T_Item>(option)
 {
 }
 //-------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 #ifndef __MCLSACT_H
 #define __MCLSACT_H
 
-#include "TVec.h"
+#include "TModelArray.h"
 #include "db_rec.h"
 
 namespace wh{
@@ -27,7 +27,7 @@ protected:
 
 };
 //-------------------------------------------------------------------------
-class MClsActArray : public IModel
+class MClsActArray : public TModelArray<MClsAct>
 {
 public:
 	typedef  MClsAct		T_Item;

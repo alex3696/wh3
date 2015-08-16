@@ -300,7 +300,6 @@
     <ClInclude Include="..\..\INCLUDE\Favorites.h" />
     <ClInclude Include="..\..\INCLUDE\TModelArray.h" />
     <ClInclude Include="..\..\INCLUDE\TPresenter.h" />
-    <ClInclude Include="..\..\INCLUDE\TVec.h" />
     <ClInclude Include="..\..\INCLUDE\TView.h" />
     <ClInclude Include="..\..\INCLUDE\TViewCtrlPanel.h" />
     <ClInclude Include="..\..\INCLUDE\TViewTable.h" />

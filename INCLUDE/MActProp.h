@@ -1,8 +1,8 @@
 #ifndef __MACTPROP_H
 #define __MACTPROP_H
 
-#include "TVec.h"
 #include "db_rec.h"
+#include "TModelArray.h"
 
 namespace wh{
 
@@ -27,7 +27,7 @@ protected:
 
 };
 //-------------------------------------------------------------------------
-class MActPropArray : public IModel
+class MActPropArray : public TModelArray<MActProp>
 {
 public:
 	typedef  MActProp		T_Item;
