@@ -130,6 +130,12 @@
     <Filter Include="SIG_MODEL\Каталог объектов\Диалог выбора свойств\view">
       <UniqueIdentifier>{955c8a45-a9d1-4ec5-ac29-af25cd1b251c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SIG_MODEL\Detail">
+      <UniqueIdentifier>{96d7badc-8c02-4bac-aa8b-831238c1ae99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\Detail\model">
+      <UniqueIdentifier>{ac060715-0df7-4ffd-a980-1d8d48a33f26}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -344,6 +350,15 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\dlg_favprop_SelectFrame.cpp">
       <Filter>SIG_MODEL\Каталог объектов\Диалог выбора свойств\view</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\detail_model_Obj.cpp">
+      <Filter>SIG_MODEL\Detail\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\detail_model_ClsPropArray.cpp">
+      <Filter>SIG_MODEL\Detail\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\detail_model_ObjPropArray.cpp">
+      <Filter>SIG_MODEL\Detail\model</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -607,6 +622,9 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\db_rec.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\detail_model.h">
+      <Filter>SIG_MODEL\Detail\model</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

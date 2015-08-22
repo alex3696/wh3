@@ -447,6 +447,11 @@ public:
 			DoSigAppendChild(sigVec);
 		}
 	}
+	template <class CHILD>
+	void AddChild(std::shared_ptr<CHILD>& newItem)
+	{
+		AddChild(std::dynamic_pointer_cast<IModel>(newItem));
+	}
 	std::shared_ptr<IModel> DelChild(std::shared_ptr<IModel>& remItem)
 	{
 		if (!mVec)

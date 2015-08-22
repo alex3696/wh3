@@ -294,12 +294,12 @@ GRANT SELECT ON TABLE w_ref_class_act TO "Guest";
 
 CREATE TABLE t_cls_prop ( 
     id           SERIAL NOT NULL
-    ,cls_label NAME   NOT NULL REFERENCES  t_cls(label) MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-    ,prop_label  NAME   NOT NULL REFERENCES  t_prop(label)  MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+    ,cls_id  INTEGER NOT NULL REFERENCES  t_cls(id) MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+    ,prop_id INTEGER NOT NULL REFERENCES  t_prop(id)  MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
     ,val         TEXT
 
-,CONSTRAINT pk_classprop      PRIMARY KEY(cls_label,prop_label)
-,CONSTRAINT uk_class_prop__id UNIQUE ( id )
+,CONSTRAINT pk_cls_prop      PRIMARY KEY(cls_id,prop_id)
+,CONSTRAINT uk_cls_prop__id UNIQUE ( id )
 
 );
 GRANT SELECT               ON TABLE t_cls_prop TO "Guest";

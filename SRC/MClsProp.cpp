@@ -26,9 +26,14 @@ bool MClsProp::GetSelectQuery(wxString& query)const
 {
 	auto clsProp = GetData();
 	query = wxString::Format(
-		"SELECT prop_id, prop_label, prop_type, val, id "
-		" FROM w_class_prop "
-		" WHERE id = %s "
+		"SELECT t_prop.id AS prop_id "
+		" , t_prop.type AS prop_type "
+		" , t_prop.label AS prop_label "
+		" , val "
+		" , t_cls_prop.id AS id "
+		" FROM t_cls_prop "
+		" LEFT JOIN t_prop ON t_prop.id = t_cls_prop.prop_id "
+		" WHERE t_cls_prop.id = %s "
 		, clsProp.mID);
 	return true;
 }
@@ -44,12 +49,12 @@ bool MClsProp::GetInsertQuery(wxString& query)const
 		const rec::Cls& cls = parentCls->GetData();
 
 		query = wxString::Format(
-			"INSERT INTO t_cls_prop (val, cls_label, prop_label) "
+			"INSERT INTO t_cls_prop (val, cls_id, prop_id) "
 			" VALUES(%s, '%s', '%s') "
 			" RETURNING id "
 			, prop.mVal.IsEmpty() ? "NULL" : wxString::Format("'%s'", prop.mVal)
-			, cls.mLabel
-			, prop.mProp.mLabel);
+			, cls.mID
+			, prop.mProp.mID);
 		return true;
 	}
 	return false;
@@ -67,12 +72,12 @@ bool MClsProp::GetUpdateQuery(wxString& query)const
 
 		query = wxString::Format(
 			"UPDATE	t_class_prop "
-			" SET val=%s, cls_label='%s', prop_label='%s' "
+			" SET val=%s, cls_id='%s', prop_id='%s' "
 			" WHERE id=%s "
 			, prop.mVal.IsEmpty() ? L"NULL" : wxString::Format(L"'%s'", prop.mVal)
-			, cls.mLabel
-			, prop.mProp.mLabel
-			, prop.mProp.mID);
+			, cls.mID
+			, prop.mProp.mID
+			, prop.mID);
 		return true;
 	}
 	return false;
@@ -150,9 +155,15 @@ bool MClsPropArray::GetSelectChildsQuery(wxString& query)const
 		auto cls = parentCls->GetData();
 
 		query = wxString::Format(
-			"SELECT prop_id, prop_label, prop_type, val, id "
-			" FROM w_class_prop "
-			" WHERE cls_label = '%s' ", cls.mLabel);
+			"SELECT t_prop.id AS prop_id "
+			" , t_prop.label AS prop_label "
+			" , t_prop.type AS prop_type "
+			" , val "
+			" , t_cls_prop.id AS id "
+			" FROM t_cls_prop "
+			" LEFT JOIN t_prop ON t_prop.id = t_cls_prop.prop_id "
+			" WHERE t_cls_prop.cls_id = %s "
+			, cls.mID);
 		return true;
 	}
 	return false;

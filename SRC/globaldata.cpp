@@ -61,7 +61,14 @@ void Cfg::DbConnect::Save()
 //---------------------------------------------------------------------------
 void Cfg::DbProp::Load()
 {
-	wxString query="SELECT prop_label, val FROM t_cls_prop WHERE cls_label='WH3 DataBase'";
+	wxString query = "SELECT t_prop.id AS prop_id "
+		" , t_prop.label AS prop_label "
+		" , t_prop.type AS prop_type "
+		" , val "
+		" , t_cls_prop.id AS id "
+		" FROM t_cls_prop "
+		" LEFT JOIN t_prop ON t_prop.id = t_cls_prop.prop_id "
+		" WHERE t_cls_prop.cls_id = 2 ";
 		
 	auto table= whDataMgr::GetDB().ExecWithResultsSPtr (query);
 	if(table)
@@ -69,8 +76,8 @@ void Cfg::DbProp::Load()
 		for (size_t i = 0; i < table->GetRowCount(); i++)
 		{
 			DbProp&	propTable = *this;
-			const  wxString propLabel = table->GetAsString(0, i);
-			propTable[propLabel] = table->GetAsString(1, i);
+			const  wxString propLabel = table->GetAsString(1, i);
+			propTable[propLabel] = table->GetAsString(3, i);
 		}
 	}
 
