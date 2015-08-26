@@ -54,7 +54,7 @@ void VClsDataEditorPanel::GetData(rec::Cls& rec) const
 	rec.mComment = mPropGrid->GetPropertyByLabel(L"Описание")->GetValueAsString();
 	rec.mType = wxString::Format("%d", mPropGrid->GetPropertyByLabel(L"Тип экземпляров")->GetChoiceSelection());
 	rec.mMeasure = mPropGrid->GetPropertyByLabel(L"Ед.измерений")->GetValueAsString();
-	rec.mParent = mPropGrid->GetPropertyByLabel(L"Родительский класс")->GetValueAsString();
+	rec.mParent.mId = mPropGrid->GetPropertyByLabel(L"Родительский класс")->GetValueAsString();
 	rec.mID = mPropGrid->GetPropertyByLabel(L"#")->GetValueAsString();
 	rec.mVID = mPropGrid->GetPropertyByLabel(L"VID")->GetValueAsString();
 }
@@ -70,7 +70,7 @@ void VClsDataEditorPanel::SetData(const rec::Cls& rec)
 	rec.mType.ToULong(&items_type);
 	mPropGrid->GetPropertyByLabel(L"Тип экземпляров")->SetChoiceSelection(items_type);
 	mPropGrid->GetPropertyByLabel(L"Ед.измерений")->SetValueFromString(rec.mMeasure);
-	mPropGrid->GetPropertyByLabel(L"Родительский класс")->SetValueFromString(rec.mParent);
+	mPropGrid->GetPropertyByLabel(L"Родительский класс")->SetValueFromString(rec.mParent.mId);
 	mPropGrid->GetPropertyByLabel(L"#")->SetValueFromString(rec.mID);
 	mPropGrid->GetPropertyByLabel(L"VID")->SetValueFromString(rec.mVID);
 }

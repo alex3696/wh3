@@ -305,18 +305,7 @@ CREATE TABLE t_cls_prop (
 GRANT SELECT               ON TABLE t_cls_prop TO "Guest";
 GRANT INSERT,DELETE,UPDATE ON TABLE t_cls_prop TO "ObjDesigner";
 -----------------------------------------------------------------------------------------------------------------------------
-DROP VIEW IF EXISTS w_class_prop ;
-CREATE OR REPLACE VIEW w_class_prop AS 
-SELECT  t_cls_prop.id,
-        cls_label,
-        t_prop.id AS prop_id,
-        t_prop.type AS prop_type,
-        prop_label, 
-        val
-  FROM t_cls_prop 
-  LEFT JOIN t_prop ON t_prop.label = t_cls_prop.prop_label;
 
-  GRANT SELECT ON TABLE w_class_prop TO "Guest";
 
 
 ---------------------------------------------------------------------------------------------------
@@ -1381,7 +1370,7 @@ LANGUAGE 'plpgsql';
 -----------------------------------------------------------------------------------------------------------------------------
 DROP VIEW IF EXISTS w_obj;
 CREATE OR REPLACE VIEW w_obj AS 
-SELECT obj.*, t_cls.label AS cls_label, t_cls.type, t_cls.measurename, t_cls.default_pid AS cls_default_pid
+SELECT obj.*, t_cls.label AS cls_label, t_cls.type, t_cls.measurename, t_cls.default_pid AS cls_default_pid,t_cls.pid AS cls_pid
   FROM t_cls
   RIGHT JOIN ( SELECT id AS obj_id, pid AS obj_pid, cls_id , obj_label, last_log_id, 1::NUMERIC AS qty
                  FROM t_objnum   

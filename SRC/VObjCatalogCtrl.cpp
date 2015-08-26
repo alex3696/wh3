@@ -8,6 +8,8 @@
 #include "dlg_favprop_SelectFrame.h"
 
 #include "DClsEditor.h"
+#include "detail_ctrlpnl.h"
+#include "MainFrame.h"
 
 using namespace wh;
 using namespace view;
@@ -406,8 +408,8 @@ void VObjCatalogCtrl::OnCmdUp(wxCommandEvent& evt)
 		}
 		else
 		{
-			if (rootObj.mCls.mParent.ToCULong(&pid) && pid)
-				new_root.mCls.mID = rootObj.mCls.mParent;
+			if (rootObj.mCls.mParent.mId.ToCULong(&pid) && pid)
+				new_root.mCls.mID = rootObj.mCls.mParent.mId;
 		}
 		mCatalogModel->SetData(new_root);
 		wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, wxID_REFRESH);
@@ -417,7 +419,32 @@ void VObjCatalogCtrl::OnCmdUp(wxCommandEvent& evt)
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 {
+	using namespace object_catalog;
 
+	auto objItem = GetSelectedObj();
+	if (!objItem)
+		return;
+	MObjArray* objArray = dynamic_cast<MObjArray*> (objItem->GetParent());
+	if (!objArray)
+		return;
+	auto typeItem = dynamic_cast<MTypeItem*> (objArray->GetParent());
+	if (!typeItem)
+		return;
+	wxWindow* notebook = this->GetParent();
+	auto main_farame = dynamic_cast<MainFrame*>(notebook->GetParent());
+	if (!notebook || !main_farame)
+		return;
+
+	const auto& obj_data = objItem->GetData();
+	const auto& cls_data = typeItem->GetData();
+
+	detail::view::CtrlPnl* pnl = new detail::view::CtrlPnl(notebook);
+	pnl->SetObject(cls_data.mID, obj_data.mID, obj_data.mPID);
+
+
+	
+
+	main_farame->AddPage(pnl, "bla-bla", m_ResMgr->m_ico_views24);
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdFavProp(wxCommandEvent& evt)
@@ -536,7 +563,7 @@ void VObjCatalogCtrl::OnMkCls(wxCommandEvent& evt)
 		auto newItem = std::make_shared<object_catalog::MTypeItem>();
 
 		rec::Cls cls_data;
-		cls_data.mParent = root.mCls.mID;
+		cls_data.mParent.mId = root.mCls.mID;
 		newItem->SetData(cls_data);
 
 		DClsEditor editor;

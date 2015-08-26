@@ -31,6 +31,13 @@ public:
 		return std::shared_ptr<IModel>(child);
 		*/
 	}
+	std::shared_ptr<T_Item> CreateChild()const
+	{
+		auto child = std::make_shared < T_Item >();
+		child->SetData(T_Item::T_Data());
+		return child;
+	}
+
 
 	virtual const std::vector<Field>& GetFieldVector()const override
 	{

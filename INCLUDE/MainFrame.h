@@ -80,7 +80,11 @@ public:
 
 	
 	void CreateTypeCatalog(const wxString& _type);	
-	void CreateObjCatalog(const wxString& _objclass,const wxString& _objname,const wxString& _classfilter=wxEmptyString);	
+	void CreateObjCatalog(const wxString& _objclass,const wxString& _objname,
+		const wxString& _classfilter=wxEmptyString);	
+
+
+	void AddPage(wxWindow* pnl, const wxString& lbl, const wxIcon& icon);
 
 
 

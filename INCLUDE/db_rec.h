@@ -117,28 +117,43 @@ namespace rec{
 
 //-----------------------------------------------------------------------------
 // базовый класс для всех рекордов
-struct Rec
+struct Base
 {
-	wxString	mID;
+	Base(){}
+	Base(const wxString& id, const wxString& label)
+		:mId(id), mLabel(label)
+	{}
+	wxString	mId;
+	wxString	mLabel;
+
+	inline bool operator == (const rec::Base& b)const
+	{
+		return (mId == b.mId && mLabel == b.mLabel);
+	}
 };
+//-----------------------------------------------------------------------------
+struct ObjParent
+{
+	Base mCls;
+	Base mObj;
+};
+
 
 //-----------------------------------------------------------------------------
 /// Класс - основные метаданные - запись в таблицце классов 
 struct Cls
 {
 	struct error : virtual exception_base {};
-
-	// только читаемые с базы
-	wxString	mID;		//id bigserial NOT NULL,
-	wxString	mVID;
-	wxString	mLabel;		//label name NOT NULL,
-	wxString	mType;		//type smallint NOT NULL DEFAULT 1 (class_type=0[abstract] class_type=1[numbered] OR class_type=2[quantity]),
-	wxString	mParent;	//parent name NOT NULL DEFAULT 'Object'::name,
-	wxString	mComment;	//description text,
-	wxString	mMeasure;	//measurename text DEFAULT 'ед.'::text,
-	wxString	mDefaultPid;//default_pid BIGINT    NOT NULL DEFAULT 0 --местоположение объектов по умолчанию
-		
 	
+	wxString	mID;		
+	wxString	mVID;
+	wxString	mLabel;		
+	wxString	mType;		
+	Base		mParent;
+	wxString	mComment;
+	wxString	mMeasure;
+	wxString	mDefaultPid;
+
 	Cls(){}
 	Cls(const wxString& id, const wxString& label)
 		:mID(id), mLabel(label)

@@ -10,6 +10,7 @@ namespace detail{
 namespace model{
 //-----------------------------------------------------------------------------
 class ObjPropArray;
+class ObjPropValLoader;
 class ClsPropArray;
 //-----------------------------------------------------------------------------
 class Obj
@@ -19,12 +20,19 @@ public:
 	Obj(const char option = ModelOption::EnableNotifyFromChild);
 
 	void SetObject(const wxString& cls_id, const wxString& obj_id, const wxString& obj_pid);
+
+	std::shared_ptr<ClsPropArray>	GetClsPropArray()const { return mClsProp; }
 protected:
 	std::shared_ptr<ClsPropArray>	mClsProp;
 	std::shared_ptr<ObjPropArray>	mObjProp;
 
+	virtual void LoadChilds()override;
+
 	virtual bool LoadThisDataFromDb(std::shared_ptr<whTable>&, const size_t)override;
 	virtual bool GetSelectQuery(wxString&)const override;
+
+private:
+	std::shared_ptr<ObjPropValLoader>	mObjPropValLoader;
 };
 //-----------------------------------------------------------------------------
 class ClsProp
@@ -32,13 +40,7 @@ class ClsProp
 {
 public:
 	ClsProp(const char option = ModelOption::EnableParentNotify);
-};
-//-----------------------------------------------------------------------------
-class ObjProp
-	: public TModelData<rec::PropVal>
-{
-public:
-	ObjProp(const char option = ModelOption::EnableParentNotify);
+	bool LoadThisDataFromDb(std::shared_ptr<whTable>&, const size_t)override;
 };
 //-----------------------------------------------------------------------------
 class ClsPropArray
@@ -52,6 +54,13 @@ protected:
 	virtual bool GetSelectChildsQuery(wxString& query)const override;
 };
 //-----------------------------------------------------------------------------
+class ObjProp
+	: public TModelData<rec::PropVal>
+{
+public:
+	ObjProp(const char option = ModelOption::EnableParentNotify);
+};
+//-----------------------------------------------------------------------------
 class ObjPropArray
 	: public TModelArray<ObjProp>
 {
@@ -62,7 +71,19 @@ public:
 protected:
 	virtual bool GetSelectChildsQuery(wxString& query)const override;
 };
+//-----------------------------------------------------------------------------
+class ObjPropValLoader
+	: public IModel
+{
+public:
+	ObjPropValLoader(const char option = 0);
 
+	virtual void LoadData()override;
+
+	bool LoadThisDataFromDb(std::shared_ptr<whTable>&, const size_t);
+	bool GetSelectQuery(wxString&)const;
+
+};
 
 
 //-----------------------------------------------------------------------------

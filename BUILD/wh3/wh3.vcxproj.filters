@@ -136,6 +136,9 @@
     <Filter Include="SIG_MODEL\Detail\model">
       <UniqueIdentifier>{ac060715-0df7-4ffd-a980-1d8d48a33f26}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SIG_MODEL\Detail\view">
+      <UniqueIdentifier>{e2040487-031c-4e31-9ce3-fa641109f7ef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -359,6 +362,15 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\detail_model_ObjPropArray.cpp">
       <Filter>SIG_MODEL\Detail\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\detail_model_OpbPropLoader.cpp">
+      <Filter>SIG_MODEL\Detail\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\detail_ctrlpnl.cpp">
+      <Filter>SIG_MODEL\Detail\view</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\PGClsPid.cpp">
+      <Filter>GUI\Controls\PropertyGridExt</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -625,6 +637,12 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\detail_model.h">
       <Filter>SIG_MODEL\Detail\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\detail_ctrlpnl.h">
+      <Filter>SIG_MODEL\Detail\view</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\PGClsPid.h">
+      <Filter>GUI\Controls\PropertyGridExt</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

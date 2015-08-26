@@ -486,4 +486,13 @@ void MainFrame::PnlShowAct(wxCommandEvent& WXUNUSED(evt))
 	view->SetFocus();
 	m_AuiMgr.Update();
 }
-
+//---------------------------------------------------------------------------
+void MainFrame::AddPage(wxWindow* wnd,const wxString& lbl, const wxIcon& icon)
+{
+	if (!wnd)
+		return;
+	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	m_Notebook->AddPage(wnd, lbl, true, icon);
+	wnd->SetFocus();
+	m_AuiMgr.Update();
+}
