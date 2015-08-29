@@ -33,6 +33,8 @@ public:
 	~CtrlPnl();
 	void SetObject(const wxString& cls_id, const wxString& obj_id, const wxString& obj_pid);
 
+	void UpdatePGColour();
+	void UpdateTab();
 protected:
 	void OnCmdReload(wxCommandEvent& evt);
 	
@@ -46,7 +48,7 @@ protected:
 	void OnObjPropChange(const IModel&, const std::vector<unsigned int>&);
 
 
-	sig::scoped_connection			mChangeMainDetail;
+	sig::scoped_connection		mChangeMainDetail;
 
 	sig::scoped_connection		mConnClsPropAppend;
 	sig::scoped_connection		mConnClsPropRemove;

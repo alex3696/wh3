@@ -1,7 +1,7 @@
 #include "_pch.h"
 #include "detail_ctrlpnl.h"
 #include "PGClsPid.h"
-
+#include "MainFrame.h"
 
 using namespace wh;
 using namespace wh::detail::view;
@@ -58,47 +58,44 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 		.Position(1)
 		);
 
-	wxPGChoices soc;
-	soc.Add(L"Абстрактный", 0);
-	soc.Add(L"Номерной", 1);
-	soc.Add(L"Количественный(целочисленный)", 2);
-	soc.Add(L"Количественный(дробный)", 3);
+	auto pg_cls = mPropGrid->Append(new wxPropertyCategory("Свойства класса"));
+	mPropGrid->AppendIn(pg_cls, new wxClsProperty("Основные", "base_cls_prop"));
+	mPropGrid->AppendIn(pg_cls, new wxPropertyCategory("Пользовательские", "user_cls_prop"));
 
-	auto pgObjMain = mPropGrid->Append(new wxPropertyCategory("Объект"));
-	pgObjMain->AppendChild(new wxStringProperty("Имя", "ObjName"));
-	pgObjMain->AppendChild(new wxFloatProperty("Количество", wxPG_LABEL));
-	pgObjMain->AppendChild(new wxStringProperty("ID", wxPG_LABEL));
-	pgObjMain->AppendChild(new wxStringProperty("PID", wxPG_LABEL));
-	pgObjMain->AppendChild(new wxStringProperty("Местоположение", wxPG_LABEL));
+	auto pg_obj = mPropGrid->Append(new wxPropertyCategory("Свойства объекта"));
+	mPropGrid->AppendIn(pg_obj, new wxObjTitleProperty("Основные", "base_obj_prop"));
+	mPropGrid->AppendIn(pg_obj, new wxPropertyCategory("Пользовательские", "user_obj_prop"));
 
-	auto pgObjUser = pgObjMain->AppendChild(
-		new wxPropertyCategory("Свойства","pgObjUser"));
-	pgObjUser->AppendChild(new wxStringProperty("Test1", wxPG_LABEL));
-	pgObjUser->AppendChild(new wxStringProperty("Test2", wxPG_LABEL));
-
-	
-	auto pgClsMain = mPropGrid->Append(new wxPropertyCategory("Класс"));
-	pgClsMain->AppendChild(new wxStringProperty("Имя", "ClsName"));
-	pgClsMain->AppendChild(new wxLongStringProperty(L"Описание"));
-	pgClsMain->AppendChild(new wxEnumProperty(L"Тип экземпляров", wxPG_LABEL, soc, 0));
-	pgClsMain->AppendChild(new wxStringProperty(L"Ед.измерений", wxPG_LABEL));
-	pgClsMain->AppendChild(new wxStringProperty(L"#"));
-	pgClsMain->AppendChild(new wxStringProperty(L"VID"));
-	pgClsMain->AppendChild(new wxClsParentProperty(L"Родительский класс"));
-	auto pgClsUser = pgClsMain->AppendChild(
-		new wxPropertyCategory("Свойства", "pgClsUser"));
-	pgClsUser->AppendChild(new wxStringProperty("Test3", wxPG_LABEL));
-	pgClsUser->AppendChild(new wxStringProperty("Test4", wxPG_LABEL));
-
-	mPropGrid->SetPropertyReadOnly(pgObjMain, true);
-	mPropGrid->SetPropertyReadOnly(pgClsMain, true);
+	mPropGrid->SetPropertyReadOnly(pg_cls, true);
+	mPropGrid->SetPropertyReadOnly(pg_obj, true);
 
 	mAuiMgr.Update();
 
+	namespace sph = std::placeholders;
+
 	auto funcOnChange = std::bind(&CtrlPnl::OnChangeMainDetail,
-		this, std::placeholders::_1, std::placeholders::_2);
+		this, sph::_1, sph::_2);
 	mChangeMainDetail = mObj->DoConnect(
 		model::Obj::Op::AfterChange, funcOnChange);
+
+	mConnClsPropAppend = mObj->GetClsPropArray()->ConnectAppendSlot(
+		std::bind(&CtrlPnl::OnClsPropAppend, this, sph::_1, sph::_2));
+	mConnClsPropRemove = mObj->GetClsPropArray()->ConnectRemoveSlot(
+		std::bind(&CtrlPnl::OnClsPropRemove, this, sph::_1, sph::_2));
+	mConnClsPropChange = mObj->GetClsPropArray()->ConnectChangeSlot(
+		std::bind(&CtrlPnl::OnClsPropChange, this, sph::_1, sph::_2));
+
+
+
+	mConnObjPropAppend = mObj->GetObjPropArray()->ConnectAppendSlot(
+		std::bind(&CtrlPnl::OnObjPropAppend, this, sph::_1, sph::_2));
+	mConnObjPropRemove = mObj->GetObjPropArray()->ConnectRemoveSlot(
+		std::bind(&CtrlPnl::OnObjPropRemove, this, sph::_1, sph::_2));
+	mConnObjPropChange = mObj->GetObjPropArray()->ConnectChangeSlot(
+		std::bind(&CtrlPnl::OnObjPropChange, this, sph::_1, sph::_2));
+
+
+
 }
 //-----------------------------------------------------------------------------
 CtrlPnl::~CtrlPnl()
@@ -109,7 +106,7 @@ CtrlPnl::~CtrlPnl()
 void CtrlPnl::SetObject(const wxString& cls_id, const wxString& obj_id, const wxString& obj_pid)
 {
 	mObj->SetObject(cls_id, obj_id, obj_pid);
-	mObj->Load();
+	OnCmdReload(wxCommandEvent());
 }
 //-----------------------------------------------------------------------------
 void CtrlPnl::OnCmdReload(wxCommandEvent& evt)
@@ -124,20 +121,211 @@ void CtrlPnl::OnChangeMainDetail(const IModel* model, const wh::detail::model::O
 
 	const model::Obj::T_Data& main_detail = mObj->GetData();
 
-	mPropGrid->SetPropertyValueString("ObjName", main_detail.mObj.mLabel);
-	mPropGrid->SetPropertyValueString("Количество", main_detail.mObj.mQty);
-	mPropGrid->SetPropertyValueString("ID", main_detail.mObj.mID);
-	mPropGrid->SetPropertyValueString("PID", main_detail.mObj.mPID);
-	mPropGrid->SetPropertyValueString("Местоположение", "qwe qwe qwe");
+	mPropGrid->SetPropVal("base_cls_prop", wxVariant(*(wh_rec_Cls*)&main_detail.mCls));
+	mPropGrid->SetPropVal("base_obj_prop", wxVariant(*(wh_rec_ObjTitle*)&main_detail.mObj));
+
+	UpdateTab();
+}
+//-----------------------------------------------------------------------------
+void CtrlPnl::UpdatePGColour()
+{
+	if (!mObj)
+		return;
+	wxWindowUpdateLocker	wndUpdateLocker(this);
+
+	const model::Obj::T_Data& main_detail = mObj->GetData();
+	ClsType	clsType;
+	wxColour cl;
+	if (main_detail.mCls.GetClsType(clsType))
+		switch (clsType)
+		{
+			default:
+				cl = (wxColour(240, 240, 240));
+				mPropGrid->HideProperty("user_obj_prop");
+				break;
+			case ctQtyByFloat:	case ctQtyByOne:
+				cl = (wxColour(210, 240, 250));
+				mPropGrid->HideProperty("user_obj_prop");
+				break;
+			case ctSingle:
+				cl = (wxColour(250, 240, 210));
+				mPropGrid->HideProperty("user_obj_prop", false);
+				break;
+		}//switch
+
+	mPropGrid->SetPropertyBackgroundColour("Свойства класса", cl);
+	//mPropGrid->SetPropertyBackgroundColour("user_cls_prop", cl);
+
+
+}
+//-----------------------------------------------------------------------------
+void CtrlPnl::UpdateTab()
+{
+	if (!mObj)
+		return;
+	wxWindowUpdateLocker	wndUpdateLocker(this);
+
+	const model::Obj::T_Data& main_detail = mObj->GetData();
+	ClsType	clsType;
+	const wxIcon*  ico(&wxNullIcon);
+	if (main_detail.mCls.GetClsType(clsType))
+		switch (clsType)
+	{
+		default:			
+			ico = &GetResMgr()->m_ico_type_abstract24;
+			break;
+		case ctQtyByFloat:	case ctQtyByOne:	
+			ico = &GetResMgr()->m_ico_type_qty24;
+			break;
+		case ctSingle:		
+			ico = &GetResMgr()->m_ico_type_num24;
+			break;
+	}//switch
+
+	wxWindow* notebook = this->GetParent();
+	auto main_farame = dynamic_cast<MainFrame*>(notebook->GetParent());
+	if (!notebook || !main_farame)
+		return;
+
+	const wxString lbl = wxString::Format("[%s]%s (%s %s)"
+		, main_detail.mCls.mLabel
+		, main_detail.mObj.mLabel
+		, main_detail.mObj.mQty
+		, main_detail.mCls.mMeasure
+		);
+	main_farame->UpdateTab(this, lbl, *ico);
+	//mPropGrid->SetCaptionBackgroundColour(wxColour(255, 200, 200));
+
+}
+
+//-----------------------------------------------------------------------------
+void CtrlPnl::OnClsPropAppend(const IModel& model, const std::vector<unsigned int>& vec)
+{
+	//if ( &model != mObj.get())
+	//	return;
+
+	auto propCategory = mPropGrid->GetProperty("user_cls_prop");
+
+	for (const unsigned int& i : vec)
+	{
+		auto item = dynamic_pointer_cast<model::ClsProp>(mObj->GetClsPropArray()->GetChild(i));
+		const auto& data = item->GetData();
+		propCategory->AppendChild( new wxStringProperty(
+			data.mProp.mLabel
+			, wxString::Format("ClsProp_%s", data.mProp.mLabel)
+			, data.mVal));
+	}
+
+	UpdatePGColour();
+	mPropGrid->SetPropertyReadOnly(propCategory, true);
+
+	if (!propCategory->GetChildCount())
+		propCategory->Hide(true);
+	else
+		propCategory->Hide(false);
+
+}
+//-----------------------------------------------------------------------------
+void CtrlPnl::OnClsPropRemove(const IModel& model, const std::vector<unsigned int>& vec)
+{
+	auto cls_prop_array = mObj->GetClsPropArray();
 	
-	mPropGrid->SetPropertyValueString("ClsName", main_detail.mCls.mLabel);
-	mPropGrid->SetPropertyValueString("Описание", main_detail.mCls.mComment);
-	mPropGrid->SetPropertyValueString("Тип экземпляров", main_detail.mCls.mType);
-	mPropGrid->SetPropertyValueString("Ед.измерений", main_detail.mCls.mMeasure);
-	mPropGrid->SetPropertyValueString("#", main_detail.mCls.mID);
-	mPropGrid->SetPropertyValueString("VID", main_detail.mCls.mVID);
-	rec::Base cp(main_detail.mCls.mParent);
-	mPropGrid->SetPropVal("Родительский класс", wxVariant(cp));
+	auto propCategory = mPropGrid->GetProperty("user_cls_prop");
+	if (cls_prop_array->GetChildQty() == vec.size())
+	{
+		propCategory->DeleteChildren();
+	}
+	else
+	{
+		std::vector<wxPGProperty*> prop_array;
+		for (const unsigned int& i : vec)
+			prop_array.emplace_back(propCategory->Item(i));
 
+		for (const auto& j : prop_array)
+			mPropGrid->DeleteProperty(j);
+	}
 
+	if (!propCategory->GetChildCount())
+		propCategory->Hide(true);
+	else
+		propCategory->Hide(false);
+
+}
+//-----------------------------------------------------------------------------
+void CtrlPnl::OnClsPropChange(const IModel& model, const std::vector<unsigned int>& vec)
+{
+	auto prop_array = mObj->GetClsPropArray();
+
+	auto propCategory = mPropGrid->GetProperty("user_cls_prop");
+
+	for (const unsigned int& i : vec)
+	{
+		auto prop_model = prop_array->at(i);
+		const auto& prop_data = prop_model->GetData();
+
+		propCategory->Item(i)->SetValueFromString(prop_data.mVal);
+	}
+}
+//-----------------------------------------------------------------------------
+void CtrlPnl::OnObjPropAppend(const IModel& model, const std::vector<unsigned int>& vec)
+{
+	auto propCategory = mPropGrid->GetProperty("user_obj_prop");
+
+	for (const unsigned int& i : vec)
+	{
+		auto item = dynamic_pointer_cast<model::ObjProp>(mObj->GetObjPropArray()->GetChild(i));
+		const auto& data = item->GetData();
+		propCategory->AppendChild(new wxStringProperty(
+			data.mProp.mLabel
+			, wxString::Format("ObjProp_%s", data.mProp.mLabel)
+			, data.mVal));
+	}
+
+	mPropGrid->SetPropertyReadOnly(propCategory, true);
+
+	if (!propCategory->GetChildCount())
+		propCategory->Hide(true);
+	else
+		propCategory->Hide(false);
+
+}
+//-----------------------------------------------------------------------------
+void CtrlPnl::OnObjPropRemove(const IModel& model, const std::vector<unsigned int>& vec)
+{
+	auto obj_prop_array = mObj->GetObjPropArray();
+
+	auto propCategory = mPropGrid->GetProperty("user_obj_prop");
+	if (obj_prop_array->GetChildQty() == vec.size())
+	{
+		propCategory->DeleteChildren();
+	}
+	else
+	{
+		std::vector<wxPGProperty*> prop_array;
+		for (const unsigned int& i : vec)
+			prop_array.emplace_back(propCategory->Item(i));
+
+		for (const auto& j : prop_array)
+			mPropGrid->DeleteProperty(j);
+	}
+	if (!propCategory->GetChildCount())
+		propCategory->Hide(true);
+	else
+		propCategory->Hide(false);
+
+}
+//-----------------------------------------------------------------------------
+void CtrlPnl::OnObjPropChange(const IModel& model, const std::vector<unsigned int>& vec)
+{
+	auto prop_array = mObj->GetObjPropArray();
+
+	auto propCategory = mPropGrid->GetProperty("user_obj_prop");
+
+	for (const unsigned int& i : vec)
+	{
+		auto prop_model = prop_array->at(i);
+		const auto& prop_data = prop_model->GetData();
+		
+		propCategory->Item(i)->SetValueFromString(prop_data.mVal);
+	}
 }

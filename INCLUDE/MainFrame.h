@@ -84,7 +84,8 @@ public:
 		const wxString& _classfilter=wxEmptyString);	
 
 
-	void AddPage(wxWindow* pnl, const wxString& lbl, const wxIcon& icon);
+	void AddTab(wxWindow* pnl, const wxString& lbl=wxEmptyString, const wxIcon& icon=wxNullIcon);
+	void UpdateTab(wxWindow* pnl, const wxString& lbl, const wxIcon& icon);
 
 
 

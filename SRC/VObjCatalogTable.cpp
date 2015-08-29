@@ -27,7 +27,7 @@ VObjCatalogTable::VObjCatalogTable(wxWindow*		parent,
 
 	Bind(wxEVT_SIZE, &VObjCatalogTable::OnResize, this);
 
-	
+	this->SetBackgroundColour(wxColour(245, 245, 245));
 
 
 	AppendIconTextColumn("Имя", 1, wxDATAVIEW_CELL_INERT, 200,

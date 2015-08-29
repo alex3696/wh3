@@ -22,6 +22,7 @@ public:
 	void SetObject(const wxString& cls_id, const wxString& obj_id, const wxString& obj_pid);
 
 	std::shared_ptr<ClsPropArray>	GetClsPropArray()const { return mClsProp; }
+	std::shared_ptr<ObjPropArray>	GetObjPropArray()const { return mObjProp; }
 protected:
 	std::shared_ptr<ClsPropArray>	mClsProp;
 	std::shared_ptr<ObjPropArray>	mObjProp;
@@ -59,6 +60,7 @@ class ObjProp
 {
 public:
 	ObjProp(const char option = ModelOption::EnableParentNotify);
+	bool LoadThisDataFromDb(std::shared_ptr<whTable>&, const size_t)override;
 };
 //-----------------------------------------------------------------------------
 class ObjPropArray

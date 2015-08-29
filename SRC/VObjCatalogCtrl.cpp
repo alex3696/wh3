@@ -373,7 +373,7 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 
 	if (selCls && objIdx.first)
 	{
-		while (!selObj) 
+		while (!selObj && !objIdx.second)
 		{
 			if (selCls->mObjArray->GetChildQty() > objIdx.second)
 			{
@@ -439,12 +439,9 @@ void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 	const auto& cls_data = typeItem->GetData();
 
 	detail::view::CtrlPnl* pnl = new detail::view::CtrlPnl(notebook);
+	main_farame->AddTab(pnl);
 	pnl->SetObject(cls_data.mID, obj_data.mID, obj_data.mPID);
-
-
 	
-
-	main_farame->AddPage(pnl, "bla-bla", m_ResMgr->m_ico_views24);
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdFavProp(wxCommandEvent& evt)
@@ -768,9 +765,9 @@ std::shared_ptr<object_catalog::MObjItem> VObjCatalogCtrl::GetSelectedObj()const
 	{
 		auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
 		auto objItem = dynamic_cast<object_catalog::MObjItem*> (modelInterface);
-		return objItem->shared_from_this();
+		if (objItem)
+			return objItem->shared_from_this();
 	}
-	
 	return std::shared_ptr<object_catalog::MObjItem>();
 }
 //-------------------------------------------------------------------------

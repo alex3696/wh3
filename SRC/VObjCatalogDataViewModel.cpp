@@ -184,12 +184,12 @@ bool VObjCatalogDataViewModel::GetAttr(const wxDataViewItem &dataViewItem, unsig
 				case ctQtyByOne: 
 						attr.SetColour(wxColour(0, 80, 150));
 						if (has_bg)
-							attr.SetBackgroundColour(wxColour(240, 250, 255));
+							attr.SetBackgroundColour(wxColour(210, 240, 250));
 						break;
 				case ctSingle: 
 						attr.SetColour(wxColour(100, 30, 0));
 						if (has_bg)
-							attr.SetBackgroundColour(wxColour(250, 250, 245));
+							attr.SetBackgroundColour(wxColour(250, 240, 210));
 						break;
 				}//switch
 			}//if (cls.GetClsType(clsType))

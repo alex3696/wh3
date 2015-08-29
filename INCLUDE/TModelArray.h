@@ -5,6 +5,8 @@
 
 namespace wh{
 
+//-----------------------------------------------------------------------------
+
 template< typename T_Item >
 class TModelArray
 	: public IModel
@@ -21,21 +23,16 @@ public:
 
 	virtual std::shared_ptr<IModel> CreateChild()override
 	{
-		auto child = std::make_shared < T_Item > ();
-		child->SetData(T_Item::T_Data());
-		return child;
-		/*
-		auto child = new T_Item;
-		T_Item::T_Data data;
-		child->SetData(data);
-		return std::shared_ptr<IModel>(child);
-		*/
+		return std::dynamic_pointer_cast<IModel>(MakeItem());
 	}
-	std::shared_ptr<T_Item> CreateChild()const
+	inline std::shared_ptr<T_Item>  CreateChild()const
 	{
-		auto child = std::make_shared < T_Item >();
-		child->SetData(T_Item::T_Data());
-		return child;
+		return MakeItem();
+	}
+
+	std::shared_ptr<T_Item> at(size_t pos)const
+	{
+		return std::dynamic_pointer_cast<T_Item>(GetChild(pos));
 	}
 
 
@@ -50,15 +47,21 @@ protected:
 		std::shared_ptr<whTable>& table, const size_t pos)override
 	{
 		auto childModel = std::dynamic_pointer_cast<T_Item>(child);
-		if (childModel)
-			return childModel->LoadThisDataFromDb(table, pos);
-		return false;
+		return childModel ? childModel->LoadThisDataFromDb(table, pos) : false;
 	}
 
+protected:
+
+	std::shared_ptr<T_Item> MakeItem()const
+	{
+		auto child = std::make_shared < T_Item >();
+		child->SetData(T_Item::T_Data());
+		return child;
+	}
 	
 };
 
-
+//-----------------------------------------------------------------------------
 
 }//namespace wh{
 #endif // __****_H

@@ -32,7 +32,7 @@ bool ObjPropValLoader::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const
 	if (!obj_data.mCls.IsNumberic())
 		return false;
 
-	auto propArray = obj->GetClsPropArray();
+	auto propArray = obj->GetObjPropArray();
 
 	auto prop_qty = propArray->GetChildQty();
 	for (size_t i = 0; i < prop_qty; ++i)
@@ -42,6 +42,7 @@ bool ObjPropValLoader::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const
 		{
 			auto prop_data = prop->GetData();
 			table->GetAsString(i + 1, 0, prop_data.mVal);
+			prop->SetData(prop_data);
 		}
 	}
 
@@ -58,7 +59,7 @@ bool ObjPropValLoader::GetSelectQuery(wxString& query)const
 	if (!obj_data.mCls.IsNumberic())
 		return false;
 
-	auto propArray = obj->GetClsPropArray();
+	auto propArray = obj->GetObjPropArray();
 
 	wxString prop_fields;
 	auto prop_qty = propArray->GetChildQty();

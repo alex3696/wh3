@@ -5,6 +5,8 @@
 
 using wh_rec_Base = wh::rec::Base;
 WX_PG_DECLARE_VARIANT_DATA(wh_rec_Base)
+
+
 //-----------------------------------------------------------------------------
 class wxClsParentProperty : public wxPGProperty
 {
@@ -17,12 +19,61 @@ public:
 	virtual ~wxClsParentProperty();
 
 	virtual wxVariant ChildChanged(wxVariant& thisValue,
-		int childIndex,
-		wxVariant& childValue) const;
+		int childIndex, wxVariant& childValue) const;
 	virtual void RefreshChildren();
+
+
+	
+
 
 protected:
 };
+//-----------------------------------------------------------------------------
+
+using wh_rec_Cls = wh::rec::Cls;
+WX_PG_DECLARE_VARIANT_DATA(wh_rec_Cls)
+
+class wxClsProperty : public wxPGProperty
+{
+	WX_PG_DECLARE_PROPERTY_CLASS(wxClsProperty)
+public:
+
+	wxClsProperty(const wxString& label = wxPG_LABEL,
+		const wxString& name = wxPG_LABEL,
+		const wh_rec_Cls& value = wh_rec_Cls());
+	virtual ~wxClsProperty();
+
+	virtual wxVariant ChildChanged(wxVariant& thisValue,
+		int childIndex, wxVariant& childValue) const;
+	virtual void RefreshChildren();
+
+	virtual wxString  ValueToString(wxVariant &  value, int  argFlags = 0)  const;
+protected:
+};
+
+//-----------------------------------------------------------------------------
+
+using wh_rec_ObjTitle = wh::rec::ObjTitle;
+WX_PG_DECLARE_VARIANT_DATA(wh_rec_ObjTitle)
+
+class wxObjTitleProperty : public wxPGProperty
+{
+	WX_PG_DECLARE_PROPERTY_CLASS(wxClsProperty)
+public:
+
+	wxObjTitleProperty(const wxString& label = wxPG_LABEL,
+		const wxString& name = wxPG_LABEL,
+		const wh_rec_ObjTitle& value = wh_rec_ObjTitle());
+	virtual ~wxObjTitleProperty();
+
+	virtual wxVariant ChildChanged(wxVariant& thisValue,
+		int childIndex, wxVariant& childValue) const;
+	virtual void RefreshChildren();
+
+	virtual wxString  ValueToString(wxVariant &  value, int  argFlags = 0)  const;
+protected:
+};
+
 
 //-----------------------------------------------------------------------------
 #endif //__*_H

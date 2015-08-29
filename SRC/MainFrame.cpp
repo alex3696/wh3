@@ -487,12 +487,27 @@ void MainFrame::PnlShowAct(wxCommandEvent& WXUNUSED(evt))
 	m_AuiMgr.Update();
 }
 //---------------------------------------------------------------------------
-void MainFrame::AddPage(wxWindow* wnd,const wxString& lbl, const wxIcon& icon)
+void MainFrame::AddTab(wxWindow* wnd,const wxString& lbl, const wxIcon& icon)
 {
 	if (!wnd)
 		return;
 	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 	m_Notebook->AddPage(wnd, lbl, true, icon);
 	wnd->SetFocus();
+	m_AuiMgr.Update();
+}
+//---------------------------------------------------------------------------
+void MainFrame::UpdateTab(wxWindow* wnd, const wxString& lbl, const wxIcon& icon)
+{
+	if (!wnd)
+		return;
+	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	auto page_idx = m_Notebook->GetPageIndex(wnd);
+	if (wxNOT_FOUND != page_idx)
+	{
+		m_Notebook->SetPageBitmap(page_idx, icon);
+		m_Notebook->SetPageText(page_idx, lbl);
+		m_Notebook->Update();
+	}
 	m_AuiMgr.Update();
 }
