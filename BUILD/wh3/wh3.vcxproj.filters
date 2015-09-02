@@ -363,14 +363,14 @@
     <ClCompile Include="..\..\SRC\detail_model_ObjPropArray.cpp">
       <Filter>SIG_MODEL\Detail\model</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SRC\detail_model_OpbPropLoader.cpp">
-      <Filter>SIG_MODEL\Detail\model</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\detail_ctrlpnl.cpp">
       <Filter>SIG_MODEL\Detail\view</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\PGClsPid.cpp">
       <Filter>GUI\Controls\PropertyGridExt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\detail_model_OjbPropLoader.cpp">
+      <Filter>SIG_MODEL\Detail\model</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

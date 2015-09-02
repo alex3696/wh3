@@ -132,6 +132,7 @@ CREATE TABLE t_cls (
     OR ((type=2 OR type=3) AND measurename <> 'ед.' )--если количественный класс
     )
 
+,CONSTRAINT ck_cls_label CHECK (label ~ '^([[:alnum:][:space:]!()*+,-.:;<=>^_|№])+$')
 );
 GRANT SELECT ON TABLE t_cls  			TO "Guest";
 GRANT INSERT,DELETE,UPDATE ON TABLE t_cls 	TO "TypeDesigner";
@@ -204,6 +205,7 @@ CREATE TABLE t_act (
 ,CONSTRAINT uk_act__id    UNIQUE ( id )
 ,CONSTRAINT uk_act__vid   UNIQUE ( vid )
 
+,CONSTRAINT ck_act_label CHECK (label ~ '^([[:alnum:][:space:]!()*+,-.:;<=>^_|№])+$')
 );
 
 INSERT INTO t_act (id, label) VALUES (0, 'Move');
@@ -225,6 +227,7 @@ CREATE TABLE t_prop (
 ,CONSTRAINT pk_prop__label PRIMARY KEY ( label )
 ,CONSTRAINT uk_prop__id    UNIQUE ( id )
     
+,CONSTRAINT ck_prop_label CHECK (label ~ '^([[:alnum:][:space:]!()*+,-.:;<=>^_|№])+$')
 );
 
 GRANT SELECT ON TABLE t_prop  			TO "Guest";
@@ -364,6 +367,7 @@ CREATE TABLE t_objnum (
                                       OR(id=1 AND pid=0) -- Object0
                                       OR(id>1 AND pid>0 AND id<>pid)   )  -- один корень
 
+,CONSTRAINT ck_objnum_label CHECK (obj_label ~ '^([[:alnum:][:space:]!()*+,-.:;<=>^_|№])+$')
 );
 GRANT SELECT                  ON TABLE t_objnum TO "Guest";
 GRANT UPDATE(pid,last_log_id) ON TABLE t_objnum TO "User";
@@ -401,6 +405,7 @@ CREATE TABLE t_objqtykey
     REFERENCES                 t_clsqty    (cls_id)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
     
+,CONSTRAINT ck_objqty_label CHECK (obj_label ~ '^([[:alnum:][:space:]!()*+,-.:;<=>^_|№])+$')
 );
 
 
@@ -565,7 +570,7 @@ CREATE TABLE t_access_act (
 
 );
 CREATE INDEX idx_t_access_act__access_group ON t_access_act USING btree (access_group);
-CREATE INDEX idx_t_access_act__access_group ON t_access_act USING btree (cls_id);
+CREATE INDEX idx_t_access_act__cls_id       ON t_access_act USING btree (cls_id);
 
 
 
@@ -1861,19 +1866,6 @@ INSERT INTO t_access_slot(access_group, access_disabled, dst_cls_id, mov_cls_id)
 INSERT INTO t_access_slot(access_group, access_disabled, dst_cls_id, mov_cls_id)
     VALUES ('User', 0, (SELECT id FROM t_cls WHERE label='Object')
                      , (SELECT id FROM t_cls WHERE label='Спирт'));
-
-
-------------------------------------------------------------------------------------------------------------
-PRINT '';
-PRINT '- Тесты вставки/обновления/удаления ИЗБРАННЫХ ОБЪЕКТОВ/ТИПОВ перемещения';
-PRINT '';
-------------------------------------------------------------------------------------------------------------
-INSERT INTO t_favorites(pid,label)   VALUES (1,'folder_1');
-INSERT INTO t_favorites(pid,label)   VALUES (1,'folder_2');
-INSERT INTO t_favorites(pid,label)   VALUES (1,'folder_3');
-INSERT INTO t_favorites(pid,classid)   VALUES (2,103);
-INSERT INTO t_favorites(pid,objnumid)   VALUES (3,101);
-
 
 
 ------------------------------------------------------------------------------------------------------------

@@ -90,7 +90,7 @@ CREATE TABLE wh_role(
 	CONSTRAINT uk_groupname_wh_group 	UNIQUE (rolname),	-- обеспечиваем уникальные имена групп\пользователей
 
 	CONSTRAINT ck_group_nopass  		CHECK ( (rolcanlogin=false AND rolpassword IS NULL AND NOT rolcreaterole) OR  rolcanlogin=true ) --группа не нуждается в пароле
-
+,CONSTRAINT ck_role_rolname CHECK (rolname ~ '^([[:alnum:][:space:]!()*+,-.:;<=>^_|№])+$')
 );
 
 CREATE INDEX ON wh_role USING btree (id,rolname);

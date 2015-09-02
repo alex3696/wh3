@@ -188,3 +188,64 @@ wxString  wxObjTitleProperty::ValueToString(wxVariant &  value, int  argFlags)  
 		, obj.mQty
 		, obj.mID);
 }
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+wxRegExpValidator::wxRegExpValidator(const wxString& regstr)
+	:wxValidator(), mRegExp(regstr), mRegStr(regstr)
+{
+}
+//-----------------------------------------------------------------------------
+wxRegExpValidator::wxRegExpValidator(const wxRegExpValidator& tocopy)
+{ 
+	mRegStr = tocopy.mRegStr;
+	mRegExp.Compile(mRegStr, wxRE_DEFAULT);
+}
+//-----------------------------------------------------------------------------
+bool wxRegExpValidator::Validate(wxWindow *WXUNUSED(parent))
+{
+	wxTextCtrl* tc = wxDynamicCast(GetWindow(), wxTextCtrl);
+	wxCHECK_MSG(tc, true, wxT("validator window must be wxTextCtrl"));
+
+	const wxString& val = tc->GetValue();
+
+	if (mRegExp.IsValid() && mRegExp.Matches(val))
+		return true;
+	return false;
+}
+//-----------------------------------------------------------------------------
+/*
+bool wxRegExpValidator::TransferToWindow()
+{
+	wxASSERT(GetWindow()->IsKindOf(CLASSINFO(wxPGProperty)));
+
+	if (mVar)
+	{
+		wxPGProperty* p = (wxPGProperty*)GetWindow();
+		if (!p)
+			return false;
+
+		p->SetValueFromString(*mVar);
+	}
+
+	return true;
+}
+//-----------------------------------------------------------------------------
+bool wxRegExpValidator::TransferFromWindow()
+{
+	wxASSERT(GetWindow()->IsKindOf(CLASSINFO(wxPGProperty)));
+
+	if (mVar)
+	{
+		wxPGProperty* p = (wxPGProperty*)GetWindow();
+		if (!p)
+			return false;
+
+		*mVar = p->GetValueAsString();
+	}
+
+	return true;
+}
+*/

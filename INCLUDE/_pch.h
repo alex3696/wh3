@@ -52,7 +52,7 @@ using namespace std::tr1;
 #include <wx/utils.h>
 #include <wx/busyinfo.h>
 #include <wx/wupdlock.h>
-
+#include <wx/regex.h>
 
 #if wxUSE_DATEPICKCTRL
     #include <wx/datectrl.h>

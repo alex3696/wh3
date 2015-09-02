@@ -76,4 +76,27 @@ protected:
 
 
 //-----------------------------------------------------------------------------
+
+class wxRegExpValidator : public wxValidator
+{
+public:
+	wxRegExpValidator(const wxString& regexp);
+	wxRegExpValidator(const wxRegExpValidator& tocopy);
+	virtual wxObject* Clone() const { return new wxRegExpValidator(*this); }
+
+	virtual bool Validate(wxWindow* parent);
+
+	// Called to transfer data to the window
+	//virtual bool TransferToWindow();
+
+	// Called to transfer data from the window
+	//virtual bool TransferFromWindow();
+
+protected:
+	wxRegEx		mRegExp;
+	wxString	mRegStr;
+};
+
+//-----------------------------------------------------------------------------
+
 #endif //__*_H

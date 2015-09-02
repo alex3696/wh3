@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "DPropEditor.h"
+#include "PGClsPid.h"
 
 using namespace wh;
 using namespace wh::view;
@@ -33,7 +34,21 @@ DPropEditor::DPropEditor(wxWindow*		parent,
 	soc.Add(L"Ññûëêà", 3);
 	soc.Add(L"Ôàéë", 4);
 
-	mPropGrid->Append(new wxStringProperty(L"Èìÿ", wxPG_LABEL));
+	auto lbl = mPropGrid->Append(new wxStringProperty(L"Èìÿ", wxPG_LABEL));
+
+	//\p{ Punct }	Punctuation: One of !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
+	//wxRegEx re;
+	//bool valid;
+	//valid = re.Compile("^([\\s\\w!()*+,-.:;<=>^_|¹])+$", wxRE_ADVANCED);
+	//valid = re.Compile("^([[:alnum:][:space:]!()*+,-.:;<=>^_|¹])+$", wxRE_DEFAULT);
+	//bool match = re.Matches("1q|w.u*i-h+h:%j;e");
+	//if (match)
+	//	wxMessageBox("OK");
+
+	wxRegExpValidator vl("^([[:alnum:][:space:]!()*+,-.:;<=>^_|¹])+$"); //wxRE_DEFAULT
+	lbl->SetValidator(vl);
+
+
 	mPropGrid->Append(new wxEnumProperty(L"Òèï", wxPG_LABEL, soc, 0));
 	mPropGrid->Append(new wxStringProperty(L"ID", wxPG_LABEL))->Enable(false);
 

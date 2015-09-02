@@ -146,7 +146,7 @@
     <ClCompile Include="..\..\SRC\detail_model_ClsPropArray.cpp" />
     <ClCompile Include="..\..\SRC\detail_model_Obj.cpp" />
     <ClCompile Include="..\..\SRC\detail_model_ObjPropArray.cpp" />
-    <ClCompile Include="..\..\SRC\detail_model_OpbPropLoader.cpp" />
+    <ClCompile Include="..\..\SRC\detail_model_OjbPropLoader.cpp" />
     <ClCompile Include="..\..\SRC\DGroupEditor.cpp" />
     <ClCompile Include="..\..\SRC\dlg_act_model_Act.cpp" />
     <ClCompile Include="..\..\SRC\dlg_act_model_ActProp.cpp" />
