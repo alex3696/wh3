@@ -3,10 +3,14 @@
 
 using namespace wh;
 
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
 WX_PG_IMPLEMENT_VARIANT_DATA_DUMMY_EQ(wh_rec_Base)
 
 WX_PG_IMPLEMENT_PROPERTY_CLASS(wxClsParentProperty, wxPGProperty,
-wh_rec_Base, const wh_rec_Base&, TextCtrl)
+								wh_rec_Base, const wh_rec_Base&, TextCtrl)
 
 //-----------------------------------------------------------------------------
 wxClsParentProperty::wxClsParentProperty(const wxString& label,
@@ -43,6 +47,67 @@ wxVariant wxClsParentProperty::ChildChanged(wxVariant& thisValue,
 	newVariant << cls_parent;
 	return newVariant;
 }
+
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+WX_PG_IMPLEMENT_VARIANT_DATA_DUMMY_EQ(wh_rec_ObjParent)
+WX_PG_IMPLEMENT_PROPERTY_CLASS(wxObjParentProperty, wxPGProperty,
+								wh_rec_ObjParent, const wh_rec_ObjParent&, TextCtrl)
+
+//-----------------------------------------------------------------------------
+wxObjParentProperty::wxObjParentProperty(const wxString& label,
+const wxString& name, const wh_rec_ObjParent& value)
+: wxPGProperty(label, name)
+{
+	SetValue(WXVARIANT(value));
+	AddPrivateChild(new wxClsParentProperty("Класс", wxPG_LABEL, wh_rec_Base() ));
+	AddPrivateChild(new wxClsParentProperty("Объект", wxPG_LABEL, wh_rec_Base() ));
+}
+//-----------------------------------------------------------------------------
+wxObjParentProperty::~wxObjParentProperty() { }
+//-----------------------------------------------------------------------------
+void wxObjParentProperty::RefreshChildren()
+{
+	if (!GetChildCount()) return;
+	const wh_rec_ObjParent& parent = wh_rec_ObjParentRefFromVariant(m_value);
+	Item(0)->SetValue(WXVARIANT(parent.mCls));
+	Item(1)->SetValue(WXVARIANT(parent.mObj));
+}
+//-----------------------------------------------------------------------------
+wxVariant wxObjParentProperty::ChildChanged(wxVariant& thisValue,
+	int childIndex,
+	wxVariant& childValue) const
+{
+	wh_rec_ObjParent parent;
+	parent << thisValue;
+	switch (childIndex)
+	{
+	case 0: parent.mCls = wh_rec_BaseRefFromVariant(childValue); break;
+	case 1: parent.mObj = wh_rec_BaseRefFromVariant(childValue); break;
+	}
+	wxVariant newVariant;
+	newVariant << parent;
+	return newVariant;
+}
+//-----------------------------------------------------------------------------
+wxString  wxObjParentProperty::ValueToString(wxVariant &  value, int  argFlags)  const
+
+{
+	const auto& obj = wh_rec_ObjParentRefFromVariant(m_value);
+
+	#ifdef _DEBUG
+	return wxString::Format("[%s]%s pid=%s", obj.mCls.mLabel, obj.mObj.mLabel, obj.mObj.mId);
+	#else
+	return wxString::Format("[%s]%s", obj.mCls.mLabel, obj.mObj.mLabel);
+	#endif
+}
+
+
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -144,7 +209,7 @@ const wxString& name, const wh_rec_ObjTitle& value)
 	AddPrivateChild(new wxStringProperty("Имя"));
 	AddPrivateChild(new wxStringProperty(L"Количество"));
 	AddPrivateChild(new wxStringProperty("#"));
-	AddPrivateChild(new wxStringProperty("Местоположение"));
+	AddPrivateChild(new wxObjParentProperty("Местоположение"));
 }
 //-----------------------------------------------------------------------------
 wxObjTitleProperty::~wxObjTitleProperty() { }
@@ -156,7 +221,8 @@ void wxObjTitleProperty::RefreshChildren()
 	Item(0)->SetValue(WXVARIANT(obj.mLabel));
 	Item(1)->SetValue(WXVARIANT(obj.mQty));
 	Item(2)->SetValue(WXVARIANT(obj.mID));
-	Item(3)->SetValue(WXVARIANT(obj.mPID));
+	Item(3)->SetValue(WXVARIANT(wh_rec_ObjParent(wxEmptyString, wxEmptyString, 
+		obj.mPID, wxEmptyString)));
 }
 //-----------------------------------------------------------------------------
 wxVariant wxObjTitleProperty::ChildChanged(wxVariant& thisValue,
@@ -171,7 +237,7 @@ wxVariant wxObjTitleProperty::ChildChanged(wxVariant& thisValue,
 	case 0: obj.mLabel = childValue.GetString(); break;
 	case 1: obj.mQty = childValue.GetString(); break;
 	case 2: obj.mID = childValue.GetString(); break;
-	case 3: obj.mPID = childValue.GetString(); break;
+	case 3: obj.mPID = wh_rec_ObjParentRefFromVariant(m_value).mObj.mId; break;
 	}
 	wxVariant newVariant;
 	newVariant << obj;

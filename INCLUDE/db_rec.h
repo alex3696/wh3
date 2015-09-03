@@ -134,6 +134,16 @@ struct Base
 //-----------------------------------------------------------------------------
 struct ObjParent
 {
+	ObjParent(){}
+	ObjParent(const wxString& cls_id, const wxString& cls_label
+		,const wxString& obj_id, const wxString& obj_label)
+	{
+		mCls.mId = cls_id;
+		mCls.mLabel = cls_label;
+		mObj.mId = obj_id;
+		mObj.mLabel = obj_label;
+	}
+
 	Base mCls;
 	Base mObj;
 };

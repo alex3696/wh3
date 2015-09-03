@@ -112,12 +112,10 @@ CREATE TABLE t_cls (
 
     ,default_pid BIGINT   NOT NULL DEFAULT 1 -- местоположение объектов по умолчанию
 
-
-,CONSTRAINT pk_cls_label      PRIMARY KEY ( label )
-,CONSTRAINT uk_class_id       UNIQUE ( id )
-,CONSTRAINT uk_class_lbl_type UNIQUE ( label, type )
-,CONSTRAINT uk_class_id_type  UNIQUE ( id, type )
-
+,CONSTRAINT pk_cls_id         PRIMARY KEY ( id )
+,CONSTRAINT uk_cls_label      UNIQUE ( label )
+,CONSTRAINT uk_cls_type_id    UNIQUE ( type, id  )
+--,CONSTRAINT uk_cls_type_label UNIQUE ( type, label  )
 
 ,CONSTRAINT fk_class__parent FOREIGN KEY ( pid )
     REFERENCES                    t_cls( id )
@@ -348,13 +346,10 @@ CREATE TABLE t_objnum (
     ,pid         BIGINT   NOT NULL DEFAULT 1 
     ,id          BIGINT   NOT NULL DEFAULT nextval('seq_obj_id') 
 
-
-,CONSTRAINT pk_objnum        PRIMARY KEY(obj_label, cls_id) 
-
-,CONSTRAINT uk_objnum_id_cls_id     UNIQUE (id,cls_id)
-
-,CONSTRAINT uk_objnum_id     UNIQUE (id)
-,CONSTRAINT uk_objnum_log_id UNIQUE (last_log_id) 
+,CONSTRAINT pk_objnum_id          PRIMARY KEY(id)
+,CONSTRAINT uk_objnum_clsid_id    UNIQUE (cls_id, id)
+,CONSTRAINT uk_objnum_clsid_label UNIQUE (cls_id, obj_label) 
+,CONSTRAINT uk_objnum_log_id      UNIQUE (last_log_id) 
 
 ,CONSTRAINT fk_objnum_pid      FOREIGN KEY (pid)
     REFERENCES                 t_objnum    (id)
@@ -398,8 +393,8 @@ CREATE TABLE t_objqtykey
     ,cls_id    INTEGER NOT NULL
     ,obj_label NAME    NOT NULL
 
-,CONSTRAINT uk_objqtykey_id     UNIQUE(id)
-,CONSTRAINT pk_objqtykey        PRIMARY KEY(obj_label, cls_id)
+,CONSTRAINT pk_objqtykey_id             PRIMARY KEY(id)
+,CONSTRAINT uk_objqtykey_clsid_objlabel UNIQUE( cls_id, obj_label )
 
 ,CONSTRAINT fk_objqtykey_cls_id FOREIGN KEY (cls_id)
     REFERENCES                 t_clsqty    (cls_id)
@@ -415,7 +410,8 @@ CREATE TABLE t_objqty (
     ,pid         BIGINT   NOT NULL DEFAULT 1 
     ,qty         NUMERIC  NOT NULL              CHECK (qty>=0)
 
-,CONSTRAINT pk_obj_items        PRIMARY KEY(objqty_id, pid)
+,CONSTRAINT pk_objqty_oid_pid   PRIMARY KEY(objqty_id, pid)
+,CONSTRAINT uk_objqty_log_id    UNIQUE (last_log_id) 
 
 ,CONSTRAINT fk_obj_items_pid    FOREIGN KEY (pid)
     REFERENCES                  t_objnum    (id)
@@ -1834,10 +1830,16 @@ PRINT '';
 ------------------------------------------------------------------------------------------------------------
 INSERT INTO t_prop(label)VALUES('длина(мм)');
 INSERT INTO t_prop(label)VALUES('диаметр(мм)');
-INSERT INTO t_cls_prop(cls_label, prop_label, val)VALUES('СРК2М','длина(мм)',382);
-INSERT INTO t_cls_prop(cls_label, prop_label, val)VALUES('СРК2М','диаметр(мм)',42);
 
 
+INSERT INTO t_cls_prop(cls_id, prop_id, val)VALUES(
+    (SELECT id FROM t_cls  WHERE label='СРК2М')
+  , (SELECT id FROM t_prop WHERE label='длина(мм)')
+  , 382);
+INSERT INTO t_cls_prop(cls_id, prop_id, val)VALUES(
+    (SELECT id FROM t_cls  WHERE label='СРК2М')
+  , (SELECT id FROM t_prop WHERE label='диаметр(мм)')
+  , 42);
 
 
 ------------------------------------------------------------------------------------------------------------

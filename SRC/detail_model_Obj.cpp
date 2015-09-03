@@ -74,6 +74,21 @@ bool Obj::GetSelectQuery(wxString& query)const
 		);
 
 	return true;
+
+	/*
+	SELECT obj_id, obj_pid, obj.obj_label, qty, obj.last_log_id -- obj info
+	, obj.cls_id,  cls_label, obj.type, obj.measurename, obj.cls_default_pid
+	,parent.id AS cls_parent_id ,parent.label AS cls_parent_label
+	, pobj.id, pobj.obj_label
+	, pobjcls.id, pobjcls.label
+	FROM w_obj obj
+	LEFT JOIN t_objnum pobj ON pobj.id = obj.obj_pid
+	LEFT JOIN t_cls parent  ON cls_pid = parent.id
+	LEFT JOIN t_cls pobjcls ON pobj.cls_id = pobjcls.id
+	WHERE obj.obj_id=103 AND obj.cls_id=105 AND obj.obj_pid=100
+	*/
+
+
 }
 //-----------------------------------------------------------------------------
 void Obj::LoadChilds()
