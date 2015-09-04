@@ -198,12 +198,12 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 	else
 	{
 		query = wxString::Format(
-			"SELECT label, COALESCE(SUM(w_obj.qty),0), id, t_cls.type, "
+			"SELECT t_cls.label, COALESCE(SUM(w_obj.qty),0), t_cls.id, t_cls.type, "
 			"t_cls.measurename, t_cls.default_pid "
 			" FROM t_cls "
 			" LEFT JOIN w_obj ON w_obj.cls_id = t_cls.id "
-			" WHERE pid = %s "
-			" GROUP BY label "
+			" WHERE t_cls.pid = %s "
+			" GROUP BY t_cls.id "
 			, root.mCls.mID );
 		return true;
 

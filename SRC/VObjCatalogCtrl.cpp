@@ -588,30 +588,33 @@ void VObjCatalogCtrl::OnEdit(wxCommandEvent& evt)
 			OnCmdReload(wxCommandEvent(wxID_REFRESH));
 		}
 	}//if (GetSelectedObjKey(data))
-
-	wxDataViewItem selectedItem = mTableView->GetSelection();
-	if (selectedItem.IsOk())
+	else
 	{
-		auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
-		auto typeItem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
-		if (!typeItem)
-			return;
-
-		//const auto& edited_cls = typeItem->GetData();
-		//auto newItem = std::make_shared<object_catalog::MTypeItem>();
-		//newItem->SetData(edited_cls);
-		//newItem->Load();
-
-		DClsEditor editor;
-		editor.SetModel(std::dynamic_pointer_cast<IModel>(typeItem->shared_from_this()));
-
-		if (wxID_OK == editor.ShowModal())
+		wxDataViewItem selectedItem = mTableView->GetSelection();
+		if (selectedItem.IsOk())
 		{
-			editor.UpdateModel();
-			typeItem->Save();
+			auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
+			auto typeItem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
+			if (!typeItem)
+				return;
+
+			//const auto& edited_cls = typeItem->GetData();
+			//auto newItem = std::make_shared<object_catalog::MTypeItem>();
+			//newItem->SetData(edited_cls);
+			//newItem->Load();
+
+			DClsEditor editor;
+			editor.SetModel(std::dynamic_pointer_cast<IModel>(typeItem->shared_from_this()));
+
+			if (wxID_OK == editor.ShowModal())
+			{
+				editor.UpdateModel();
+				typeItem->Save();
+			}
+			OnCmdReload(wxCommandEvent(wxID_REFRESH));
 		}
-		OnCmdReload(wxCommandEvent(wxID_REFRESH));
 	}
+
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnDelete(wxCommandEvent& evt)

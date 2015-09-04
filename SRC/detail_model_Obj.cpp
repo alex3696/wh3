@@ -61,7 +61,7 @@ bool Obj::GetSelectQuery(wxString& query)const
 		return false;
 	
 	query = wxString::Format(
-		" SELECT obj_id, obj_pid, obj_label, qty, last_log_id "
+		" SELECT obj_id, obj_pid, w_obj.label, qty, last_log_id "
 		"  , cls_id,  cls_label, w_obj.type, w_obj.measurename, w_obj.cls_default_pid "
 		"    ,parent.id "
 		"    ,parent.label "
@@ -76,10 +76,10 @@ bool Obj::GetSelectQuery(wxString& query)const
 	return true;
 
 	/*
-	SELECT obj_id, obj_pid, obj.obj_label, qty, obj.last_log_id -- obj info
+	SELECT obj_id, obj_pid, obj.label, qty, obj.last_log_id -- obj info
 	, obj.cls_id,  cls_label, obj.type, obj.measurename, obj.cls_default_pid
 	,parent.id AS cls_parent_id ,parent.label AS cls_parent_label
-	, pobj.id, pobj.obj_label
+	, pobj.id, pobj.label
 	, pobjcls.id, pobjcls.label
 	FROM w_obj obj
 	LEFT JOIN t_objnum pobj ON pobj.id = obj.obj_pid

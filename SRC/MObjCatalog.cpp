@@ -34,7 +34,7 @@ bool MObjCatalog::GetSelectQuery(wxString& query)const
 		if (data.mObj.mID.empty())
 			return false;
 		query = wxString::Format(
-			"SELECT t_objnum.id, obj_label, t_objnum.pid "
+			"SELECT t_objnum.id, t_objnum.label, t_objnum.pid "
 			"      ,t_cls.id,    t_cls.label, t_cls.pid "
 			"FROM t_objnum "
 			"LEFT JOIN t_cls ON t_cls.id = t_objnum.id "

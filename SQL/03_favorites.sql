@@ -61,7 +61,7 @@ SELECT
  ,t_cls.measurename AS favcls_mes
 
  ,t_favorites.obj_id
-  ,t_objnum.obj_label AS favobj_label
+  ,t_objnum.label AS favobj_label
   ,t_objnum.pid AS favobj_pid
 /*
  ,objcls.label AS favobj_cls_label

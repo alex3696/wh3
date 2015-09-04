@@ -100,14 +100,14 @@ bool MObjItem::GetInsertQuery(wxString& query)const
 		{
 		case ctSingle:
 			query = wxString::Format(
-				"INSERT INTO t_objnum (cls_id, obj_label, pid ) "
-				" VALUES (%s, '%s', %s ) RETURNING id,pid,obj_label,1  ",
+				"INSERT INTO t_objnum (cls_id, label, pid ) "
+				" VALUES (%s, '%s', %s ) RETURNING id,pid,label,1  ",
 				cls.mID, newObj.mLabel, pid);
 			return true;
 		case ctQtyByOne:
 		case ctQtyByFloat:	
 			query = wxString::Format(
-				" SELECT id_,pid_,obj_label_,qty_ FROM fn_insert_objqty(%s, '%s', %s, %s)"
+				" SELECT id_,pid_,label_,qty_ FROM fn_insert_objqty(%s, '%s', %s, %s)"
 				, cls.mID, newObj.mLabel, pid, newObj.mQty);
 			return true;
 		default://ctAbstract
@@ -134,7 +134,7 @@ bool MObjItem::GetUpdateQuery(wxString& query)const
 		case ctSingle:
 			query = wxString::Format(
 				"UPDATE t_objnum SET "
-				" obj_label='%s', pid=%s "
+				" label='%s', pid=%s "
 				" WHERE id=%s ",
 				newObj.mLabel, newObj.mPID,
 				oldObj.mID);
@@ -222,7 +222,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 		if (catalogModel->mCfg->GetData().mObjCatalog)
 		{
 			query = wxString::Format(
-				"SELECT w_obj.obj_id, obj_pid, w_obj.obj_label, qty "
+				"SELECT w_obj.obj_id, obj_pid, w_obj.label, qty "
 				", last_log_id, NULL AS path %s "
 				" FROM w_obj "
 				" %s "
@@ -237,7 +237,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 		else
 		{
 			query = wxString::Format(
-				"SELECT w_obj.obj_id, obj_pid, w_obj.obj_label, qty "
+				"SELECT w_obj.obj_id, obj_pid, w_obj.label, qty "
 				 ", last_log_id, get_path( obj_pid) %s "
 				" FROM w_obj "
 				" %s "

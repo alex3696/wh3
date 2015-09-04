@@ -350,15 +350,15 @@ GRANT USAGE ON TABLE seq_log_id TO "User";
 ---------------------------------------------------------------------------------------------------
 -- таблица содеоржащая иерархическую структуру ОБЪЕКТОВ их состояние, местоположение и количество
 CREATE TABLE t_objnum (
-     cls_id      INTEGER
-    ,obj_label   NAME     NOT NULL
-    ,last_log_id BIGINT                                          CHECK (last_log_id>=0)
-    ,pid         BIGINT   NOT NULL DEFAULT 1 
-    ,id          BIGINT   NOT NULL DEFAULT nextval('seq_obj_id') 
+   id          BIGINT   NOT NULL DEFAULT nextval('seq_obj_id') 
+  ,label       NAME     NOT NULL
+  ,cls_id      INTEGER
+  ,pid         BIGINT   NOT NULL DEFAULT 1 
+  ,last_log_id BIGINT                                          CHECK (last_log_id>=0)
 
 ,CONSTRAINT pk_objnum_id          PRIMARY KEY(id)
 ,CONSTRAINT uk_objnum_clsid_id    UNIQUE (cls_id, id)
-,CONSTRAINT uk_objnum_clsid_label UNIQUE (cls_id, obj_label) 
+,CONSTRAINT uk_objnum_clsid_label UNIQUE (cls_id, label) 
 ,CONSTRAINT uk_objnum_log_id      UNIQUE (last_log_id) 
 
 ,CONSTRAINT fk_objnum_pid      FOREIGN KEY (pid)
@@ -372,7 +372,7 @@ CREATE TABLE t_objnum (
                                       OR(id=1 AND pid=0) -- Object0
                                       OR(id>1 AND pid>0 AND id<>pid)   )  -- один корень
 
-,CONSTRAINT ck_objnum_label CHECK (obj_label ~ '^([[:alnum:][:space:]!()*+,-.:;<=>^_|№])+$')
+,CONSTRAINT ck_objnum_label CHECK (label ~ '^([[:alnum:][:space:]!()*+,-.:;<=>^_|№])+$')
 );
 GRANT SELECT                  ON TABLE t_objnum TO "Guest";
 GRANT UPDATE(pid,last_log_id) ON TABLE t_objnum TO "User";
@@ -382,8 +382,8 @@ CREATE INDEX idx_t_objnum_pid ON t_objnum USING btree("pid") ;
 --CREATE INDEX idx_t_objnum_id_more_one ON t_objnum(id) WHERE id>1;
 
 
-INSERT INTO t_objnum(id,pid,cls_id,obj_label)  VALUES (0,0,0,'root');
-INSERT INTO t_objnum(id,pid,cls_id,obj_label)  VALUES (1,0,1,'Object0');
+INSERT INTO t_objnum(id,pid,cls_id,label)  VALUES (0,0,0,'root');
+INSERT INTO t_objnum(id,pid,cls_id,label)  VALUES (1,0,1,'Object0');
 
 ALTER TABLE t_cls
   ADD CONSTRAINT fk_class__default_pid FOREIGN KEY (default_pid)
@@ -399,18 +399,18 @@ ALTER TABLE t_cls
 
 CREATE TABLE t_objqtykey
 (
-    id BIGINT  DEFAULT nextval('seq_obj_id'::regclass)
-    ,cls_id    INTEGER NOT NULL
-    ,obj_label NAME    NOT NULL
+   id BIGINT  DEFAULT nextval('seq_obj_id'::regclass)
+  ,label NAME    NOT NULL
+  ,cls_id    INTEGER NOT NULL
 
-,CONSTRAINT pk_objqtykey_id             PRIMARY KEY(id)
-,CONSTRAINT uk_objqtykey_clsid_objlabel UNIQUE( cls_id, obj_label )
+,CONSTRAINT pk_objqtykey_id     PRIMARY KEY( id )
+,CONSTRAINT uk_objqtykey_clsid_label UNIQUE( cls_id, label )
 
 ,CONSTRAINT fk_objqtykey_cls_id FOREIGN KEY (cls_id)
     REFERENCES                 t_clsqty    (cls_id)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
     
-,CONSTRAINT ck_objqty_label CHECK (obj_label ~ '^([[:alnum:][:space:]!()*+,-.:;<=>^_|№])+$')
+,CONSTRAINT ck_objqty_label CHECK (label ~ '^([[:alnum:][:space:]!()*+,-.:;<=>^_|№])+$')
 );
 
 
@@ -1163,22 +1163,22 @@ CREATE TRIGGER tr_aiu_ref_class_act
 ---------------------------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS fn_insert_objqty(IN _cls_id INTEGER, IN _label NAME, IN _pid BIGINT, IN _qty NUMERIC) CASCADE;
 CREATE OR REPLACE FUNCTION fn_insert_objqty(IN _cls_id INTEGER, IN _label NAME, IN _pid BIGINT, IN _qty NUMERIC)
-    RETURNS TABLE(id_ BIGINT, pid_ BIGINT, obj_label_ name, qty_ NUMERIC) AS
+    RETURNS TABLE(id_ BIGINT, pid_ BIGINT, label_ name, qty_ NUMERIC) AS
 $body$
 DECLARE
     
     v_objqty_id BIGINT;
 BEGIN
-    SELECT id INTO v_objqty_id FROM t_objqtykey WHERE cls_id = _cls_id AND obj_label = _label;
+    SELECT id INTO v_objqty_id FROM t_objqtykey WHERE cls_id = _cls_id AND label = _label;
     IF NOT FOUND THEN
-        INSERT INTO t_objqtykey(cls_id, obj_label ) 
+        INSERT INTO t_objqtykey(cls_id, label ) 
                VALUES ( _cls_id, _label ) RETURNING id INTO v_objqty_id;
     END IF;
 
     INSERT INTO t_objqty(objqty_id, pid, qty) VALUES (v_objqty_id, _pid, _qty);
     id_:=v_objqty_id;
     pid_:=_pid;
-    obj_label_:=_label;
+    label_:=_label;
     qty_=_qty;
     return next;
     RETURN ;
@@ -1205,7 +1205,7 @@ $body$
 BEGIN
     PERFORM id FROM t_objqtykey WHERE id = _objqty_id;
     IF FOUND THEN
-        UPDATE t_objqtykey SET obj_label=new_label WHERE id=_objqty_id;
+        UPDATE t_objqtykey SET label=new_label WHERE id=_objqty_id;
         UPDATE t_objqty    SET pid= new_pid, qty=new_qty  WHERE objqty_id=_objqty_id AND pid=old_pid;
     END IF;
 END;
@@ -1241,157 +1241,15 @@ COMMENT ON FUNCTION fn_delete_objqty(BIGINT, BIGINT )
 
 
 
-
------------------------------------------------------------------------------------------------------------------------------
-/** динамический тригер сохраняет данные соответствующие лействию BEFORE INSERT OR UPDATE ON t_state_XX */
-
-DROP FUNCTION IF EXISTS ftr_aiu_state() CASCADE;
-CREATE OR REPLACE FUNCTION ftr_aiu_state()  RETURNS trigger AS
-$body$
-DECLARE
-
-	-- находим свойста данного действия
-	cursor_act_prop 	CURSOR  IS 
-					SELECT prop_label 
-						FROM t_ref_act_prop
-					WHERE 	act_label=NEW.act_label;
-
-
-	-- ищем все свойства данного класса, которые не участвуют в действии
-	cursor_cleaned_prop 	CURSOR (_cls_label NAME)  IS 
-					SELECT prop_label 
-						FROM t_ref_act_prop
-					WHERE act_label IN (SELECT DISTINCT(act_label) FROM t_ref_class_act WHERE cls_label = _cls_label)
-				EXCEPT ALL 
-					SELECT prop_label 
-						FROM t_ref_act_prop
-					WHERE 	act_label=NEW.act_label;
-
-
-					
-	
-	
-	perm_group	NAME;
-
-	insert_script_1 TEXT;
-	insert_script_2 TEXT;
-
-	_rec_act_prop	RECORD;
-	_new_prop_val	TEXT;
-	_old_prop_val	TEXT;
-
-	tmp_rec RECORD;
-
-	obj 		RECORD;
-	class_id 	BIGINT;
-
-	vlog_id 	BIGINT;
-
-BEGIN
-	IF TG_OP='UPDATE' AND NEW.obj_id<>OLD.obj_id THEN
-		RAISE EXCEPTION '%: Нельзя менять идентификатор объекта',TG_NAME;
-	END IF;	
-
-	RAISE DEBUG '%: Ищем идентификатор класса % ',TG_NAME,TG_TABLE_NAME;
-	SELECT CAST( trim(leading 't_state_' from TG_TABLE_NAME) AS INTEGER) INTO class_id;
-	IF NOT FOUND THEN
-		RAISE EXCEPTION '%: Идентификатор класса не найден в %',TG_NAME,TG_TABLE_NAME;
-	END IF;		
-
-	RAISE DEBUG '%: Ищем и имя и тип класса для obj_id=%',TG_NAME,NEW.obj_id;	
-	SELECT * INTO obj FROM t_objnum WHERE id=NEW.obj_id ; --AND t_state.class_type=1
-	IF NOT FOUND THEN
-		RAISE EXCEPTION '%: Идентификатор объекта % не найден в t_objnum',TG_NAME,NEW.obj_id;
-	END IF;	
-	
-
-	RAISE DEBUG '%: Ищем разрешение выполнения "%" в классе "%" пользоватем "%" ',TG_NAME,NEW.act_label,obj.cls_label,CURRENT_USER;	
-	SELECT t_ref_class_act_perm.perm_group INTO perm_group 
-		FROM t_ref_class_act_perm
-		LEFT JOIN 	wh_role _group -- определяем разрешённые группы
-			ON	_group.rolname=t_ref_class_act_perm.perm_group	AND not _group.rolcanlogin 
-		RIGHT JOIN	wh_auth_members membership -- определяем ИДЕНТИФИКАТОРЫ разрешённых групп-пользователей
-			ON	_group.id=membership.roleid	
-		RIGHT JOIN 	wh_role _user  	-- определяем ИДЕНТИФИКАТОРЫ разрешённых пользователей		
-			ON	_user.id=membership.member AND _user.rolcanlogin
-			AND	_user.rolname=CURRENT_USER	-- определяем ИМЕНА разрешённых пользователей ВКЛЮЧАЯ ТЕКУЩЕГО
-		WHERE t_ref_class_act_perm.cls_label=cls_label AND t_ref_class_act_perm.act_label=NEW.act_label;
-	IF NOT FOUND THEN
-		RAISE EXCEPTION '%: Действие "%" не определено/не разрешено для %',TG_NAME,NEW.act_label,obj.cls_label;
-	END IF;
-
-	--инициализируем переменные чтоб небыло NULL || 'данные' = NULL
-	insert_script_1:='';
-	insert_script_2:='';
-
-	FOR _rec_act_prop IN cursor_act_prop LOOP
-		insert_script_1:=insert_script_1||','||quote_ident(_rec_act_prop.prop_label);
-		EXECUTE 'SELECT ('||quote_literal(NEW)||'::'||TG_RELID::regclass||').'|| quote_ident(_rec_act_prop.prop_label) INTO _new_prop_val;
-
-		IF _new_prop_val IS NOT NULL THEN
-			insert_script_2:=insert_script_2||','||quote_literal(_new_prop_val);
-		ELSE
-			insert_script_2:=insert_script_2||',NULL';
-		END IF;
-			
-		RAISE DEBUG '%: Лог свойства %=% ',TG_NAME,_rec_act_prop.prop_label,_new_prop_val;	
-
-	END LOOP;
-
-	RAISE DEBUG '%: Проверка изменения свойств не участвующик в действии',TG_NAME;
-
-	FOR _rec_act_prop IN cursor_cleaned_prop(obj.cls_label) LOOP
-		EXECUTE 'SELECT ('||quote_literal(NEW)||'::'||TG_RELID::regclass||').'|| quote_ident(_rec_act_prop.prop_label) INTO _new_prop_val;
-		
-		IF TG_OP='INSERT' AND _new_prop_val IS NOT NULL THEN
-			RAISE EXCEPTION '%: Нельзя менять % в действии %',TG_NAME,_rec_act_prop.prop_label,NEW.act_label;	
-		END IF;
-		
-		IF TG_OP='UPDATE' THEN
-			EXECUTE 'SELECT ('||quote_literal(OLD)||'::'||TG_RELID::regclass||').'|| quote_ident(_rec_act_prop.prop_label) INTO _old_prop_val;
-			IF _new_prop_val<>_old_prop_val THEN
-				RAISE EXCEPTION '%: Нельзя менять свойство "%" в действии "%"',TG_NAME,_rec_act_prop.prop_label,NEW.act_label;	
-			END IF;
-		END IF;
-	END LOOP;
-	
-	vlog_id:= nextval('seq_log_id'::regclass);
-
-	RAISE DEBUG '%: Обновляем состояние объекта (%) в t_objnum ',TG_NAME, obj;
-	UPDATE t_objnum SET log_id=vlog_id, log_time=CURRENT_TIMESTAMP, log_user=CURRENT_USER	WHERE t_objnum.id=NEW.obj_id;
-
-	insert_script_1:='INSERT INTO t_log_'||class_id||'(log_id, cls_label, obj_label, comment, act_label'
-					||insert_script_1;
-	insert_script_2:=')VALUES('	   ||vlog_id
-					||','||quote_literal(obj.cls_label)
-					||','||quote_literal(obj.obj_label)
-					||','||(CASE WHEN obj.comment IS NULL THEN 'NULL' ELSE quote_literal(obj.comment) END)
-					||','||quote_literal(NEW.act_label)
-					||insert_script_2||')';
-	RAISE DEBUG '%: Вставляем в лог изменения состояния и свойств объекта: 
-				% 
-				%'
-				,TG_NAME,insert_script_1, insert_script_2;
-	EXECUTE  insert_script_1||insert_script_2;
-
-	RAISE DEBUG '%: Обновляем свойства объекта % в t_state_% на NEW %',TG_NAME, obj.id, class_id,  NEW;
-
-RETURN NEW;
-END;
-$body$
-LANGUAGE 'plpgsql';
---CREATE TRIGGER tr_aiu_state BEFORE INSERT OR UPDATE ON t_state_XX FOR EACH ROW EXECUTE PROCEDURE ftr_aiu_state();
-
-
 -----------------------------------------------------------------------------------------------------------------------------
 DROP VIEW IF EXISTS w_obj;
 CREATE OR REPLACE VIEW w_obj AS 
 SELECT obj.*, t_cls.label AS cls_label, t_cls.type, t_cls.measurename, t_cls.default_pid AS cls_default_pid,t_cls.pid AS cls_pid
   FROM t_cls
-  RIGHT JOIN ( SELECT id AS obj_id, pid AS obj_pid, cls_id , obj_label, last_log_id, 1::NUMERIC AS qty
+  RIGHT JOIN ( SELECT id AS obj_id, pid AS obj_pid, cls_id , label, last_log_id, 1::NUMERIC AS qty
                  FROM t_objnum   
                  UNION ALL 
-                 SELECT objqty_id AS obj_id, pid AS obj_pid, cls_id , obj_label, last_log_id, qty
+                 SELECT objqty_id AS obj_id, pid AS obj_pid, cls_id , label, last_log_id, qty
                  FROM t_objqty
                    LEFT JOIN t_objqtykey ON t_objqtykey.id=t_objqty.objqty_id
               )obj  
@@ -1422,10 +1280,10 @@ BEGIN
 RETURN QUERY 
     WITH RECURSIVE parents AS 
     (SELECT
-        t.id, t.pid, t.obj_label, t_cls.label, t.cls_id, t.last_log_id
-        ,ARRAY[ ARRAY[t_cls.label,t.obj_label]::NAME[] ]::NAME[] AS path
+        t.id, t.pid, t.label, t_cls.label, t.cls_id, t.last_log_id
+        ,ARRAY[ ARRAY[t_cls.label,t.label]::NAME[] ]::NAME[] AS path
         ,ARRAY[ ARRAY[t.cls_id,t.id]::NAME[] ]::NAME[] AS pathid
-        , '/['||t_cls.label||']'||t.obj_label AS _path
+        , '/['||t_cls.label||']'||t.label AS _path
         --, ARRAY[t.id] AS exist, 
         --, FALSE AS cycle,
         FROM t_objnum AS t 
@@ -1434,10 +1292,10 @@ RETURN QUERY
         AND t.id>1
      UNION ALL
      SELECT
-        t.id, t.pid, t.obj_label, t_cls.label, t.cls_id, t.last_log_id
-        ,p.path || ARRAY[t_cls.label,t.obj_label]::NAME[]
+        t.id, t.pid, t.label, t_cls.label, t.cls_id, t.last_log_id
+        ,p.path || ARRAY[t_cls.label,t.label]::NAME[]
         ,p.pathid || ARRAY[t.cls_id,t.id]::NAME[]
-        ,'/['||t_cls.label||']'||t.obj_label || p._path
+        ,'/['||t_cls.label||']'||t.label || p._path
         --, exist || t.id
         --, t.id = ANY(exist)
         FROM 
@@ -1653,14 +1511,14 @@ DECLARE
     --rec      RECORD;
     result   NAME [];
     get_obj_info CURSOR IS 
-    SELECT t_cls.id, t_cls.label, t_objnum.id, obj_label,  arr.id
+    SELECT t_cls.id, t_cls.label, t_objnum.id, t_objnum.label,  arr.id
         FROM fn_array1_to_table(idpath) arr
         LEFT JOIN t_objnum USING (id)
         LEFT JOIN t_cls ON t_cls.id=t_objnum.cls_id 
         ORDER BY idx;
 BEGIN
     FOR rec IN get_obj_info LOOP
-        result := result || ARRAY[ ARRAY[rec.label,rec.obj_label] ];
+        result := result || ARRAY[ ARRAY[rec.label,rec.label] ];
     END LOOP;
     RETURN result;
 END;
@@ -1727,7 +1585,7 @@ $BODY$  LANGUAGE plpgsql STABLE COST 100;
 CREATE OR REPLACE VIEW moverule_lockup AS 
 SELECT 
     obj.obj_id      AS mov_obj_id
-    ,obj.obj_label  AS mov_obj_label
+    ,obj.label      AS mov_obj_label
     ,obj.obj_pid    AS mov_obj_pid
     ,obj.cls_id     AS mov_cls_id
     ,obj.cls_label  AS mov_cls_label
@@ -1736,7 +1594,7 @@ SELECT
     ,perm.src_path  AS src_path
 
     ,dst.id         AS dst_obj_id
-    ,dst.obj_label  AS dst_obj_label
+    ,dst.label      AS dst_obj_label
     ,dst.pid        AS dst_obj_pid
     ,dst.cls_id     AS dst_cls_id
     ,perm.dst_path  AS dst_path
@@ -1816,10 +1674,10 @@ PRINT '';
 PRINT '- Тесты вставки/обновления/удаления НОМЕРНЫХ ОБЪЕКТОВ';
 PRINT '';
 ------------------------------------------------------------------------------------------------------------
-INSERT INTO t_objnum(obj_label,cls_id)   VALUES ('уренгой',101); --100
-INSERT INTO t_objnum(obj_label,cls_id)   VALUES ('001', 104 /*ФЭУ102*/); -- 101
-INSERT INTO t_objnum(obj_label,cls_id)   VALUES ('002',104 /*ФЭУ102*/);
-INSERT INTO t_objnum(obj_label,cls_id,pid)   VALUES ('012', 105, (SELECT id FROM t_objnum WHERE obj_label='уренгой') );/*СРК2М*/
+INSERT INTO t_objnum(label,cls_id)   VALUES ('уренгой',101); --100
+INSERT INTO t_objnum(label,cls_id)   VALUES ('001', 104 /*ФЭУ102*/); -- 101
+INSERT INTO t_objnum(label,cls_id)   VALUES ('002',104 /*ФЭУ102*/);
+INSERT INTO t_objnum(label,cls_id,pid)   VALUES ('012', 105, (SELECT id FROM t_objnum WHERE label='уренгой') );/*СРК2М*/
 ------------------------------------------------------------------------------------------------------------
 PRINT '';
 PRINT '- Тесты вставки/обновления/удаления КОЛИЧЕСТВЕННЫХ ОБЪЕКТОВ';

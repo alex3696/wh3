@@ -212,7 +212,7 @@ bool MClsActArray::GetSelectChildsQuery(wxString& query)const
 			"SELECT t_access_act.id, access_group, access_disabled, script_restrict "
 			", act_id, t_act.label "
 			", t_access_act.cls_id, t_cls.label "
-			", obj_id, t_objnum.obj_label"
+			", obj_id, t_objnum.label"
 			", src_path "
 			" FROM t_access_act "
 			" LEFT JOIN t_act ON t_act.id = t_access_act.act_id "
