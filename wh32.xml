@@ -6,6 +6,7 @@
   <Sch Cm="standard public schema" nm="public">
     <Tbl UsSo="1" nm="t_access_act">
       <TblOpts>WITHOUT OIDS</TblOpts>
+      <Pk ClNs="id" nm="pk_access_act"/>
       <Cl au="0" df="nextval('t_access_act_id_seq'::regclass)" nm="id" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
@@ -24,11 +25,11 @@
       <Cl au="0" df="" nm="cls_id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Cl au="0" df="" nm="obj_label" nu="1">
-        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
       <Cl au="0" df="" nm="src_path" nu="1">
-        <DT arr="1" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+        <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="obj_id" nu="1">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Fk deAc="0" nm="fk_access_act_cls" prLkCl="cls_id" upAc="0">
         <PrTb mn="0" nm="t_ref_class_act" oe="1" sch="public" zr="0"/>
@@ -36,19 +37,29 @@
         <ClPr cdCl="cls_id" prCl="cls_id"/>
         <ClPr cdCl="act_id" prCl="act_id"/>
       </Fk>
+      <Fk deAc="4" nm="fk_access_act_objnum" prLkCl="id" upAc="0">
+        <PrTb mn="0" nm="t_objnum" oe="1" sch="public" zr="1"/>
+        <CdTb mn="1" nm="t_access_act" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="obj_id" prCl="id"/>
+      </Fk>
       <Fk deAc="0" nm="fk_access_act_role" prLkCl="rolname" upAc="0">
         <PrTb mn="0" nm="wh_role" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_access_act" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="access_group" prCl="rolname"/>
       </Fk>
-      <Trg del="0" eaRow="1" exBe="1" ins="1" nm="tr_bi_access_act" upd="1">
-        <Sql>ftr_bi_access_act()</Sql>
+      <Idx clu="0" nm="idx_t_access_act__access_group" unq="0">
+        <ClNs>access_group</ClNs>
+      </Idx>
+      <Idx clu="0" nm="idx_t_access_act__cls_id" unq="0">
+        <ClNs>cls_id</ClNs>
+      </Idx>
+      <Trg del="1" eaRow="1" exBe="0" ins="0" nm="tr_ad_access_act" upd="0">
+        <Sql>ftr_ad_access_act()</Sql>
       </Trg>
-      <UniqueConstraints>
-        <UnCon nm="t_access_act_id_key">
-          <ClNs>id</ClNs>
-        </UnCon>
-      </UniqueConstraints>
+      <Trg del="0" eaRow="1" exBe="1" ins="1" nm="tr_biu_access_act" upd="1">
+        <Sql>ftr_biu_access_act()</Sql>
+      </Trg>
+      <UniqueConstraints/>
       <SchTrHis/>
     </Tbl>
     <Tbl UsSo="1" nm="t_access_slot">
@@ -69,38 +80,53 @@
       <Cl au="0" df="" nm="dst_cls_id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Cl au="0" df="" nm="dst_obj" nu="1">
-        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
       <Cl au="0" df="" nm="dst_path" nu="1">
-        <DT arr="1" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="" nm="mov_cls" nu="0">
-        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="" nm="mov_obj" nu="1">
-        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
+        <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="" nm="src_path" nu="1">
-        <DT arr="1" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
+        <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="dst_obj_id" nu="1">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="mov_cls_id" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="mov_obj_id" nu="1">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="0" nm="src_min" nu="0">
+        <DT arr="0" ds="Numeric" en="" id="2" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="dst_max" nu="1">
+        <DT arr="0" ds="Numeric" en="" id="2" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Fk deAc="0" nm="fk_access_dst_cls" prLkCl="cls_id" upAc="0">
         <PrTb mn="0" nm="t_clsnum" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_access_slot" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="dst_cls_id" prCl="cls_id"/>
       </Fk>
-      <Fk deAc="0" nm="fk_access_mov_cls" prLkCl="label" upAc="0">
+      <Fk deAc="0" nm="fk_access_mov_cls" prLkCl="id" upAc="0">
         <PrTb mn="0" nm="t_cls" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_access_slot" oe="0" sch="public" zr="1"/>
-        <ClPr cdCl="mov_cls" prCl="label"/>
+        <ClPr cdCl="mov_cls_id" prCl="id"/>
       </Fk>
       <Fk deAc="0" nm="fk_access_slot__acess_group" prLkCl="rolname" upAc="0">
         <PrTb mn="0" nm="wh_role" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_access_slot" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="access_group" prCl="rolname"/>
       </Fk>
-      <Idx clu="0" nm="t_access_slot_mov_cls_idx" unq="0">
-        <ClNs>mov_cls</ClNs>
+      <Idx clu="0" nm="t_access_slot_access_group_idx" unq="0">
+        <ClNs>access_group</ClNs>
+      </Idx>
+      <Idx clu="0" nm="t_access_slot_dst_path_idx" unq="0">
+        <ClNs>dst_path</ClNs>
+      </Idx>
+      <Idx clu="0" nm="t_access_slot_mov_cls_id_idx" unq="0">
+        <ClNs>mov_cls_id</ClNs>
+      </Idx>
+      <Idx clu="0" nm="t_access_slot_src_path_idx" unq="0">
+        <ClNs>src_path</ClNs>
       </Idx>
       <UniqueConstraints/>
       <SchTrHis/>
@@ -138,7 +164,7 @@
     </Tbl>
     <Tbl UsSo="1" nm="t_cls">
       <TblOpts>WITHOUT OIDS</TblOpts>
-      <Pk ClNs="label" nm="pkt_cls"/>
+      <Pk ClNs="id" nm="pk_cls_id"/>
       <Cl au="0" df="nextval('t_cls_id_seq'::regclass)" nm="id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
@@ -160,7 +186,7 @@
       <Cl au="0" df="ед." nm="measurename" nu="1">
         <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Cl au="0" df="0" nm="default_pid" nu="0">
+      <Cl au="0" df="1" nm="default_pid" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Fk deAc="4" nm="fk_class__default_pid" prLkCl="id" upAc="0">
@@ -173,6 +199,9 @@
         <CdTb mn="1" nm="t_cls" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="pid" prCl="id"/>
       </Fk>
+      <Idx clu="0" nm="idx_t_cls_pid" unq="0">
+        <ClNs>pid</ClNs>
+      </Idx>
       <Trg del="0" eaRow="1" exBe="0" ins="1" nm="tr_ai_class" upd="0">
         <Sql>ftr_ai_class()</Sql>
       </Trg>
@@ -186,45 +215,42 @@
         <Sql>ftr_bu_class()</Sql>
       </Trg>
       <UniqueConstraints>
-        <UnCon nm="uk_class_id">
-          <ClNs>id</ClNs>
+        <UnCon nm="uk_cls_label">
+          <ClNs>label</ClNs>
         </UnCon>
-        <UnCon nm="uk_class_id_type">
-          <ClNs>id, type</ClNs>
-        </UnCon>
-        <UnCon nm="uk_class_lbl_type">
-          <ClNs>label, type</ClNs>
+        <UnCon nm="uk_cls_type_id">
+          <ClNs>type, id</ClNs>
         </UnCon>
       </UniqueConstraints>
       <SchTrHis/>
     </Tbl>
     <Tbl UsSo="1" nm="t_cls_prop">
       <TblOpts>WITHOUT OIDS</TblOpts>
-      <Pk ClNs="cls_label, prop_label" nm="pk_classprop"/>
+      <Pk ClNs="cls_id, prop_id" nm="pk_cls_prop"/>
       <Cl au="0" df="nextval('t_cls_prop_id_seq'::regclass)" nm="id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="" nm="prop_label" nu="0">
-        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="" nm="val" nu="1">
         <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Cl au="0" df="" nm="cls_label" nu="0">
-        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
+      <Cl au="0" df="" nm="cls_id" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Fk deAc="0" nm="t_cls_prop_cls_label_fkey" prLkCl="label" upAc="0">
+      <Cl au="0" df="" nm="prop_id" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Fk deAc="0" nm="t_cls_prop_cls_id_fkey" prLkCl="id" upAc="0">
         <PrTb mn="0" nm="t_cls" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_cls_prop" oe="0" sch="public" zr="1"/>
-        <ClPr cdCl="cls_label" prCl="label"/>
+        <ClPr cdCl="cls_id" prCl="id"/>
       </Fk>
-      <Fk deAc="0" nm="t_cls_prop_prop_label_fkey" prLkCl="label" upAc="0">
+      <Fk deAc="0" nm="t_cls_prop_prop_id_fkey" prLkCl="id" upAc="0">
         <PrTb mn="0" nm="t_prop" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_cls_prop" oe="0" sch="public" zr="1"/>
-        <ClPr cdCl="prop_label" prCl="label"/>
+        <ClPr cdCl="prop_id" prCl="id"/>
       </Fk>
       <UniqueConstraints>
-        <UnCon nm="uk_class_prop__id">
+        <UnCon nm="uk_cls_prop__id">
           <ClNs>id</ClNs>
         </UnCon>
       </UniqueConstraints>
@@ -346,9 +372,143 @@
       </UniqueConstraints>
       <SchTrHis/>
     </Tbl>
+    <Tbl UsSo="1" nm="t_favorites">
+      <TblOpts>WITHOUT OIDS</TblOpts>
+      <Pk ClNs="id" nm="t_favorites_pkey"/>
+      <Cl au="0" df="nextval('t_favorites_id_seq'::regclass)" nm="id" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="1" nm="pid" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="&quot;current_user&quot;()" nm="owner" nu="0">
+        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="true" nm="expanded" nu="0">
+        <DT arr="0" ds="Boolean" en="" id="16" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="label" nu="1">
+        <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="0" nm="node_type" nu="0">
+        <DT arr="0" ds="SmallInt" en="" id="5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="cls_id" nu="1">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="obj_id" nu="1">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Fk deAc="0" nm="t_favorites_cls_id_fkey" prLkCl="id" upAc="0">
+        <PrTb mn="0" nm="t_cls" oe="1" sch="public" zr="1"/>
+        <CdTb mn="1" nm="t_favorites" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="cls_id" prCl="id"/>
+      </Fk>
+      <Fk deAc="0" nm="t_favorites_obj_id_fkey" prLkCl="id" upAc="0">
+        <PrTb mn="0" nm="t_objnum" oe="1" sch="public" zr="1"/>
+        <CdTb mn="1" nm="t_favorites" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="obj_id" prCl="id"/>
+      </Fk>
+      <Fk deAc="0" nm="t_favorites_owner_fkey" prLkCl="rolname" upAc="0">
+        <PrTb mn="0" nm="wh_role" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="t_favorites" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="owner" prCl="rolname"/>
+      </Fk>
+      <Fk deAc="0" nm="t_favorites_pid_fkey" prLkCl="id" upAc="0">
+        <PrTb mn="0" nm="t_favorites" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="t_favorites" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="pid" prCl="id"/>
+      </Fk>
+      <UniqueConstraints/>
+      <SchTrHis/>
+    </Tbl>
+    <Tbl UsSo="1" nm="t_lock_act">
+      <TblOpts>WITHOUT OIDS</TblOpts>
+      <Cl au="0" df="" nm="cls_id" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="obj_id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="obj_pid" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="act_id" nu="1">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Fk deAc="0" nm="t_lock_act__dst_fkey" prLkCl="cls_id" upAc="0">
+        <PrTb mn="0" nm="t_lock_obj" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="t_lock_act" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="cls_id" prCl="cls_id"/>
+        <ClPr cdCl="obj_id" prCl="obj_id"/>
+        <ClPr cdCl="obj_pid" prCl="obj_pid"/>
+      </Fk>
+      <Idx clu="0" nm="idx_lock_act__cls_obj_pid" unq="0">
+        <ClNs>cls_id, obj_id, obj_pid</ClNs>
+      </Idx>
+      <UniqueConstraints/>
+      <SchTrHis/>
+    </Tbl>
+    <Tbl UsSo="1" nm="t_lock_dst">
+      <TblOpts>WITHOUT OIDS</TblOpts>
+      <Cl au="0" df="" nm="cls_id" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="obj_id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="obj_pid" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="dst_path" nu="1">
+        <DT arr="1" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Fk deAc="0" nm="t_lock_dst__dst_fkey" prLkCl="cls_id" upAc="0">
+        <PrTb mn="0" nm="t_lock_obj" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="t_lock_dst" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="cls_id" prCl="cls_id"/>
+        <ClPr cdCl="obj_id" prCl="obj_id"/>
+        <ClPr cdCl="obj_pid" prCl="obj_pid"/>
+      </Fk>
+      <Idx clu="0" nm="idx_lock_dst__cls_obj_pid" unq="0">
+        <ClNs>cls_id, obj_id, obj_pid</ClNs>
+      </Idx>
+      <UniqueConstraints/>
+      <SchTrHis/>
+    </Tbl>
+    <Tbl UsSo="1" nm="t_lock_obj">
+      <TblOpts>WITHOUT OIDS</TblOpts>
+      <Cl au="0" df="" nm="cls_id" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="obj_id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="obj_pid" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="src_path" nu="1">
+        <DT arr="1" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="pg_backend_pid" nm="session_pid" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="&quot;current_user&quot;()" nm="conn_user" nu="0">
+        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="now()" nm="lock_time" nu="0">
+        <DT arr="0" ds="TimeStampWithTimeZone" en="" id="772" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <UniqueConstraints>
+        <UnCon nm="pk_lock_obj__cls_obj_pid">
+          <ClNs>cls_id, obj_id, obj_pid</ClNs>
+        </UnCon>
+      </UniqueConstraints>
+      <SchTrHis/>
+    </Tbl>
     <Tbl UsSo="1" nm="t_log">
       <TblOpts>WITHOUT OIDS</TblOpts>
-      <Cl au="0" df="nextval('seq_log_id'::regclass)" nm="log_id" nu="0">
+      <Cl au="0" df="" nm="log_id" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="now()" nm="logtime" nu="0">
@@ -357,14 +517,11 @@
       <Cl au="0" df="&quot;current_user&quot;()" nm="loguser" nu="0">
         <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Cl au="0" df="" nm="note" nu="1">
-        <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
       <Cl au="0" df="" nm="src_path" nu="1">
-        <DT arr="1" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+        <DT arr="1" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="" nm="dst_path" nu="1">
-        <DT arr="1" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+        <DT arr="1" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="" nm="cls_id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
@@ -375,7 +532,7 @@
     <Tbl UsSo="1" nm="t_log_101">
       <TblOpts>INHERITS (t_log) WITHOUT OIDS</TblOpts>
       <Pk ClNs="log_id" nm="pk_lognum_101"/>
-      <Cl au="0" df="nextval('seq_log_id'::regclass)" nm="log_id" nu="0">
+      <Cl au="0" df="" nm="log_id" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="now()" nm="logtime" nu="0">
@@ -387,14 +544,11 @@
       <Cl au="0" df="" nm="cls_id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Cl au="0" df="" nm="note" nu="1">
-        <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
       <Cl au="0" df="" nm="src_path" nu="1">
-        <DT arr="1" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+        <DT arr="1" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="" nm="dst_path" nu="1">
-        <DT arr="1" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+        <DT arr="1" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="" nm="act_id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
@@ -413,6 +567,12 @@
       </Cl>
       <Cl au="0" df="" nm="рем1" nu="1">
         <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="old_obj_pid" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="new_obj_pid" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Fk deAc="0" nm="fk_logact_101" prLkCl="id" upAc="0">
         <PrTb mn="0" nm="t_act" oe="1" sch="public" zr="0"/>
@@ -436,7 +596,7 @@
     <Tbl UsSo="1" nm="t_log_104">
       <TblOpts>INHERITS (t_log) WITHOUT OIDS</TblOpts>
       <Pk ClNs="log_id" nm="pk_lognum_104"/>
-      <Cl au="0" df="nextval('seq_log_id'::regclass)" nm="log_id" nu="0">
+      <Cl au="0" df="" nm="log_id" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="now()" nm="logtime" nu="0">
@@ -448,20 +608,23 @@
       <Cl au="0" df="" nm="cls_id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Cl au="0" df="" nm="note" nu="1">
-        <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
       <Cl au="0" df="" nm="src_path" nu="1">
-        <DT arr="1" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+        <DT arr="1" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="" nm="dst_path" nu="1">
-        <DT arr="1" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+        <DT arr="1" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="" nm="act_id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="" nm="obj_id" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="old_obj_pid" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="new_obj_pid" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Fk deAc="0" nm="fk_logact_104" prLkCl="id" upAc="0">
         <PrTb mn="0" nm="t_act" oe="1" sch="public" zr="0"/>
@@ -485,7 +648,7 @@
     <Tbl UsSo="1" nm="t_log_105">
       <TblOpts>INHERITS (t_log) WITHOUT OIDS</TblOpts>
       <Pk ClNs="log_id" nm="pk_lognum_105"/>
-      <Cl au="0" df="nextval('seq_log_id'::regclass)" nm="log_id" nu="0">
+      <Cl au="0" df="" nm="log_id" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="now()" nm="logtime" nu="0">
@@ -497,14 +660,11 @@
       <Cl au="0" df="" nm="cls_id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Cl au="0" df="" nm="note" nu="1">
-        <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
       <Cl au="0" df="" nm="src_path" nu="1">
-        <DT arr="1" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+        <DT arr="1" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="" nm="dst_path" nu="1">
-        <DT arr="1" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+        <DT arr="1" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="" nm="act_id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
@@ -523,6 +683,12 @@
       </Cl>
       <Cl au="0" df="" nm="рем2" nu="1">
         <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="old_obj_pid" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="new_obj_pid" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Fk deAc="0" nm="fk_logact_105" prLkCl="id" upAc="0">
         <PrTb mn="0" nm="t_act" oe="1" sch="public" zr="0"/>
@@ -546,7 +712,7 @@
     <Tbl UsSo="1" nm="t_logqty">
       <TblOpts>INHERITS (t_log) WITHOUT OIDS</TblOpts>
       <Pk ClNs="log_id" nm="pk_logqty_id"/>
-      <Cl au="0" df="nextval('seq_log_id'::regclass)" nm="log_id" nu="0">
+      <Cl au="0" df="" nm="log_id" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="now()" nm="logtime" nu="0">
@@ -558,26 +724,28 @@
       <Cl au="0" df="" nm="cls_id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Cl au="0" df="" nm="note" nu="1">
-        <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
       <Cl au="0" df="" nm="src_path" nu="1">
-        <DT arr="1" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+        <DT arr="1" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="" nm="dst_path" nu="1">
-        <DT arr="1" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="" nm="obj_label" nu="0">
-        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
+        <DT arr="1" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="" nm="qty" nu="0">
         <DT arr="0" ds="Numeric" en="" id="2" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Fk deAc="0" nm="fk_logqty_objqtykey" prLkCl="obj_label" upAc="0">
+      <Cl au="0" df="" nm="old_obj_pid" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="new_obj_pid" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="objqty_id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Fk deAc="0" nm="fk_logqty_objqtykey" prLkCl="id" upAc="0">
         <PrTb mn="0" nm="t_objqtykey" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_logqty" oe="0" sch="public" zr="1"/>
-        <ClPr cdCl="obj_label" prCl="obj_label"/>
-        <ClPr cdCl="cls_id" prCl="cls_id"/>
+        <ClPr cdCl="objqty_id" prCl="id"/>
       </Fk>
       <Fk deAc="3" nm="fk_logqty_user" prLkCl="rolname" upAc="0">
         <PrTb mn="0" nm="wh_role" oe="1" sch="public" zr="0"/>
@@ -589,9 +757,9 @@
     </Tbl>
     <Tbl UsSo="1" nm="t_objnum">
       <TblOpts>WITHOUT OIDS</TblOpts>
-      <Pk ClNs="obj_label, cls_id" nm="pk_objnum"/>
-      <Cl au="0" df="" nm="cls_id" nu="0">
-        <DT arr="0" ds="SmallInt" en="" id="5" ln="null" sc="null" sg="1" un="0"/>
+      <Pk ClNs="id" nm="pk_objnum_id"/>
+      <Cl au="0" df="" nm="cls_id" nu="1">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="nextval('seq_obj_id'::regclass)" nm="id" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
@@ -619,11 +787,11 @@
         <ClNs>pid</ClNs>
       </Idx>
       <UniqueConstraints>
-        <UnCon nm="uk_objnum_id">
-          <ClNs>id</ClNs>
+        <UnCon nm="uk_objnum_clsid_id">
+          <ClNs>cls_id, id</ClNs>
         </UnCon>
-        <UnCon nm="uk_objnum_id_cls_id">
-          <ClNs>id, cls_id</ClNs>
+        <UnCon nm="uk_objnum_clsid_label">
+          <ClNs>cls_id, obj_label</ClNs>
         </UnCon>
         <UnCon nm="uk_objnum_log_id">
           <ClNs>last_log_id</ClNs>
@@ -633,13 +801,7 @@
     </Tbl>
     <Tbl UsSo="1" nm="t_objqty">
       <TblOpts>WITHOUT OIDS</TblOpts>
-      <Pk ClNs="obj_label, cls_id, pid" nm="pk_obj_items"/>
-      <Cl au="0" df="" nm="cls_id" nu="0">
-        <DT arr="0" ds="SmallInt" en="" id="5" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="" nm="obj_label" nu="0">
-        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
+      <Pk ClNs="objqty_id, pid" nm="pk_objqty_oid_pid"/>
       <Cl au="0" df="1" nm="pid" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
@@ -649,38 +811,50 @@
       <Cl au="0" df="" nm="last_log_id" nu="1">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
+      <Cl au="0" df="" nm="objqty_id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
       <Fk deAc="4" nm="fk_obj_items_pid" prLkCl="id" upAc="0">
         <PrTb mn="0" nm="t_objnum" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_objqty" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="pid" prCl="id"/>
       </Fk>
-      <Fk deAc="0" nm="fk_objqty_objqtykey" prLkCl="obj_label" upAc="0">
+      <Fk deAc="0" nm="fk_objqty_objqtykey" prLkCl="id" upAc="0">
         <PrTb mn="0" nm="t_objqtykey" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_objqty" oe="0" sch="public" zr="1"/>
-        <ClPr cdCl="obj_label" prCl="obj_label"/>
-        <ClPr cdCl="cls_id" prCl="cls_id"/>
+        <ClPr cdCl="objqty_id" prCl="id"/>
       </Fk>
-      <Trg del="0" eaRow="1" exBe="1" ins="1" nm="tr_bi_objqty" upd="0">
-        <Sql>ftr_bi_obj_any()</Sql>
-      </Trg>
+      <Idx clu="0" nm="idx_t_objqty_id" unq="0">
+        <ClNs>objqty_id</ClNs>
+      </Idx>
+      <Idx clu="0" nm="idx_t_objqty_pid" unq="0">
+        <ClNs>pid</ClNs>
+      </Idx>
       <UniqueConstraints/>
       <SchTrHis/>
     </Tbl>
     <Tbl UsSo="1" nm="t_objqtykey">
       <TblOpts>WITHOUT OIDS</TblOpts>
-      <Pk ClNs="obj_label, cls_id" nm="pkt_objqtykey"/>
+      <Pk ClNs="id" nm="pk_objqtykey_id"/>
       <Cl au="0" df="" nm="cls_id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="" nm="obj_label" nu="0">
         <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
+      <Cl au="0" df="nextval('seq_obj_id'::regclass)" nm="id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
       <Fk deAc="0" nm="fk_objqtykey_cls_id" prLkCl="cls_id" upAc="0">
         <PrTb mn="0" nm="t_clsqty" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_objqtykey" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="cls_id" prCl="cls_id"/>
       </Fk>
-      <UniqueConstraints/>
+      <UniqueConstraints>
+        <UnCon nm="uk_objqtykey_clsid_objlabel">
+          <ClNs>cls_id, obj_label</ClNs>
+        </UnCon>
+      </UniqueConstraints>
       <SchTrHis/>
     </Tbl>
     <Tbl UsSo="1" nm="t_prop">
@@ -707,7 +881,7 @@
     </Tbl>
     <Tbl UsSo="1" nm="t_ref_act_prop">
       <TblOpts>WITHOUT OIDS</TblOpts>
-      <Pk ClNs="act_id, prop_id" nm="pk_act_ref_prop"/>
+      <Pk ClNs="id" nm="pk_refactprop__id"/>
       <Cl au="0" df="nextval('t_ref_act_prop_id_seq'::regclass)" nm="id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
@@ -717,12 +891,12 @@
       <Cl au="0" df="" nm="prop_id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Fk deAc="0" nm="t_ref_act_prop_act_id_fkey" prLkCl="id" upAc="0">
+      <Fk deAc="0" nm="fk_refactprop__actid" prLkCl="id" upAc="0">
         <PrTb mn="0" nm="t_act" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_ref_act_prop" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="act_id" prCl="id"/>
       </Fk>
-      <Fk deAc="0" nm="t_ref_act_prop_prop_id_fkey" prLkCl="id" upAc="0">
+      <Fk deAc="0" nm="fk_refactprop__propid" prLkCl="id" upAc="0">
         <PrTb mn="0" nm="t_prop" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_ref_act_prop" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="prop_id" prCl="id"/>
@@ -731,15 +905,15 @@
         <Sql>ftr_aiu_act_ref_prop()</Sql>
       </Trg>
       <UniqueConstraints>
-        <UnCon nm="uk_ref_act_prop__id">
-          <ClNs>id</ClNs>
+        <UnCon nm="uk_refactprop__actid_propid">
+          <ClNs>act_id, prop_id</ClNs>
         </UnCon>
       </UniqueConstraints>
       <SchTrHis/>
     </Tbl>
     <Tbl UsSo="1" nm="t_ref_class_act">
       <TblOpts>WITHOUT OIDS</TblOpts>
-      <Pk ClNs="cls_id, act_id" nm="pk_ref_class_act"/>
+      <Pk ClNs="id" nm="pk_refclsact__id"/>
       <Cl au="0" df="nextval('t_ref_class_act_id_seq'::regclass)" nm="id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
@@ -749,12 +923,12 @@
       <Cl au="0" df="" nm="act_id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Fk deAc="0" nm="t_ref_class_act_act_id_fkey" prLkCl="id" upAc="0">
+      <Fk deAc="0" nm="fk_refclsact__act_id" prLkCl="id" upAc="0">
         <PrTb mn="0" nm="t_act" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_ref_class_act" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="act_id" prCl="id"/>
       </Fk>
-      <Fk deAc="0" nm="uk_ref_class_act__cls" prLkCl="cls_id" upAc="0">
+      <Fk deAc="0" nm="fk_refclsact__cls_id" prLkCl="cls_id" upAc="0">
         <PrTb mn="0" nm="t_clsnum" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_ref_class_act" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="cls_id" prCl="cls_id"/>
@@ -763,17 +937,14 @@
         <Sql>ftr_aiu_ref_class_act()</Sql>
       </Trg>
       <UniqueConstraints>
-        <UnCon nm="uk_ref_class_act__id">
-          <ClNs>id</ClNs>
+        <UnCon nm="uk_refclsact_clsid_actid">
+          <ClNs>cls_id, act_id</ClNs>
         </UnCon>
       </UniqueConstraints>
       <SchTrHis/>
     </Tbl>
     <Tbl UsSo="1" nm="t_state">
       <TblOpts>WITHOUT OIDS</TblOpts>
-      <Cl au="0" df="" nm="cls_id" nu="1">
-        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
       <Cl au="0" df="" nm="obj_id" nu="1">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
@@ -782,10 +953,7 @@
     </Tbl>
     <Tbl UsSo="1" nm="t_state_101">
       <TblOpts>INHERITS (t_state) WITHOUT OIDS</TblOpts>
-      <Pk ClNs="obj_id, cls_id" nm="pk_state_101"/>
-      <Cl au="0" df="" nm="cls_id" nu="0">
-        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
+      <Pk ClNs="obj_id" nm="pk_state_101"/>
       <Cl au="0" df="" nm="obj_id" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
@@ -802,17 +970,13 @@
         <PrTb mn="0" nm="t_objnum" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_state_101" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="obj_id" prCl="id"/>
-        <ClPr cdCl="cls_id" prCl="cls_id"/>
       </Fk>
       <UniqueConstraints/>
       <SchTrHis/>
     </Tbl>
     <Tbl UsSo="1" nm="t_state_104">
       <TblOpts>INHERITS (t_state) WITHOUT OIDS</TblOpts>
-      <Pk ClNs="obj_id, cls_id" nm="pk_state_104"/>
-      <Cl au="0" df="" nm="cls_id" nu="0">
-        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
+      <Pk ClNs="obj_id" nm="pk_state_104"/>
       <Cl au="0" df="" nm="obj_id" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
@@ -820,17 +984,13 @@
         <PrTb mn="0" nm="t_objnum" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_state_104" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="obj_id" prCl="id"/>
-        <ClPr cdCl="cls_id" prCl="cls_id"/>
       </Fk>
       <UniqueConstraints/>
       <SchTrHis/>
     </Tbl>
     <Tbl UsSo="1" nm="t_state_105">
       <TblOpts>INHERITS (t_state) WITHOUT OIDS</TblOpts>
-      <Pk ClNs="obj_id, cls_id" nm="pk_state_105"/>
-      <Cl au="0" df="" nm="cls_id" nu="0">
-        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
+      <Pk ClNs="obj_id" nm="pk_state_105"/>
       <Cl au="0" df="" nm="obj_id" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
@@ -847,7 +1007,6 @@
         <PrTb mn="0" nm="t_objnum" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_state_105" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="obj_id" prCl="id"/>
-        <ClPr cdCl="cls_id" prCl="cls_id"/>
       </Fk>
       <UniqueConstraints/>
       <SchTrHis/>
@@ -938,51 +1097,192 @@
       </UniqueConstraints>
       <SchTrHis/>
     </Tbl>
-    <Proc nm="fget_class_parent_array(_name name)">
-      <src>CREATE OR REPLACE FUNCTION fget_class_parent_array(_name name) 
-  RETURNS name[] AS 
-$$ 
-	SELECT 	
-		_path
-	FROM	
-		fget_class_pathinfo_table($1)
-	WHERE	
-		_parent='Object'
+    <Proc nm="do_log_state(_cls_id integer, _obj_id bigint, _act_id integer, _last_log_id bigint, _src_path bigint[], _dst_path bigint[], _old_pid bigint, _new_pid bigint)">
+      <src>CREATE OR REPLACE FUNCTION do_log_state(_cls_id integer, _obj_id bigint, _act_id integer, _last_log_id bigint, _src_path bigint[], _dst_path bigint[], _old_pid bigint, _new_pid bigint) 
+  RETURNS void AS 
+$$&#13;
+DECLARE&#13;
+    _hdr_str TEXT;&#13;
+    _val_str TEXT;&#13;
+    _all_prop_names CURSOR IS&#13;
+        SELECT DISTINCT ON(t_prop.id) t_prop.*&#13;
+          FROM  t_ref_class_act&#13;
+          LEFT JOIN t_ref_act_prop  ON t_ref_act_prop.act_id = t_ref_class_act.act_id&#13;
+          LEFT JOIN t_prop          ON t_ref_act_prop.prop_id = t_prop.id &#13;
+          WHERE t_ref_class_act.cls_id=_cls_id;&#13;
+&#13;
+    _insert_log_query TEXT;&#13;
+    _select_state     TEXT;&#13;
+    _prop_val_array     TEXT[];&#13;
+    &#13;
+    _hdr_qty INTEGER;&#13;
+BEGIN&#13;
+    _hdr_qty :=0;&#13;
+    _hdr_str :='';&#13;
+    _val_str :='';&#13;
+    FOR rec IN _all_prop_names LOOP&#13;
+        _hdr_str := concat_ws(',',_hdr_str,quote_ident(rec.label) );&#13;
+        _hdr_qty := _hdr_qty+1;&#13;
+    END LOOP;&#13;
+&#13;
+&#13;
+    IF _hdr_str&lt;&gt;'' THEN&#13;
+        _hdr_str:=TRIM(leading ',' from _hdr_str);&#13;
+        _select_state := format( 'SELECT ARRAY[%s] FROM t_state_%s WHERE obj_id=%s'&#13;
+                                     ,_hdr_str, _cls_id, _obj_id);&#13;
+        RAISE DEBUG '_select_state= %',_select_state;&#13;
+        EXECUTE _select_state INTO _prop_val_array;&#13;
+        &#13;
+        FOR i IN 1.._hdr_qty LOOP&#13;
+            _val_str := concat_ws(',',_val_str,COALESCE(quote_literal(_prop_val_array[i]),'NULL'));&#13;
+        END LOOP;&#13;
+        _val_str:=TRIM(leading ',' from _val_str);&#13;
+&#13;
+        _hdr_str:=_hdr_str||',';&#13;
+        _val_str:=_val_str||',';&#13;
+    END IF;&#13;
+&#13;
+    RAISE DEBUG '_hdr_str: %',_hdr_str;&#13;
+    RAISE DEBUG '_val_str: %',_val_str;&#13;
+&#13;
+    _insert_log_query:= format(&#13;
+        'INSERT INTO t_log_%s( %s log_id, cls_id, obj_id, act_id, src_path, dst_path, old_obj_pid, new_obj_pid)'&#13;
+        'VALUES(%s %s, %s, %s, %s, %L, %L, %L, %L)'&#13;
+        ,_cls_id&#13;
+        ,_hdr_str&#13;
+        ,_val_str, _last_log_id, _cls_id, _obj_id, _act_id, _src_path, _dst_path, _old_pid, _new_pid );&#13;
+    RAISE DEBUG 'insert_log_str: %',_insert_log_query;&#13;
+&#13;
+    EXECUTE _insert_log_query;&#13;
+END;&#13;
 $$
-  LANGUAGE sql VOLATILE 
+  LANGUAGE plpgsql VOLATILE 
+  COST 500;</src>
+    </Proc>
+    <Proc nm="do_obj_act(_cls_id integer, _obj_id bigint, _act_id integer, _header_data text[])">
+      <src>CREATE OR REPLACE FUNCTION do_obj_act(_cls_id integer, _obj_id bigint, _act_id integer, _header_data text[]) 
+  RETURNS void AS 
+$$&#13;
+DECLARE&#13;
+  -- название всех пользовательских полей подлежащих копированию&#13;
+    _prop_names CURSOR IS&#13;
+        SELECT t_prop.* , user_data.col2 AS val&#13;
+          FROM  t_ref_class_act&#13;
+          RIGHT JOIN t_ref_act_prop  ON t_ref_act_prop.act_id = t_ref_class_act.act_id&#13;
+          LEFT JOIN t_prop          ON t_ref_act_prop.prop_id = t_prop.id &#13;
+          LEFT JOIN (SELECT * FROM fn_array2_to_table(_header_data))user_data ON user_data.col1=t_prop.label&#13;
+          WHERE t_ref_class_act.cls_id=_cls_id AND t_ref_class_act.act_id=_act_id;&#13;
+&#13;
+    _all_prop_names CURSOR IS&#13;
+        SELECT DISTINCT ON(t_prop.id) t_prop.*&#13;
+          FROM  t_ref_class_act&#13;
+          LEFT JOIN t_ref_act_prop  ON t_ref_act_prop.act_id = t_ref_class_act.act_id&#13;
+          LEFT JOIN t_prop          ON t_ref_act_prop.prop_id = t_prop.id &#13;
+          WHERE t_ref_class_act.cls_id=_cls_id;&#13;
+&#13;
+    _lock_info RECORD;&#13;
+&#13;
+    _select_state TEXT;&#13;
+    _insert_state TEXT;&#13;
+    _hdr_str TEXT;&#13;
+    _val_str TEXT;&#13;
+    _update_state TEXT;&#13;
+&#13;
+    _found SMALLINT;&#13;
+    _last_log_id BIGINT;&#13;
+    _src_path BIGINT[];&#13;
+    _dst_path BIGINT[];&#13;
+    _old_pid BIGINT;&#13;
+    _new_pid BIGINT;&#13;
+&#13;
+BEGIN&#13;
+    -- проверяем - заблокирован ли объект для действия&#13;
+    SELECT * INTO _lock_info &#13;
+        FROM t_lock_obj&#13;
+        LEFT JOIN t_lock_act USING (cls_id,obj_id,obj_pid)&#13;
+        WHERE&#13;
+            cls_id=_cls_id AND obj_id=_obj_id&#13;
+            AND lock_time +'00:10:00.00' &gt; now()&#13;
+            AND session_pid = pg_backend_pid()&#13;
+            --AND ((src_path IS NULL AND _src_path IS NULL) OR src_path=_src_path)&#13;
+            AND act_id = _act_id;&#13;
+    IF NOT FOUND THEN&#13;
+        RAISE EXCEPTION ' Object not locked cls_id=% obj_id=% ',_cls_id, _obj_id;&#13;
+    END IF;&#13;
+&#13;
+&#13;
+    _select_state:= format('SELECT count(*) FROM t_objnum RIGHT JOIN t_state_%s ON id= obj_id WHERE cls_id=%s AND id=%s '&#13;
+                           ,_cls_id, _cls_id, _obj_id);&#13;
+    RAISE DEBUG '_select_state: %',_select_state;&#13;
+    EXECUTE _select_state INTO _found;&#13;
+    &#13;
+    --IF NOT FOUND THEN -- PERFORM/EXECUTE не меняют внутреннюю переменную FOUND :-(&#13;
+    IF _found=0 THEN&#13;
+        _hdr_str:='';&#13;
+        _val_str:='';&#13;
+        FOR rec IN _prop_names LOOP&#13;
+            _hdr_str := concat_ws(',',quote_ident(rec.label), _hdr_str );&#13;
+            _val_str := concat_ws(',',COALESCE(quote_literal(rec.val),'NULL'), _val_str );&#13;
+        END LOOP;&#13;
+&#13;
+        _insert_state:= format('INSERT INTO t_state_%s(%s obj_id)VALUES(%s %s)',&#13;
+                                   _cls_id, _hdr_str, _val_str, _obj_id);&#13;
+        RAISE DEBUG '_insert_state: %',_insert_state;&#13;
+        EXECUTE _insert_state;&#13;
+        RAISE DEBUG '_insert_ok';&#13;
+      ELSE&#13;
+        _val_str:='';&#13;
+        FOR rec IN _prop_names LOOP&#13;
+            _val_str := concat_ws(',',quote_ident(rec.label)||'='||quote_literal(rec.val), _val_str );&#13;
+        END LOOP;&#13;
+        _val_str:=TRIM(trailing ',' from _val_str);&#13;
+        _update_state:= format('UPDATE t_state_%s SET %s WHERE obj_id=%s', _cls_id, _val_str, _obj_id);&#13;
+        RAISE DEBUG '_update_state: %',_update_state;&#13;
+        EXECUTE _update_state;&#13;
+    END IF;&#13;
+&#13;
+    -- DO LOG&#13;
+    _last_log_id := nextval('seq_log_id');&#13;
+    _src_path:=_lock_info.src_path;&#13;
+    _dst_path:=_lock_info.src_path;&#13;
+    _old_pid:= _lock_info.obj_pid;&#13;
+    _new_pid:= _lock_info.obj_pid;&#13;
+    UPDATE t_objnum SET last_log_id=_last_log_id WHERE id=_obj_id;&#13;
+    PERFORM do_log_state(_cls_id, _obj_id, _act_id, _last_log_id, _src_path, _dst_path, _old_pid, _new_pid);&#13;
+&#13;
+END;&#13;
+$$
+  LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
     </Proc>
-    <Proc nm="fget_class_pathinfo_table(IN _name text)">
-      <src>CREATE OR REPLACE FUNCTION fget_class_pathinfo_table(IN _name text) 
-  RETURNS TABLE(_id bigint, _vid bigint, _label name, _type smallint, _parent name, _description text, _measurename text, _path name[]) AS 
-$$ 
-BEGIN
-RETURN QUERY(
-	WITH RECURSIVE parents AS 
-		(SELECT	id, vid, label, type, parent, description, measurename
-			,ARRAY[t.label] AS path	--,FALSE AS cycle
-		FROM 
-			t_class AS t 
-		WHERE 
-			_name IS NOT NULL 
-			AND  t.label = _name 
-			AND  t.id &gt; 1
-			--AND t.classname&lt;&gt;'Object'
-		UNION ALL
-		SELECT 	t.id, t.vid, t.label, t.type, t.parent, t.description, t.measurename
-			,path || t.label	--,t.classname = ANY(path) 
-		FROM 
-			parents AS p, t_class AS t 
-		WHERE 
-			t.label = p.parent 
-			--AND NOT cycle 
-			--AND t.classname &lt;&gt; t.classparent 
-			--AND t.classname&lt;&gt;'Object'
-			AND t.id &gt; 1
-		)
-	SELECT  * FROM 	parents 
-	);
-END; 
+    <Proc nm="fget_cls_childs(IN node_id integer)">
+      <src>CREATE OR REPLACE FUNCTION fget_cls_childs(IN node_id integer) 
+  RETURNS TABLE(_id integer, _vid integer, _label name, _type smallint, _pid integer, _description text, _measurename text) AS 
+$$ &#13;
+BEGIN&#13;
+RETURN QUERY(&#13;
+    WITH RECURSIVE children AS (&#13;
+    SELECT id, vid, label, type, pid, description, measurename&#13;
+           --pid || '/' || label          AS ord,&#13;
+           ,ARRAY[id]                            AS exist&#13;
+           ,FALSE                                AS cycle&#13;
+    FROM t_cls&#13;
+    WHERE id = node_id&#13;
+    UNION ALL&#13;
+        SELECT t.id, t.vid, t.label, t.type, t.pid, t.description, t.measurename&#13;
+               --ord || '[' || t.pid || ']' || '/' || t.label,&#13;
+               ,exist || t.id &#13;
+               ,t.id = ANY(exist)&#13;
+        FROM children AS c, &#13;
+             t_cls  AS t&#13;
+        WHERE t.pid = c.id AND &#13;
+              NOT cycle AND&#13;
+              array_length(exist, 1) &lt; 1000&#13;
+)&#13;
+SELECT id, vid, label, type, pid, description, measurename &#13;
+    FROM children WHERE NOT cycle --ORDER BY ord LIMIT 100;&#13;
+    );&#13;
+END; &#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100
@@ -991,152 +1291,187 @@ $$
     <Proc nm="fget_cls_pathinfo_table(IN _in_id integer)">
       <src>CREATE OR REPLACE FUNCTION fget_cls_pathinfo_table(IN _in_id integer) 
   RETURNS TABLE(_id integer, _vid integer, _label name, _type smallint, _pid integer, _description text, _measurename text, _path name[]) AS 
-$$ 
-BEGIN
-RETURN QUERY(
-	WITH RECURSIVE parents AS 
-		(SELECT	id, vid, label, type, pid, description, measurename
-			,ARRAY[t.label] AS path	--,FALSE AS cycle
-		FROM 
-			t_cls AS t 
-		WHERE 
-			_in_id IS NOT NULL 
-			AND  t.id = _in_id
-			AND  t.id &gt; 1
-			--AND t.classname&lt;&gt;'Object'
-		UNION ALL
-		SELECT 	t.id, t.vid, t.label, t.type, t.pid, t.description, t.measurename
-			,path || t.label	--,t.classname = ANY(path) 
-		FROM 
-			parents AS p, t_cls AS t 
-		WHERE 
-			t.id = p.pid 
-			--AND NOT cycle 
-			--AND t.classname &lt;&gt; t.classparent 
-			--AND t.classname&lt;&gt;'Object'
-			AND t.id &gt; 1
-		)
-	SELECT  * FROM 	parents 
-	);
-END; 
+$$ &#13;
+BEGIN&#13;
+RETURN QUERY(&#13;
+	WITH RECURSIVE parents AS &#13;
+		(SELECT	id, vid, label, type, pid, description, measurename&#13;
+			,ARRAY[t.label] AS path	--,FALSE AS cycle&#13;
+		FROM &#13;
+			t_cls AS t &#13;
+		WHERE &#13;
+			_in_id IS NOT NULL &#13;
+			AND  t.id = _in_id&#13;
+			AND  t.id &gt; 1&#13;
+			--AND t.classname&lt;&gt;'Object'&#13;
+		UNION ALL&#13;
+		SELECT 	t.id, t.vid, t.label, t.type, t.pid, t.description, t.measurename&#13;
+			,path || t.label	--,t.classname = ANY(path) &#13;
+		FROM &#13;
+			parents AS p, t_cls AS t &#13;
+		WHERE &#13;
+			t.id = p.pid &#13;
+			--AND NOT cycle &#13;
+			--AND t.classname &lt;&gt; t.classparent &#13;
+			--AND t.classname&lt;&gt;'Object'&#13;
+			AND t.id &gt; 1&#13;
+		)&#13;
+	SELECT  * FROM 	parents &#13;
+	);&#13;
+END; &#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100
   ROWS 1000;</src>
     </Proc>
+    <Proc nm="fget_get_oid_path(_in_id bigint)">
+      <src>CREATE OR REPLACE FUNCTION fget_get_oid_path(_in_id bigint) 
+  RETURNS bigint[] AS 
+$$ &#13;
+BEGIN&#13;
+    RETURN (SELECT pthid FROM fn_get_oid_path_table($1) WHERE pid=1);&#13;
+END    &#13;
+$$
+  LANGUAGE plpgsql STABLE 
+  COST 100;</src>
+    </Proc>
     <Proc nm="fget_objnum_pathinfo_table(IN node_id bigint)">
       <src>CREATE OR REPLACE FUNCTION fget_objnum_pathinfo_table(IN node_id bigint) 
-  RETURNS TABLE(_id bigint, _pid bigint, _obj_label name, _cls_label name, _class_type smallint, _last_log_id bigint, _path name[]) AS 
-$$ 
-BEGIN
-RETURN QUERY 
-	(WITH RECURSIVE parents AS 
-		(SELECT
-			id, pid, obj_label, cls_label, class_type, last_log_id, 
-			ARRAY[ ARRAY[t.cls_label,t.obj_label]::NAME[] ]::NAME[] AS path
-			--, ARRAY[t.id] AS exist, 
-			--, FALSE AS cycle,
-			
-		FROM 
-			t_objnum AS t 
-			WHERE 
-			id = 101   --[item.pid]
-		UNION ALL
-		SELECT 	
-			t.id, t.pid, t.obj_label, t.cls_label, t.class_type, t.last_log_id,
-			path || ARRAY[t.cls_label,t.obj_label]::NAME[]
-			--, exist || t.id
-			--, t.id = ANY(exist)
-		FROM 
-			parents AS p, t_objnum AS t 
-			WHERE 
-			t.id = p.pid
-			AND t.id&gt;0   
-			--AND NOT cycle 
-		)
-		SELECT * FROM parents
-	);
-END; 
+  RETURNS TABLE(_id bigint, _pid bigint, _obj_label name, _cls_label name, _cls_id integer, _last_log_id bigint, _patharray name[], pathid name[], _path text) AS 
+$$ &#13;
+BEGIN&#13;
+RETURN QUERY &#13;
+    WITH RECURSIVE parents AS &#13;
+    (SELECT&#13;
+        t.id, t.pid, t.obj_label, t_cls.label, t.cls_id, t.last_log_id&#13;
+        ,ARRAY[ ARRAY[t_cls.label,t.obj_label]::NAME[] ]::NAME[] AS path&#13;
+        ,ARRAY[ ARRAY[t.cls_id,t.id]::NAME[] ]::NAME[] AS pathid&#13;
+        , '/['||t_cls.label||']'||t.obj_label AS _path&#13;
+        --, ARRAY[t.id] AS exist, &#13;
+        --, FALSE AS cycle,&#13;
+        FROM t_objnum AS t &#13;
+        LEFT JOIN t_cls ON t_cls.id=cls_id&#13;
+        WHERE t.id = node_id   --[item.pid]&#13;
+        AND t.id&gt;1&#13;
+     UNION ALL&#13;
+     SELECT&#13;
+        t.id, t.pid, t.obj_label, t_cls.label, t.cls_id, t.last_log_id&#13;
+        ,p.path || ARRAY[t_cls.label,t.obj_label]::NAME[]&#13;
+        ,p.pathid || ARRAY[t.cls_id,t.id]::NAME[]&#13;
+        ,'/['||t_cls.label||']'||t.obj_label || p._path&#13;
+        --, exist || t.id&#13;
+        --, t.id = ANY(exist)&#13;
+        FROM &#13;
+        parents AS p, t_objnum AS t &#13;
+        LEFT JOIN t_cls ON t_cls.id=t.cls_id&#13;
+        WHERE &#13;
+        t.id = p.pid&#13;
+        AND t.id&gt;1   &#13;
+        --AND NOT cycle &#13;
+        )&#13;
+   SELECT * FROM parents;&#13;
+END; &#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100
-  ROWS 1000;</src>
+  ROWS 100;</src>
     </Proc>
     <Proc nm="fn_append_prop(_id bigint)">
       <Cm>-- функция добавлени нужных столбцов в таблицы состояния и истории</Cm>
       <src>CREATE OR REPLACE FUNCTION fn_append_prop(_id bigint) 
   RETURNS void AS 
-$$
-DECLARE
-    rec        RECORD;
-    col_name   NAME;
-    tbl_name   NAME;
-
-    -- ищем все свойства всех действий этого класса которые надо добавлять
-    new_prop CURSOR (_cls_id INTEGER, tbl NAME)  IS 
-        SELECT distinct t_prop.label AS prop_label FROM t_ref_act_prop             -- которые есть в действиях класса
-          LEFT JOIN t_prop ON t_prop.id = t_ref_act_prop.prop_id 
-          WHERE act_id IN 
-            (SELECT act_id FROM t_ref_class_act WHERE cls_id = _cls_id )
-        EXCEPT ALL -- исключая те столбцы что уже есть
-        ( SELECT column_name FROM information_schema.columns 
-            WHERE table_name=tbl||'_'||_cls_id
-          EXCEPT ALL SELECT column_name FROM information_schema.columns WHERE table_name=tbl
-        );
-
-BEGIN
-    tbl_name := quote_ident('t_state'||'_'||_id);
-    
-    FOR rec IN new_prop(_id,'t_state') LOOP
-        col_name := quote_ident(rec.prop_label);
-        RAISE DEBUG 'fn_append_prop: ADD COLUMN % TO TABLE %',col_name,tbl_name;
-        EXECUTE 'ALTER TABLE '||tbl_name||' ADD COLUMN '||col_name||' TEXT;';
-    END LOOP;
-
-    tbl_name := quote_ident('t_log'||'_'||_id);
-
-    FOR rec IN new_prop(_id,'t_log') LOOP
-        col_name := quote_ident(rec.prop_label);
-        RAISE DEBUG 'fn_append_prop: ADD COLUMN % TO TABLE %',col_name,tbl_name;
-        EXECUTE 'ALTER TABLE '||tbl_name||' ADD COLUMN '||col_name||' TEXT;';
-    END LOOP;
-
-END;
+$$&#13;
+DECLARE&#13;
+    rec        RECORD;&#13;
+    col_name   NAME;&#13;
+    tbl_name   NAME;&#13;
+&#13;
+    -- ищем все свойства всех действий этого класса которые надо добавлять&#13;
+    new_prop CURSOR (_cls_id INTEGER, tbl NAME)  IS &#13;
+        SELECT distinct t_prop.label AS prop_label FROM t_ref_act_prop             -- которые есть в действиях класса&#13;
+          LEFT JOIN t_prop ON t_prop.id = t_ref_act_prop.prop_id &#13;
+          WHERE act_id IN &#13;
+            (SELECT act_id FROM t_ref_class_act WHERE cls_id = _cls_id )&#13;
+        EXCEPT ALL -- исключая те столбцы что уже есть&#13;
+        ( SELECT column_name FROM information_schema.columns &#13;
+            WHERE table_name=tbl||'_'||_cls_id&#13;
+          EXCEPT ALL SELECT column_name FROM information_schema.columns WHERE table_name=tbl&#13;
+        );&#13;
+&#13;
+BEGIN&#13;
+    tbl_name := quote_ident('t_state'||'_'||_id);&#13;
+    &#13;
+    FOR rec IN new_prop(_id,'t_state') LOOP&#13;
+        col_name := quote_ident(rec.prop_label);&#13;
+        RAISE DEBUG 'fn_append_prop: ADD COLUMN % TO TABLE %',col_name,tbl_name;&#13;
+        EXECUTE 'ALTER TABLE '||tbl_name||' ADD COLUMN '||col_name||' TEXT;';&#13;
+    END LOOP;&#13;
+&#13;
+    tbl_name := quote_ident('t_log'||'_'||_id);&#13;
+&#13;
+    FOR rec IN new_prop(_id,'t_log') LOOP&#13;
+        col_name := quote_ident(rec.prop_label);&#13;
+        RAISE DEBUG 'fn_append_prop: ADD COLUMN % TO TABLE %',col_name,tbl_name;&#13;
+        EXECUTE 'ALTER TABLE '||tbl_name||' ADD COLUMN '||col_name||' TEXT;';&#13;
+    END LOOP;&#13;
+&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
+    </Proc>
+    <Proc nm="fn_array1_to_table(IN  anyarray)">
+      <src>CREATE OR REPLACE FUNCTION fn_array1_to_table(IN "" anyarray) 
+  RETURNS TABLE(idx integer, id anyelement) AS 
+$$ &#13;
+  SELECT row, $1[row] from generate_subscripts($1, 1) as row&#13;
+$$
+  LANGUAGE sql IMMUTABLE 
+  COST 100
+  ROWS 1000;</src>
+    </Proc>
+    <Proc nm="fn_array2_to_table(IN  anyarray)">
+      <src>CREATE OR REPLACE FUNCTION fn_array2_to_table(IN "" anyarray) 
+  RETURNS TABLE(idx integer, col1 anyelement, col2 anyelement) AS 
+$$&#13;
+  SELECT row, $1[row][1],$1[row][2] from generate_subscripts($1, 1) as row;&#13;
+--SELECT $1[row][1],$1[row][2]    from generate_series(1,array_length($1,1), 1) as row;&#13;
+  $$
+  LANGUAGE sql IMMUTABLE 
+  COST 100
+  ROWS 1000;</src>
     </Proc>
     <Proc nm="fn_clear_prop(_id bigint)">
       <Cm>-- функция удаления ненужных столбцов из таблицы состояния (в истории не удаляютсья)</Cm>
       <src>CREATE OR REPLACE FUNCTION fn_clear_prop(_id bigint) 
   RETURNS void AS 
-$$
-DECLARE
-    rec        RECORD;
-    col_name   NAME;
-    tbl_name   NAME;
-    
-    -- ищем все свойства которые надо удалить, т.е. те что удалены или изменены в действии
-    del_prop CURSOR (_cls_id INTEGER, tbl NAME)  IS 
-        SELECT column_name FROM information_schema.columns -- выбрать все столбцы таблицы 
-          WHERE table_name=tbl||'_'||_cls_id
-        EXCEPT ALL                                         -- исключая те столбцы, 
-        ( SELECT distinct t_prop.label FROM t_ref_act_prop -- которые есть в действиях класса
-            LEFT JOIN t_prop ON t_prop.id = t_ref_act_prop.prop_id 
-            WHERE act_id IN 
-              (SELECT act_id FROM t_ref_class_act WHERE _cls_id=_cls_id  )
-          UNION ALL SELECT column_name FROM information_schema.columns WHERE table_name=tbl
-        );
-BEGIN
-    tbl_name := quote_ident('t_state'||'_'||_id);
-    
-    FOR rec IN del_prop(_id,'t_state') LOOP
-        col_name := quote_ident(rec.column_name);
-        RAISE DEBUG 'fn_clear_prop: DEL COLUMN % FROM TABLE %',col_name,tbl_name;
-        EXECUTE 'ALTER TABLE '||tbl_name||' DROP COLUMN IF EXISTS '||col_name;
-    END LOOP;
-
-END;
+$$&#13;
+DECLARE&#13;
+    rec        RECORD;&#13;
+    col_name   NAME;&#13;
+    tbl_name   NAME;&#13;
+    &#13;
+    -- ищем все свойства которые надо удалить, т.е. те что удалены или изменены в действии&#13;
+    del_prop CURSOR (_cls_id INTEGER, tbl NAME)  IS &#13;
+        SELECT column_name FROM information_schema.columns -- выбрать все столбцы таблицы &#13;
+          WHERE table_name=tbl||'_'||_cls_id&#13;
+        EXCEPT ALL                                         -- исключая те столбцы, &#13;
+        ( SELECT distinct t_prop.label FROM t_ref_act_prop -- которые есть в действиях класса&#13;
+            LEFT JOIN t_prop ON t_prop.id = t_ref_act_prop.prop_id &#13;
+            WHERE act_id IN &#13;
+              (SELECT act_id FROM t_ref_class_act WHERE _cls_id=_cls_id  )&#13;
+          UNION ALL SELECT column_name FROM information_schema.columns WHERE table_name=tbl&#13;
+        );&#13;
+BEGIN&#13;
+    tbl_name := quote_ident('t_state'||'_'||_id);&#13;
+    &#13;
+    FOR rec IN del_prop(_id,'t_state') LOOP&#13;
+        col_name := quote_ident(rec.column_name);&#13;
+        RAISE DEBUG 'fn_clear_prop: DEL COLUMN % FROM TABLE %',col_name,tbl_name;&#13;
+        EXECUTE 'ALTER TABLE '||tbl_name||' DROP COLUMN IF EXISTS '||col_name;&#13;
+    END LOOP;&#13;
+&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
@@ -1145,36 +1480,38 @@ $$
       <Cm>-- функция создания таблицы ИСТОРИИ для нумерованного объекта</Cm>
       <src>CREATE OR REPLACE FUNCTION fn_create_log_table(_id bigint) 
   RETURNS void AS 
-$$	
-DECLARE
-    new_tablename   NAME;
-    _creating_script VARCHAR;
-BEGIN
-    SELECT table_name INTO new_tablename -- проверяем наличие таблички
-        FROM information_schema.tables WHERE table_name = 't_state_'||_id;
-    IF FOUND THEN
-        RAISE EXCEPTION 'fn_create_log_table: Таблица "%" уже сужествует',new_tablename;
-    END IF;
-    _creating_script := 'CREATE TABLE t_log_'||_id||'(
-                         act_id  INTEGER NOT NULL
-                         ,obj_id BIGINT  NOT NULL                      
-                         ,CONSTRAINT pk_lognum_'||_id||' PRIMARY KEY ( log_id )
-                         ,CONSTRAINT fk_lognum_'||_id||' FOREIGN KEY (obj_id, cls_id)
-                                                 REFERENCES t_objnum (id, cls_id)
-                                                 MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-                         ,CONSTRAINT fk_logusr_'||_id||' FOREIGN KEY (loguser) 
-                                                 REFERENCES wh_role (rolname)
-                                                 MATCH FULL ON UPDATE CASCADE ON DELETE NO ACTION
-                         ,CONSTRAINT fk_logact_'||_id||' FOREIGN KEY (act_id) 
-                                                 REFERENCES t_act(id)
-                                                 MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-
-                         )INHERITS (t_log);
-                        GRANT SELECT ON TABLE t_log_'       ||_id||' TO "Guest"; 
-                        GRANT INSERT,DELETE ON TABLE t_log_'||_id||' TO "User"; ';
-    --RAISE DEBUG 'fn_create_log_table: %',_creating_script;
-    EXECUTE _creating_script;
-END;
+$$	&#13;
+DECLARE&#13;
+    new_tablename   NAME;&#13;
+    _creating_script VARCHAR;&#13;
+BEGIN&#13;
+    SELECT table_name INTO new_tablename -- проверяем наличие таблички&#13;
+        FROM information_schema.tables WHERE table_name = 't_state_'||_id;&#13;
+    IF FOUND THEN&#13;
+        RAISE EXCEPTION 'fn_create_log_table: Таблица "%" уже сужествует',new_tablename;&#13;
+    END IF;&#13;
+    _creating_script := 'CREATE TABLE t_log_'||_id||'(&#13;
+                         act_id      INTEGER NOT NULL&#13;
+                         ,obj_id     BIGINT  NOT NULL&#13;
+                         ,old_obj_pid INTEGER NOT NULL&#13;
+                         ,new_obj_pid INTEGER NOT NULL&#13;
+                         ,CONSTRAINT pk_lognum_'||_id||' PRIMARY KEY ( log_id )&#13;
+                         ,CONSTRAINT fk_lognum_'||_id||' FOREIGN KEY (obj_id, cls_id)&#13;
+                                                 REFERENCES t_objnum (id, cls_id)&#13;
+                                                 MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE&#13;
+                         ,CONSTRAINT fk_logusr_'||_id||' FOREIGN KEY (loguser) &#13;
+                                                 REFERENCES wh_role (rolname)&#13;
+                                                 MATCH FULL ON UPDATE CASCADE ON DELETE NO ACTION&#13;
+                         ,CONSTRAINT fk_logact_'||_id||' FOREIGN KEY (act_id) &#13;
+                                                 REFERENCES t_act(id)&#13;
+                                                 MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE&#13;
+&#13;
+                         )INHERITS (t_log);&#13;
+                        GRANT SELECT ON TABLE t_log_'       ||_id||' TO "Guest"; &#13;
+                        GRANT INSERT,DELETE ON TABLE t_log_'||_id||' TO "User"; ';&#13;
+    --RAISE DEBUG 'fn_create_log_table: %',_creating_script;&#13;
+    EXECUTE _creating_script;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
@@ -1183,28 +1520,161 @@ $$
       <Cm>-- функция создания таблицы состояния для нумерованного объекта</Cm>
       <src>CREATE OR REPLACE FUNCTION fn_create_state_table(_id bigint) 
   RETURNS void AS 
-$$	
-DECLARE
-    new_tablename    NAME;
-    creating_script VARCHAR;
-BEGIN
-    SELECT table_name INTO new_tablename -- проверяем наличие таблички
-        FROM information_schema.tables WHERE table_name = 't_state_'||_id;
-    IF FOUND THEN
-        RAISE EXCEPTION 'fn_create_state_table: Таблица "%" уже сужествует',new_tablename;
-    END IF;
-
-    creating_script := 'CREATE TABLE t_state_'||_id||'(
-                              CONSTRAINT pk_state_'||_id||' PRIMARY KEY( obj_id, cls_id )
-                             ,CONSTRAINT fk_state_'||_id||' FOREIGN KEY (obj_id, cls_id)
-                                 REFERENCES              t_objnum (id, cls_id)
-                                 MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-                        )INHERITS (t_state);
-                        GRANT SELECT ON TABLE t_state_'       ||_id||' TO "Guest"; 
-                        GRANT INSERT,DELETE ON TABLE t_state_'||_id||' TO "User"; ';
-    --RAISE DEBUG 'fn_create_log_table: %',_creating_script;
-    EXECUTE creating_script;
-END;
+$$	&#13;
+DECLARE&#13;
+    new_tablename    NAME;&#13;
+    creating_script VARCHAR;&#13;
+BEGIN&#13;
+    SELECT table_name INTO new_tablename -- проверяем наличие таблички&#13;
+        FROM information_schema.tables WHERE table_name = 't_state_'||_id;&#13;
+    IF FOUND THEN&#13;
+        RAISE EXCEPTION 'fn_create_state_table: Таблица "%" уже сужествует',new_tablename;&#13;
+    END IF;&#13;
+&#13;
+    creating_script := 'CREATE TABLE t_state_'||_id||'(&#13;
+                              CONSTRAINT pk_state_'||_id||' PRIMARY KEY( obj_id )&#13;
+                             ,CONSTRAINT fk_state_'||_id||' FOREIGN KEY (obj_id )&#13;
+                                 REFERENCES              t_objnum (id)&#13;
+                                 MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE&#13;
+                        )INHERITS (t_state);&#13;
+                        GRANT SELECT ON TABLE t_state_'       ||_id||' TO "Guest"; &#13;
+                        GRANT INSERT,DELETE ON TABLE t_state_'||_id||' TO "User"; ';&#13;
+    --RAISE DEBUG 'fn_create_log_table: %',_creating_script;&#13;
+    EXECUTE creating_script;&#13;
+END;&#13;
+$$
+  LANGUAGE plpgsql VOLATILE 
+  COST 100;</src>
+    </Proc>
+    <Proc nm="fn_delete_objqty(_objqty_id bigint, _pid bigint)">
+      <Cm>-- функция удаления количественного объекта</Cm>
+      <src>CREATE OR REPLACE FUNCTION fn_delete_objqty(_objqty_id bigint, _pid bigint) 
+  RETURNS void AS 
+$$&#13;
+DECLARE&#13;
+    &#13;
+    v_objqty_id BIGINT;&#13;
+BEGIN&#13;
+    DELETE FROM t_objqty WHERE objqty_id=_objqty_id AND pid = _pid;&#13;
+&#13;
+    DELETE FROM t_objqtykey &#13;
+        WHERE (id) NOT IN (SELECT objqty_id FROM t_objqty GROUP BY objqty_id);&#13;
+END;&#13;
+$$
+  LANGUAGE plpgsql VOLATILE 
+  COST 100;</src>
+    </Proc>
+    <Proc nm="fn_get_oid_path_table(IN node_id bigint)">
+      <src>CREATE OR REPLACE FUNCTION fn_get_oid_path_table(IN node_id bigint) 
+  RETURNS TABLE(idx integer, id bigint, pid bigint, pthid bigint[]) AS 
+$$ &#13;
+    WITH RECURSIVE parents AS &#13;
+    (SELECT&#13;
+        1 AS idx, t.id, t.pid&#13;
+        ,ARRAY[t.id]:: BIGINT[] AS pathid&#13;
+        , FALSE AS cycle&#13;
+        FROM t_objnum AS t &#13;
+        WHERE t.id = node_id   --[item.pid]&#13;
+     UNION ALL&#13;
+     SELECT&#13;
+        p.idx+1 AS idx, t.id, t.pid&#13;
+        ,p.pathid || t.id&#13;
+        , t.id = ANY(pathid)&#13;
+        FROM &#13;
+        parents AS p, t_objnum AS t &#13;
+        WHERE &#13;
+        t.id = p.pid&#13;
+        AND t.id&gt;1   &#13;
+        AND NOT cycle &#13;
+        )&#13;
+   SELECT p.idx, p.id, p.pid, p.pathid FROM parents p;&#13;
+$$
+  LANGUAGE sql STABLE 
+  COST 100
+  ROWS 1000;</src>
+    </Proc>
+    <Proc nm="fn_insert_objqty(IN _cls_id integer, IN _label name, IN _pid bigint, IN _qty numeric)">
+      <Cm>-- функция создания количественного объекта</Cm>
+      <src>CREATE OR REPLACE FUNCTION fn_insert_objqty(IN _cls_id integer, IN _label name, IN _pid bigint, IN _qty numeric) 
+  RETURNS TABLE(id_ bigint, pid_ bigint, obj_label_ name, qty_ numeric) AS 
+$$&#13;
+DECLARE&#13;
+    &#13;
+    v_objqty_id BIGINT;&#13;
+BEGIN&#13;
+    SELECT id INTO v_objqty_id FROM t_objqtykey WHERE cls_id = _cls_id AND obj_label = _label;&#13;
+    IF NOT FOUND THEN&#13;
+        INSERT INTO t_objqtykey(cls_id, obj_label ) &#13;
+               VALUES ( _cls_id, _label ) RETURNING id INTO v_objqty_id;&#13;
+    END IF;&#13;
+&#13;
+    INSERT INTO t_objqty(objqty_id, pid, qty) VALUES (v_objqty_id, _pid, _qty);&#13;
+    id_:=v_objqty_id;&#13;
+    pid_:=_pid;&#13;
+    obj_label_:=_label;&#13;
+    qty_=_qty;&#13;
+    return next;&#13;
+    RETURN ;&#13;
+END;&#13;
+$$
+  LANGUAGE plpgsql VOLATILE 
+  COST 100
+  ROWS 1000;</src>
+    </Proc>
+    <Proc nm="fn_oidarray_to_path(idpath anyarray)">
+      <src>CREATE OR REPLACE FUNCTION fn_oidarray_to_path(idpath anyarray) 
+  RETURNS name[] AS 
+$$&#13;
+DECLARE&#13;
+    --rec      RECORD;&#13;
+    result   NAME [];&#13;
+    get_obj_info CURSOR IS &#13;
+    SELECT t_cls.id, t_cls.label, t_objnum.id, obj_label,  arr.id&#13;
+        FROM fn_array1_to_table(idpath) arr&#13;
+        LEFT JOIN t_objnum USING (id)&#13;
+        LEFT JOIN t_cls ON t_cls.id=t_objnum.cls_id &#13;
+        ORDER BY idx;&#13;
+BEGIN&#13;
+    FOR rec IN get_obj_info LOOP&#13;
+        result := result || ARRAY[ ARRAY[rec.label,rec.obj_label] ];&#13;
+    END LOOP;&#13;
+    RETURN result;&#13;
+END;&#13;
+$$
+  LANGUAGE plpgsql STABLE 
+  COST 100;</src>
+    </Proc>
+    <Proc nm="fn_update_objqty(_objqty_id bigint, old_pid bigint, new_label name, new_pid bigint, new_qty numeric)">
+      <Cm>-- функция редактирования количественного объекта</Cm>
+      <src>CREATE OR REPLACE FUNCTION fn_update_objqty(_objqty_id bigint, old_pid bigint, new_label name, new_pid bigint, new_qty numeric) 
+  RETURNS void AS 
+$$&#13;
+--DECLARE&#13;
+BEGIN&#13;
+    PERFORM id FROM t_objqtykey WHERE id = _objqty_id;&#13;
+    IF FOUND THEN&#13;
+        UPDATE t_objqtykey SET obj_label=new_label WHERE id=_objqty_id;&#13;
+        UPDATE t_objqty    SET pid= new_pid, qty=new_qty  WHERE objqty_id=_objqty_id AND pid=old_pid;&#13;
+    END IF;&#13;
+END;&#13;
+$$
+  LANGUAGE plpgsql VOLATILE 
+  COST 100;</src>
+    </Proc>
+    <Proc nm="ftr_ad_access_act()">
+      <src>CREATE OR REPLACE FUNCTION ftr_ad_access_act() 
+  RETURNS trigger AS 
+$$&#13;
+DECLARE&#13;
+&#13;
+BEGIN&#13;
+&#13;
+&#13;
+    DELETE FROM t_ref_class_act WHERE (act_id, cls_id) NOT IN (&#13;
+                     SELECT act_id, cls_id FROM t_access_act GROUP BY act_id, cls_id&#13;
+                      );&#13;
+RETURN NEW;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
@@ -1212,24 +1682,24 @@ $$
     <Proc nm="ftr_ai_class()">
       <src>CREATE OR REPLACE FUNCTION ftr_ai_class() 
   RETURNS trigger AS 
-$$
-DECLARE
-    log_tablename NAME;
-BEGIN
-    CASE 
-    WHEN NEW.type=1 THEN
-        INSERT INTO t_clsnum(cls_id, cls_type)VALUES(NEW.id,NEW.type);
-    WHEN NEW.type=2 OR NEW.type=3 THEN
-        INSERT INTO t_clsqty(cls_id, cls_type)VALUES(NEW.id,NEW.type);
-    ELSE 
-    END CASE;
-
-    IF NEW.type=1 THEN
-        PERFORM fn_create_log_table(NEW.id);
-        PERFORM fn_create_state_table(NEW.id);
-    END IF;
-RETURN NEW;
-END;
+$$&#13;
+DECLARE&#13;
+    log_tablename NAME;&#13;
+BEGIN&#13;
+    CASE &#13;
+    WHEN NEW.type=1 THEN&#13;
+        INSERT INTO t_clsnum(cls_id, cls_type)VALUES(NEW.id,NEW.type);&#13;
+    WHEN NEW.type=2 OR NEW.type=3 THEN&#13;
+        INSERT INTO t_clsqty(cls_id, cls_type)VALUES(NEW.id,NEW.type);&#13;
+    ELSE &#13;
+    END CASE;&#13;
+&#13;
+    IF NEW.type=1 THEN&#13;
+        PERFORM fn_create_log_table(NEW.id);&#13;
+        PERFORM fn_create_state_table(NEW.id);&#13;
+    END IF;&#13;
+RETURN NEW;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
@@ -1237,42 +1707,42 @@ $$
     <Proc nm="ftr_aiu_act_ref_prop()">
       <src>CREATE OR REPLACE FUNCTION ftr_aiu_act_ref_prop() 
   RETURNS trigger AS 
-$$
-DECLARE
-
-    -- находим все классы, в которых есть действие изменённое или вставленное
-    cursor_changed_class CURSOR ( _act_id INTEGER ) IS
-        SELECT cls_id FROM t_ref_class_act 
-        WHERE act_id = _act_id ;
-
-BEGIN
-    CASE TG_OP
-    WHEN 'INSERT' THEN
-        RAISE DEBUG '%: В ДЕЙСТВИИ % ДОБАВЛЕНО СВОЙСТВО % ',TG_NAME,NEW.act_id,NEW.prop_id;
-    WHEN 'UPDATE' THEN
-        RAISE DEBUG '%: В ДЕЙСТВИИ % ОБНОВЛЕНО СВОЙСТВО % ',TG_NAME,NEW.act_id,NEW.prop_id;
-    WHEN 'DELETE' THEN
-        RAISE DEBUG '%: В ДЕЙСТВИИ % УДАЛЕНО СВОЙСТВО % ',TG_NAME,OLD.act_id,OLD.prop_id;
-    ELSE
-        RAISE DEBUG '%: неизвестная операция ',TG_NAME;
-    END CASE;
-
-    -- добавление нового действия - добавление столбцов связанных с NEW.act_label 
-
-    IF TG_OP='UPDATE' OR TG_OP='DELETE' THEN
-        FOR changed IN cursor_changed_class(OLD.act_id) LOOP
-            PERFORM fn_clear_prop(changed.cls_id);
-        END LOOP;
-    END IF;
-    
-    IF TG_OP='UPDATE' OR TG_OP='INSERT' THEN
-        FOR changed IN cursor_changed_class(NEW.act_id) LOOP
-            PERFORM fn_append_prop(changed.cls_id);
-        END LOOP;
-    END IF;
-
-RETURN NEW;
-END;
+$$&#13;
+DECLARE&#13;
+&#13;
+    -- находим все классы, в которых есть действие изменённое или вставленное&#13;
+    cursor_changed_class CURSOR ( _act_id INTEGER ) IS&#13;
+        SELECT cls_id FROM t_ref_class_act &#13;
+        WHERE act_id = _act_id ;&#13;
+&#13;
+BEGIN&#13;
+    CASE TG_OP&#13;
+    WHEN 'INSERT' THEN&#13;
+        RAISE DEBUG '%: В ДЕЙСТВИИ % ДОБАВЛЕНО СВОЙСТВО % ',TG_NAME,NEW.act_id,NEW.prop_id;&#13;
+    WHEN 'UPDATE' THEN&#13;
+        RAISE DEBUG '%: В ДЕЙСТВИИ % ОБНОВЛЕНО СВОЙСТВО % ',TG_NAME,NEW.act_id,NEW.prop_id;&#13;
+    WHEN 'DELETE' THEN&#13;
+        RAISE DEBUG '%: В ДЕЙСТВИИ % УДАЛЕНО СВОЙСТВО % ',TG_NAME,OLD.act_id,OLD.prop_id;&#13;
+    ELSE&#13;
+        RAISE DEBUG '%: неизвестная операция ',TG_NAME;&#13;
+    END CASE;&#13;
+&#13;
+    -- добавление нового действия - добавление столбцов связанных с NEW.act_label &#13;
+&#13;
+    IF TG_OP='UPDATE' OR TG_OP='DELETE' THEN&#13;
+        FOR changed IN cursor_changed_class(OLD.act_id) LOOP&#13;
+            PERFORM fn_clear_prop(changed.cls_id);&#13;
+        END LOOP;&#13;
+    END IF;&#13;
+    &#13;
+    IF TG_OP='UPDATE' OR TG_OP='INSERT' THEN&#13;
+        FOR changed IN cursor_changed_class(NEW.act_id) LOOP&#13;
+            PERFORM fn_append_prop(changed.cls_id);&#13;
+        END LOOP;&#13;
+    END IF;&#13;
+&#13;
+RETURN NEW;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
@@ -1280,24 +1750,24 @@ $$
     <Proc nm="ftr_aiu_ref_class_act()">
       <src>CREATE OR REPLACE FUNCTION ftr_aiu_ref_class_act() 
   RETURNS trigger AS 
-$$
-DECLARE
-    class_id INTEGER;
-BEGIN
-
-    IF TG_OP='UPDATE' OR TG_OP='DELETE' THEN
-        PERFORM fn_clear_prop(OLD.cls_id);
-    END IF;
-    
-    IF TG_OP='UPDATE' OR TG_OP='INSERT' THEN
-        PERFORM fn_append_prop(NEW.cls_id);
-    END IF;
-
-    
-    
-
-RETURN NEW;
-END;
+$$&#13;
+DECLARE&#13;
+    class_id INTEGER;&#13;
+BEGIN&#13;
+&#13;
+    IF TG_OP='UPDATE' OR TG_OP='DELETE' THEN&#13;
+        PERFORM fn_clear_prop(OLD.cls_id);&#13;
+    END IF;&#13;
+    &#13;
+    IF TG_OP='UPDATE' OR TG_OP='INSERT' THEN&#13;
+        PERFORM fn_append_prop(NEW.cls_id);&#13;
+    END IF;&#13;
+&#13;
+    &#13;
+    &#13;
+&#13;
+RETURN NEW;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
@@ -1305,137 +1775,137 @@ $$
     <Proc nm="ftr_aiu_state()">
       <src>CREATE OR REPLACE FUNCTION ftr_aiu_state() 
   RETURNS trigger AS 
-$$
-DECLARE
-
-	-- находим свойста данного действия
-	cursor_act_prop 	CURSOR  IS 
-					SELECT prop_label 
-						FROM t_ref_act_prop
-					WHERE 	act_label=NEW.act_label;
-
-
-	-- ищем все свойства данного класса, которые не участвуют в действии
-	cursor_cleaned_prop 	CURSOR (_cls_label NAME)  IS 
-					SELECT prop_label 
-						FROM t_ref_act_prop
-					WHERE act_label IN (SELECT DISTINCT(act_label) FROM t_ref_class_act WHERE cls_label = _cls_label)
-				EXCEPT ALL 
-					SELECT prop_label 
-						FROM t_ref_act_prop
-					WHERE 	act_label=NEW.act_label;
-
-
-					
-	
-	
-	perm_group	NAME;
-
-	insert_script_1 TEXT;
-	insert_script_2 TEXT;
-
-	_rec_act_prop	RECORD;
-	_new_prop_val	TEXT;
-	_old_prop_val	TEXT;
-
-	tmp_rec RECORD;
-
-	obj 		RECORD;
-	class_id 	BIGINT;
-
-	vlog_id 	BIGINT;
-
-BEGIN
-	IF TG_OP='UPDATE' AND NEW.obj_id&lt;&gt;OLD.obj_id THEN
-		RAISE EXCEPTION '%: Нельзя менять идентификатор объекта',TG_NAME;
-	END IF;	
-
-	RAISE DEBUG '%: Ищем идентификатор класса % ',TG_NAME,TG_TABLE_NAME;
-	SELECT CAST( trim(leading 't_state_' from TG_TABLE_NAME) AS INTEGER) INTO class_id;
-	IF NOT FOUND THEN
-		RAISE EXCEPTION '%: Идентификатор класса не найден в %',TG_NAME,TG_TABLE_NAME;
-	END IF;		
-
-	RAISE DEBUG '%: Ищем и имя и тип класса для obj_id=%',TG_NAME,NEW.obj_id;	
-	SELECT * INTO obj FROM t_objnum WHERE id=NEW.obj_id ; --AND t_state.class_type=1
-	IF NOT FOUND THEN
-		RAISE EXCEPTION '%: Идентификатор объекта % не найден в t_objnum',TG_NAME,NEW.obj_id;
-	END IF;	
-	
-
-	RAISE DEBUG '%: Ищем разрешение выполнения "%" в классе "%" пользоватем "%" ',TG_NAME,NEW.act_label,obj.cls_label,CURRENT_USER;	
-	SELECT t_ref_class_act_perm.perm_group INTO perm_group 
-		FROM t_ref_class_act_perm
-		LEFT JOIN 	wh_role _group -- определяем разрешённые группы
-			ON	_group.rolname=t_ref_class_act_perm.perm_group	AND not _group.rolcanlogin 
-		RIGHT JOIN	wh_auth_members membership -- определяем ИДЕНТИФИКАТОРЫ разрешённых групп-пользователей
-			ON	_group.id=membership.roleid	
-		RIGHT JOIN 	wh_role _user  	-- определяем ИДЕНТИФИКАТОРЫ разрешённых пользователей		
-			ON	_user.id=membership.member AND _user.rolcanlogin
-			AND	_user.rolname=CURRENT_USER	-- определяем ИМЕНА разрешённых пользователей ВКЛЮЧАЯ ТЕКУЩЕГО
-		WHERE t_ref_class_act_perm.cls_label=cls_label AND t_ref_class_act_perm.act_label=NEW.act_label;
-	IF NOT FOUND THEN
-		RAISE EXCEPTION '%: Действие "%" не определено/не разрешено для %',TG_NAME,NEW.act_label,obj.cls_label;
-	END IF;
-
-	--инициализируем переменные чтоб небыло NULL || 'данные' = NULL
-	insert_script_1:='';
-	insert_script_2:='';
-
-	FOR _rec_act_prop IN cursor_act_prop LOOP
-		insert_script_1:=insert_script_1||','||quote_ident(_rec_act_prop.prop_label);
-		EXECUTE 'SELECT ('||quote_literal(NEW)||'::'||TG_RELID::regclass||').'|| quote_ident(_rec_act_prop.prop_label) INTO _new_prop_val;
-
-		IF _new_prop_val IS NOT NULL THEN
-			insert_script_2:=insert_script_2||','||quote_literal(_new_prop_val);
-		ELSE
-			insert_script_2:=insert_script_2||',NULL';
-		END IF;
-			
-		RAISE DEBUG '%: Лог свойства %=% ',TG_NAME,_rec_act_prop.prop_label,_new_prop_val;	
-
-	END LOOP;
-
-	RAISE DEBUG '%: Проверка изменения свойств не участвующик в действии',TG_NAME;
-
-	FOR _rec_act_prop IN cursor_cleaned_prop(obj.cls_label) LOOP
-		EXECUTE 'SELECT ('||quote_literal(NEW)||'::'||TG_RELID::regclass||').'|| quote_ident(_rec_act_prop.prop_label) INTO _new_prop_val;
-		
-		IF TG_OP='INSERT' AND _new_prop_val IS NOT NULL THEN
-			RAISE EXCEPTION '%: Нельзя менять % в действии %',TG_NAME,_rec_act_prop.prop_label,NEW.act_label;	
-		END IF;
-		
-		IF TG_OP='UPDATE' THEN
-			EXECUTE 'SELECT ('||quote_literal(OLD)||'::'||TG_RELID::regclass||').'|| quote_ident(_rec_act_prop.prop_label) INTO _old_prop_val;
-			IF _new_prop_val&lt;&gt;_old_prop_val THEN
-				RAISE EXCEPTION '%: Нельзя менять свойство "%" в действии "%"',TG_NAME,_rec_act_prop.prop_label,NEW.act_label;	
-			END IF;
-		END IF;
-	END LOOP;
-	
-	vlog_id:= nextval('seq_log_id'::regclass);
-
-	RAISE DEBUG '%: Обновляем состояние объекта (%) в t_objnum ',TG_NAME, obj;
-	UPDATE t_objnum SET log_id=vlog_id, log_time=CURRENT_TIMESTAMP, log_user=CURRENT_USER	WHERE t_objnum.id=NEW.obj_id;
-
-	insert_script_1:='INSERT INTO t_log_'||class_id||'(log_id, cls_label, obj_label, comment, act_label'
-					||insert_script_1;
-	insert_script_2:=')VALUES('	   ||vlog_id
-					||','||quote_literal(obj.cls_label)
-					||','||quote_literal(obj.obj_label)
-					||','||(CASE WHEN obj.comment IS NULL THEN 'NULL' ELSE quote_literal(obj.comment) END)
-					||','||quote_literal(NEW.act_label)
-					||insert_script_2||')';
-	RAISE DEBUG '%: Вставляем в лог изменения состояния и свойств объекта: 
-				% 
-				%'
-				,TG_NAME,insert_script_1, insert_script_2;
-	EXECUTE  insert_script_1||insert_script_2;
-
-	RAISE DEBUG '%: Обновляем свойства объекта % в t_state_% на NEW %',TG_NAME, obj.id, class_id,  NEW;
-
-RETURN NEW;
-END;
+$$&#13;
+DECLARE&#13;
+&#13;
+	-- находим свойста данного действия&#13;
+	cursor_act_prop 	CURSOR  IS &#13;
+					SELECT prop_label &#13;
+						FROM t_ref_act_prop&#13;
+					WHERE 	act_label=NEW.act_label;&#13;
+&#13;
+&#13;
+	-- ищем все свойства данного класса, которые не участвуют в действии&#13;
+	cursor_cleaned_prop 	CURSOR (_cls_label NAME)  IS &#13;
+					SELECT prop_label &#13;
+						FROM t_ref_act_prop&#13;
+					WHERE act_label IN (SELECT DISTINCT(act_label) FROM t_ref_class_act WHERE cls_label = _cls_label)&#13;
+				EXCEPT ALL &#13;
+					SELECT prop_label &#13;
+						FROM t_ref_act_prop&#13;
+					WHERE 	act_label=NEW.act_label;&#13;
+&#13;
+&#13;
+					&#13;
+	&#13;
+	&#13;
+	perm_group	NAME;&#13;
+&#13;
+	insert_script_1 TEXT;&#13;
+	insert_script_2 TEXT;&#13;
+&#13;
+	_rec_act_prop	RECORD;&#13;
+	_new_prop_val	TEXT;&#13;
+	_old_prop_val	TEXT;&#13;
+&#13;
+	tmp_rec RECORD;&#13;
+&#13;
+	obj 		RECORD;&#13;
+	class_id 	BIGINT;&#13;
+&#13;
+	vlog_id 	BIGINT;&#13;
+&#13;
+BEGIN&#13;
+	IF TG_OP='UPDATE' AND NEW.obj_id&lt;&gt;OLD.obj_id THEN&#13;
+		RAISE EXCEPTION '%: Нельзя менять идентификатор объекта',TG_NAME;&#13;
+	END IF;	&#13;
+&#13;
+	RAISE DEBUG '%: Ищем идентификатор класса % ',TG_NAME,TG_TABLE_NAME;&#13;
+	SELECT CAST( trim(leading 't_state_' from TG_TABLE_NAME) AS INTEGER) INTO class_id;&#13;
+	IF NOT FOUND THEN&#13;
+		RAISE EXCEPTION '%: Идентификатор класса не найден в %',TG_NAME,TG_TABLE_NAME;&#13;
+	END IF;		&#13;
+&#13;
+	RAISE DEBUG '%: Ищем и имя и тип класса для obj_id=%',TG_NAME,NEW.obj_id;	&#13;
+	SELECT * INTO obj FROM t_objnum WHERE id=NEW.obj_id ; --AND t_state.class_type=1&#13;
+	IF NOT FOUND THEN&#13;
+		RAISE EXCEPTION '%: Идентификатор объекта % не найден в t_objnum',TG_NAME,NEW.obj_id;&#13;
+	END IF;	&#13;
+	&#13;
+&#13;
+	RAISE DEBUG '%: Ищем разрешение выполнения "%" в классе "%" пользоватем "%" ',TG_NAME,NEW.act_label,obj.cls_label,CURRENT_USER;	&#13;
+	SELECT t_ref_class_act_perm.perm_group INTO perm_group &#13;
+		FROM t_ref_class_act_perm&#13;
+		LEFT JOIN 	wh_role _group -- определяем разрешённые группы&#13;
+			ON	_group.rolname=t_ref_class_act_perm.perm_group	AND not _group.rolcanlogin &#13;
+		RIGHT JOIN	wh_auth_members membership -- определяем ИДЕНТИФИКАТОРЫ разрешённых групп-пользователей&#13;
+			ON	_group.id=membership.roleid	&#13;
+		RIGHT JOIN 	wh_role _user  	-- определяем ИДЕНТИФИКАТОРЫ разрешённых пользователей		&#13;
+			ON	_user.id=membership.member AND _user.rolcanlogin&#13;
+			AND	_user.rolname=CURRENT_USER	-- определяем ИМЕНА разрешённых пользователей ВКЛЮЧАЯ ТЕКУЩЕГО&#13;
+		WHERE t_ref_class_act_perm.cls_label=cls_label AND t_ref_class_act_perm.act_label=NEW.act_label;&#13;
+	IF NOT FOUND THEN&#13;
+		RAISE EXCEPTION '%: Действие "%" не определено/не разрешено для %',TG_NAME,NEW.act_label,obj.cls_label;&#13;
+	END IF;&#13;
+&#13;
+	--инициализируем переменные чтоб небыло NULL || 'данные' = NULL&#13;
+	insert_script_1:='';&#13;
+	insert_script_2:='';&#13;
+&#13;
+	FOR _rec_act_prop IN cursor_act_prop LOOP&#13;
+		insert_script_1:=insert_script_1||','||quote_ident(_rec_act_prop.prop_label);&#13;
+		EXECUTE 'SELECT ('||quote_literal(NEW)||'::'||TG_RELID::regclass||').'|| quote_ident(_rec_act_prop.prop_label) INTO _new_prop_val;&#13;
+&#13;
+		IF _new_prop_val IS NOT NULL THEN&#13;
+			insert_script_2:=insert_script_2||','||quote_literal(_new_prop_val);&#13;
+		ELSE&#13;
+			insert_script_2:=insert_script_2||',NULL';&#13;
+		END IF;&#13;
+			&#13;
+		RAISE DEBUG '%: Лог свойства %=% ',TG_NAME,_rec_act_prop.prop_label,_new_prop_val;	&#13;
+&#13;
+	END LOOP;&#13;
+&#13;
+	RAISE DEBUG '%: Проверка изменения свойств не участвующик в действии',TG_NAME;&#13;
+&#13;
+	FOR _rec_act_prop IN cursor_cleaned_prop(obj.cls_label) LOOP&#13;
+		EXECUTE 'SELECT ('||quote_literal(NEW)||'::'||TG_RELID::regclass||').'|| quote_ident(_rec_act_prop.prop_label) INTO _new_prop_val;&#13;
+		&#13;
+		IF TG_OP='INSERT' AND _new_prop_val IS NOT NULL THEN&#13;
+			RAISE EXCEPTION '%: Нельзя менять % в действии %',TG_NAME,_rec_act_prop.prop_label,NEW.act_label;	&#13;
+		END IF;&#13;
+		&#13;
+		IF TG_OP='UPDATE' THEN&#13;
+			EXECUTE 'SELECT ('||quote_literal(OLD)||'::'||TG_RELID::regclass||').'|| quote_ident(_rec_act_prop.prop_label) INTO _old_prop_val;&#13;
+			IF _new_prop_val&lt;&gt;_old_prop_val THEN&#13;
+				RAISE EXCEPTION '%: Нельзя менять свойство "%" в действии "%"',TG_NAME,_rec_act_prop.prop_label,NEW.act_label;	&#13;
+			END IF;&#13;
+		END IF;&#13;
+	END LOOP;&#13;
+	&#13;
+	vlog_id:= nextval('seq_log_id'::regclass);&#13;
+&#13;
+	RAISE DEBUG '%: Обновляем состояние объекта (%) в t_objnum ',TG_NAME, obj;&#13;
+	UPDATE t_objnum SET log_id=vlog_id, log_time=CURRENT_TIMESTAMP, log_user=CURRENT_USER	WHERE t_objnum.id=NEW.obj_id;&#13;
+&#13;
+	insert_script_1:='INSERT INTO t_log_'||class_id||'(log_id, cls_label, obj_label, comment, act_label'&#13;
+					||insert_script_1;&#13;
+	insert_script_2:=')VALUES('	   ||vlog_id&#13;
+					||','||quote_literal(obj.cls_label)&#13;
+					||','||quote_literal(obj.obj_label)&#13;
+					||','||(CASE WHEN obj.comment IS NULL THEN 'NULL' ELSE quote_literal(obj.comment) END)&#13;
+					||','||quote_literal(NEW.act_label)&#13;
+					||insert_script_2||')';&#13;
+	RAISE DEBUG '%: Вставляем в лог изменения состояния и свойств объекта: &#13;
+				% &#13;
+				%'&#13;
+				,TG_NAME,insert_script_1, insert_script_2;&#13;
+	EXECUTE  insert_script_1||insert_script_2;&#13;
+&#13;
+	RAISE DEBUG '%: Обновляем свойства объекта % в t_state_% на NEW %',TG_NAME, obj.id, class_id,  NEW;&#13;
+&#13;
+RETURN NEW;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
@@ -1443,34 +1913,34 @@ $$
     <Proc nm="ftr_au_prop()">
       <src>CREATE OR REPLACE FUNCTION ftr_au_prop() 
   RETURNS trigger AS 
-$$
-DECLARE
-    -- ищем все классы в котором есть свойство 
-    cursor_of_id CURSOR IS 
-        SELECT DISTINCT(t_ref_class_act.cls_id) AS class_id
-        FROM t_prop
-        RIGHT JOIN t_ref_act_prop  ON t_prop.id              = t_ref_act_prop.prop_id
-        RIGHT JOIN t_ref_class_act ON t_ref_class_act.act_id = t_ref_act_prop.act_id
-        WHERE t_ref_act_prop.prop_id=OLD.id;
-
-    changed        RECORD;
-BEGIN
-    IF OLD.label&lt;&gt;NEW.label THEN
-
-        RAISE DEBUG 'tr_bu_act_prop: ИЗМЕНЕНО СВОЙСТВО % --&gt; % ',OLD.label,NEW.label;
-        
-        FOR changed IN cursor_of_id 
-        LOOP
-            RAISE DEBUG 'tr_bu_act_prop: ИЗМЕНЕНО ПОЛЕ % --&gt; % в таблицах "%" состояния/истории ',
-                OLD.label, NEW.label, changed.class_id;
-            EXECUTE 'ALTER TABLE  t_log_'||changed.class_id||' RENAME COLUMN '
-                ||quote_ident(OLD.label)||' TO '||quote_ident(NEW.label);
-            EXECUTE 'ALTER TABLE  t_state_'||changed.class_id||' RENAME COLUMN '
-                ||quote_ident(OLD.label)||' TO '||quote_ident(NEW.label);
-    END LOOP;
-    END IF;
-RETURN NEW;
-END;
+$$&#13;
+DECLARE&#13;
+    -- ищем все классы в котором есть свойство &#13;
+    cursor_of_id CURSOR IS &#13;
+        SELECT DISTINCT(t_ref_class_act.cls_id) AS class_id&#13;
+        FROM t_prop&#13;
+        RIGHT JOIN t_ref_act_prop  ON t_prop.id              = t_ref_act_prop.prop_id&#13;
+        RIGHT JOIN t_ref_class_act ON t_ref_class_act.act_id = t_ref_act_prop.act_id&#13;
+        WHERE t_ref_act_prop.prop_id=OLD.id;&#13;
+&#13;
+    changed        RECORD;&#13;
+BEGIN&#13;
+    IF OLD.label&lt;&gt;NEW.label THEN&#13;
+&#13;
+        RAISE DEBUG 'tr_bu_act_prop: ИЗМЕНЕНО СВОЙСТВО % --&gt; % ',OLD.label,NEW.label;&#13;
+        &#13;
+        FOR changed IN cursor_of_id &#13;
+        LOOP&#13;
+            RAISE DEBUG 'tr_bu_act_prop: ИЗМЕНЕНО ПОЛЕ % --&gt; % в таблицах "%" состояния/истории ',&#13;
+                OLD.label, NEW.label, changed.class_id;&#13;
+            EXECUTE 'ALTER TABLE  t_log_'||changed.class_id||' RENAME COLUMN '&#13;
+                ||quote_ident(OLD.label)||' TO '||quote_ident(NEW.label);&#13;
+            EXECUTE 'ALTER TABLE  t_state_'||changed.class_id||' RENAME COLUMN '&#13;
+                ||quote_ident(OLD.label)||' TO '||quote_ident(NEW.label);&#13;
+    END LOOP;&#13;
+    END IF;&#13;
+RETURN NEW;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
@@ -1478,17 +1948,15 @@ $$
     <Proc nm="ftr_bd_class()">
       <src>CREATE OR REPLACE FUNCTION ftr_bd_class() 
   RETURNS trigger AS 
-$$
-DECLARE
-BEGIN
-    IF OLD.type=1 THEN
-        EXECUTE 'DROP TABLE IF EXISTS t_log_'||OLD.id||' CASCADE';
-        EXECUTE 'DROP TABLE IF EXISTS t_state_'||OLD.id||' CASCADE';
-    ELSE
-        --EXECUTE 'DROP TABLE IF EXISTS t_logqty_'||OLD.id||' CASCADE';
-    END IF;
-RETURN OLD;
-END;
+$$&#13;
+DECLARE&#13;
+BEGIN&#13;
+    IF OLD.type=1 THEN&#13;
+        EXECUTE 'DROP TABLE IF EXISTS t_log_'||OLD.id||' CASCADE';&#13;
+        EXECUTE 'DROP TABLE IF EXISTS t_state_'||OLD.id||' CASCADE';&#13;
+    END IF;&#13;
+RETURN OLD;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
@@ -1496,28 +1964,28 @@ $$
     <Proc nm="ftr_bd_wh_auth_members()">
       <src>CREATE OR REPLACE FUNCTION ftr_bd_wh_auth_members() 
   RETURNS trigger AS 
-$$
-DECLARE
-	_role VARCHAR;
-	_user VARCHAR;
-	_pg_createrole boolean;
-BEGIN
-	SELECT rolname INTO _role FROM wh_role WHERE wh_role.id=OLD.roleid;
-	SELECT rolname INTO _user FROM wh_role WHERE wh_role.id=OLD.member;
-	IF _role IS NOT NULL AND _user IS NOT NULL
-		THEN EXECUTE 'REVOKE '||quote_ident(_role)||' FROM '||quote_ident(_user);
-	END IF;
-
-	--если пользователь админ и хочет дать права админу кому-то ещё проверяем в PG его принадлежность к админам
-	SELECT rolcreaterole INTO _pg_createrole FROM pg_authid WHERE rolname=CURRENT_USER;
-	IF _role='Admin' AND _pg_createrole IS TRUE
-	THEN
-		UPDATE wh_role SET rolcreaterole=false WHERE wh_role.id= OLD.member;
-	END IF;
-
-	
-	RETURN OLD;
-END;
+$$&#13;
+DECLARE&#13;
+	_role VARCHAR;&#13;
+	_user VARCHAR;&#13;
+	_pg_createrole boolean;&#13;
+BEGIN&#13;
+	SELECT rolname INTO _role FROM wh_role WHERE wh_role.id=OLD.roleid;&#13;
+	SELECT rolname INTO _user FROM wh_role WHERE wh_role.id=OLD.member;&#13;
+	IF _role IS NOT NULL AND _user IS NOT NULL&#13;
+		THEN EXECUTE 'REVOKE '||quote_ident(_role)||' FROM '||quote_ident(_user);&#13;
+	END IF;&#13;
+&#13;
+	--если пользователь админ и хочет дать права админу кому-то ещё проверяем в PG его принадлежность к админам&#13;
+	SELECT rolcreaterole INTO _pg_createrole FROM pg_authid WHERE rolname=CURRENT_USER;&#13;
+	IF _role='Admin' AND _pg_createrole IS TRUE&#13;
+	THEN&#13;
+		UPDATE wh_role SET rolcreaterole=false WHERE wh_role.id= OLD.member;&#13;
+	END IF;&#13;
+&#13;
+	&#13;
+	RETURN OLD;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
@@ -1525,38 +1993,18 @@ $$
     <Proc nm="ftr_bd_wh_role()">
       <src>CREATE OR REPLACE FUNCTION ftr_bd_wh_role() 
   RETURNS trigger AS 
-$$
-BEGIN
-	--BEGIN
-		EXECUTE 'DROP ROLE IF EXISTS '||quote_ident(OLD.rolname);
-		RAISE NOTICE USING MESSAGE ='DROP ROLE IF EXISTS '||quote_ident(OLD.rolname);
-	--EXCEPTION
-	--	WHEN object_in_use THEN RAISE NOTICE 'can not delete role % - object_in_use',OLD.rolname;
-	--	WHEN dependent_objects_still_exist THEN RAISE NOTICE 'can not delete role % - dependent_objects_still_exist',OLD.rolname;
-	--END;	
-
-RETURN OLD;
-END;
-$$
-  LANGUAGE plpgsql VOLATILE 
-  COST 100;</src>
-    </Proc>
-    <Proc nm="ftr_bi_access_act()">
-      <src>CREATE OR REPLACE FUNCTION ftr_bi_access_act() 
-  RETURNS trigger AS 
-$$
-DECLARE
-
-BEGIN
-    -- проверяем наличие 
-    PERFORM * FROM t_access_act 
-        WHERE cls_id = NEW.cls_id AND act_id = NEW.act_id;
-    -- если не нашлось, то добавляем 
-    IF NOT FOUND THEN
-        INSERT INTO t_ref_class_act(cls_id, act_id) VALUES (NEW.cls_id, NEW.act_id);
-    END IF;                            
-RETURN NEW;
-END;
+$$&#13;
+BEGIN&#13;
+	--BEGIN&#13;
+		EXECUTE 'DROP ROLE IF EXISTS '||quote_ident(OLD.rolname);&#13;
+		RAISE NOTICE USING MESSAGE ='DROP ROLE IF EXISTS '||quote_ident(OLD.rolname);&#13;
+	--EXCEPTION&#13;
+	--	WHEN object_in_use THEN RAISE NOTICE 'can not delete role % - object_in_use',OLD.rolname;&#13;
+	--	WHEN dependent_objects_still_exist THEN RAISE NOTICE 'can not delete role % - dependent_objects_still_exist',OLD.rolname;&#13;
+	--END;	&#13;
+&#13;
+RETURN OLD;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
@@ -1564,43 +2012,23 @@ $$
     <Proc nm="ftr_bi_class()">
       <src>CREATE OR REPLACE FUNCTION ftr_bi_class() 
   RETURNS trigger AS 
-$$
-DECLARE
-BEGIN
--- подставляем единицу измерения по умолчанию
-    CASE NEW.type
-    WHEN 0 THEN NEW.measurename=NULL;
-    WHEN 1 THEN NEW.measurename='ед.';
-    WHEN 2 THEN NEW.measurename='шт.';
-    ELSE END CASE;       
--- проверяем, что новый класс не является дочерним абстрактного
-    PERFORM * FROM t_cls WHERE NEW.pid=id AND type&gt;0 AND pid&gt;1;
-    IF FOUND THEN
-        RAISE EXCEPTION '%: Can`t create child to non abstract class ',TG_NAME;
-    END IF;
-
-RETURN NEW;
-END;
-$$
-  LANGUAGE plpgsql VOLATILE 
-  COST 100;</src>
-    </Proc>
-    <Proc nm="ftr_bi_obj_any()">
-      <src>CREATE OR REPLACE FUNCTION ftr_bi_obj_any() 
-  RETURNS trigger AS 
-$$
-DECLARE
-
-BEGIN
-    -- проверяем наличие объекта с таким названием
-    PERFORM * FROM t_objqtykey
-        WHERE cls_id = NEW.cls_id AND obj_label = NEW.obj_label; --AND class_type   =_class_type 
-    -- если не нашлось, то добавляем объект
-    IF NOT FOUND THEN
-        INSERT INTO t_objqtykey(cls_id, obj_label ) VALUES ( NEW.cls_id, NEW.obj_label );
-    END IF;                            
-RETURN NEW;
-END;
+$$&#13;
+DECLARE&#13;
+BEGIN&#13;
+-- подставляем единицу измерения по умолчанию&#13;
+    CASE NEW.type&#13;
+    WHEN 0 THEN NEW.measurename=NULL;&#13;
+    WHEN 1 THEN NEW.measurename='ед.';&#13;
+    WHEN 2 THEN NEW.measurename='шт.';&#13;
+    ELSE END CASE;       &#13;
+-- проверяем, что новый класс не является дочерним абстрактного&#13;
+    PERFORM * FROM t_cls WHERE NEW.pid=id AND type&gt;0 AND pid&gt;1;&#13;
+    IF FOUND THEN&#13;
+        RAISE EXCEPTION '%: Can`t create child to non abstract class ',TG_NAME;&#13;
+    END IF;&#13;
+&#13;
+RETURN NEW;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
@@ -1608,26 +2036,26 @@ $$
     <Proc nm="ftr_bi_wh_auth_members()">
       <src>CREATE OR REPLACE FUNCTION ftr_bi_wh_auth_members() 
   RETURNS trigger AS 
-$$
-DECLARE
-	_role VARCHAR;
-	_user VARCHAR;
-BEGIN
-	SELECT rolname INTO _role FROM wh_role WHERE wh_role.id=NEW.roleid;
-	SELECT rolname INTO _user FROM wh_role WHERE wh_role.id=NEW.member;
-
-	IF _role IS NOT NULL AND _user IS NOT NULL
-	THEN 
-		EXECUTE 'GRANT '||quote_ident(_role)||' TO '||quote_ident(_user);
-	END IF;
-
-	IF _role='Admin' 
-	THEN
-		UPDATE wh_role SET rolcreaterole=true WHERE wh_role.id= NEW.member;
-	END IF;
-	
-RETURN NEW;
-END;
+$$&#13;
+DECLARE&#13;
+	_role VARCHAR;&#13;
+	_user VARCHAR;&#13;
+BEGIN&#13;
+	SELECT rolname INTO _role FROM wh_role WHERE wh_role.id=NEW.roleid;&#13;
+	SELECT rolname INTO _user FROM wh_role WHERE wh_role.id=NEW.member;&#13;
+&#13;
+	IF _role IS NOT NULL AND _user IS NOT NULL&#13;
+	THEN &#13;
+		EXECUTE 'GRANT '||quote_ident(_role)||' TO '||quote_ident(_user);&#13;
+	END IF;&#13;
+&#13;
+	IF _role='Admin' &#13;
+	THEN&#13;
+		UPDATE wh_role SET rolcreaterole=true WHERE wh_role.id= NEW.member;&#13;
+	END IF;&#13;
+	&#13;
+RETURN NEW;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
@@ -1635,57 +2063,64 @@ $$
     <Proc nm="ftr_bi_wh_role()">
       <src>CREATE OR REPLACE FUNCTION ftr_bi_wh_role() 
   RETURNS trigger AS 
-$$
-BEGIN
-	LOOP
-		EXIT WHEN (SELECT id FROM wh_role WHERE id=NEW.id) IS NULL;  --!!!ограничить число переборов на случай полного заполнения
-		SELECT nextval('wh_role_id_seq') INTO NEW.id;
-		RAISE NOTICE 'searching id : NEW.id=%',NEW.id; -- отменяем попытку переноса
-	END LOOP;
-
-	RAISE NOTICE USING MESSAGE ='CREATE ROLE '||quote_ident(NEW.rolname)||' NOSUPERUSER INHERIT NOCREATEDB '
-			||CASE WHEN NEW.rolcanlogin 	THEN ' LOGIN' 		ELSE ' NOLOGIN' END
-			||CASE WHEN NEW.rolcreaterole 	THEN ' CREATEROLE' 	ELSE ' NOCREATEROLE' END
-			||' CONNECTION LIMIT '|| NEW.rolconnlimit
-			||CASE WHEN NEW.rolpassword IS NULL THEN ' '		ELSE ' ENCRYPTED PASSWORD '||quote_literal(NEW.rolpassword) END
-			||CASE WHEN NEW.rolvaliduntil IS NULL THEN ' '		ELSE ' VALID UNTIL '||quote_literal(NEW.rolvaliduntil)END;
-			
-	EXECUTE 'CREATE ROLE '||quote_ident(NEW.rolname)||' NOSUPERUSER INHERIT NOCREATEDB '
-			||CASE WHEN NEW.rolcanlogin 		THEN ' LOGIN' 		ELSE ' NOLOGIN' END
-			||CASE WHEN NEW.rolcreaterole 		THEN ' CREATEROLE' 	ELSE ' NOCREATEROLE' END
-			||' CONNECTION LIMIT '|| NEW.rolconnlimit
-			||CASE WHEN NEW.rolpassword IS NULL 	THEN ' '		ELSE ' ENCRYPTED PASSWORD '||quote_literal(NEW.rolpassword) END
-			||CASE WHEN NEW.rolvaliduntil IS NULL 	THEN ' '		ELSE ' VALID UNTIL '||quote_literal(NEW.rolvaliduntil)END;
-
-	IF(NEW.rolcomment IS NOT NULL)
-	THEN
-		EXECUTE 'COMMENT ON ROLE '||quote_ident(NEW.rolname)||' IS '||quote_literal(NEW.rolcomment);
-		RAISE NOTICE USING MESSAGE ='COMMENT ON ROLE '||quote_ident(NEW.rolname)||' IS '||quote_literal(NEW.rolcomment);
-	END IF;
-
-	RETURN NEW;
-END;
+$$&#13;
+BEGIN&#13;
+	LOOP&#13;
+		EXIT WHEN (SELECT id FROM wh_role WHERE id=NEW.id) IS NULL;  --!!!ограничить число переборов на случай полного заполнения&#13;
+		SELECT nextval('wh_role_id_seq') INTO NEW.id;&#13;
+		RAISE NOTICE 'searching id : NEW.id=%',NEW.id; -- отменяем попытку переноса&#13;
+	END LOOP;&#13;
+&#13;
+	RAISE NOTICE USING MESSAGE ='CREATE ROLE '||quote_ident(NEW.rolname)||' NOSUPERUSER INHERIT NOCREATEDB '&#13;
+			||CASE WHEN NEW.rolcanlogin 	THEN ' LOGIN' 		ELSE ' NOLOGIN' END&#13;
+			||CASE WHEN NEW.rolcreaterole 	THEN ' CREATEROLE' 	ELSE ' NOCREATEROLE' END&#13;
+			||' CONNECTION LIMIT '|| NEW.rolconnlimit&#13;
+			||CASE WHEN NEW.rolpassword IS NULL THEN ' '		ELSE ' ENCRYPTED PASSWORD '||quote_literal(NEW.rolpassword) END&#13;
+			||CASE WHEN NEW.rolvaliduntil IS NULL THEN ' '		ELSE ' VALID UNTIL '||quote_literal(NEW.rolvaliduntil)END;&#13;
+			&#13;
+	EXECUTE 'CREATE ROLE '||quote_ident(NEW.rolname)||' NOSUPERUSER INHERIT NOCREATEDB '&#13;
+			||CASE WHEN NEW.rolcanlogin 		THEN ' LOGIN' 		ELSE ' NOLOGIN' END&#13;
+			||CASE WHEN NEW.rolcreaterole 		THEN ' CREATEROLE' 	ELSE ' NOCREATEROLE' END&#13;
+			||' CONNECTION LIMIT '|| NEW.rolconnlimit&#13;
+			||CASE WHEN NEW.rolpassword IS NULL 	THEN ' '		ELSE ' ENCRYPTED PASSWORD '||quote_literal(NEW.rolpassword) END&#13;
+			||CASE WHEN NEW.rolvaliduntil IS NULL 	THEN ' '		ELSE ' VALID UNTIL '||quote_literal(NEW.rolvaliduntil)END;&#13;
+&#13;
+	IF(NEW.rolcomment IS NOT NULL)&#13;
+	THEN&#13;
+		EXECUTE 'COMMENT ON ROLE '||quote_ident(NEW.rolname)||' IS '||quote_literal(NEW.rolcomment);&#13;
+		RAISE NOTICE USING MESSAGE ='COMMENT ON ROLE '||quote_ident(NEW.rolname)||' IS '||quote_literal(NEW.rolcomment);&#13;
+	END IF;&#13;
+&#13;
+	RETURN NEW;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
     </Proc>
-    <Proc nm="ftr_biu_obj_any()">
-      <src>CREATE OR REPLACE FUNCTION ftr_biu_obj_any() 
+    <Proc nm="ftr_biu_access_act()">
+      <src>CREATE OR REPLACE FUNCTION ftr_biu_access_act() 
   RETURNS trigger AS 
-$$
-DECLARE
-
-BEGIN
-    -- проверяем наличие объекта с таким названием
-    PERFORM * FROM t_obj 
-        WHERE cls_label = NEW.cls_label AND obj_label = NEW.obj_label; --AND class_type   =_class_type 
-    -- если не нашлось, то добавляем объект
-    IF NOT FOUND THEN
-        INSERT INTO t_obj(     class_type,     cls_label,     obj_label )
-                  VALUES ( NEW.class_type, NEW.cls_label, NEW.obj_label );
-    END IF;                            
-RETURN NEW;
-END;
+$$&#13;
+DECLARE&#13;
+&#13;
+BEGIN&#13;
+    CASE TG_OP&#13;
+    WHEN 'INSERT' THEN -- проверяем наличие &#13;
+        PERFORM * FROM t_ref_class_act WHERE cls_id = NEW.cls_id AND act_id = NEW.act_id;&#13;
+        -- если не нашлось, то добавляем &#13;
+        IF NOT FOUND THEN&#13;
+            INSERT INTO t_ref_class_act(cls_id, act_id) VALUES (NEW.cls_id, NEW.act_id);&#13;
+        END IF;&#13;
+    WHEN 'UPDATE' THEN&#13;
+        IF NEW.cls_id&lt;&gt;OLD.cls_id OR NEW.act_id&lt;&gt;old.act_id THEN&#13;
+            UPDATE t_ref_class_act SET cls_id=NEW.cls_id, act_id=NEW.act_id WHERE &#13;
+                cls_id=OLD.cls_id AND act_id=OLD.act_id;&#13;
+        END IF;                &#13;
+    ELSE&#13;
+    END CASE;&#13;
+&#13;
+RETURN NEW;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
@@ -1693,13 +2128,13 @@ $$
     <Proc nm="ftr_bu_class()">
       <src>CREATE OR REPLACE FUNCTION ftr_bu_class() 
   RETURNS trigger AS 
-$$
-DECLARE
-BEGIN
-    RAISE DEBUG '%: создать тригер обновления класса с обновлением имён в истории ',TG_NAME;
-    --t_lognum_, t_logqty_ + t_perm
-RETURN NEW;
-END;
+$$&#13;
+DECLARE&#13;
+BEGIN&#13;
+    RAISE DEBUG '%: создать тригер обновления класса с обновлением имён в истории ',TG_NAME;&#13;
+    --t_lognum_, t_logqty_ + t_perm&#13;
+RETURN NEW;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
@@ -1707,11 +2142,11 @@ $$
     <Proc nm="ftr_bu_wh_auth_members()">
       <src>CREATE OR REPLACE FUNCTION ftr_bu_wh_auth_members() 
   RETURNS trigger AS 
-$$
-BEGIN
-	--RAISE EXCEPTION 'Невозможно изменить данные в wh_auth_members только вставка и удаление';
-	RETURN NEW;
-END;
+$$&#13;
+BEGIN&#13;
+	--RAISE EXCEPTION 'Невозможно изменить данные в wh_auth_members только вставка и удаление';&#13;
+	RETURN NEW;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
@@ -1719,56 +2154,67 @@ $$
     <Proc nm="ftr_bu_wh_role()">
       <src>CREATE OR REPLACE FUNCTION ftr_bu_wh_role() 
   RETURNS trigger AS 
-$$
-BEGIN
-	IF NEW.id&lt;&gt;OLD.id 
-		THEN RAISE EXCEPTION 'Невозможно изменить пользователя %, смена id недопустима!',OLD.rolname;  
-		END IF;
-	IF NEW.rolcanlogin&lt;&gt;OLD.rolcanlogin
-		THEN RAISE EXCEPTION 'Невозможно изменить пользователя %, смена типа недопустима(пользователь/группа) недопустима!',OLD.rolname;  
-		END IF;
-
-
-	IF NEW.rolcreaterole&lt;&gt;OLD.rolcreaterole
-		THEN EXECUTE 'ALTER ROLE '||quote_ident(OLD.rolname)|| CASE WHEN NEW.rolcreaterole THEN ' CREATEROLE' 	ELSE ' NOCREATEROLE' END;
-		RAISE NOTICE USING MESSAGE = 'ALTER ROLE '||quote_ident(OLD.rolname)|| CASE WHEN NEW.rolcreaterole THEN ' CREATEROLE' 	ELSE ' NOCREATEROLE' END;
-		END IF;
-	IF NEW.rolconnlimit&lt;&gt;OLD.rolconnlimit
-		THEN EXECUTE 'ALTER ROLE '||quote_ident(OLD.rolname)||' CONNECTION LIMIT '||NEW.rolconnlimit;
-		END IF;
-	IF NEW.rolpassword&lt;&gt;OLD.rolpassword
-		THEN EXECUTE 'ALTER ROLE '||quote_ident(OLD.rolname)||' ENCRYPTED PASSWORD '||quote_literal(NEW.rolpassword);
-		END IF;
-	IF NEW.rolvaliduntil&lt;&gt;OLD.rolvaliduntil
-		THEN EXECUTE 'ALTER ROLE '||quote_ident(OLD.rolname)||' VALID UNTIL '||quote_literal(rolvaliduntil);
-		END IF;
-	IF NEW.rolcomment&lt;&gt;OLD.rolcomment
-		THEN EXECUTE 'COMMENT ON ROLE '||quote_ident(OLD.rolname)||' IS '||quote_literal(NEW.rolcomment);
-		END IF;
-	IF NEW.rolname&lt;&gt;OLD.rolname
-		THEN EXECUTE 'ALTER ROLE '||quote_ident(OLD.rolname)||' RENAME TO '||quote_ident(NEW.rolname);
-		RAISE NOTICE USING MESSAGE = 'ALTER ROLE '||quote_ident(OLD.rolname)||' RENAME TO '||quote_ident(NEW.rolname);
-		END IF;
-	
-
-	RAISE DEBUG 'wh_role NEW RECORD (%)', NEW;
-
-RETURN NEW;
-END;
+$$&#13;
+BEGIN&#13;
+	IF NEW.id&lt;&gt;OLD.id &#13;
+		THEN RAISE EXCEPTION 'Невозможно изменить пользователя %, смена id недопустима!',OLD.rolname;  &#13;
+		END IF;&#13;
+	IF NEW.rolcanlogin&lt;&gt;OLD.rolcanlogin&#13;
+		THEN RAISE EXCEPTION 'Невозможно изменить пользователя %, смена типа недопустима(пользователь/группа) недопустима!',OLD.rolname;  &#13;
+		END IF;&#13;
+&#13;
+&#13;
+	IF NEW.rolcreaterole&lt;&gt;OLD.rolcreaterole&#13;
+		THEN EXECUTE 'ALTER ROLE '||quote_ident(OLD.rolname)|| CASE WHEN NEW.rolcreaterole THEN ' CREATEROLE' 	ELSE ' NOCREATEROLE' END;&#13;
+		RAISE NOTICE USING MESSAGE = 'ALTER ROLE '||quote_ident(OLD.rolname)|| CASE WHEN NEW.rolcreaterole THEN ' CREATEROLE' 	ELSE ' NOCREATEROLE' END;&#13;
+		END IF;&#13;
+	IF NEW.rolconnlimit&lt;&gt;OLD.rolconnlimit&#13;
+		THEN EXECUTE 'ALTER ROLE '||quote_ident(OLD.rolname)||' CONNECTION LIMIT '||NEW.rolconnlimit;&#13;
+		END IF;&#13;
+	IF NEW.rolpassword&lt;&gt;OLD.rolpassword&#13;
+		THEN EXECUTE 'ALTER ROLE '||quote_ident(OLD.rolname)||' ENCRYPTED PASSWORD '||quote_literal(NEW.rolpassword);&#13;
+		END IF;&#13;
+	IF NEW.rolvaliduntil&lt;&gt;OLD.rolvaliduntil&#13;
+		THEN EXECUTE 'ALTER ROLE '||quote_ident(OLD.rolname)||' VALID UNTIL '||quote_literal(rolvaliduntil);&#13;
+		END IF;&#13;
+	IF NEW.rolcomment&lt;&gt;OLD.rolcomment&#13;
+		THEN EXECUTE 'COMMENT ON ROLE '||quote_ident(OLD.rolname)||' IS '||quote_literal(NEW.rolcomment);&#13;
+		END IF;&#13;
+	IF NEW.rolname&lt;&gt;OLD.rolname&#13;
+		THEN EXECUTE 'ALTER ROLE '||quote_ident(OLD.rolname)||' RENAME TO '||quote_ident(NEW.rolname);&#13;
+		RAISE NOTICE USING MESSAGE = 'ALTER ROLE '||quote_ident(OLD.rolname)||' RENAME TO '||quote_ident(NEW.rolname);&#13;
+		END IF;&#13;
+	&#13;
+&#13;
+	RAISE DEBUG 'wh_role NEW RECORD (%)', NEW;&#13;
+&#13;
+RETURN NEW;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
+  COST 100;</src>
+    </Proc>
+    <Proc nm="get_path(node_pid bigint)">
+      <src>CREATE OR REPLACE FUNCTION get_path(node_pid bigint) 
+  RETURNS text AS 
+$$ &#13;
+    SELECT _path &#13;
+      FROM fget_objnum_pathinfo_table($1) &#13;
+      WHERE _pid=1&#13;
+$$
+  LANGUAGE sql VOLATILE 
   COST 100;</src>
     </Proc>
     <Proc nm="get_path_array(node_pid bigint)">
       <src>CREATE OR REPLACE FUNCTION get_path_array(node_pid bigint) 
   RETURNS name[] AS 
-$$ 
-	SELECT 	
-		_path
-	FROM	
-		fget_objnum_pathinfo_table($1)
-	WHERE	
-		_pid=0
+$$ &#13;
+	SELECT 	&#13;
+		_patharray&#13;
+	FROM	&#13;
+		fget_objnum_pathinfo_table($1)&#13;
+	WHERE	&#13;
+		_pid=1&#13;
 $$
   LANGUAGE sql VOLATILE 
   COST 100;</src>
@@ -1782,236 +2228,423 @@ $$
   LANGUAGE sql VOLATILE 
   COST 100;</src>
     </Proc>
-    <Proc nm="move_obj(_src_path name[], _dst_path name[], _curr_pid bigint, qty numeric, movcomment text)">
-      <src>CREATE OR REPLACE FUNCTION move_obj(_src_path name[], _dst_path name[], _curr_pid bigint, qty numeric, movcomment text) 
+    <Proc nm="lock_for_act(_cls_id integer, _obj_id bigint)">
+      <src>CREATE OR REPLACE FUNCTION lock_for_act(_cls_id integer, _obj_id bigint) 
+  RETURNS SETOF t_act AS 
+$$&#13;
+DECLARE&#13;
+    _acts CURSOR(_curr_path TEXT) IS&#13;
+    SELECT t_act.* from (&#13;
+    SELECT t_access_act.cls_id,obj_id,act_id,t_access_act.src_path, sum(access_disabled)&#13;
+        FROM t_access_act&#13;
+        LEFT JOIN wh_role _group ON t_access_act.access_group=_group.rolname-- определяем ИМЕНА разрешённых групп&#13;
+        RIGHT JOIN    wh_auth_members membership ON _group.id=membership.roleid -- определяем ИДЕНТИФИКАТОРЫ разрешённых групп&#13;
+        RIGHT JOIN wh_role _user ON _user.id=membership.member -- определяем ИДЕНТИФИКАТОРЫ разрешённых пользователей&#13;
+          AND _user.rolname=CURRENT_USER -- определяем ИМЕНА разрешённых пользователей ВКЛЮЧАЯ ТЕКУЩЕГО&#13;
+          &#13;
+      WHERE&#13;
+            t_access_act.cls_id = _cls_id --105&#13;
+        AND (obj_id IS NULL OR obj_id = _obj_id) --101)&#13;
+        AND (src_path IS NULL OR _curr_path LIKE src_path::TEXT)&#13;
+      GROUP BY cls_id,obj_id,act_id, src_path&#13;
+      ) t &#13;
+      LEFT JOIN t_act ON t.act_id= t_act.id;&#13;
+&#13;
+    _src_pid      BIGINT;&#13;
+    _locked_rec   RECORD;&#13;
+BEGIN&#13;
+    -- пытаемся найти объект и его местоположение&#13;
+    SELECT pid INTO _src_pid FROM t_objnum WHERE cls_id=_cls_id AND id=_obj_id;&#13;
+    IF NOT FOUND THEN&#13;
+        RAISE EXCEPTION ' Object not exists cls_id=% obj_id=% ',_cls_id, _obj_id;&#13;
+    END IF;&#13;
+    -- пытаемся заблокировать объект, если блокировка не удастся транзакция откатится исключением&#13;
+    _locked_rec := try_lock_obj(_cls_id, _obj_id, _src_pid);&#13;
+    -- объект блокирован&#13;
+    -- определяем разрешенные действия и спихиваем их в выходную табличку и в табличку блокировки&#13;
+    FOR rec IN _acts( get_path(_src_pid) ) LOOP&#13;
+        --_act_id:=rec.id;&#13;
+        --_act_label:=rec.label;&#13;
+        return next rec;                        -- заполняем табличку разрешённых действий&#13;
+        -- заполняем табличку идентификаторов разрешённых действий &#13;
+        INSERT INTO t_lock_act(cls_id, obj_id, obj_pid, act_id)VALUES (_cls_id, _obj_id, _src_pid, rec.id);&#13;
+    END LOOP;&#13;
+&#13;
+    IF NOT FOUND THEN&#13;
+        PERFORM lock_reset(_cls_id,_obj_id,_src_pid);&#13;
+        RAISE DEBUG ' There are no action, lock aborted';&#13;
+    ELSE&#13;
+        RAISE DEBUG ' Object LOCKED cls_id=% obj_id=% ',_cls_id, _obj_id;&#13;
+    END IF;&#13;
+    &#13;
+END;&#13;
+$$
+  LANGUAGE plpgsql VOLATILE 
+  COST 500
+  ROWS 1000;</src>
+    </Proc>
+    <Proc nm="lock_for_move(IN _cls_id integer, IN _obj_id bigint, IN _old_pid bigint)">
+      <src>CREATE OR REPLACE FUNCTION lock_for_move(IN _cls_id integer, IN _obj_id bigint, IN _old_pid bigint) 
+  RETURNS TABLE(_dst_obj_id bigint, _dst_cls_id integer, _dst_obj_label name, _dst_obj_pid bigint) AS 
+$$&#13;
+DECLARE&#13;
+&#13;
+    _dst_obj CURSOR IS&#13;
+        SELECT dst_obj_id, dst_cls_id, dst_obj_label ,dst_obj_pid&#13;
+        FROM (&#13;
+              SELECT &#13;
+                dst_obj_id, dst_cls_id, dst_obj_label ,dst_obj_pid,sum(perm_access_disabled)&#13;
+                FROM moverule_lockup WHERE&#13;
+                    mov_cls_id = _cls_id -- NOT NULL&#13;
+                AND (mov_obj_pid IS NULL OR mov_obj_pid = _old_pid)&#13;
+                AND (mov_obj_id  IS NULL OR mov_obj_id = _obj_id)&#13;
+                GROUP BY dst_obj_id, dst_cls_id, dst_obj_label ,dst_obj_pid&#13;
+             )t&#13;
+            WHERE sum=0;&#13;
+&#13;
+   _dst_path BIGINT[];&#13;
+   _locked_rec RECORD;&#13;
+BEGIN&#13;
+    -- пытаемся заблокировать объект, если блокировка не удастся транзакция откатится исключением&#13;
+    _locked_rec := try_lock_obj(_cls_id, _obj_id, _old_pid);&#13;
+    -- объект блокирован&#13;
+&#13;
+    FOR rec IN _dst_obj LOOP&#13;
+        _dst_path := (SELECT fget_get_oid_path(rec.dst_obj_id));&#13;
+        &#13;
+       INSERT INTO t_lock_dst(cls_id,obj_id,obj_pid, dst_path)&#13;
+           VALUES(_cls_id,_obj_id,_old_pid,_dst_path); &#13;
+&#13;
+        _dst_obj_id:=rec.dst_obj_id;&#13;
+        _dst_cls_id:=rec.dst_cls_id;&#13;
+        _dst_obj_label:=rec.dst_obj_label;&#13;
+        _dst_obj_pid:=rec.dst_obj_pid;&#13;
+        &#13;
+        return next;&#13;
+    END LOOP;&#13;
+&#13;
+    RETURN;&#13;
+END;&#13;
+$$
+  LANGUAGE plpgsql VOLATILE 
+  COST 500
+  ROWS 1000;</src>
+    </Proc>
+    <Proc nm="lock_move_check(_cls_id integer, _obj_id bigint, _old_pid bigint, _src_path bigint[], _dst_path bigint[])">
+      <src>CREATE OR REPLACE FUNCTION lock_move_check(_cls_id integer, _obj_id bigint, _old_pid bigint, _src_path bigint[], _dst_path bigint[]) 
+  RETURNS bigint AS 
+$$&#13;
+DECLARE&#13;
+   _result BIGINT;&#13;
+   --_old_pid BIGINT;&#13;
+BEGIN&#13;
+    --_old_pid:= ( CASE WHEN _src_path[1] IS NULL THEN 1 ELSE _src_path[1] END );&#13;
+    &#13;
+    &#13;
+    SELECT count(*) INTO _result &#13;
+        FROM t_lock_obj&#13;
+        INNER JOIN t_lock_dst USING (cls_id,obj_id,obj_pid)&#13;
+        WHERE cls_id=_cls_id AND obj_id=_obj_id AND obj_pid=_old_pid&#13;
+        AND lock_time +'00:10:00.00' &gt; now()&#13;
+        AND session_pid = pg_backend_pid()&#13;
+        AND ((src_path IS NULL AND _src_path IS NULL) OR src_path=_src_path)&#13;
+        AND ((dst_path IS NULL AND _dst_path IS NULL) OR dst_path=_dst_path);&#13;
+&#13;
+    RETURN _result;&#13;
+END;&#13;
+$$
+  LANGUAGE plpgsql STABLE 
+  COST 500;</src>
+    </Proc>
+    <Proc nm="lock_reset(_cls_id integer, _obj_id bigint, _old_pid bigint)">
+      <src>CREATE OR REPLACE FUNCTION lock_reset(_cls_id integer, _obj_id bigint, _old_pid bigint) 
   RETURNS void AS 
-$$	
-DECLARE
-	mov_obj 	NAME[];
-	dst_obj		NAME[];
-	src_path_wo_obj NAME[];
-
-	--_str moverule_lockup%ROWTYPE ;
-	data_rec  RECORD;
-	old_qty	NUMERIC;
-
-	sum_curr NUMERIC;
-	sum_dst  NUMERIC;
-	min_curr NUMERIC;
-	max_dst  NUMERIC;
-BEGIN	
--- testing path проверяем что как минимум по одному элементу есть и размерность элемента равна двум (2)
-	RAISE DEBUG 'MOVING % --&gt; %',_src_path,_dst_path; 
-	IF array_lower(_src_path,1)&lt;1 OR array_lower(_dst_path,1)&lt;1 OR array_upper(_src_path,2) &lt;&gt;2 OR array_upper(_dst_path,2)&lt;&gt;2 
-	THEN
-		RAISE EXCEPTION 'Wrong format in path: _src_path=%  ---&gt;  _dst_path=%',_src_path,_dst_path; 
-	END IF;
--- extract and check MOVABLE and DESTINATION objects
-	mov_obj = ARRAY [ _src_path[1][1],_src_path[1][2]];
-	dst_obj  = ARRAY [ _dst_path[1][1],_dst_path[1][2]];
-	RAISE DEBUG 'EXTRACTED mov_obj=%   dst_obj=%',mov_obj,dst_obj; 
-	IF mov_obj[1] IS NULL OR dst_obj[1] IS NULL
-	THEN
-		RAISE EXCEPTION 'Wrong MOV_CLASSNAME=%  OR  DSt_clsNAME=%',mov_obj[1],dst_obj[1]; 
-	END IF;
-	src_path_wo_obj =  _src_path[2:array_upper(_src_path,1)] ;
-	RAISE DEBUG 'EXTRACTED src_path_wo_obj=%',src_path_wo_obj; 
--- search permission,slots and other data for moving from _src_path to _dst_path 
-	SELECT 	sum(_perm_type),MOV_OBJID,MOV_CLASSTYPE,MOV_QTY,PARENt_clsNAME,DST_OBJID,_dst_slot_cls,_dst_slot_min,_dst_slot_max
-		INTO data_rec
-	FROM moverule_lockup 
-	WHERE 			MOV_CLASSNAME=mov_obj[1] AND MOV_OBJNAME=mov_obj[2]  
-			AND 	DSt_clsNAME=dst_obj[1] AND DST_OBJNAME=dst_obj[2]
-			AND	MOV_PATH=_src_path
-			AND	DST_PATH=_dst_path
-			AND	MOV_PID =_curr_pid 
-	GROUP BY DST_OBJID,MOV_OBJID,MOV_CLASSTYPE,MOV_QTY,PARENt_clsNAME,_dst_slot_cls,_dst_slot_min,_dst_slot_max;	
-
-	RAISE DEBUG 'CHECKED DATA %',data_rec;
-	IF data_rec IS NULL OR data_rec.sum&gt;0 
-	THEN
-		RAISE EXCEPTION 'No permission or permission denied for move % --&gt; %',_src_path,_dst_path;  
-	END IF;
-
-/*	
--- Проверка на количество для отправителя на MIN  и MAX для принимающего
-	
-	-- сумма объектов слота в текущем слоте родителя (проверка минимального количества содержания) 
-	-- если слот тип1 (наследованние типов тип1-&gt;тип2-&gt;тип3)и перемещаем объект типа2, то проверятся будет только сумма типов (тип2,тип3)... косяк однако
-	SELECT SUM(objcount) INTO sum_curr FROM wh_obj WHERE pid=_curr_pid AND classname IN 
-			(WITH RECURSIVE children AS 
-				(SELECT classname, ARRAY[classid] AS exist,FALSE AS cycle
-					FROM wh_class
-					WHERE classname = mov_obj[1]
-				 UNION ALL
-				 SELECT  t.classname,exist || t.classid,t.classid = ANY(exist)
-					FROM children AS c, wh_class  AS t
-					WHERE t.classparent = c.classname AND NOT cycle 
-				) 
-				SELECT classname FROM children  WHERE NOT cycle 
-			);
-	SELECT slotminqty INTO min_curr FROM wh_slot WHERE slotownerclass=data_rec.PARENt_clsNAME       AND slotclass=mov_obj[1];-- минимум данного слота
-
-	RAISE DEBUG 'DST_SLOT _dst_slot_cls= %   _dst_slot_min=%   _dst_slot_max= %',data_rec._dst_slot_cls,  data_rec._dst_slot_min,  data_rec._dst_slot_max;
-	SELECT SUM(objcount) INTO sum_dst FROM wh_obj WHERE pid=data_rec.DST_OBJID AND classname IN 
-			(WITH RECURSIVE children AS 
-				(SELECT classname, ARRAY[classid] AS exist,FALSE AS cycle
-					FROM wh_class
-					WHERE classname = data_rec._dst_slot_cls
-				 UNION ALL
-				 SELECT  t.classname,exist || t.classid,t.classid = ANY(exist)
-					FROM children AS c, wh_class  AS t
-					WHERE t.classparent = c.classname AND NOT cycle 
-				) 
-				SELECT classname FROM children  WHERE NOT cycle 
-			);
-	max_dst:=data_rec._dst_slot_max;
-
-	RAISE DEBUG 'CHECK (sum_curr-qty )&lt;min_curr = (%-%) &lt; % = % &lt; %',sum_curr,qty,min_curr,sum_curr-qty,min_curr;
-	RAISE DEBUG 'CHECK (sum_dst +qty )&gt;max_dst  = (%+%) &gt; % = % &gt; %',sum_dst,qty,max_dst,sum_dst+qty,max_dst;
-*/
-	IF ( 	qty &lt;= 0 
-	    OR	qty &gt;  data_rec.MOV_QTY
-		--OR (sum_curr-qty)&lt;0 
-		--OR (min_curr IS NOT NULL AND (sum_curr-qty )&lt;min_curr) --остаток менее минимума или менее нуля
-		--OR (max_dst  IS NOT NULL AND (sum_dst+qty )&gt;max_dst)   --сумма более максимума
-	    )
-	THEN
-		RAISE EXCEPTION 'Mismatch quantity of movable or destination SLOT';
-	END IF;
-
-
-	CASE
-	-- MOVE numbered--
-	WHEN data_rec.MOV_CLASSTYPE=1 THEN
-		RAISE DEBUG 'MOVE NUMBERED UPDATE wh_objnum SET pid=%,objcomment=% WHERE id=%',
-									data_rec.DST_OBJID ,movcomment, 	data_rec.MOV_OBJID;
-		UPDATE wh_objnum SET pid=data_rec.DST_OBJID,objcomment=movcomment WHERE id=data_rec.MOV_OBJID;			
-		INSERT INTO wh_movlog	( classname, objname,   qty, classtype, movlogcomment, src_path, dst_path)
-			VALUES 		(mov_obj[1], mov_obj[2], 1,   1, 	movcomment,   src_path_wo_obj	,_dst_path );
-
-	-- MOVE -- перемещаем всё
-	WHEN data_rec.MOV_CLASSTYPE=2 AND data_rec.MOV_QTY=qty	THEN 
-
-		SELECT objcount INTO old_qty FROM wh_objqty WHERE classname=mov_obj[1] AND objname=mov_obj[2] AND pid=data_rec.DST_OBJID;
-		IF old_qty IS NOT NULL	THEN --если там уже есть этот объект
-			RAISE DEBUG 'MOVE QTY сложение UPDATE wh_objqty SET objcount=%,objcomment=% WHERE objname=% AND classname=% AND pid=%',
-									old_qty+qty,movcomment,	mov_obj[2],mov_obj[1],data_rec.DST_OBJID;
-			UPDATE wh_objqty SET objcount=old_qty+qty,objcomment=movcomment WHERE classname=mov_obj[1] AND objname=mov_obj[2] AND pid=data_rec.DST_OBJID;
-			RAISE DEBUG 'MOVE QTY удаление DELETE FROM wh_objqty WHERE classname=% AND objname=% AND pid=%',	mov_obj[1],mov_obj[2],_curr_pid;
-			DELETE FROM wh_objqty WHERE classname=mov_obj[1] AND objname=mov_obj[2] AND pid=_curr_pid;
-		ELSE
-			RAISE DEBUG 'MOVE QTY перенос UPDATE wh_objqty SET pid=%,objcomment=% WHERE objname=% AND classname=% AND pid=%',
-										data_rec.DST_OBJID ,movcomment,	mov_obj[2],mov_obj[1],_curr_pid;
-			UPDATE wh_objqty SET pid=data_rec.DST_OBJID,objcomment=movcomment WHERE objname=mov_obj[2] AND classname=mov_obj[1]  AND pid=_curr_pid;	
-		END IF;
-
-		INSERT INTO wh_movlog	( classname, objname,   qty, classtype, movlogcomment, src_path, dst_path)
-			VALUES 		(mov_obj[1], mov_obj[2],qty,   2, 	movcomment,   src_path_wo_obj	,_dst_path );
-
-	
-	-- DIV --
-	WHEN data_rec.MOV_CLASSTYPE=2 AND data_rec.MOV_QTY&gt;qty THEN
-		RAISE DEBUG 'MOVE QTY вычитание UPDATE wh_objqty SET objcount=% WHERE objname=% AND classname=% AND pid=%',
-									data_rec.MOV_QTY-qty,		mov_obj[2],mov_obj[1],_curr_pid;
-		UPDATE wh_objqty SET objcount=data_rec.MOV_QTY-qty WHERE objname=mov_obj[2] AND classname=mov_obj[1]  AND pid=_curr_pid;	
-
-		SELECT objcount INTO old_qty FROM wh_objqty WHERE pid=data_rec.DST_OBJID AND objname=mov_obj[2] AND classname=mov_obj[1];
-		IF old_qty IS NOT NULL	THEN 
-			RAISE DEBUG 'MOVE QTY добавление UPDATE wh_objqty SET objcount=%,objcomment=% WHERE objname=% AND classname=% AND pid=%',
-									old_qty+qty,movcomment,	mov_obj[2],mov_obj[1],data_rec.DST_OBJID;
-			UPDATE wh_objqty SET objcount=old_qty+qty,objcomment=movcomment WHERE objname=mov_obj[2] AND classname=mov_obj[1]  AND pid=data_rec.DST_OBJID;
-		ELSE
-			RAISE DEBUG 'MOVE QTY вставка INSERT INTO wh_objqty(pid,objname,classname,objcount,objcomment)VALUES(%,%,%,%,%)',
-								data_rec.DST_OBJID,mov_obj[2],mov_obj[1],qty,movcomment;
-			INSERT INTO wh_objqty(pid, objname, classname, objcount, objcomment) VALUES (data_rec.DST_OBJID,mov_obj[2],mov_obj[1],qty,movcomment);
-		END IF;
-
-		INSERT INTO wh_movlog	( classname, objname,   qty, classtype, movlogcomment, src_path, dst_path)
-			VALUES 		(mov_obj[1], mov_obj[2],qty,   2, 	movcomment,   src_path_wo_obj	,_dst_path );
-
-	ELSE
-		RAISE EXCEPTION 'Wrong MOV_CLASSTYPE or unknown error'; 
-	END CASE;
-
-
-RETURN;
-END;	
+$$&#13;
+    DELETE FROM t_lock_obj &#13;
+    WHERE &#13;
+    cls_id=_cls_id AND obj_id=_obj_id AND session_pid=pg_backend_pid()&#13;
+    AND (&#13;
+            ((SELECT type FROM t_cls WHERE id=_cls_id) &gt; 1 AND obj_pid=_old_pid )&#13;
+          OR (SELECT type FROM t_cls WHERE id=_cls_id) = 1&#13;
+        );&#13;
+$$
+  LANGUAGE sql VOLATILE 
+  COST 500;</src>
+    </Proc>
+    <Proc nm="log_num_move(_cls_id integer, _obj_id bigint, _src_path bigint[], _dst_path bigint[])">
+      <src>CREATE OR REPLACE FUNCTION log_num_move(_cls_id integer, _obj_id bigint, _src_path bigint[], _dst_path bigint[]) 
+  RETURNS void AS 
+$$&#13;
+DECLARE&#13;
+    _old_pid BIGINT;&#13;
+    _new_pid BIGINT;&#13;
+    _last_log_id BIGINT;&#13;
+BEGIN&#13;
+    _old_pid:= ( CASE WHEN _src_path[1] IS NULL THEN 1 ELSE _src_path[1] END );&#13;
+    _new_pid:= ( CASE WHEN _dst_path[1] IS NULL THEN 1 ELSE _dst_path[1] END );&#13;
+&#13;
+    IF _old_pid=_new_pid THEN&#13;
+        RAISE EXCEPTION 'Object already here'; &#13;
+    END IF;&#13;
+&#13;
+    _last_log_id := nextval('seq_log_id');&#13;
+&#13;
+    UPDATE t_objnum SET pid = _new_pid, last_log_id=_last_log_id WHERE id=_obj_id;&#13;
+    PERFORM do_log_state(_cls_id, _obj_id, 0, _last_log_id, _src_path, _dst_path, _old_pid, _new_pid);&#13;
+&#13;
+RETURN;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 500;</src>
     </Proc>
-    <Proc nm="ref_trig()">
-      <src>CREATE OR REPLACE FUNCTION ref_trig() 
-  RETURNS trigger AS 
-$$
-DECLARE
-   --arr RECORD ARRAY;
-BEGIN
-    --SELECT * INTO arr FROM t1;
-    --RAISE DEBUG '%: ',arr ;
-
-    RAISE DEBUG '%: каскадное изменение id % -&gt; %',TG_NAME, OLD.refid, NEW.refid;
-RETURN NEW;
-END;
+    <Proc nm="log_qty_move(_cls_id integer, _obj_id bigint, _src_path bigint[], _dst_path bigint[], _qty numeric)">
+      <src>CREATE OR REPLACE FUNCTION log_qty_move(_cls_id integer, _obj_id bigint, _src_path bigint[], _dst_path bigint[], _qty numeric) 
+  RETURNS void AS 
+$$&#13;
+DECLARE&#13;
+    _old_pid BIGINT;&#13;
+    _new_pid BIGINT;&#13;
+&#13;
+    _src_qty NUMERIC;&#13;
+    _dst_qty NUMERIC;&#13;
+&#13;
+    _last_log_id BIGINT;&#13;
+BEGIN&#13;
+&#13;
+&#13;
+    _old_pid:= ( CASE WHEN _src_path[1] IS NULL THEN 1 ELSE _src_path[1] END );&#13;
+    _new_pid:= ( CASE WHEN _dst_path[1] IS NULL THEN 1 ELSE _dst_path[1] END );&#13;
+&#13;
+    RAISE DEBUG '_old_pid = %', _old_pid;&#13;
+    RAISE DEBUG '_new_pid = %', _new_pid;&#13;
+&#13;
+    SELECT qty INTO _src_qty FROM t_objqty WHERE pid = _old_pid AND objqty_id=_obj_id;&#13;
+    SELECT qty INTO _dst_qty FROM t_objqty WHERE pid = _new_pid AND objqty_id=_obj_id;&#13;
+&#13;
+    CASE&#13;
+    WHEN _qty &lt; _src_qty  THEN&#13;
+    -- div&#13;
+       UPDATE t_objqty SET qty= (_src_qty - _qty)&#13;
+                       WHERE pid = _old_pid AND objqty_id=_obj_id;&#13;
+       IF _dst_qty IS NOT NULL THEN&#13;
+           UPDATE t_objqty SET qty= (_dst_qty + _qty)&#13;
+                           WHERE pid = _new_pid AND objqty_id=_obj_id;&#13;
+       ELSE&#13;
+           INSERT INTO t_objqty(objqty_id, pid, qty)&#13;
+                        VALUES (_obj_id, _new_pid, _qty);&#13;
+       END IF;&#13;
+    WHEN _qty = _src_qty THEN&#13;
+    -- move&#13;
+        IF _dst_qty IS NOT NULL THEN&#13;
+           UPDATE t_objqty SET qty= (_dst_qty + _qty)&#13;
+                           WHERE pid = _new_pid AND objqty_id=_obj_id;&#13;
+           DELETE FROM t_objqty &#13;
+                           WHERE pid = _old_pid AND objqty_id=_obj_id;&#13;
+        ELSE&#13;
+           UPDATE t_objqty SET pid = _new_pid&#13;
+                           WHERE pid = _old_pid AND objqty_id=_obj_id;&#13;
+        END IF;&#13;
+    ELSE&#13;
+        RAISE EXCEPTION 'Wrong qty or unknown error'; &#13;
+    END CASE;&#13;
+&#13;
+    _last_log_id := nextval('seq_log_id');&#13;
+&#13;
+    UPDATE t_objqty SET last_log_id=_last_log_id&#13;
+        WHERE objqty_id=_obj_id AND ( pid=_old_pid OR pid=_new_pid);&#13;
+&#13;
+    INSERT INTO t_logqty(      log_id,  cls_id,  src_path, dst_path,  objqty_id,  qty, old_obj_pid, new_obj_pid)&#13;
+                 VALUES (_last_log_id, _cls_id, _src_path, _dst_path,   _obj_id, _qty,    _old_pid,    _new_pid);&#13;
+&#13;
+&#13;
+RETURN;&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
-  COST 100;</src>
+  COST 500;</src>
+    </Proc>
+    <Proc nm="move_object(_cls_id integer, _obj_id bigint, _old_pid bigint, _new_pid bigint, _qty numeric)">
+      <src>CREATE OR REPLACE FUNCTION move_object(_cls_id integer, _obj_id bigint, _old_pid bigint, _new_pid bigint, _qty numeric) 
+  RETURNS void AS 
+$$&#13;
+DECLARE&#13;
+    _src_cls_type SMALLINT;&#13;
+    _src_path BIGINT[];&#13;
+    _dst_path BIGINT[];&#13;
+    _access_granted INTEGER; -- запрещение перемещения по результатам суммы правил&#13;
+BEGIN&#13;
+    SELECT type INTO _src_cls_type FROM w_obj &#13;
+        WHERE cls_id=_cls_id AND obj_id=_obj_id AND obj_pid=_old_pid ;&#13;
+&#13;
+    _src_path := (SELECT fget_get_oid_path(_old_pid));&#13;
+    _dst_path := (SELECT fget_get_oid_path(_new_pid));&#13;
+    RAISE DEBUG '_src_path = %', _src_path;&#13;
+    RAISE DEBUG '_dst_path = %', _dst_path;&#13;
+&#13;
+&#13;
+    SELECT lock_move_check(_cls_id,_obj_id,_old_pid,_src_path,_dst_path) INTO _access_granted ;&#13;
+    RAISE DEBUG '_access_granted = %', _access_granted;&#13;
+    &#13;
+    IF _access_granted IS NULL OR _access_granted&lt;1  THEN&#13;
+            RAISE EXCEPTION 'No permission or permission denied for move';&#13;
+    END IF;&#13;
+&#13;
+    CASE&#13;
+    WHEN _src_cls_type=1 THEN&#13;
+        PERFORM LOG_NUM_MOVE(_cls_id, _obj_id, _src_path, _dst_path);&#13;
+    WHEN _src_cls_type=2 OR _src_cls_type=3 THEN&#13;
+        PERFORM LOG_QTY_MOVE(_cls_id, _obj_id, _src_path, _dst_path, _qty);&#13;
+    ELSE&#13;
+        RAISE EXCEPTION 'Wrong _src_cls_type %', _src_cls_type; &#13;
+    END CASE;&#13;
+&#13;
+END;&#13;
+$$
+  LANGUAGE plpgsql VOLATILE 
+  COST 500;</src>
+    </Proc>
+    <Proc nm="try_lock_obj(_cls_id integer, _obj_id bigint, _old_pid bigint)">
+      <src>CREATE OR REPLACE FUNCTION try_lock_obj(_cls_id integer, _obj_id bigint, _old_pid bigint) 
+  RETURNS record AS 
+$$&#13;
+DECLARE&#13;
+    _locked_rec RECORD;&#13;
+&#13;
+BEGIN&#13;
+    -- удаляем просроченые и свои же блокировки на объект, если таковые имеются&#13;
+    DELETE &#13;
+        FROM t_lock_obj&#13;
+        WHERE cls_id=_cls_id AND obj_id=_obj_id AND obj_pid=_old_pid&#13;
+        AND ( lock_time +'00:10:00.00' &lt; now() OR session_pid = pg_backend_pid());&#13;
+     -- пытаемся вставить в табличку блокировок, если уже блокирован, то исключение откатит транзакцию&#13;
+    INSERT INTO t_lock_obj(cls_id,obj_id,obj_pid,src_path)&#13;
+            VALUES(_cls_id,_obj_id,_old_pid, (SELECT fget_get_oid_path(_old_pid)) ) RETURNING * INTO _locked_rec;&#13;
+&#13;
+    RETURN _locked_rec;&#13;
+END;&#13;
+$$
+  LANGUAGE plpgsql VOLATILE 
+  COST 500;</src>
     </Proc>
     <Proc nm="whgrant_grouptouser(_role name, _user name)">
       <src>CREATE OR REPLACE FUNCTION whgrant_grouptouser(_role name, _user name) 
   RETURNS void AS 
-$$	
-DECLARE
-	_role_id INTEGER;
-	_user_id INTEGER;
-BEGIN	
-	--RAISE NOTICE USING MESSAGE = 'IN_role='||_role||'  IN_user='||_user;
-	SELECT id INTO _role_id FROM wh_role WHERE wh_role.rolname=_role;
-	SELECT id INTO _user_id FROM wh_role WHERE wh_role.rolname=_user;
-	IF _role_id IS NOT NULL AND _user_id IS NOT NULL
-		THEN
-		--RAISE NOTICE USING MESSAGE = 'INSERT INTO wh_auth_members(roleid,member)VALUES('||CAST(_role_id AS NAME)||','||CAST(_user_id AS NAME)||')';
-		RAISE NOTICE 'Добавление пользователя %[%] в группу %[%]',_user,_user_id,_role,_role_id;
-		INSERT INTO wh_auth_members(roleid,member)VALUES(_role_id,_user_id);
-		
-		
-	END IF;
-
-END;
+$$	&#13;
+DECLARE&#13;
+	_role_id INTEGER;&#13;
+	_user_id INTEGER;&#13;
+BEGIN	&#13;
+	--RAISE NOTICE USING MESSAGE = 'IN_role='||_role||'  IN_user='||_user;&#13;
+	SELECT id INTO _role_id FROM wh_role WHERE wh_role.rolname=_role;&#13;
+	SELECT id INTO _user_id FROM wh_role WHERE wh_role.rolname=_user;&#13;
+	IF _role_id IS NOT NULL AND _user_id IS NOT NULL&#13;
+		THEN&#13;
+		--RAISE NOTICE USING MESSAGE = 'INSERT INTO wh_auth_members(roleid,member)VALUES('||CAST(_role_id AS NAME)||','||CAST(_user_id AS NAME)||')';&#13;
+		RAISE NOTICE 'Добавление пользователя %[%] в группу %[%]',_user,_user_id,_role,_role_id;&#13;
+		INSERT INTO wh_auth_members(roleid,member)VALUES(_role_id,_user_id);&#13;
+		&#13;
+		&#13;
+	END IF;&#13;
+&#13;
+END;&#13;
 $$
   LANGUAGE plpgsql VOLATILE 
   COST 100;</src>
     </Proc>
-    <View nm="w_class_prop">
+    <View nm="moverule_lockup">
       <Sql>SELECT
-    t_cls_prop.id,
-    t_cls_prop.cls_label,
-    t_prop.id AS prop_id,
-    t_prop.type AS prop_type,
-    t_cls_prop.prop_label,
-    t_cls_prop.val
-FROM t_cls_prop LEFT
-    JOIN t_prop ON t_prop.label = t_cls_prop.prop_label</Sql>
+    obj.obj_id AS mov_obj_id,
+    obj.obj_label AS mov_obj_label,
+    obj.obj_pid AS mov_obj_pid,
+    obj.cls_id AS mov_cls_id,
+    obj.cls_label AS mov_cls_label,
+    obj.type AS mov_cls_type,
+    obj.qty AS mov_obj_qty,
+    perm.src_path,
+    dst.id AS dst_obj_id,
+    dst.obj_label AS dst_obj_label,
+    dst.pid AS dst_obj_pid,
+    dst.cls_id AS dst_cls_id,
+    perm.dst_path,
+    perm.id AS perm_id,
+    perm.access_disabled AS perm_access_disabled,
+    perm.script_restrict AS perm_script
+FROM w_obj obj RIGHT
+    JOIN t_access_slot perm ON (obj.cls_id IN ( SELECT fget_cls_childs._id
+FROM fget_cls_childs(perm.mov_cls_id) fget_cls_childs(_id,
+    _vid,
+    _label,
+    _type,
+    _pid,
+    _description,
+    _measurename)))
+        AND perm.mov_obj_id IS NULL
+        OR obj.obj_id = perm.mov_obj_id
+        AND (perm.src_path IS NULL
+        OR get_path(obj.obj_pid) ~~ perm.src_path) LEFT
+    JOIN t_objnum dst ON perm.dst_cls_id = dst.cls_id
+        AND perm.dst_obj_id IS NULL
+        OR dst.id = perm.dst_obj_id
+        AND (perm.dst_path IS NULL
+        OR get_path(dst.pid) ~~ perm.dst_path) LEFT
+    JOIN wh_role _group ON perm.access_group = _group.rolname RIGHT
+    JOIN wh_auth_members membership ON _group.id = membership.roleid RIGHT
+    JOIN wh_role _user ON _user.id = membership.member
+        AND _user.rolname = "current_user"()
+WHERE obj.obj_pid &lt;&gt; dst.id
+        AND dst.id &gt; 0</Sql>
+    </View>
+    <View nm="w_favorites">
+      <Sql>SELECT
+    t_favorites.id,
+    t_favorites.pid,
+    t_favorites.owner,
+    t_favorites.expanded,
+    t_favorites.label,
+    t_favorites.node_type,
+    t_favorites.cls_id,
+    t_cls.label AS favcls_label,
+    t_cls.type AS favcls_type,
+    t_cls.pid AS favcls_pid,
+    t_cls.measurename AS favcls_mes,
+    t_favorites.obj_id,
+    t_objnum.obj_label AS favobj_label,
+    t_objnum.pid AS favobj_pid
+FROM t_favorites LEFT
+    JOIN t_objnum ON t_favorites.obj_id = t_objnum.id LEFT
+    JOIN t_cls ON t_favorites.cls_id = t_cls.id
+        OR t_objnum.cls_id = t_cls.id
+WHERE t_favorites.owner = "current_user"()</Sql>
     </View>
     <View nm="w_obj">
       <Sql>SELECT
-    t_objnum.id,
-    t_objnum.pid,
-    t_objnum.obj_label,
+    obj.obj_id,
+    obj.obj_pid,
+    obj.cls_id,
+    obj.obj_label,
+    obj.last_log_id,
+    obj.qty,
+    t_cls.label AS cls_label,
+    t_cls.type,
+    t_cls.measurename,
+    t_cls.default_pid AS cls_default_pid,
+    t_cls.pid AS cls_pid
+FROM t_cls RIGHT
+    JOIN ( SELECT t_objnum.id AS obj_id,
+    t_objnum.pid AS obj_pid,
     t_objnum.cls_id,
-    1 AS class_type,
-    1 AS qty,
-    t_objnum.last_log_id
-FROM t_objnum UNION ALL SELECT NULL::bigint AS id,
-    t_objqty.pid,
-    t_objqty.obj_label,
-    cls_id,
-    t_clsqty.cls_type AS class_type,
-    t_objqty.qty,
-    NULL::bigint AS last_log_id
+    t_objnum.obj_label,
+    t_objnum.last_log_id,
+    1::numeric AS qty
+FROM t_objnum UNION ALL SELECT t_objqty.objqty_id AS obj_id,
+    t_objqty.pid AS obj_pid,
+    t_objqtykey.cls_id,
+    t_objqtykey.obj_label,
+    t_objqty.last_log_id,
+    t_objqty.qty
 FROM t_objqty LEFT
-    JOIN t_clsqty USING (cls_id)</Sql>
+    JOIN t_objqtykey ON t_objqtykey.id = t_objqty.objqty_id) obj ON obj.cls_id = t_cls.id</Sql>
     </View>
     <View nm="w_ref_act_prop">
       <Sql>SELECT
@@ -2078,6 +2711,7 @@ WHERE wh_role.rolcanlogin</Sql>
     <Seq incr="1" nm="t_cls_vid_seq"/>
     <Seq incr="1" nm="t_favorite_obj_id_seq"/>
     <Seq incr="1" nm="t_favorite_prop_id_seq"/>
+    <Seq incr="1" nm="t_favorites_id_seq"/>
     <Seq incr="1" nm="t_prop_id_seq"/>
     <Seq incr="1" nm="t_ref_act_prop_id_seq"/>
     <Seq incr="1" nm="t_ref_class_act_id_seq"/>
@@ -2122,10 +2756,10 @@ WHERE wh_role.rolcanlogin</Sql>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls.fk_class__parent" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls_prop.t_cls_prop_cls_label_fkey" parentEdge="" positioner="">
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls_prop.t_cls_prop_cls_id_fkey" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls_prop.t_cls_prop_prop_label_fkey" parentEdge="" positioner="">
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls_prop.t_cls_prop_prop_id_fkey" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_objnum.fk_objnum_pid" parentEdge="" positioner="">
@@ -2134,10 +2768,10 @@ WHERE wh_role.rolcanlogin</Sql>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_objqty.fk_obj_items_pid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_act_prop.t_ref_act_prop_act_id_fkey" parentEdge="" positioner="">
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_act_prop.fk_refactprop__actid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_act_prop.t_ref_act_prop_prop_id_fkey" parentEdge="" positioner="">
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_act_prop.fk_refactprop__propid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <Notes/>
@@ -2209,13 +2843,13 @@ WHERE wh_role.rolcanlogin</Sql>
     <TbGl bkCl="ffff0000" sch="public" tbl="t_cls" x="144" y="65"/>
     <TbGl bkCl="ffff0000" sch="public" tbl="t_prop" x="158" y="555"/>
     <TbGl bkCl="ffff0000" sch="public" tbl="t_act" x="154" y="319"/>
-    <TbGl bkCl="ffcccccc" sch="public" tbl="t_ref_act_prop" x="546" y="385"/>
+    <TbGl bkCl="ffcccccc" sch="public" tbl="t_ref_act_prop" x="535" y="449"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="wh_role" x="1175" y="88"/>
-    <TbGl bkCl="ff009900" sch="public" tbl="t_cls_prop" x="126" y="439"/>
-    <TbGl bkCl="ffcccccc" sch="public" tbl="t_ref_class_act" x="560" y="179"/>
-    <TbGl bkCl="ffffcc66" sch="public" tbl="t_favorite_prop" x="885" y="272"/>
-    <TbGl bkCl="ffffcc66" sch="public" tbl="t_access_act" x="861" y="11"/>
-    <TbGl bkCl="ffffcc66" sch="public" tbl="t_access_slot" x="802" y="527"/>
+    <TbGl bkCl="ff009900" sch="public" tbl="t_cls_prop" x="111" y="174"/>
+    <TbGl bkCl="ffcccccc" sch="public" tbl="t_ref_class_act" x="535" y="179"/>
+    <TbGl bkCl="ffffcc66" sch="public" tbl="t_favorite_prop" x="884" y="425"/>
+    <TbGl bkCl="ffffcc66" sch="public" tbl="t_access_act" x="891" y="209"/>
+    <TbGl bkCl="ffffcc66" sch="public" tbl="t_access_slot" x="830" y="19"/>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_access_act.fk_access_act_cls" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
@@ -2231,10 +2865,10 @@ WHERE wh_role.rolcanlogin</Sql>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls.fk_class__parent" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls_prop.t_cls_prop_cls_label_fkey" parentEdge="" positioner="">
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls_prop.t_cls_prop_cls_id_fkey" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls_prop.t_cls_prop_prop_label_fkey" parentEdge="" positioner="">
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls_prop.t_cls_prop_prop_id_fkey" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_favorite_prop.fk_favorite_prop__ref_act_prop" parentEdge="" positioner="">
@@ -2246,13 +2880,13 @@ WHERE wh_role.rolcanlogin</Sql>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_favorite_prop.fk_favorite_prop__user_label" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_act_prop.t_ref_act_prop_act_id_fkey" parentEdge="" positioner="">
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_act_prop.fk_refactprop__actid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_act_prop.t_ref_act_prop_prop_id_fkey" parentEdge="" positioner="">
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_act_prop.fk_refactprop__propid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_class_act.t_ref_class_act_act_id_fkey" parentEdge="" positioner="">
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_class_act.fk_refclsact__act_id" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <Notes/>
@@ -2286,10 +2920,13 @@ WHERE wh_role.rolcanlogin</Sql>
     <TbGl bkCl="ffff9e0c" sch="public" tbl="t_access_slot" x="34" y="243"/>
     <TbGl bkCl="ffffcc66" sch="public" tbl="t_access_act" x="810" y="671"/>
     <TbGl bkCl="ffff0000" sch="public" tbl="t_act" x="1297" y="556"/>
-    <TbGl bkCl="ff00cc00" sch="public" tbl="t_clsnum" x="437" y="385"/>
+    <TbGl bkCl="ff00cc00" sch="public" tbl="t_clsnum" x="550" y="344"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="t_ref_class_act" x="849" y="493"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="t_favorite_prop" x="1256" y="725"/>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_access_act.fk_access_act_cls" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_access_act.fk_access_act_objnum" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_access_act.fk_access_act_role" parentEdge="" positioner="">
@@ -2325,10 +2962,10 @@ WHERE wh_role.rolcanlogin</Sql>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_objnum.fk_objnum_pid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_class_act.t_ref_class_act_act_id_fkey" parentEdge="" positioner="">
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_class_act.fk_refclsact__act_id" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_class_act.uk_ref_class_act__cls" parentEdge="" positioner="">
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_class_act.fk_refclsact__cls_id" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <Notes/>
@@ -2475,17 +3112,19 @@ WHERE wh_role.rolcanlogin</Sql>
     </BasicOptionMgr>
   </DbDocOptionMgr>
   <OpenEditors>
-    <OpenEditor ClsNm="Diagram" fqn="null.Разрешения перемещений" selected="1"/>
     <OpenEditor ClsNm="Diagram" fqn="null.Состояния-Логи" selected="0"/>
-    <OpenEditor ClsNm="Diagram" fqn="null.Классы-Действия-Свойства" selected="0"/>
+    <OpenEditor ClsNm="Diagram" fqn="null.Классы-Действия-Свойства" selected="1"/>
     <OpenEditor ClsNm="Diagram" fqn="null.User_Config" selected="0"/>
+    <OpenEditor ClsNm="Diagram" fqn="null.Разрешения перемещений" selected="0"/>
   </OpenEditors>
   <TreePaths>
     <TreePath/>
     <TreePath>/Schemas (1)</TreePath>
     <TreePath>/Schemas (1)/public</TreePath>
-    <TreePath>/Schemas (1)/public/Tables (26)</TreePath>
-    <TreePath>/Schemas (1)/public/Tables (26)/t_access_act</TreePath>
+    <TreePath>/Schemas (1)/public/Tables (30)</TreePath>
+    <TreePath>/Schemas (1)/public/Tables (30)/t_access_act</TreePath>
+    <TreePath>/Schemas (1)/public/Tables (30)/t_ref_class_act</TreePath>
+    <TreePath>/Schemas (1)/public/Tables (30)/t_ref_class_act/Foreign Keys (2)</TreePath>
     <TreePath>/Diagrams (5)</TreePath>
   </TreePaths>
 </Db>

@@ -238,11 +238,18 @@ INSERT || UPDATE прямое изменение prop_label/act_label   доба
 /** delete - удаление свойства из действия - ничего не делаем */
 CREATE TABLE t_ref_act_prop ( 
     id       SERIAL  NOT NULL
-    ,act_id  INTEGER NOT NULL REFERENCES  t_act(id)  MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE 
-    ,prop_id INTEGER NOT NULL REFERENCES  t_prop(id) MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE 
+    ,act_id  INTEGER NOT NULL
+    ,prop_id INTEGER NOT NULL
 
-,CONSTRAINT pk_act_ref_prop     PRIMARY KEY (act_id,prop_id) 
-,CONSTRAINT uk_ref_act_prop__id UNIQUE ( id )
+,CONSTRAINT pk_refactprop__id          PRIMARY KEY ( id )
+,CONSTRAINT uk_refactprop__actid_propid UNIQUE( act_id,prop_id) 
+,CONSTRAINT fk_refactprop__actid  FOREIGN KEY ( act_id )
+    REFERENCES                           t_act( id )
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+,CONSTRAINT fk_refactprop__propid FOREIGN KEY ( prop_id )
+    REFERENCES                          t_prop( id)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+    
 );
 GRANT SELECT               ON TABLE t_ref_act_prop TO "Guest";
 GRANT INSERT,DELETE,UPDATE ON TABLE t_ref_act_prop TO "TypeDesigner";
@@ -267,14 +274,17 @@ UPDATE	- каскадное изменение act_label	- равнозначн�
 CREATE TABLE t_ref_class_act ( 
     id        SERIAL   NOT NULL
     ,cls_id   INTEGER  NOT NULL
-    ,act_id   INTEGER  NOT NULL REFERENCES t_act(id)   MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE 
+    ,act_id   INTEGER  NOT NULL
 
-,CONSTRAINT pk_ref_class_act      PRIMARY KEY (cls_id, act_id)
-,CONSTRAINT uk_ref_class_act__id  UNIQUE ( id )
-
-,CONSTRAINT uk_ref_class_act__cls FOREIGN KEY ( cls_id )
-    REFERENCES                    t_clsnum( cls_id )
+,CONSTRAINT pk_refclsact__id    PRIMARY KEY ( id )
+,CONSTRAINT uk_refclsact_clsid_actid UNIQUE (cls_id, act_id)
+,CONSTRAINT fk_refclsact__clsid FOREIGN KEY ( cls_id )
+    REFERENCES                      t_clsnum( cls_id )
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+,CONSTRAINT fk_refclsact__actid FOREIGN KEY ( act_id )
+    REFERENCES                         t_act( id )
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+
 
 );
 GRANT SELECT               ON TABLE t_ref_class_act TO "Guest";
@@ -411,7 +421,7 @@ CREATE TABLE t_objqty (
     ,qty         NUMERIC  NOT NULL              CHECK (qty>=0)
 
 ,CONSTRAINT pk_objqty_oid_pid   PRIMARY KEY(objqty_id, pid)
-,CONSTRAINT uk_objqty_log_id    UNIQUE (last_log_id) 
+--,CONSTRAINT uk_objqty_log_id    UNIQUE (last_log_id) при разделении 2 объекта появится с одинаковым last_log_id
 
 ,CONSTRAINT fk_obj_items_pid    FOREIGN KEY (pid)
     REFERENCES                  t_objnum    (id)
