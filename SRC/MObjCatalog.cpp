@@ -68,7 +68,7 @@ bool MObjCatalog::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size
 	table->GetAsString(2, row, data.mObj.mPID);
 	table->GetAsString(3, row, data.mCls.mID);
 	table->GetAsString(4, row, data.mCls.mLabel);
-	table->GetAsString(5, row, data.mCls.mParent.mId);
+	data.mCls.mParent.mId = table->GetAsLong(5, row );
 	
 	SetData(data, true);
 	return true;

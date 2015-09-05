@@ -112,7 +112,7 @@ bool MTypeItem::GetInsertQuery(wxString& query)const
 {
 	const auto& cls = GetData();
 
-	wxString parent = cls.mParent.mId.IsEmpty() ? "1" : cls.mParent.mId;
+	const wxString parent = cls.mParent.mId.IsNull() ? wxString("1") : cls.mParent.mId;
 
 	wxString measure;
 	if ("0" == cls.mType)
@@ -140,7 +140,7 @@ bool MTypeItem::GetUpdateQuery(wxString& query)const
 {
 	const auto& cls = GetData();
 
-	wxString parent = cls.mParent.mId.IsEmpty() ? "1" : cls.mParent.mId;
+	wxString parent = cls.mParent.mId.IsNull() ? wxString("1") : cls.mParent.mId;
 
 	wxString measure;
 	if ("0" == cls.mType)

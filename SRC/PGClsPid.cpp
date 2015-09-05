@@ -29,7 +29,7 @@ void wxClsParentProperty::RefreshChildren()
 	if (!GetChildCount()) return;
 	const wh_rec_Base& parent = wh_rec_BaseRefFromVariant(m_value);
 	Item(0)->SetValue(WXVARIANT(parent.mLabel));
-	Item(1)->SetValue(WXVARIANT(parent.mId));
+	Item(1)->SetValue(WXVARIANT((wxString)parent.mId));
 }
 //-----------------------------------------------------------------------------
 wxVariant wxClsParentProperty::ChildChanged(wxVariant& thisValue,
@@ -100,7 +100,8 @@ wxString  wxObjParentProperty::ValueToString(wxVariant &  value, int  argFlags) 
 	const auto& obj = wh_rec_ObjParentRefFromVariant(m_value);
 
 	#ifdef _DEBUG
-	return wxString::Format("[%s]%s pid=%s", obj.mCls.mLabel, obj.mObj.mLabel, obj.mObj.mId);
+	return wxString::Format("[%s]%s pid=%s", 
+		obj.mCls.mLabel, obj.mObj.mLabel, obj.mObj.mId.SqlVal());
 	#else
 	return wxString::Format("[%s]%s", obj.mCls.mLabel, obj.mObj.mLabel);
 	#endif
