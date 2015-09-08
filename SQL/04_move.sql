@@ -1,24 +1,144 @@
 ﻿SET client_min_messages='debug1';
 
------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------
---таблица блокировки объектов
------------------------------------------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
-DROP TABLE IF EXISTS t_lock_obj CASCADE;
-CREATE TABLE t_lock_obj
-(
-  cls_id  INTEGER NOT NULL,
-  obj_id  BIGINT  NOT NULL,
-  obj_pid BIGINT  NOT NULL,
-  src_path BIGINT[],
-  session_pid INTEGER NOT NULL DEFAULT pg_backend_pid(),
-  conn_user NAME NOT NULL DEFAULT CURRENT_USER,
-  lock_time timestamp with time zone NOT NULL DEFAULT now(),
+-- система бизнес блокировок перемещения и действий b(block) - префикс
+-- для номерных bn
+-- для количественных bq
+-- noid - Named object identificator 
+-- qoid - Quantitative object identificator 
 
-  CONSTRAINT pk_lock_obj__cls_obj_pid UNIQUE (cls_id,obj_id,obj_pid)
 
+DROP TABLE IF EXISTS bn_src CASCADE;
+DROP TABLE IF EXISTS bn_dst CASCADE;
+DROP TABLE IF EXISTS bn_act CASCADE;
+DROP FUNCTION IF EXISTS bn_start_move (IN _noid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS bn_start_act  (IN _noid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS bn_do_move    (IN _noid BIGINT, IN _src_noid BIGINT, IN _dst_noid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS bn_do_act     (IN _noid BIGINT, IN _act_id INTEGER, IN _act_data TEXT[]) CASCADE;
+DROP FUNCTION IF EXISTS bn_end        (IN _noid BIGINT) CASCADE;
+
+
+DROP TABLE IF EXISTS bq_src CASCADE;
+DROP TABLE IF EXISTS bq_dst CASCADE;
+DROP FUNCTION IF EXISTS bn_start_move (IN _qoid BIGINT, IN _pid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS bn_do_move    (IN _qoid BIGINT, IN _src_oid BIGINT, IN _dst_oid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS bn_end        (IN _qoid BIGINT, IN _src_oid BIGINT) CASCADE;
+
+
+
+
+
+-------------------------------------------------------------------------------
+--таблица блокировки номерных  объектов
+CREATE TABLE bn_src(
+   lock_session INTEGER     NOT NULL DEFAULT pg_backend_pid()
+  ,lock_user    NAME        NOT NULL DEFAULT CURRENT_USER
+  ,lock_time    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+
+  ,src_onid      BIGINT      NOT NULL
+  ,path     BIGINT[]    NOT NULL
+
+  ,CONSTRAINT pk_bnsrc__oid      UNIQUE      (oid)
+  ,CONSTRAINT fk_bnsrc__oid      FOREIGN KEY (oid)
+    REFERENCES                      t_objnum ( id)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+  ,CONSTRAINT fk_bnsrc__username FOREIGN KEY (lock_user)
+    REFERENCES                       wh_role (rolname)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
+-------------------------------------------------------------------------------
+--таблица блокировки количественных объектов
+CREATE TABLE bq_src(
+   lock_session INTEGER     NOT NULL DEFAULT pg_backend_pid()
+  ,lock_user    NAME        NOT NULL DEFAULT CURRENT_USER
+  ,lock_time    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+
+  ,oid   BIGINT      NOT NULL
+  ,pid   BIGINT      NOT NULL
+  ,path  BIGINT[]    NOT NULL
+
+  ,CONSTRAINT pk_bqsrc__oid      UNIQUE      (oid, pid)
+  ,CONSTRAINT fk_bqsrc__oidpid   FOREIGN KEY (oid, pid)
+    REFERENCES                     t_objqty  (objqty_id, pid)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+  ,CONSTRAINT fk_bqsrc__username FOREIGN KEY (lock_user)
+    REFERENCES                 wh_role (rolname)                   
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+);
+-------------------------------------------------------------------------------
+--таблица блокировки при перемещении номерных объектов
+CREATE TABLE bn_dst(
+   src_oid      BIGINT      NOT NULL
+  ,dst_oid      BIGINT      NOT NULL
+  ,dst_path     BIGINT[]    NOT NULL
+  ,CONSTRAINT fk_lockdstobjnum__srcoid FOREIGN KEY (src_oid)
+    REFERENCES                     lock_src_objunm (src_oid) 
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+  ,CONSTRAINT fk_lockdstobjnum__dstoid FOREIGN KEY (dst_oid)
+    REFERENCES                        t_objnum (id)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+);
+-------------------------------------------------------------------------------
+--таблица блокировки при перемещении количественных объектов
+CREATE TABLE lock_dst_objqty(
+   src_oid      BIGINT      NOT NULL
+  ,src_pid   BIGINT      NOT NULL
+  ,dst_oid      BIGINT      NOT NULL
+  ,dst_path     BIGINT[]    NOT NULL
+  ,CONSTRAINT fk_lockdstobjqty__srcoid FOREIGN KEY (src_oid, src_pid)
+    REFERENCES                     lock_src_objqty (src_oid, src_pid)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+  ,CONSTRAINT fk_lockdstobjqty__dstoid FOREIGN KEY (dst_oid)
+    REFERENCES                        t_objnum (id)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+);
+-------------------------------------------------------------------------------
+--таблица блокировки при перемещении номерных объектов
+CREATE TABLE lock_act(
+   src_oid      BIGINT      NOT NULL
+  ,act_id INTEGER
+  ,CONSTRAINT fk_lockact__srcoid FOREIGN KEY (src_oid)
+    REFERENCES               lock_src_objunm (src_oid) 
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+  ,CONSTRAINT fk_lockact__dstoid FOREIGN KEY (act_id)
+    REFERENCES                        t_act (id)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+
+
+
+
+
+
+
+
+
+DROP TABLE IF EXISTS t_lock_dst CASCADE;
+DROP TABLE IF EXISTS t_lock_act CASCADE;
+
+DROP FUNCTION IF EXISTS    try_lock_obj( IN _cls_id  INTEGER, IN _obj_id  BIGINT, IN _old_pid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS    lock_reset( IN _cls_id  INTEGER, IN _obj_id  BIGINT, IN _old_pid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS    lock_for_act( IN _cls_id  INTEGER, IN _obj_id  BIGINT) CASCADE;
+
+DROP FUNCTION IF EXISTS    do_log_state( IN _cls_id   INTEGER,  IN _obj_id   BIGINT,   IN _act_id  INTEGER, IN _last_log_id BIGINT,
+                                         IN _src_path BIGINT[], IN _dst_path BIGINT[], IN _old_pid BIGINT,  IN _new_pid     BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS    do_obj_act( IN _cls_id  INTEGER, IN _obj_id BIGINT, _act_id INTEGER, IN _header_data TEXT[]) CASCADE;
+
+DROP FUNCTION IF EXISTS    lock_for_move( IN _cls_id  INTEGER, IN _obj_id  BIGINT, IN _old_pid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS    lock_move_check( IN _cls_id  INTEGER, IN _obj_id  BIGINT, IN _old_pid BIGINT,
+                                       IN _src_path BIGINT[], IN _dst_path BIGINT[]) CASCADE;
+
+DROP FUNCTION IF EXISTS    LOG_QTY_MOVE( IN _cls_id INTEGER, IN _obj_id BIGINT, 
+                                         IN _src_path BIGINT[], IN _dst_path BIGINT[], 
+                                         IN _qty NUMERIC ) CASCADE;
+DROP FUNCTION IF EXISTS    LOG_NUM_MOVE( IN _cls_id INTEGER, IN _obj_id BIGINT, 
+                                         IN _src_path BIGINT[], IN _dst_path BIGINT[]) CASCADE;
+
+DROP FUNCTION IF EXISTS    move_object( IN _cls_id  INTEGER, IN _obj_id  BIGINT, 
+                                        IN _old_pid BIGINT,  IN _new_pid BIGINT, IN _qty NUMERIC ) CASCADE;
+
+
 
 -----------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------
@@ -181,7 +301,7 @@ $BODY$
 
 -----------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------
---функция 
+--функция  
 -----------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS    do_log_state( IN _cls_id   INTEGER,  IN _obj_id   BIGINT,   IN _act_id  INTEGER, IN _last_log_id BIGINT,
@@ -456,25 +576,23 @@ DECLARE
    _dst_path BIGINT[];
    _locked_rec RECORD;
 BEGIN
-    -- пытаемся заблокировать объект, если блокировка не удастся транзакция откатится исключением
-    _locked_rec := try_lock_obj(_cls_id, _obj_id, _old_pid);
-    -- объект блокирован
+-- пытаемся заблокировать объект, если блокировка не удастся транзакция откатится исключением
+  _locked_rec := try_lock_obj(_cls_id, _obj_id, _old_pid);
+-- объект блокирован
+-- возвращаем пользвателю объекты назначения, попутно складываем их местоположение  в табличку
+  FOR rec IN _dst_obj LOOP
+    _dst_path := (SELECT fget_get_oid_path(rec.dst_obj_id));
 
-    FOR rec IN _dst_obj LOOP
-        _dst_path := (SELECT fget_get_oid_path(rec.dst_obj_id));
-        
-       INSERT INTO t_lock_dst(cls_id,obj_id,obj_pid, dst_path)
-           VALUES(_cls_id,_obj_id,_old_pid,_dst_path); 
+    INSERT INTO t_lock_dst(cls_id,obj_id,obj_pid, dst_path)VALUES(_cls_id,_obj_id,_old_pid,_dst_path); 
 
-        _dst_obj_id:=rec.dst_obj_id;
-        _dst_cls_id:=rec.dst_cls_id;
-        _dst_obj_label:=rec.dst_obj_label;
-        _dst_obj_pid:=rec.dst_obj_pid;
-        
-        return next;
-    END LOOP;
+    _dst_obj_id:=rec.dst_obj_id;
+    _dst_cls_id:=rec.dst_cls_id;
+    _dst_obj_label:=rec.dst_obj_label;
+    _dst_obj_pid:=rec.dst_obj_pid;
+    RETURN NEXT;
+  END LOOP;
 
-    RETURN;
+  RETURN;
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 500;
@@ -482,6 +600,7 @@ $BODY$
 --------------------------------------------------------------------------------------------------------------
 -- проверяем - есть ли разрешения на перенос в табличке блокировок  
 --------------------------------------------------------------------------------------------------------------
+/*
 DROP FUNCTION IF EXISTS    lock_move_check( IN _cls_id  INTEGER, IN _obj_id  BIGINT, IN _old_pid BIGINT,
                                        IN _src_path BIGINT[], IN _dst_path BIGINT[]) CASCADE;
 CREATE OR REPLACE FUNCTION lock_move_check( IN _cls_id  INTEGER, IN _obj_id  BIGINT, IN _old_pid BIGINT,
@@ -517,7 +636,7 @@ SELECT * FROM lock_for_move(104,102,1);
 SELECT * FROM lock_move_check(104,102,1,NULL,'{103}');
 SELECT lock_reset(104,102,1);
 
-
+*/
 
 -----------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------
@@ -539,33 +658,29 @@ DECLARE
     _src_qty NUMERIC;
     _dst_qty NUMERIC;
 
-    _last_log_id BIGINT;
+    _move_logid BIGINT;
 BEGIN
+-- если пути пустые, то считаем что объекты в корне
+  _old_pid:= ( CASE WHEN _src_path[1] IS NULL THEN 1 ELSE _src_path[1] END );
+  _new_pid:= ( CASE WHEN _dst_path[1] IS NULL THEN 1 ELSE _dst_path[1] END );
+  RAISE DEBUG '_old_pid = %', _old_pid;
+  RAISE DEBUG '_new_pid = %', _new_pid;
+-- находим исходное количество и количество в месте назначения
+  SELECT qty INTO _src_qty FROM t_objqty WHERE pid = _old_pid AND objqty_id=_obj_id;
+  SELECT qty INTO _dst_qty FROM t_objqty WHERE pid = _new_pid AND objqty_id=_obj_id;
 
-
-    _old_pid:= ( CASE WHEN _src_path[1] IS NULL THEN 1 ELSE _src_path[1] END );
-    _new_pid:= ( CASE WHEN _dst_path[1] IS NULL THEN 1 ELSE _dst_path[1] END );
-
-    RAISE DEBUG '_old_pid = %', _old_pid;
-    RAISE DEBUG '_new_pid = %', _new_pid;
-
-    SELECT qty INTO _src_qty FROM t_objqty WHERE pid = _old_pid AND objqty_id=_obj_id;
-    SELECT qty INTO _dst_qty FROM t_objqty WHERE pid = _new_pid AND objqty_id=_obj_id;
-
-    CASE
-    WHEN _qty < _src_qty  THEN
-    -- div
-       UPDATE t_objqty SET qty= (_src_qty - _qty)
-                       WHERE pid = _old_pid AND objqty_id=_obj_id;
-       IF _dst_qty IS NOT NULL THEN
+  CASE
+    WHEN _qty < _src_qty  THEN -- div разделяем исходное количество
+      UPDATE t_objqty SET qty= (_src_qty - _qty)
+                      WHERE pid = _old_pid AND objqty_id=_obj_id;      -- уменьшаем исходное количество
+      IF _dst_qty IS NOT NULL THEN                                     -- если в месте назначения есть уже такой объёкт
            UPDATE t_objqty SET qty= (_dst_qty + _qty)
-                           WHERE pid = _new_pid AND objqty_id=_obj_id;
-       ELSE
-           INSERT INTO t_objqty(objqty_id, pid, qty)
+                           WHERE pid = _new_pid AND objqty_id=_obj_id; -- добавляем (обновляем имеющееся количество)
+       ELSE                                                            -- если в месте назначения объекта нет
+           INSERT INTO t_objqty(objqty_id, pid, qty)                   -- вставляем 
                         VALUES (_obj_id, _new_pid, _qty);
        END IF;
-    WHEN _qty = _src_qty THEN
-    -- move
+    WHEN _qty = _src_qty THEN -- move перемещение
         IF _dst_qty IS NOT NULL THEN
            UPDATE t_objqty SET qty= (_dst_qty + _qty)
                            WHERE pid = _new_pid AND objqty_id=_obj_id;
@@ -577,16 +692,28 @@ BEGIN
         END IF;
     ELSE
         RAISE EXCEPTION 'Wrong qty or unknown error'; 
-    END CASE;
+  END CASE;
 
-    _last_log_id := nextval('seq_log_id');
+  _move_logid := nextval('seq_log_id');
+-- обновляем ссылку на последнее действие в исходном и конечном объектах
+  UPDATE t_objqty SET last_log_id=_last_log_id
+    WHERE objqty_id=_obj_id AND ( pid=_old_pid OR pid=_new_pid);
 
-    UPDATE t_objqty SET last_log_id=_last_log_id
-        WHERE objqty_id=_obj_id AND ( pid=_old_pid OR pid=_new_pid);
-
-    INSERT INTO t_logqty(      log_id,  cls_id,  src_path, dst_path,  objqty_id,  qty, old_obj_pid, new_obj_pid)
-                 VALUES (_last_log_id, _cls_id, _src_path, _dst_path,   _obj_id, _qty,    _old_pid,    _new_pid);
-
+  INSERT INTO log_move_objqty( id
+                              ,src_objnum_id
+                              ,src_path
+                              ,dst_objnum_id
+                              ,dst_path
+                              ,objqty_id
+                              , qty)
+                              VALUES
+                             (_move_logid
+                              ,_old_pid
+                              ,_src_path
+                              ,_new_pid
+                              ,_dst_path
+                              ,_obj_id
+                              ,_qty);
 
 RETURN;
 END;
@@ -606,7 +733,7 @@ CREATE OR REPLACE FUNCTION LOG_NUM_MOVE( IN _cls_id INTEGER, IN _obj_id BIGINT,
 DECLARE
     _old_pid BIGINT;
     _new_pid BIGINT;
-    _last_log_id BIGINT;
+    _move_logid BIGINT;
 BEGIN
     _old_pid:= ( CASE WHEN _src_path[1] IS NULL THEN 1 ELSE _src_path[1] END );
     _new_pid:= ( CASE WHEN _dst_path[1] IS NULL THEN 1 ELSE _dst_path[1] END );
@@ -615,10 +742,26 @@ BEGIN
         RAISE EXCEPTION 'Object already here'; 
     END IF;
 
-    _last_log_id := nextval('seq_log_id');
+    _move_logid := nextval('seq_log_id');
 
-    UPDATE t_objnum SET pid = _new_pid, last_log_id=_last_log_id WHERE id=_obj_id;
-    PERFORM do_log_state(_cls_id, _obj_id, 0, _last_log_id, _src_path, _dst_path, _old_pid, _new_pid);
+    UPDATE t_objnum SET pid = _new_pid, move_logid=_move_logid WHERE id=_obj_id;
+
+
+    INSERT INTO log_move_objnum( id
+                                ,src_objnum_id
+                                ,src_path
+                                ,dst_objnum_id
+                                ,dst_path
+                                ,objnum_id)
+                                VALUES
+                               (_move_logid
+                                ,_old_pid
+                                ,_src_path
+                                ,_new_pid
+                                ,_dst_path
+                                ,_obj_id);
+    
+    --PERFORM do_log_state(_cls_id, _obj_id, 0, _last_log_id, _src_path, _dst_path, _old_pid, _new_pid);
 
 RETURN;
 END;
@@ -626,11 +769,66 @@ $BODY$
   LANGUAGE plpgsql VOLATILE  COST 500;
 
 
+
 -----------------------------------------------------------------------------------------------
+-- функция перемещения номерных объектов
 -----------------------------------------------------------------------------------------------
--- функция перемещения
------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS    move_object( IN _obj_id  BIGINT, IN _old_pid BIGINT,  IN _new_pid BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION move_object( IN _obj_id  BIGINT, IN _old_pid BIGINT,  IN _new_pid BIGINT) 
+  RETURNS  VOID AS 
+$BODY$ 
+DECLARE
+  _cls_id INTEGER;
+
+BEGIN
+-- проверяем что объект блокирован
+  SELECT count(*) INTO _access_granted 
+   FROM t_lock_obj
+   INNER JOIN t_lock_dst USING (cls_id,obj_id,obj_pid)
+     WHERE lock_time +'00:10:00.00' > now()
+       AND session_pid = pg_backend_pid()
+       AND ((src_path IS NULL AND _src_path IS NULL) OR src_path=_src_path)
+       AND ((dst_path IS NULL AND _dst_path IS NULL) OR dst_path=_dst_path)
+       AND 
+
+cls_id=_cls_id AND obj_id=_obj_id AND obj_pid=_old_pid
+     
+  RAISE DEBUG '_access_granted = %', _access_granted;
+
+
+
+
+
+
+
+
+
+
+  SELECT FROM t_objnum
+    INNER JOIN t_clsnum USING (cls_id)
+    WHERE t_objnum.id = 105;
+  
+      IF NOT FOUND THEN
+        RAISE EXCEPTION ' Object not exists cls_id=% obj_id=% ',_cls_id, _obj_id;
+    END IF;
+
+
+END;
+$BODY$ LANGUAGE plpgsql VOLATILE  COST 500;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 DROP FUNCTION IF EXISTS    move_object( IN _cls_id  INTEGER, IN _obj_id  BIGINT, 
@@ -645,6 +843,7 @@ DECLARE
     _dst_path BIGINT[];
     _access_granted INTEGER; -- запрещение перемещения по результатам суммы правил
 BEGIN
+--  определяем 
     SELECT type INTO _src_cls_type FROM w_obj 
         WHERE cls_id=_cls_id AND obj_id=_obj_id AND obj_pid=_old_pid ;
 
@@ -653,8 +852,14 @@ BEGIN
     RAISE DEBUG '_src_path = %', _src_path;
     RAISE DEBUG '_dst_path = %', _dst_path;
 
-
-    SELECT lock_move_check(_cls_id,_obj_id,_old_pid,_src_path,_dst_path) INTO _access_granted ;
+    SELECT count(*) INTO _access_granted 
+        FROM t_lock_obj
+        INNER JOIN t_lock_dst USING (cls_id,obj_id,obj_pid)
+        WHERE cls_id=_cls_id AND obj_id=_obj_id AND obj_pid=_old_pid
+        AND lock_time +'00:10:00.00' > now()
+        AND session_pid = pg_backend_pid()
+        AND ((src_path IS NULL AND _src_path IS NULL) OR src_path=_src_path)
+        AND ((dst_path IS NULL AND _dst_path IS NULL) OR dst_path=_dst_path);
     RAISE DEBUG '_access_granted = %', _access_granted;
     
     IF _access_granted IS NULL OR _access_granted<1  THEN
@@ -674,13 +879,22 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 500;
 
+  SELECT fget_get_oid_path(103)
 
+------------------------------------------------------------------------------------------------------------
+PRINT '';
+PRINT '- Тесты перемещения количественных объектов';
+PRINT '';
+------------------------------------------------------------------------------------------------------------
 SELECT * FROM lock_for_move(103,104,1); SELECT move_object(103,104,1,100,10); /*div to NULL*/ SELECT lock_reset(103,104,1);
 SELECT * FROM lock_for_move(103,104,1); SELECT move_object(103,104,1,100,5); /*div to 10*/ SELECT lock_reset(103,104,1);
 SELECT * FROM lock_for_move(103,104,1); SELECT move_object(103,104,1,100,5); /*mov to 15*/ SELECT lock_reset(103,104,1);
 SELECT * FROM lock_for_move(103,104,100); SELECT move_object(103,104,100,1,20); /*mov to NULL*/ SELECT lock_reset(103,104,100);
-
-
+------------------------------------------------------------------------------------------------------------
+PRINT '';
+PRINT '- Тесты перемещения номерных объектов';
+PRINT '';
+------------------------------------------------------------------------------------------------------------
 SELECT * FROM lock_for_move(104,102,1);
 SELECT move_object(104,102,1,103,1); -- mov objnum
 SELECT lock_reset(104,102,1);

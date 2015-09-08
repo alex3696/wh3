@@ -4,6 +4,202 @@
   <DefTblOpts/>
   <DocFolder>C:\_SAV_DOC\projects\wh3</DocFolder>
   <Sch Cm="standard public schema" nm="public">
+    <Tbl UsSo="1" nm="log">
+      <TblOpts>WITHOUT OIDS</TblOpts>
+      <Cl au="0" df="nextval('seq_log_id'::regclass)" nm="id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="&quot;current_user&quot;()" nm="username" nu="0">
+        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="src_objnum_id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="src_path" nu="0">
+        <DT arr="1" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="now()" nm="timemark" nu="0">
+        <DT arr="0" ds="TimeStampWithTimeZone" en="" id="772" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <UniqueConstraints/>
+      <SchTrHis/>
+    </Tbl>
+    <Tbl UsSo="1" nm="log_act_">
+      <TblOpts>INHERITS (log) WITHOUT OIDS</TblOpts>
+      <Pk ClNs="id" nm="pk_logact__id"/>
+      <Cl au="0" df="nextval('seq_log_id'::regclass)" nm="id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="&quot;current_user&quot;()" nm="username" nu="0">
+        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="src_objnum_id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="src_path" nu="0">
+        <DT arr="1" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="objnum_id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="act_id" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="now()" nm="timemark" nu="0">
+        <DT arr="0" ds="TimeStampWithTimeZone" en="" id="772" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Fk deAc="0" nm="fk_logact__actid" prLkCl="id" upAc="0">
+        <PrTb mn="0" nm="t_act" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="log_act_" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="act_id" prCl="id"/>
+      </Fk>
+      <Fk deAc="0" nm="fk_logact__objnumid" prLkCl="id" upAc="0">
+        <PrTb mn="0" nm="t_objnum" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="log_act_" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="objnum_id" prCl="id"/>
+      </Fk>
+      <Fk deAc="0" nm="fk_logact__srcobjnumid" prLkCl="id" upAc="0">
+        <PrTb mn="0" nm="t_objnum" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="log_act_" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="src_objnum_id" prCl="id"/>
+      </Fk>
+      <Fk deAc="3" nm="fk_logact__username" prLkCl="rolname" upAc="0">
+        <PrTb mn="0" nm="wh_role" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="log_act_" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="username" prCl="rolname"/>
+      </Fk>
+      <UniqueConstraints/>
+      <SchTrHis/>
+    </Tbl>
+    <Tbl UsSo="1" nm="log_move">
+      <TblOpts>INHERITS (log) WITHOUT OIDS</TblOpts>
+      <Cl au="0" df="nextval('seq_log_id'::regclass)" nm="id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="&quot;current_user&quot;()" nm="username" nu="0">
+        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="src_objnum_id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="src_path" nu="0">
+        <DT arr="1" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="dst_objnum_id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="dst_path" nu="0">
+        <DT arr="1" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="now()" nm="timemark" nu="0">
+        <DT arr="0" ds="TimeStampWithTimeZone" en="" id="772" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <UniqueConstraints/>
+      <SchTrHis/>
+    </Tbl>
+    <Tbl UsSo="1" nm="log_move_objnum">
+      <TblOpts>INHERITS (log_move) WITHOUT OIDS</TblOpts>
+      <Pk ClNs="id" nm="pk_logmoveobjnum__id"/>
+      <Cl au="0" df="nextval('seq_log_id'::regclass)" nm="id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="&quot;current_user&quot;()" nm="username" nu="0">
+        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="src_objnum_id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="src_path" nu="0">
+        <DT arr="1" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="dst_objnum_id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="dst_path" nu="0">
+        <DT arr="1" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="objnum_id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="now()" nm="timemark" nu="0">
+        <DT arr="0" ds="TimeStampWithTimeZone" en="" id="772" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Fk deAc="0" nm="fk_logmoveobjnum__dstobjnumid" prLkCl="id" upAc="0">
+        <PrTb mn="0" nm="t_objnum" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="log_move_objnum" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="dst_objnum_id" prCl="id"/>
+      </Fk>
+      <Fk deAc="0" nm="fk_logmoveobjnum__objnumid" prLkCl="id" upAc="0">
+        <PrTb mn="0" nm="t_objnum" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="log_move_objnum" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="objnum_id" prCl="id"/>
+      </Fk>
+      <Fk deAc="0" nm="fk_logmoveobjnum__srcobjnumid" prLkCl="id" upAc="0">
+        <PrTb mn="0" nm="t_objnum" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="log_move_objnum" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="src_objnum_id" prCl="id"/>
+      </Fk>
+      <Fk deAc="3" nm="fk_logmoveobjnum__username" prLkCl="rolname" upAc="0">
+        <PrTb mn="0" nm="wh_role" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="log_move_objnum" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="username" prCl="rolname"/>
+      </Fk>
+      <UniqueConstraints/>
+      <SchTrHis/>
+    </Tbl>
+    <Tbl UsSo="1" nm="log_move_objqty">
+      <TblOpts>INHERITS (log_move) WITHOUT OIDS</TblOpts>
+      <Pk ClNs="id" nm="pk_logmoveobjqty__id"/>
+      <Cl au="0" df="nextval('seq_log_id'::regclass)" nm="id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="&quot;current_user&quot;()" nm="username" nu="0">
+        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="src_objnum_id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="src_path" nu="0">
+        <DT arr="1" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="dst_objnum_id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="dst_path" nu="0">
+        <DT arr="1" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="objqty_id" nu="0">
+        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="qty" nu="0">
+        <DT arr="0" ds="Numeric" en="" id="2" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="now()" nm="timemark" nu="0">
+        <DT arr="0" ds="TimeStampWithTimeZone" en="" id="772" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Fk deAc="0" nm="fk_logmoveobjqty__dstobjnumid" prLkCl="id" upAc="0">
+        <PrTb mn="0" nm="t_objnum" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="log_move_objqty" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="dst_objnum_id" prCl="id"/>
+      </Fk>
+      <Fk deAc="0" nm="fk_logmoveobjqty__objqtyid" prLkCl="id" upAc="0">
+        <PrTb mn="0" nm="t_objqtykey" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="log_move_objqty" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="objqty_id" prCl="id"/>
+      </Fk>
+      <Fk deAc="0" nm="fk_logmoveobjqty__srcobjnumid" prLkCl="id" upAc="0">
+        <PrTb mn="0" nm="t_objnum" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="log_move_objqty" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="src_objnum_id" prCl="id"/>
+      </Fk>
+      <Fk deAc="3" nm="fk_logmoveobjqty__username" prLkCl="rolname" upAc="0">
+        <PrTb mn="0" nm="wh_role" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="log_move_objqty" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="username" prCl="rolname"/>
+      </Fk>
+      <UniqueConstraints/>
+      <SchTrHis/>
+    </Tbl>
     <Tbl UsSo="1" nm="t_access_act">
       <TblOpts>WITHOUT OIDS</TblOpts>
       <Pk ClNs="id" nm="pk_access_act"/>
@@ -47,11 +243,13 @@
         <CdTb mn="1" nm="t_access_act" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="access_group" prCl="rolname"/>
       </Fk>
-      <Idx clu="0" nm="idx_t_access_act__access_group" unq="0">
+      <Idx clu="0" ftx="0" nm="idx_t_access_act__access_group" spa="0" unq="0">
         <ClNs>access_group</ClNs>
+        <OptTx>USING btree</OptTx>
       </Idx>
-      <Idx clu="0" nm="idx_t_access_act__cls_id" unq="0">
+      <Idx clu="0" ftx="0" nm="idx_t_access_act__cls_id" spa="0" unq="0">
         <ClNs>cls_id</ClNs>
+        <OptTx>USING btree</OptTx>
       </Idx>
       <Trg del="1" eaRow="1" exBe="0" ins="0" nm="tr_ad_access_act" upd="0">
         <Sql>ftr_ad_access_act()</Sql>
@@ -116,17 +314,21 @@
         <CdTb mn="1" nm="t_access_slot" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="access_group" prCl="rolname"/>
       </Fk>
-      <Idx clu="0" nm="t_access_slot_access_group_idx" unq="0">
+      <Idx clu="0" ftx="0" nm="t_access_slot_access_group_idx" spa="0" unq="0">
         <ClNs>access_group</ClNs>
+        <OptTx>USING btree</OptTx>
       </Idx>
-      <Idx clu="0" nm="t_access_slot_dst_path_idx" unq="0">
+      <Idx clu="0" ftx="0" nm="t_access_slot_dst_path_idx" spa="0" unq="0">
         <ClNs>dst_path</ClNs>
+        <OptTx>USING btree</OptTx>
       </Idx>
-      <Idx clu="0" nm="t_access_slot_mov_cls_id_idx" unq="0">
+      <Idx clu="0" ftx="0" nm="t_access_slot_mov_cls_id_idx" spa="0" unq="0">
         <ClNs>mov_cls_id</ClNs>
+        <OptTx>USING btree</OptTx>
       </Idx>
-      <Idx clu="0" nm="t_access_slot_src_path_idx" unq="0">
+      <Idx clu="0" ftx="0" nm="t_access_slot_src_path_idx" spa="0" unq="0">
         <ClNs>src_path</ClNs>
+        <OptTx>USING btree</OptTx>
       </Idx>
       <UniqueConstraints/>
       <SchTrHis/>
@@ -199,8 +401,9 @@
         <CdTb mn="1" nm="t_cls" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="pid" prCl="id"/>
       </Fk>
-      <Idx clu="0" nm="idx_t_cls_pid" unq="0">
+      <Idx clu="0" ftx="0" nm="idx_t_cls_pid" spa="0" unq="0">
         <ClNs>pid</ClNs>
+        <OptTx>USING btree</OptTx>
       </Idx>
       <Trg del="0" eaRow="1" exBe="0" ins="1" nm="tr_ai_class" upd="0">
         <Sql>ftr_ai_class()</Sql>
@@ -290,44 +493,6 @@
         <ClPr cdCl="cls_type" prCl="type"/>
       </Fk>
       <UniqueConstraints/>
-      <SchTrHis/>
-    </Tbl>
-    <Tbl UsSo="1" nm="t_favorite_obj">
-      <TblOpts>WITHOUT OIDS</TblOpts>
-      <Pk ClNs="id" nm="t_favorite_obj_pkey"/>
-      <Cl au="0" df="&quot;current_user&quot;()" nm="user_label" nu="0">
-        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="true" nm="expanded" nu="0">
-        <DT arr="0" ds="Boolean" en="" id="16" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="" nm="custom_label" nu="1">
-        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="true" nm="is_objnum" nu="0">
-        <DT arr="0" ds="Boolean" en="" id="16" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="1" nm="pid" nu="0">
-        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="nextval('t_favorite_obj_id_seq'::regclass)" nm="id" nu="0">
-        <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Fk deAc="0" nm="fk_favorite_obj__pid" prLkCl="id" upAc="0">
-        <PrTb mn="0" nm="t_favorite_obj" oe="1" sch="public" zr="0"/>
-        <CdTb mn="1" nm="t_favorite_obj" oe="0" sch="public" zr="1"/>
-        <ClPr cdCl="pid" prCl="id"/>
-      </Fk>
-      <Fk deAc="0" nm="fk_favorite_prop__user_label" prLkCl="rolname" upAc="0">
-        <PrTb mn="0" nm="wh_role" oe="1" sch="public" zr="0"/>
-        <CdTb mn="1" nm="t_favorite_obj" oe="0" sch="public" zr="1"/>
-        <ClPr cdCl="user_label" prCl="rolname"/>
-      </Fk>
-      <UniqueConstraints>
-        <UnCon nm="uk_favorite_obj__node">
-          <ClNs>id, is_objnum</ClNs>
-        </UnCon>
-      </UniqueConstraints>
       <SchTrHis/>
     </Tbl>
     <Tbl UsSo="1" nm="t_favorite_prop">
@@ -443,8 +608,9 @@
         <ClPr cdCl="obj_id" prCl="obj_id"/>
         <ClPr cdCl="obj_pid" prCl="obj_pid"/>
       </Fk>
-      <Idx clu="0" nm="idx_lock_act__cls_obj_pid" unq="0">
+      <Idx clu="0" ftx="0" nm="idx_lock_act__cls_obj_pid" spa="0" unq="0">
         <ClNs>cls_id, obj_id, obj_pid</ClNs>
+        <OptTx>USING btree</OptTx>
       </Idx>
       <UniqueConstraints/>
       <SchTrHis/>
@@ -470,8 +636,9 @@
         <ClPr cdCl="obj_id" prCl="obj_id"/>
         <ClPr cdCl="obj_pid" prCl="obj_pid"/>
       </Fk>
-      <Idx clu="0" nm="idx_lock_dst__cls_obj_pid" unq="0">
+      <Idx clu="0" ftx="0" nm="idx_lock_dst__cls_obj_pid" spa="0" unq="0">
         <ClNs>cls_id, obj_id, obj_pid</ClNs>
+        <OptTx>USING btree</OptTx>
       </Idx>
       <UniqueConstraints/>
       <SchTrHis/>
@@ -556,6 +723,12 @@
       <Cl au="0" df="" nm="obj_id" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
+      <Cl au="0" df="" nm="old_obj_pid" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="new_obj_pid" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
       <Cl au="0" df="" nm="тест1_1" nu="1">
         <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
@@ -567,12 +740,6 @@
       </Cl>
       <Cl au="0" df="" nm="рем1" nu="1">
         <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="" nm="old_obj_pid" nu="0">
-        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="" nm="new_obj_pid" nu="0">
-        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Fk deAc="0" nm="fk_logact_101" prLkCl="id" upAc="0">
         <PrTb mn="0" nm="t_act" oe="1" sch="public" zr="0"/>
@@ -672,6 +839,12 @@
       <Cl au="0" df="" nm="obj_id" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
+      <Cl au="0" df="" nm="old_obj_pid" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="new_obj_pid" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
       <Cl au="0" df="" nm="тест1_1" nu="1">
         <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
@@ -683,12 +856,6 @@
       </Cl>
       <Cl au="0" df="" nm="рем2" nu="1">
         <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="" nm="old_obj_pid" nu="0">
-        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="" nm="new_obj_pid" nu="0">
-        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Fk deAc="0" nm="fk_logact_105" prLkCl="id" upAc="0">
         <PrTb mn="0" nm="t_act" oe="1" sch="public" zr="0"/>
@@ -764,17 +931,17 @@
       <Cl au="0" df="nextval('seq_obj_id'::regclass)" nm="id" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Cl au="0" df="" nm="obj_label" nu="0">
-        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
       <Cl au="0" df="1" nm="pid" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="" nm="last_log_id" nu="1">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
+      <Cl au="0" df="" nm="label" nu="0">
+        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
       <Fk deAc="0" nm="fk_objnum_clsnum" prLkCl="cls_id" upAc="0">
-        <PrTb mn="0" nm="t_clsnum" oe="1" sch="public" zr="0"/>
+        <PrTb mn="0" nm="t_clsnum" oe="1" sch="public" zr="1"/>
         <CdTb mn="1" nm="t_objnum" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="cls_id" prCl="cls_id"/>
       </Fk>
@@ -783,15 +950,16 @@
         <CdTb mn="1" nm="t_objnum" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="pid" prCl="id"/>
       </Fk>
-      <Idx clu="0" nm="idx_t_objnum_pid" unq="0">
+      <Idx clu="0" ftx="0" nm="idx_t_objnum_pid" spa="0" unq="0">
         <ClNs>pid</ClNs>
+        <OptTx>USING btree</OptTx>
       </Idx>
       <UniqueConstraints>
         <UnCon nm="uk_objnum_clsid_id">
           <ClNs>cls_id, id</ClNs>
         </UnCon>
         <UnCon nm="uk_objnum_clsid_label">
-          <ClNs>cls_id, obj_label</ClNs>
+          <ClNs>cls_id, label</ClNs>
         </UnCon>
         <UnCon nm="uk_objnum_log_id">
           <ClNs>last_log_id</ClNs>
@@ -824,11 +992,13 @@
         <CdTb mn="1" nm="t_objqty" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="objqty_id" prCl="id"/>
       </Fk>
-      <Idx clu="0" nm="idx_t_objqty_id" unq="0">
+      <Idx clu="0" ftx="0" nm="idx_t_objqty_id" spa="0" unq="0">
         <ClNs>objqty_id</ClNs>
+        <OptTx>USING btree</OptTx>
       </Idx>
-      <Idx clu="0" nm="idx_t_objqty_pid" unq="0">
+      <Idx clu="0" ftx="0" nm="idx_t_objqty_pid" spa="0" unq="0">
         <ClNs>pid</ClNs>
+        <OptTx>USING btree</OptTx>
       </Idx>
       <UniqueConstraints/>
       <SchTrHis/>
@@ -839,11 +1009,11 @@
       <Cl au="0" df="" nm="cls_id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Cl au="0" df="" nm="obj_label" nu="0">
-        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
       <Cl au="0" df="nextval('seq_obj_id'::regclass)" nm="id" nu="0">
         <DT arr="0" ds="BigInt" en="" id="-5" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="label" nu="0">
+        <DT arr="0" ds="name" en="" id="5001" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Fk deAc="0" nm="fk_objqtykey_cls_id" prLkCl="cls_id" upAc="0">
         <PrTb mn="0" nm="t_clsqty" oe="1" sch="public" zr="0"/>
@@ -851,8 +1021,8 @@
         <ClPr cdCl="cls_id" prCl="cls_id"/>
       </Fk>
       <UniqueConstraints>
-        <UnCon nm="uk_objqtykey_clsid_objlabel">
-          <ClNs>cls_id, obj_label</ClNs>
+        <UnCon nm="uk_objqtykey_clsid_label">
+          <ClNs>cls_id, label</ClNs>
         </UnCon>
       </UniqueConstraints>
       <SchTrHis/>
@@ -923,12 +1093,12 @@
       <Cl au="0" df="" nm="act_id" nu="0">
         <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Fk deAc="0" nm="fk_refclsact__act_id" prLkCl="id" upAc="0">
+      <Fk deAc="0" nm="fk_refclsact__actid" prLkCl="id" upAc="0">
         <PrTb mn="0" nm="t_act" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_ref_class_act" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="act_id" prCl="id"/>
       </Fk>
-      <Fk deAc="0" nm="fk_refclsact__cls_id" prLkCl="cls_id" upAc="0">
+      <Fk deAc="0" nm="fk_refclsact__clsid" prLkCl="cls_id" upAc="0">
         <PrTb mn="0" nm="t_clsnum" oe="1" sch="public" zr="0"/>
         <CdTb mn="1" nm="t_ref_class_act" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="cls_id" prCl="cls_id"/>
@@ -1029,8 +1199,9 @@
         <CdTb mn="1" nm="wh_auth_members" oe="0" sch="public" zr="1"/>
         <ClPr cdCl="roleid" prCl="id"/>
       </Fk>
-      <Idx clu="0" nm="wh_auth_members_member_role_index" unq="1">
+      <Idx clu="0" ftx="0" nm="wh_auth_members_member_role_index" spa="0" unq="1">
         <ClNs>member, roleid</ClNs>
+        <OptTx>USING btree</OptTx>
       </Idx>
       <Trg del="1" eaRow="1" exBe="1" ins="0" nm="tr_bd_wh_auth_members" upd="0">
         <Sql>ftr_bd_wh_auth_members()</Sql>
@@ -1075,11 +1246,13 @@
       <Cl au="0" df="" nm="rolcomment" nu="1">
         <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
-      <Idx clu="0" nm="wh_role_id_rolname_idx" unq="0">
+      <Idx clu="0" ftx="0" nm="wh_role_id_rolname_idx" spa="0" unq="0">
         <ClNs>id, rolname</ClNs>
+        <OptTx>USING btree</OptTx>
       </Idx>
-      <Idx clu="0" nm="wh_role_rolname_id_idx" unq="0">
+      <Idx clu="0" ftx="0" nm="wh_role_rolname_id_idx" spa="0" unq="0">
         <ClNs>rolname, id</ClNs>
+        <OptTx>USING btree</OptTx>
       </Idx>
       <Trg del="1" eaRow="1" exBe="1" ins="0" nm="tr_bd_wh_role" upd="0">
         <Sql>ftr_bd_wh_role()</Sql>
@@ -1343,10 +1516,10 @@ BEGIN&#13;
 RETURN QUERY &#13;
     WITH RECURSIVE parents AS &#13;
     (SELECT&#13;
-        t.id, t.pid, t.obj_label, t_cls.label, t.cls_id, t.last_log_id&#13;
-        ,ARRAY[ ARRAY[t_cls.label,t.obj_label]::NAME[] ]::NAME[] AS path&#13;
+        t.id, t.pid, t.label, t_cls.label, t.cls_id, t.last_log_id&#13;
+        ,ARRAY[ ARRAY[t_cls.label,t.label]::NAME[] ]::NAME[] AS path&#13;
         ,ARRAY[ ARRAY[t.cls_id,t.id]::NAME[] ]::NAME[] AS pathid&#13;
-        , '/['||t_cls.label||']'||t.obj_label AS _path&#13;
+        , '/['||t_cls.label||']'||t.label AS _path&#13;
         --, ARRAY[t.id] AS exist, &#13;
         --, FALSE AS cycle,&#13;
         FROM t_objnum AS t &#13;
@@ -1355,10 +1528,10 @@ RETURN QUERY &#13;
         AND t.id&gt;1&#13;
      UNION ALL&#13;
      SELECT&#13;
-        t.id, t.pid, t.obj_label, t_cls.label, t.cls_id, t.last_log_id&#13;
-        ,p.path || ARRAY[t_cls.label,t.obj_label]::NAME[]&#13;
+        t.id, t.pid, t.label, t_cls.label, t.cls_id, t.last_log_id&#13;
+        ,p.path || ARRAY[t_cls.label,t.label]::NAME[]&#13;
         ,p.pathid || ARRAY[t.cls_id,t.id]::NAME[]&#13;
-        ,'/['||t_cls.label||']'||t.obj_label || p._path&#13;
+        ,'/['||t_cls.label||']'||t.label || p._path&#13;
         --, exist || t.id&#13;
         --, t.id = ANY(exist)&#13;
         FROM &#13;
@@ -1596,22 +1769,22 @@ $$
     <Proc nm="fn_insert_objqty(IN _cls_id integer, IN _label name, IN _pid bigint, IN _qty numeric)">
       <Cm>-- функция создания количественного объекта</Cm>
       <src>CREATE OR REPLACE FUNCTION fn_insert_objqty(IN _cls_id integer, IN _label name, IN _pid bigint, IN _qty numeric) 
-  RETURNS TABLE(id_ bigint, pid_ bigint, obj_label_ name, qty_ numeric) AS 
+  RETURNS TABLE(id_ bigint, pid_ bigint, label_ name, qty_ numeric) AS 
 $$&#13;
 DECLARE&#13;
     &#13;
     v_objqty_id BIGINT;&#13;
 BEGIN&#13;
-    SELECT id INTO v_objqty_id FROM t_objqtykey WHERE cls_id = _cls_id AND obj_label = _label;&#13;
+    SELECT id INTO v_objqty_id FROM t_objqtykey WHERE cls_id = _cls_id AND label = _label;&#13;
     IF NOT FOUND THEN&#13;
-        INSERT INTO t_objqtykey(cls_id, obj_label ) &#13;
+        INSERT INTO t_objqtykey(cls_id, label ) &#13;
                VALUES ( _cls_id, _label ) RETURNING id INTO v_objqty_id;&#13;
     END IF;&#13;
 &#13;
     INSERT INTO t_objqty(objqty_id, pid, qty) VALUES (v_objqty_id, _pid, _qty);&#13;
     id_:=v_objqty_id;&#13;
     pid_:=_pid;&#13;
-    obj_label_:=_label;&#13;
+    label_:=_label;&#13;
     qty_=_qty;&#13;
     return next;&#13;
     RETURN ;&#13;
@@ -1629,14 +1802,14 @@ DECLARE&#13;
     --rec      RECORD;&#13;
     result   NAME [];&#13;
     get_obj_info CURSOR IS &#13;
-    SELECT t_cls.id, t_cls.label, t_objnum.id, obj_label,  arr.id&#13;
+    SELECT t_cls.id, t_cls.label, t_objnum.id, t_objnum.label,  arr.id&#13;
         FROM fn_array1_to_table(idpath) arr&#13;
         LEFT JOIN t_objnum USING (id)&#13;
         LEFT JOIN t_cls ON t_cls.id=t_objnum.cls_id &#13;
         ORDER BY idx;&#13;
 BEGIN&#13;
     FOR rec IN get_obj_info LOOP&#13;
-        result := result || ARRAY[ ARRAY[rec.label,rec.obj_label] ];&#13;
+        result := result || ARRAY[ ARRAY[rec.label,rec.label] ];&#13;
     END LOOP;&#13;
     RETURN result;&#13;
 END;&#13;
@@ -1653,7 +1826,7 @@ $$&#13;
 BEGIN&#13;
     PERFORM id FROM t_objqtykey WHERE id = _objqty_id;&#13;
     IF FOUND THEN&#13;
-        UPDATE t_objqtykey SET obj_label=new_label WHERE id=_objqty_id;&#13;
+        UPDATE t_objqtykey SET label=new_label WHERE id=_objqty_id;&#13;
         UPDATE t_objqty    SET pid= new_pid, qty=new_qty  WHERE objqty_id=_objqty_id AND pid=old_pid;&#13;
     END IF;&#13;
 END;&#13;
@@ -1765,144 +1938,6 @@ BEGIN&#13;
 &#13;
     &#13;
     &#13;
-&#13;
-RETURN NEW;&#13;
-END;&#13;
-$$
-  LANGUAGE plpgsql VOLATILE 
-  COST 100;</src>
-    </Proc>
-    <Proc nm="ftr_aiu_state()">
-      <src>CREATE OR REPLACE FUNCTION ftr_aiu_state() 
-  RETURNS trigger AS 
-$$&#13;
-DECLARE&#13;
-&#13;
-	-- находим свойста данного действия&#13;
-	cursor_act_prop 	CURSOR  IS &#13;
-					SELECT prop_label &#13;
-						FROM t_ref_act_prop&#13;
-					WHERE 	act_label=NEW.act_label;&#13;
-&#13;
-&#13;
-	-- ищем все свойства данного класса, которые не участвуют в действии&#13;
-	cursor_cleaned_prop 	CURSOR (_cls_label NAME)  IS &#13;
-					SELECT prop_label &#13;
-						FROM t_ref_act_prop&#13;
-					WHERE act_label IN (SELECT DISTINCT(act_label) FROM t_ref_class_act WHERE cls_label = _cls_label)&#13;
-				EXCEPT ALL &#13;
-					SELECT prop_label &#13;
-						FROM t_ref_act_prop&#13;
-					WHERE 	act_label=NEW.act_label;&#13;
-&#13;
-&#13;
-					&#13;
-	&#13;
-	&#13;
-	perm_group	NAME;&#13;
-&#13;
-	insert_script_1 TEXT;&#13;
-	insert_script_2 TEXT;&#13;
-&#13;
-	_rec_act_prop	RECORD;&#13;
-	_new_prop_val	TEXT;&#13;
-	_old_prop_val	TEXT;&#13;
-&#13;
-	tmp_rec RECORD;&#13;
-&#13;
-	obj 		RECORD;&#13;
-	class_id 	BIGINT;&#13;
-&#13;
-	vlog_id 	BIGINT;&#13;
-&#13;
-BEGIN&#13;
-	IF TG_OP='UPDATE' AND NEW.obj_id&lt;&gt;OLD.obj_id THEN&#13;
-		RAISE EXCEPTION '%: Нельзя менять идентификатор объекта',TG_NAME;&#13;
-	END IF;	&#13;
-&#13;
-	RAISE DEBUG '%: Ищем идентификатор класса % ',TG_NAME,TG_TABLE_NAME;&#13;
-	SELECT CAST( trim(leading 't_state_' from TG_TABLE_NAME) AS INTEGER) INTO class_id;&#13;
-	IF NOT FOUND THEN&#13;
-		RAISE EXCEPTION '%: Идентификатор класса не найден в %',TG_NAME,TG_TABLE_NAME;&#13;
-	END IF;		&#13;
-&#13;
-	RAISE DEBUG '%: Ищем и имя и тип класса для obj_id=%',TG_NAME,NEW.obj_id;	&#13;
-	SELECT * INTO obj FROM t_objnum WHERE id=NEW.obj_id ; --AND t_state.class_type=1&#13;
-	IF NOT FOUND THEN&#13;
-		RAISE EXCEPTION '%: Идентификатор объекта % не найден в t_objnum',TG_NAME,NEW.obj_id;&#13;
-	END IF;	&#13;
-	&#13;
-&#13;
-	RAISE DEBUG '%: Ищем разрешение выполнения "%" в классе "%" пользоватем "%" ',TG_NAME,NEW.act_label,obj.cls_label,CURRENT_USER;	&#13;
-	SELECT t_ref_class_act_perm.perm_group INTO perm_group &#13;
-		FROM t_ref_class_act_perm&#13;
-		LEFT JOIN 	wh_role _group -- определяем разрешённые группы&#13;
-			ON	_group.rolname=t_ref_class_act_perm.perm_group	AND not _group.rolcanlogin &#13;
-		RIGHT JOIN	wh_auth_members membership -- определяем ИДЕНТИФИКАТОРЫ разрешённых групп-пользователей&#13;
-			ON	_group.id=membership.roleid	&#13;
-		RIGHT JOIN 	wh_role _user  	-- определяем ИДЕНТИФИКАТОРЫ разрешённых пользователей		&#13;
-			ON	_user.id=membership.member AND _user.rolcanlogin&#13;
-			AND	_user.rolname=CURRENT_USER	-- определяем ИМЕНА разрешённых пользователей ВКЛЮЧАЯ ТЕКУЩЕГО&#13;
-		WHERE t_ref_class_act_perm.cls_label=cls_label AND t_ref_class_act_perm.act_label=NEW.act_label;&#13;
-	IF NOT FOUND THEN&#13;
-		RAISE EXCEPTION '%: Действие "%" не определено/не разрешено для %',TG_NAME,NEW.act_label,obj.cls_label;&#13;
-	END IF;&#13;
-&#13;
-	--инициализируем переменные чтоб небыло NULL || 'данные' = NULL&#13;
-	insert_script_1:='';&#13;
-	insert_script_2:='';&#13;
-&#13;
-	FOR _rec_act_prop IN cursor_act_prop LOOP&#13;
-		insert_script_1:=insert_script_1||','||quote_ident(_rec_act_prop.prop_label);&#13;
-		EXECUTE 'SELECT ('||quote_literal(NEW)||'::'||TG_RELID::regclass||').'|| quote_ident(_rec_act_prop.prop_label) INTO _new_prop_val;&#13;
-&#13;
-		IF _new_prop_val IS NOT NULL THEN&#13;
-			insert_script_2:=insert_script_2||','||quote_literal(_new_prop_val);&#13;
-		ELSE&#13;
-			insert_script_2:=insert_script_2||',NULL';&#13;
-		END IF;&#13;
-			&#13;
-		RAISE DEBUG '%: Лог свойства %=% ',TG_NAME,_rec_act_prop.prop_label,_new_prop_val;	&#13;
-&#13;
-	END LOOP;&#13;
-&#13;
-	RAISE DEBUG '%: Проверка изменения свойств не участвующик в действии',TG_NAME;&#13;
-&#13;
-	FOR _rec_act_prop IN cursor_cleaned_prop(obj.cls_label) LOOP&#13;
-		EXECUTE 'SELECT ('||quote_literal(NEW)||'::'||TG_RELID::regclass||').'|| quote_ident(_rec_act_prop.prop_label) INTO _new_prop_val;&#13;
-		&#13;
-		IF TG_OP='INSERT' AND _new_prop_val IS NOT NULL THEN&#13;
-			RAISE EXCEPTION '%: Нельзя менять % в действии %',TG_NAME,_rec_act_prop.prop_label,NEW.act_label;	&#13;
-		END IF;&#13;
-		&#13;
-		IF TG_OP='UPDATE' THEN&#13;
-			EXECUTE 'SELECT ('||quote_literal(OLD)||'::'||TG_RELID::regclass||').'|| quote_ident(_rec_act_prop.prop_label) INTO _old_prop_val;&#13;
-			IF _new_prop_val&lt;&gt;_old_prop_val THEN&#13;
-				RAISE EXCEPTION '%: Нельзя менять свойство "%" в действии "%"',TG_NAME,_rec_act_prop.prop_label,NEW.act_label;	&#13;
-			END IF;&#13;
-		END IF;&#13;
-	END LOOP;&#13;
-	&#13;
-	vlog_id:= nextval('seq_log_id'::regclass);&#13;
-&#13;
-	RAISE DEBUG '%: Обновляем состояние объекта (%) в t_objnum ',TG_NAME, obj;&#13;
-	UPDATE t_objnum SET log_id=vlog_id, log_time=CURRENT_TIMESTAMP, log_user=CURRENT_USER	WHERE t_objnum.id=NEW.obj_id;&#13;
-&#13;
-	insert_script_1:='INSERT INTO t_log_'||class_id||'(log_id, cls_label, obj_label, comment, act_label'&#13;
-					||insert_script_1;&#13;
-	insert_script_2:=')VALUES('	   ||vlog_id&#13;
-					||','||quote_literal(obj.cls_label)&#13;
-					||','||quote_literal(obj.obj_label)&#13;
-					||','||(CASE WHEN obj.comment IS NULL THEN 'NULL' ELSE quote_literal(obj.comment) END)&#13;
-					||','||quote_literal(NEW.act_label)&#13;
-					||insert_script_2||')';&#13;
-	RAISE DEBUG '%: Вставляем в лог изменения состояния и свойств объекта: &#13;
-				% &#13;
-				%'&#13;
-				,TG_NAME,insert_script_1, insert_script_2;&#13;
-	EXECUTE  insert_script_1||insert_script_2;&#13;
-&#13;
-	RAISE DEBUG '%: Обновляем свойства объекта % в t_state_% на NEW %',TG_NAME, obj.id, class_id,  NEW;&#13;
 &#13;
 RETURN NEW;&#13;
 END;&#13;
@@ -2555,7 +2590,7 @@ $$
     <View nm="moverule_lockup">
       <Sql>SELECT
     obj.obj_id AS mov_obj_id,
-    obj.obj_label AS mov_obj_label,
+    obj.label AS mov_obj_label,
     obj.obj_pid AS mov_obj_pid,
     obj.cls_id AS mov_cls_id,
     obj.cls_label AS mov_cls_label,
@@ -2563,7 +2598,7 @@ $$
     obj.qty AS mov_obj_qty,
     perm.src_path,
     dst.id AS dst_obj_id,
-    dst.obj_label AS dst_obj_label,
+    dst.label AS dst_obj_label,
     dst.pid AS dst_obj_pid,
     dst.cls_id AS dst_cls_id,
     perm.dst_path,
@@ -2609,7 +2644,7 @@ WHERE obj.obj_pid &lt;&gt; dst.id
     t_cls.pid AS favcls_pid,
     t_cls.measurename AS favcls_mes,
     t_favorites.obj_id,
-    t_objnum.obj_label AS favobj_label,
+    t_objnum.label AS favobj_label,
     t_objnum.pid AS favobj_pid
 FROM t_favorites LEFT
     JOIN t_objnum ON t_favorites.obj_id = t_objnum.id LEFT
@@ -2622,7 +2657,7 @@ WHERE t_favorites.owner = "current_user"()</Sql>
     obj.obj_id,
     obj.obj_pid,
     obj.cls_id,
-    obj.obj_label,
+    obj.label,
     obj.last_log_id,
     obj.qty,
     t_cls.label AS cls_label,
@@ -2634,13 +2669,13 @@ FROM t_cls RIGHT
     JOIN ( SELECT t_objnum.id AS obj_id,
     t_objnum.pid AS obj_pid,
     t_objnum.cls_id,
-    t_objnum.obj_label,
+    t_objnum.label,
     t_objnum.last_log_id,
     1::numeric AS qty
 FROM t_objnum UNION ALL SELECT t_objqty.objqty_id AS obj_id,
     t_objqty.pid AS obj_pid,
     t_objqtykey.cls_id,
-    t_objqtykey.obj_label,
+    t_objqtykey.label,
     t_objqty.last_log_id,
     t_objqty.qty
 FROM t_objqty LEFT
@@ -2709,7 +2744,6 @@ WHERE wh_role.rolcanlogin</Sql>
     <Seq incr="1" nm="t_cls_id_seq"/>
     <Seq incr="1" nm="t_cls_prop_id_seq"/>
     <Seq incr="1" nm="t_cls_vid_seq"/>
-    <Seq incr="1" nm="t_favorite_obj_id_seq"/>
     <Seq incr="1" nm="t_favorite_prop_id_seq"/>
     <Seq incr="1" nm="t_favorites_id_seq"/>
     <Seq incr="1" nm="t_prop_id_seq"/>
@@ -2799,20 +2833,59 @@ WHERE wh_role.rolcanlogin</Sql>
       <DbTableRectangleFill>HeaderFooterFill</DbTableRectangleFill>
       <svg path=""/>
     </DiaProps>
-    <TbGl bkCl="ff6666ff" sch="public" tbl="wh_role" x="512" y="8"/>
-    <TbGl bkCl="ffffcc66" sch="public" tbl="t_favorite_obj" x="842" y="170"/>
-    <TbGl bkCl="ff009900" sch="public" tbl="t_objnum" x="645" y="456"/>
-    <TbGl bkCl="ff00cc00" sch="public" tbl="t_objqty" x="673" y="312"/>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_favorite_obj.fk_favorite_obj__pid" parentEdge="" positioner="">
+    <TbGl bkCl="ff6666ff" sch="public" tbl="wh_role" x="496" y="123"/>
+    <TbGl bkCl="ff009900" sch="public" tbl="t_objnum" x="1056" y="736"/>
+    <TbGl bkCl="ff00cc00" sch="public" tbl="t_objqty" x="1066" y="481"/>
+    <TbGl bkCl="ffffcc66" sch="public" tbl="t_favorite_prop" x="64" y="82"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_cls" x="504" y="632"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_clsnum" x="520" y="547"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_ref_act_prop" x="737" y="356"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_ref_class_act" x="480" y="357"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_prop" x="728" y="434"/>
+    <TbGl bkCl="ffffcc66" sch="public" tbl="t_favorites" x="31" y="574"/>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls.fk_class__default_pid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_favorite_obj.fk_favorite_prop__user_label" parentEdge="" positioner="">
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls.fk_class__parent" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_clsnum.fk_clsnum__cls" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_favorite_prop.fk_favorite_prop__ref_act_prop" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_favorite_prop.fk_favorite_prop__ref_class_act" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_favorite_prop.fk_favorite_prop__user_label" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_favorites.t_favorites_cls_id_fkey" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_favorites.t_favorites_obj_id_fkey" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_favorites.t_favorites_owner_fkey" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_favorites.t_favorites_pid_fkey" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_objnum.fk_objnum_clsnum" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_objnum.fk_objnum_pid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_objqty.fk_obj_items_pid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_act_prop.fk_refactprop__propid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_class_act.fk_refclsact__clsid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <Notes/>
@@ -2840,26 +2913,23 @@ WHERE wh_role.rolcanlogin</Sql>
       <DbTableRectangleFill>HeaderFooterFill</DbTableRectangleFill>
       <svg path=""/>
     </DiaProps>
-    <TbGl bkCl="ffff0000" sch="public" tbl="t_cls" x="144" y="65"/>
-    <TbGl bkCl="ffff0000" sch="public" tbl="t_prop" x="158" y="555"/>
-    <TbGl bkCl="ffff0000" sch="public" tbl="t_act" x="154" y="319"/>
-    <TbGl bkCl="ffcccccc" sch="public" tbl="t_ref_act_prop" x="535" y="449"/>
-    <TbGl bkCl="ff6666ff" sch="public" tbl="wh_role" x="1175" y="88"/>
-    <TbGl bkCl="ff009900" sch="public" tbl="t_cls_prop" x="111" y="174"/>
-    <TbGl bkCl="ffcccccc" sch="public" tbl="t_ref_class_act" x="535" y="179"/>
-    <TbGl bkCl="ffffcc66" sch="public" tbl="t_favorite_prop" x="884" y="425"/>
-    <TbGl bkCl="ffffcc66" sch="public" tbl="t_access_act" x="891" y="209"/>
-    <TbGl bkCl="ffffcc66" sch="public" tbl="t_access_slot" x="830" y="19"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_prop" x="143" y="501"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_act" x="135" y="309"/>
+    <TbGl bkCl="ffcccccc" sch="public" tbl="t_ref_act_prop" x="542" y="392"/>
+    <TbGl bkCl="ff009900" sch="public" tbl="t_cls_prop" x="89" y="153"/>
+    <TbGl bkCl="ffffcc66" sch="public" tbl="t_favorite_prop" x="804" y="564"/>
+    <TbGl bkCl="ffffcc66" sch="public" tbl="t_access_act" x="767" y="153"/>
+    <TbGl bkCl="ffffcc66" sch="public" tbl="t_access_slot" x="755" y="0"/>
+    <TbGl bkCl="ffcccccc" sch="public" tbl="t_ref_class_act" x="555" y="226"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_cls" x="96" y="29"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_clsnum" x="333" y="148"/>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_access_act.fk_access_act_cls" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_access_act.fk_access_act_role" parentEdge="" positioner="">
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_access_slot.fk_access_dst_cls" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_access_slot.fk_access_mov_cls" parentEdge="" positioner="">
-      <positionableLines/>
-    </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_access_slot.fk_access_slot__acess_group" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls.fk_class__parent" parentEdge="" positioner="">
@@ -2871,13 +2941,13 @@ WHERE wh_role.rolcanlogin</Sql>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls_prop.t_cls_prop_prop_id_fkey" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_clsnum.fk_clsnum__cls" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_favorite_prop.fk_favorite_prop__ref_act_prop" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_favorite_prop.fk_favorite_prop__ref_class_act" parentEdge="" positioner="">
-      <positionableLines/>
-    </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_favorite_prop.fk_favorite_prop__user_label" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_act_prop.fk_refactprop__actid" parentEdge="" positioner="">
@@ -2886,7 +2956,10 @@ WHERE wh_role.rolcanlogin</Sql>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_act_prop.fk_refactprop__propid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_class_act.fk_refclsact__act_id" parentEdge="" positioner="">
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_class_act.fk_refclsact__actid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_class_act.fk_refclsact__clsid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <Notes/>
@@ -2920,7 +2993,7 @@ WHERE wh_role.rolcanlogin</Sql>
     <TbGl bkCl="ffff9e0c" sch="public" tbl="t_access_slot" x="34" y="243"/>
     <TbGl bkCl="ffffcc66" sch="public" tbl="t_access_act" x="810" y="671"/>
     <TbGl bkCl="ffff0000" sch="public" tbl="t_act" x="1297" y="556"/>
-    <TbGl bkCl="ff00cc00" sch="public" tbl="t_clsnum" x="550" y="344"/>
+    <TbGl bkCl="ff00cc00" sch="public" tbl="t_clsnum" x="596" y="238"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="t_ref_class_act" x="849" y="493"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="t_favorite_prop" x="1256" y="725"/>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_access_act.fk_access_act_cls" parentEdge="" positioner="">
@@ -2962,10 +3035,10 @@ WHERE wh_role.rolcanlogin</Sql>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_objnum.fk_objnum_pid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_class_act.fk_refclsact__act_id" parentEdge="" positioner="">
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_class_act.fk_refclsact__actid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_class_act.fk_refclsact__cls_id" parentEdge="" positioner="">
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_ref_class_act.fk_refclsact__clsid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <Notes/>
@@ -2993,15 +3066,54 @@ WHERE wh_role.rolcanlogin</Sql>
       <DbTableRectangleFill>HeaderFooterFill</DbTableRectangleFill>
       <svg path=""/>
     </DiaProps>
-    <TbGl bkCl="ff009900" sch="public" tbl="t_objnum" x="518" y="360"/>
-    <TbGl bkCl="ff00cc00" sch="public" tbl="t_objqty" x="91" y="350"/>
-    <TbGl bkCl="ffff0000" sch="public" tbl="t_cls" x="346" y="11"/>
-    <TbGl bkCl="ffff0000" sch="public" tbl="t_act" x="1083" y="560"/>
-    <TbGl bkCl="ffff0000" sch="public" tbl="t_clsnum" x="729" y="142"/>
-    <TbGl bkCl="ffff0000" sch="public" tbl="t_clsqty" x="121" y="140"/>
-    <TbGl bkCl="ff00cc00" sch="public" tbl="t_objqtykey" x="98" y="264"/>
-    <TbGl bkCl="ff6666ff" sch="public" tbl="t_state_101" x="922" y="426"/>
-    <TbGl bkCl="ff6666ff" sch="public" tbl="t_log_101" x="541" y="530"/>
+    <TbGl bkCl="ff009900" sch="public" tbl="t_objnum" x="80" y="275"/>
+    <TbGl bkCl="ff00cc00" sch="public" tbl="t_objqty" x="791" y="192"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_cls" x="444" y="10"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_act" x="81" y="688"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_clsnum" x="82" y="102"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_clsqty" x="797" y="103"/>
+    <TbGl bkCl="ff00cc00" sch="public" tbl="t_objqtykey" x="1084" y="140"/>
+    <TbGl bkCl="ffffcc66" sch="public" tbl="log_move_objnum" x="78" y="398"/>
+    <TbGl bkCl="ffffcc66" sch="public" tbl="log_move_objqty" x="759" y="387"/>
+    <TbGl bkCl="ffffcc66" sch="public" tbl="log_act_" x="44" y="529"/>
+    <TbGl bkCl="ffffcc66" sch="public" tbl="wh_role" x="400" y="642"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="t_log_101" x="854" y="666"/>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_act_.fk_logact__actid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_act_.fk_logact__objnumid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_act_.fk_logact__srcobjnumid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_act_.fk_logact__username" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objnum.fk_logmoveobjnum__dstobjnumid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objnum.fk_logmoveobjnum__objnumid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objnum.fk_logmoveobjnum__srcobjnumid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objnum.fk_logmoveobjnum__username" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objqty.fk_logmoveobjqty__dstobjnumid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objqty.fk_logmoveobjqty__objqtyid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objqty.fk_logmoveobjqty__srcobjnumid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objqty.fk_logmoveobjqty__username" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls.fk_class__default_pid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
@@ -3020,6 +3132,9 @@ WHERE wh_role.rolcanlogin</Sql>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_log_101.fk_lognum_101" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_log_101.fk_logusr_101" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_objnum.fk_objnum_clsnum" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
@@ -3033,9 +3148,6 @@ WHERE wh_role.rolcanlogin</Sql>
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_objqtykey.fk_objqtykey_cls_id" parentEdge="" positioner="">
-      <positionableLines/>
-    </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_state_101.fk_state_101" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <Notes/>
@@ -3113,18 +3225,14 @@ WHERE wh_role.rolcanlogin</Sql>
   </DbDocOptionMgr>
   <OpenEditors>
     <OpenEditor ClsNm="Diagram" fqn="null.Состояния-Логи" selected="0"/>
-    <OpenEditor ClsNm="Diagram" fqn="null.Классы-Действия-Свойства" selected="1"/>
     <OpenEditor ClsNm="Diagram" fqn="null.User_Config" selected="0"/>
-    <OpenEditor ClsNm="Diagram" fqn="null.Разрешения перемещений" selected="0"/>
+    <OpenEditor ClsNm="Diagram" fqn="null.Классы-Действия-Свойства" selected="0"/>
   </OpenEditors>
   <TreePaths>
     <TreePath/>
     <TreePath>/Schemas (1)</TreePath>
     <TreePath>/Schemas (1)/public</TreePath>
-    <TreePath>/Schemas (1)/public/Tables (30)</TreePath>
-    <TreePath>/Schemas (1)/public/Tables (30)/t_access_act</TreePath>
-    <TreePath>/Schemas (1)/public/Tables (30)/t_ref_class_act</TreePath>
-    <TreePath>/Schemas (1)/public/Tables (30)/t_ref_class_act/Foreign Keys (2)</TreePath>
+    <TreePath>/Schemas (1)/public/Tables (34)</TreePath>
     <TreePath>/Diagrams (5)</TreePath>
   </TreePaths>
 </Db>

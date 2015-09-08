@@ -94,13 +94,37 @@ DROP FUNCTION IF EXISTS fn_update_objqty(bigint, bigint, name, bigint, numeric);
 DROP FUNCTION IF EXISTS move_num_object(anyarray, anyarray);
 
 
+/*
 DROP DOMAIN WHNAME CASCADE;
 CREATE DOMAIN WHNAME AS NAME
     CHECK (VALUE ~ '^([[:print:]][^{}\[\]#$%&@~\\\\/|?=]+)$');
 
 -----------------------------------------------------------------------------------------------------------------------------
+-- функция проверки числа 
+-----------------------------------------------------------------------------------------------------------------------------
 
+CREATE OR REPLACE FUNCTION isnumber(text) RETURNS BOOLEAN AS '
+select $1 ~ ''^(-)?[\d]+((\.)[\d]+)?((e|E)(-)?[\d]+)?$'' as result
+' LANGUAGE SQL;
+
+--SELECT isnumber('66')
+--SELECT isnumber('6.6')
+--SELECT isnumber('6.6E6')
+-- функция проверки числа 
+-----------------------------------------------------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION isnumber(text) RETURNS BOOLEAN AS '
+select $1 ~ ''^(-)?[\d]+((\.)[\d]+)?((e|E)(-)?[\d]+)?$'' as result
+' LANGUAGE SQL;
+
+--SELECT isnumber('66')
+--SELECT isnumber('6.6')
+--SELECT isnumber('6.6E6')
+*/
+
+-----------------------------------------------------------------------------------------------------------------------------
 -- таблица содеоржащая иерархическую структуру наследования КЛАССОВ 
+-----------------------------------------------------------------------------------------------------------------------------
 CREATE TABLE t_cls ( 
     id           SERIAL   NOT NULL           -- идентификатор записи
     ,vid         SERIAL   NOT NULL           CHECK (vid>=0)  -- идентификатор версии
@@ -184,13 +208,9 @@ INSERT INTO t_clsqty(cls_id,cls_type)   VALUES (0,1); --root
 INSERT INTO t_clsqty(cls_id,cls_type)   VALUES (1,1); --object
 
 
------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- основная таблица действий 
-/**
-insert Создание ДЕЙСТВИЯ - нет действий
-update Изменение ДЕЙСТВИЯ	- каскадное изменение записей d t_ref_act_prop(act_label) и t_ref_class_act(act_label) 
-delete Удаление ДЕЙСТВИЯ 	- каскадное удаление записей из из t_ref_act_prop и t_ref_class_act
-*/
+-------------------------------------------------------------------------------
 CREATE TABLE t_act (
     id           SERIAL NOT NULL
     ,label       NAME   NOT NULL
@@ -354,12 +374,15 @@ CREATE TABLE t_objnum (
   ,label       NAME     NOT NULL
   ,cls_id      INTEGER
   ,pid         BIGINT   NOT NULL DEFAULT 1 
-  ,last_log_id BIGINT                                          CHECK (last_log_id>=0)
+  ,move_logid  BIGINT                                          CHECK (move_logid>=0)
+  ,act_logid   BIGINT                                          CHECK (act_logid>=0)
 
 ,CONSTRAINT pk_objnum_id          PRIMARY KEY(id)
-,CONSTRAINT uk_objnum_clsid_id    UNIQUE (cls_id, id)
+,CONSTRAINT uk_objnum_clsid_clsid UNIQUE (cls_id)
+--,CONSTRAINT uk_objnum_clsid_id    UNIQUE (cls_id, id)
 ,CONSTRAINT uk_objnum_clsid_label UNIQUE (cls_id, label) 
-,CONSTRAINT uk_objnum_log_id      UNIQUE (last_log_id) 
+,CONSTRAINT uk_objnum__movelogid  UNIQUE (move_logid) 
+,CONSTRAINT uk_objnum__actlogid   UNIQUE (act_logid) 
 
 ,CONSTRAINT fk_objnum_pid      FOREIGN KEY (pid)
     REFERENCES                 t_objnum    (id)
@@ -375,7 +398,7 @@ CREATE TABLE t_objnum (
 ,CONSTRAINT ck_objnum_label CHECK (label ~ '^([[:alnum:][:space:]!()*+,-.:;<=>^_|№])+$')
 );
 GRANT SELECT                  ON TABLE t_objnum TO "Guest";
-GRANT UPDATE(pid,last_log_id) ON TABLE t_objnum TO "User";
+GRANT UPDATE(pid,move_logid,move_logid) ON TABLE t_objnum TO "User";
 GRANT INSERT,DELETE,UPDATE    ON TABLE t_objnum TO "ObjDesigner";
 
 CREATE INDEX idx_t_objnum_pid ON t_objnum USING btree("pid") ;
@@ -394,9 +417,8 @@ ALTER TABLE t_cls
 
 
 ---------------------------------------------------------------------------------------------------
--- таблица КОЛИЧЕСТВЕННЫХ ОБЪЕКТОВ ЭЛЕМЕНТЫ
+-- таблица КОЛИЧЕСТВЕННЫХ ОБЪЕКТОВ названия
 ---------------------------------------------------------------------------------------------------
-
 CREATE TABLE t_objqtykey
 (
    id BIGINT  DEFAULT nextval('seq_obj_id'::regclass)
@@ -413,12 +435,14 @@ CREATE TABLE t_objqtykey
 ,CONSTRAINT ck_objqty_label CHECK (label ~ '^([[:alnum:][:space:]!()*+,-.:;<=>^_|№])+$')
 );
 
-
+---------------------------------------------------------------------------------------------------
+-- таблица КОЛИЧЕСТВЕННЫХ ОБЪЕКТОВ ЭЛЕМЕНТЫ
+---------------------------------------------------------------------------------------------------
 CREATE TABLE t_objqty (
     objqty_id    BIGINT
-    ,last_log_id BIGINT            DEFAULT NULL CHECK (last_log_id>=0)
     ,pid         BIGINT   NOT NULL DEFAULT 1 
     ,qty         NUMERIC  NOT NULL              CHECK (qty>=0)
+    ,move_logid  BIGINT                         CHECK (move_logid>=0)
 
 ,CONSTRAINT pk_objqty_oid_pid   PRIMARY KEY(objqty_id, pid)
 --,CONSTRAINT uk_objqty_log_id    UNIQUE (last_log_id) при разделении 2 объекта появится с одинаковым last_log_id
@@ -433,7 +457,9 @@ CREATE TABLE t_objqty (
 );
 CREATE INDEX idx_t_objqty_pid ON t_objqty USING btree("pid") ;
 CREATE INDEX idx_t_objqty_id ON t_objqty USING btree("objqty_id") ;
+CREATE INDEX idx_t_objqty_movelogid ON t_objqty("move_logid") ;
 
+/*
 ---------------------------------------------------------------------------------------------------
 -- базовая таблица состояний
 ---------------------------------------------------------------------------------------------------
@@ -442,8 +468,111 @@ CREATE TABLE t_state(
     --, cls_id INTEGER
     
 );
+*/
 
+---------------------------------------------------------------------------------------------------
+-- базовая таблица для всех логов
+---------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS log CASCADE;
+CREATE TABLE log (
+     id        BIGINT   NOT NULL DEFAULT nextval('seq_log_id')
+    ,timemark  TIMESTAMPTZ NOT NULL DEFAULT now()
+    ,username  NAME NOT NULL DEFAULT CURRENT_USER
 
+    ,src_objnum_id BIGINT    NOT NULL 
+    ,src_path      BIGINT[]  NOT NULL 
+);
+---------------------------------------------------------------------------------------------------
+-- базовая таблица логов перемещения
+---------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS log_move CASCADE;
+CREATE TABLE log_move (
+  dst_objnum_id  BIGINT    NOT NULL 
+  ,dst_path      BIGINT[]  NOT NULL 
+
+)INHERITS (log);
+---------------------------------------------------------------------------------------------------
+-- таблица логов перемещения номерных объектов
+---------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS log_move_objqty CASCADE;
+CREATE TABLE log_move_objqty (
+   objqty_id     BIGINT    NOT NULL 
+  ,qty           NUMERIC   NOT NULL 
+
+,CONSTRAINT pk_logmoveobjqty__id       PRIMARY KEY (id)
+,CONSTRAINT fk_logmoveobjqty__username FOREIGN KEY (username)
+    REFERENCES                 wh_role (rolname)                   
+    MATCH FULL ON UPDATE CASCADE ON DELETE NO ACTION
+
+,CONSTRAINT fk_logmoveobjqty__srcobjnumid FOREIGN KEY (src_objnum_id)
+    REFERENCES                              t_objnum  (id)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+
+,CONSTRAINT fk_logmoveobjqty__objqtyid FOREIGN KEY (objqty_id)
+    REFERENCES                        t_objqtykey  (id)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+
+,CONSTRAINT fk_logmoveobjqty__dstobjnumid FOREIGN KEY (dst_objnum_id)
+    REFERENCES                              t_objnum  (id)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+
+)INHERITS (log_move);
+---------------------------------------------------------------------------------------------------
+-- таблица логов перемещения количественных объектов
+---------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS log_move_objnum CASCADE;
+CREATE TABLE log_move_objnum (
+   objnum_id     BIGINT   NOT NULL 
+
+,CONSTRAINT pk_logmoveobjnum__id       PRIMARY KEY (id)
+,CONSTRAINT fk_logmoveobjnum__username FOREIGN KEY (username)
+    REFERENCES                 wh_role (rolname)                   
+    MATCH FULL ON UPDATE CASCADE ON DELETE NO ACTION
+
+,CONSTRAINT fk_logmoveobjnum__srcobjnumid FOREIGN KEY (src_objnum_id)
+    REFERENCES                        t_objnum  (id)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+
+,CONSTRAINT fk_logmoveobjnum__objnumid FOREIGN KEY (objnum_id)
+    REFERENCES                           t_objnum  (id)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+
+,CONSTRAINT fk_logmoveobjnum__dstobjnumid FOREIGN KEY (dst_objnum_id)
+    REFERENCES                        t_objnum  (id)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+)INHERITS (log_move);
+---------------------------------------------------------------------------------------------------
+-- базовая таблица логов действий номерных объектов
+---------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS log_act_ CASCADE;
+CREATE TABLE log_act (
+   objnum_id     BIGINT   NOT NULL 
+  ,act_id        INTEGER   NOT NULL 
+/*
+,CONSTRAINT pk_logact__id       PRIMARY KEY (id)
+,CONSTRAINT fk_logact__username FOREIGN KEY (username)
+    REFERENCES                 wh_role (rolname)                   
+    MATCH FULL ON UPDATE CASCADE ON DELETE NO ACTION
+
+,CONSTRAINT fk_logact__srcobjnumid FOREIGN KEY (src_objnum_id)
+    REFERENCES                        t_objnum  (id)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+
+,CONSTRAINT fk_logact__objnumid FOREIGN KEY (objnum_id)
+    REFERENCES                           t_objnum  (id)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+
+,CONSTRAINT fk_logact__actid FOREIGN KEY (act_id)
+    REFERENCES                           t_act  (id)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+*/
+)INHERITS (log);
+
+--
+--
+-- 
+
+/*
 CREATE TABLE t_log (
      log_id       BIGINT     NOT NULL --DEFAULT nextval('seq_log_id'::regclass)
     ,logtime     TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -482,7 +611,7 @@ CREATE TABLE t_logqty (
 
 
 )INHERITS (t_log);
-
+*/
 
 
 
@@ -613,21 +742,6 @@ CREATE TABLE t_favorite_prop(
 GRANT SELECT ON TABLE t_favorite_prop               TO "Guest";
 GRANT INSERT,DELETE,UPDATE ON TABLE t_favorite_prop TO "TypeDesigner";
 
------------------------------------------------------------------------------------------------------------------------------
--- функция проверки числа 
------------------------------------------------------------------------------------------------------------------------------
-
-CREATE OR REPLACE FUNCTION isnumber(text) RETURNS BOOLEAN AS '
-select $1 ~ ''^(-)?[\d]+((\.)[\d]+)?((e|E)(-)?[\d]+)?$'' as result
-' LANGUAGE SQL;
-
---SELECT isnumber('66')
---SELECT isnumber('6.6')
---SELECT isnumber('6.6E6')
-
-
-
-
 
 -----------------------------------------------------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS ftr_bi_class() CASCADE;
@@ -641,7 +755,7 @@ BEGIN
     WHEN 1 THEN NEW.measurename='ед.';
     WHEN 2 THEN NEW.measurename='шт.';
     ELSE END CASE;       
--- проверяем, что новый класс не является дочерним абстрактного
+-- проверка: является ли родительский класс абстрактным
     PERFORM * FROM t_cls WHERE NEW.pid=id AND type>0 AND pid>1;
     IF FOUND THEN
         RAISE EXCEPTION '%: Can`t create child to non abstract class ',TG_NAME;
@@ -652,43 +766,6 @@ END;
 $body$
 LANGUAGE 'plpgsql';
 CREATE TRIGGER tr_bi_class AFTER INSERT ON t_cls FOR EACH ROW EXECUTE PROCEDURE ftr_bi_class();
------------------------------------------------------------------------------------------------------------------------------
-
-
----------------------------------------------------------------------------------------------------
--- функция создания таблицы состояния для нумерованного объекта
----------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS fn_create_state_table(IN _id BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION fn_create_state_table(IN _id BIGINT)
-    RETURNS VOID AS
-$body$	
-DECLARE
-    new_tablename    NAME;
-    creating_script VARCHAR;
-BEGIN
-    SELECT table_name INTO new_tablename -- проверяем наличие таблички
-        FROM information_schema.tables WHERE table_name = 't_state_'||_id;
-    IF FOUND THEN
-        RAISE EXCEPTION 'fn_create_state_table: Таблица "%" уже сужествует',new_tablename;
-    END IF;
-
-    creating_script := 'CREATE TABLE t_state_'||_id||'(
-                              CONSTRAINT pk_state_'||_id||' PRIMARY KEY( obj_id )
-                             ,CONSTRAINT fk_state_'||_id||' FOREIGN KEY (obj_id )
-                                 REFERENCES              t_objnum (id)
-                                 MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-                        )INHERITS (t_state);
-                        GRANT SELECT ON TABLE t_state_'       ||_id||' TO "Guest"; 
-                        GRANT INSERT,DELETE ON TABLE t_state_'||_id||' TO "User"; ';
-    --RAISE DEBUG 'fn_create_log_table: %',_creating_script;
-    EXECUTE creating_script;
-END;
-$body$
-LANGUAGE 'plpgsql';
-
-COMMENT ON FUNCTION fn_create_state_table(IN _id BIGINT) 
-    IS '-- функция создания таблицы состояния для нумерованного объекта';
----------------------------------------------------------------------------------------------------
 
 
 ---------------------------------------------------------------------------------------------------
@@ -699,35 +776,36 @@ CREATE OR REPLACE FUNCTION fn_create_log_table(IN _id BIGINT)
     RETURNS VOID AS
 $body$	
 DECLARE
-    new_tablename   NAME;
-    _creating_script VARCHAR;
+    --new_tablename   NAME;
+    --_creating_script VARCHAR;
 BEGIN
-    SELECT table_name INTO new_tablename -- проверяем наличие таблички
-        FROM information_schema.tables WHERE table_name = 't_state_'||_id;
+    -- проверяем наличие таблички -- SELECT table_name INTO new_tablename 
+    PERFORM table_name
+        FROM information_schema.tables WHERE table_name = 'log_act_'||_id;
     IF FOUND THEN
         RAISE EXCEPTION 'fn_create_log_table: Таблица "%" уже сужествует',new_tablename;
     END IF;
-    _creating_script := 'CREATE TABLE t_log_'||_id||'(
-                         act_id      INTEGER NOT NULL
-                         ,obj_id     BIGINT  NOT NULL
-                         ,old_obj_pid INTEGER NOT NULL
-                         ,new_obj_pid INTEGER NOT NULL
-                         ,CONSTRAINT pk_lognum_'||_id||' PRIMARY KEY ( log_id )
-                         ,CONSTRAINT fk_lognum_'||_id||' FOREIGN KEY (obj_id, cls_id)
-                                                 REFERENCES t_objnum (id, cls_id)
-                                                 MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-                         ,CONSTRAINT fk_logusr_'||_id||' FOREIGN KEY (loguser) 
-                                                 REFERENCES wh_role (rolname)
-                                                 MATCH FULL ON UPDATE CASCADE ON DELETE NO ACTION
-                         ,CONSTRAINT fk_logact_'||_id||' FOREIGN KEY (act_id) 
-                                                 REFERENCES t_act(id)
-                                                 MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-
-                         )INHERITS (t_log);
-                        GRANT SELECT ON TABLE t_log_'       ||_id||' TO "Guest"; 
-                        GRANT INSERT,DELETE ON TABLE t_log_'||_id||' TO "User"; ';
+    --_creating_script :=
+    EXECUTE 
+       'CREATE TABLE log_act_'||_id||'(
+            CONSTRAINT pk_logact__id_'||_id||'          PRIMARY KEY (id)
+           ,CONSTRAINT fk_logact__username_'||_id||'    FOREIGN KEY (username)
+                                REFERENCES                  wh_role (rolname)
+                                MATCH FULL ON UPDATE CASCADE ON DELETE NO ACTION
+           ,CONSTRAINT fk_logact__srcobjnumid_'||_id||' FOREIGN KEY (src_objnum_id)
+                                REFERENCES                t_objnum  (id)
+                                MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+           ,CONSTRAINT fk_logact__objnumid_'||_id||'    FOREIGN KEY (objnum_id)
+                                REFERENCES                t_objnum  (id)
+                                MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+           ,CONSTRAINT fk_logact__actid_'||_id||'       FOREIGN KEY (act_id)
+                                REFERENCES                   t_act  (id)
+                                MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+           )INHERITS (log_act);
+        GRANT SELECT ON TABLE log_act_'       ||_id||' TO "Guest"; 
+        GRANT INSERT,DELETE ON TABLE log_act_'||_id||' TO "User"; '::VARCHAR;
     --RAISE DEBUG 'fn_create_log_table: %',_creating_script;
-    EXECUTE _creating_script;
+    --EXECUTE _creating_script;
 END;
 $body$
 LANGUAGE 'plpgsql';
@@ -739,10 +817,9 @@ COMMENT ON FUNCTION fn_create_log_table(IN _id BIGINT)
 --SELECT fn_create_log_table(555);
 
 
-/**
-INSERT - добавление к классу - создаём таблички при их отсутствии t_state_XXX(act_label) t_log_XXX(act_label)
-  добавление отсутствующие столбцы в t_state_XXX t_log_XXX
-*/
+---------------------------------------------------------------------------------------------------
+-- тригер обеспечивающий заполнение t_clsnum и t_clsqty, чтоб разделить номерные и количественные типы
+---------------------------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS ftr_ai_class() CASCADE;
 CREATE OR REPLACE FUNCTION ftr_ai_class()  RETURNS trigger AS
 $body$
@@ -759,7 +836,6 @@ BEGIN
 
     IF NEW.type=1 THEN
         PERFORM fn_create_log_table(NEW.id);
-        PERFORM fn_create_state_table(NEW.id);
     END IF;
 RETURN NEW;
 END;
@@ -770,15 +846,18 @@ CREATE TRIGGER tr_ai_class AFTER INSERT ON t_cls FOR EACH ROW EXECUTE PROCEDURE 
 
 
 
------------------------------------------------------------------------------------------------------------------------------
---
+---------------------------------------------------------------------------------------------------
+-- тригер запрещающий некоторые изменения в классе
+---------------------------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS ftr_bu_class() CASCADE;
 CREATE OR REPLACE FUNCTION ftr_bu_class()  RETURNS trigger AS
 $body$
 DECLARE
 BEGIN
-    RAISE DEBUG '%: создать тригер обновления класса с обновлением имён в истории ',TG_NAME;
-    --t_lognum_, t_logqty_ + t_perm
+  IF OLD.id<>NEW.id THEN
+    RAISE EXCEPTION '%: Can`t update class id ',TG_NAME;
+  END IF;
+
 RETURN NEW;
 END;
 $body$
@@ -787,16 +866,16 @@ CREATE TRIGGER tr_bu_class BEFORE UPDATE ON t_cls FOR EACH ROW EXECUTE PROCEDURE
 
 
 
------------------------------------------------------------------------------------------------------------------------------
---
+---------------------------------------------------------------------------------------------------
+-- тригер при удалении класса удаляет таблицу логов действий
+---------------------------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS ftr_bd_class() CASCADE;
 CREATE OR REPLACE FUNCTION ftr_bd_class()  RETURNS trigger AS
 $body$
 DECLARE
 BEGIN
     IF OLD.type=1 THEN
-        EXECUTE 'DROP TABLE IF EXISTS t_log_'||OLD.id||' CASCADE';
-        EXECUTE 'DROP TABLE IF EXISTS t_state_'||OLD.id||' CASCADE';
+        EXECUTE 'DROP TABLE IF EXISTS log_act_'||OLD.id||' CASCADE';
     END IF;
 RETURN OLD;
 END;
@@ -806,14 +885,14 @@ CREATE TRIGGER tr_bd_class AFTER DELETE ON t_cls FOR EACH ROW EXECUTE PROCEDURE 
 
 
 ---------------------------------------------------------------------------------------------------
--- функция удаления ненужных столбцов из таблицы состояния (в истории не удаляютсья)
+-- функция удаления ненужных столбцов из таблицы состояния (в истории удаляются)
 ---------------------------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS fn_clear_prop (IN _id BIGINT) CASCADE;
 CREATE OR REPLACE FUNCTION fn_clear_prop(IN _id BIGINT)
     RETURNS VOID AS
 $body$
 DECLARE
-    rec        RECORD;
+    --rec        RECORD;
     col_name   NAME;
     tbl_name   NAME;
     
@@ -829,9 +908,9 @@ DECLARE
           UNION ALL SELECT column_name FROM information_schema.columns WHERE table_name=tbl
         );
 BEGIN
-    tbl_name := quote_ident('t_state'||'_'||_id);
+    tbl_name := quote_ident('log_act_'||_id);
     
-    FOR rec IN del_prop(_id,'t_state') LOOP
+    FOR rec IN del_prop(_id,'log_act') LOOP
         col_name := quote_ident(rec.column_name);
         RAISE DEBUG 'fn_clear_prop: DEL COLUMN % FROM TABLE %',col_name,tbl_name;
         EXECUTE 'ALTER TABLE '||tbl_name||' DROP COLUMN IF EXISTS '||col_name;
@@ -841,22 +920,22 @@ END;
 $body$
 LANGUAGE 'plpgsql';
 COMMENT ON FUNCTION fn_clear_prop(IN _id BIGINT) 
-    IS '-- функция удаления ненужных столбцов из таблицы состояния (в истории не удаляютсья)';
+    IS '-- функция удаления ненужных столбцов из таблицы состояния (в истории удаляются)';
 /**
-ALTER TABLE t_state_105 ADD COLUMN q1 TEXT;
-ALTER TABLE t_state_105 ADD COLUMN q2 TEXT;
-ALTER TABLE t_state_105 ADD COLUMN q3 TEXT;
+ALTER TABLE log_act_105 ADD COLUMN q1 TEXT;
+ALTER TABLE log_act_105 ADD COLUMN q2 TEXT;
+ALTER TABLE log_act_105 ADD COLUMN q3 TEXT;
 SELECT fn_clear_prop(105);
  */
 ---------------------------------------------------------------------------------------------------
--- функция добавлени нужных столбцов в таблицы состояния и истории
+-- функция добавлени нужных столбцов в таблицы истории
 ---------------------------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS fn_append_prop (IN _id BIGINT) CASCADE;
 CREATE OR REPLACE FUNCTION fn_append_prop(IN _id BIGINT)
     RETURNS VOID AS
 $body$
 DECLARE
-    rec        RECORD;
+    --rec        RECORD;
     col_name   NAME;
     tbl_name   NAME;
 
@@ -873,17 +952,9 @@ DECLARE
         );
 
 BEGIN
-    tbl_name := quote_ident('t_state'||'_'||_id);
-    
-    FOR rec IN new_prop(_id,'t_state') LOOP
-        col_name := quote_ident(rec.prop_label);
-        RAISE DEBUG 'fn_append_prop: ADD COLUMN % TO TABLE %',col_name,tbl_name;
-        EXECUTE 'ALTER TABLE '||tbl_name||' ADD COLUMN '||col_name||' TEXT;';
-    END LOOP;
+    tbl_name := quote_ident('log_act_'||_id);
 
-    tbl_name := quote_ident('t_log'||'_'||_id);
-
-    FOR rec IN new_prop(_id,'t_log') LOOP
+    FOR rec IN new_prop(_id,'log_act') LOOP
         col_name := quote_ident(rec.prop_label);
         RAISE DEBUG 'fn_append_prop: ADD COLUMN % TO TABLE %',col_name,tbl_name;
         EXECUTE 'ALTER TABLE '||tbl_name||' ADD COLUMN '||col_name||' TEXT;';
@@ -923,11 +994,9 @@ BEGIN
         
         FOR changed IN cursor_of_id 
         LOOP
-            RAISE DEBUG 'tr_bu_act_prop: ИЗМЕНЕНО ПОЛЕ % --> % в таблицах "%" состояния/истории ',
+            RAISE DEBUG 'tr_bu_act_prop: ИЗМЕНЕНО ПОЛЕ % --> % в таблицах "%" истории ',
                 OLD.label, NEW.label, changed.class_id;
-            EXECUTE 'ALTER TABLE  t_log_'||changed.class_id||' RENAME COLUMN '
-                ||quote_ident(OLD.label)||' TO '||quote_ident(NEW.label);
-            EXECUTE 'ALTER TABLE  t_state_'||changed.class_id||' RENAME COLUMN '
+            EXECUTE 'ALTER TABLE  log_act_'||changed.class_id||' RENAME COLUMN '
                 ||quote_ident(OLD.label)||' TO '||quote_ident(NEW.label);
     END LOOP;
     END IF;
@@ -1163,10 +1232,10 @@ DROP VIEW IF EXISTS w_obj;
 CREATE OR REPLACE VIEW w_obj AS 
 SELECT obj.*, t_cls.label AS cls_label, t_cls.type, t_cls.measurename, t_cls.default_pid AS cls_default_pid,t_cls.pid AS cls_pid
   FROM t_cls
-  RIGHT JOIN ( SELECT id AS obj_id, pid AS obj_pid, cls_id , label, last_log_id, 1::NUMERIC AS qty
+  RIGHT JOIN ( SELECT id AS obj_id, pid AS obj_pid, cls_id , label, move_logid, act_logid , 1::NUMERIC AS qty
                  FROM t_objnum   
                  UNION ALL 
-                 SELECT objqty_id AS obj_id, pid AS obj_pid, cls_id , label, last_log_id, qty
+                 SELECT objqty_id AS obj_id, pid AS obj_pid, cls_id , label, move_logid, NULL, qty
                  FROM t_objqty
                    LEFT JOIN t_objqtykey ON t_objqtykey.id=t_objqty.objqty_id
               )obj  
@@ -1697,7 +1766,7 @@ UPDATE t_prop SET label='тест1_2' WHERE  label='пров2';
 
 
 
--- FAIL в проверке муже есть тест1_2
+-- FAIL в проверке уже есть тест1_2
 UPDATE t_ref_act_prop SET prop_id=4 WHERE  prop_id=3 AND act_id=1 ;-- FAIL
 
 -- перемещаем свойство тест1_2 из проверка в ремонт - никаих изменений не должно быть
