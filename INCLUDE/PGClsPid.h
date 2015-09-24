@@ -116,6 +116,9 @@ protected:
 	wxString	mRegStr;
 };
 
+//static wxRegExpValidator titleValidator("^([[:alnum:][:space:]!()*+,-.:;<=>^_|¹])+$"); //wxRE_DEFAULT
+extern wxRegExpValidator titleValidator;
+
 //-----------------------------------------------------------------------------
 
 #endif //__*_H

@@ -24,7 +24,7 @@ MPropChild::MPropChild(const char option)
 bool MPropChild::GetSelectQuery(wxString& query)const
 {
 	auto data = GetData();
-	query = wxString::Format("SELECT id, label, type FROM t_prop WHERE id=%s", data.mID);
+	query = wxString::Format("SELECT id, title, kind FROM prop WHERE id=%s", data.mID);
 	return true;
 }
 //-------------------------------------------------------------------------
@@ -32,7 +32,7 @@ bool MPropChild::GetInsertQuery(wxString& query)const
 {
 	auto data = GetData();
 	query = wxString::Format
-		("INSERT INTO t_prop(label, type)VALUES('%s', %s)RETURNING id, label, type",
+		("INSERT INTO prop(title, kind)VALUES('%s', %s)RETURNING id, title, kind",
 		data.mLabel, data.mType);
 	return true;
 }
@@ -41,7 +41,7 @@ bool MPropChild::GetUpdateQuery(wxString& query)const
 {
 	const auto& data = GetData();
 	query = wxString::Format(
-		"UPDATE t_prop SET label='%s' , type=%s WHERE id=%s"
+		"UPDATE prop SET title='%s' , kind=%s WHERE id=%s"
 		, data.mLabel, data.mType, data.mID);
 	return true;
 }
@@ -50,7 +50,7 @@ bool MPropChild::GetDeleteQuery(wxString& query)const
 {
 	const auto& data = GetData();
 	query = wxString::Format(
-		"DELETE FROM t_prop WHERE id = %s "
+		"DELETE FROM prop WHERE id = %s "
 		, data.mID);
 	return true;
 }
@@ -95,6 +95,6 @@ const std::vector<Field>& MPropChild::GetFieldVector()const
 //-------------------------------------------------------------------------
 bool MPropArray::GetSelectChildsQuery(wxString& query)const
 {
-	query = L"SELECT id, label, type FROM t_prop";
+	query = L"SELECT id, title, kind FROM prop";
 	return true;
 }

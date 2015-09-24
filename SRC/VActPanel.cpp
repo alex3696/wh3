@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "VActPanel.h"
+#include "PGClsPid.h"
 
 using namespace wh;
 using namespace wh::view;
@@ -24,12 +25,13 @@ VActPanel::VActPanel(wxWindow*		parent,
 	mPropGrid = new wxPropertyGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxPG_DEFAULT_STYLE | wxPG_SPLITTER_AUTO_CENTER);
 	GetSizer()->Insert(0, mPropGrid, 1, wxALL | wxEXPAND, 0);
 
-	mPropGrid->Append(new wxStringProperty(L"Имя"));
+	auto lbl = mPropGrid->Append(new wxStringProperty(L"Имя"));
+	lbl->SetValidator(titleValidator);
 	mPropGrid->Append(new wxLongStringProperty(L"Описание"));
 	mPropGrid->Append(new wxColourProperty(L"Цвет"));
 	mPropGrid->Append(new wxLongStringProperty(L"Скрипт"));
 	mPropGrid->Append(new wxStringProperty(L"Идентификатор"))->Enable(false);
-	mPropGrid->Append(new wxStringProperty(L"Версия"))->Enable(false);
+	//mPropGrid->Append(new wxStringProperty(L"Версия"))->Enable(false);
 
 	mPropGrid->ResetColumnSizes();
 	this->Layout();
@@ -55,7 +57,7 @@ void VActPanel::GetData(rec::Act& rec) const
 
 	rec.mScript = mPropGrid->GetPropertyByLabel("Скрипт")->GetValueAsString();
 	rec.mID = mPropGrid->GetPropertyByLabel("Идентификатор")->GetValueAsString();
-	rec.mVID = mPropGrid->GetPropertyByLabel("Версия")->GetValueAsString();
+	//rec.mVID = mPropGrid->GetPropertyByLabel("Версия")->GetValueAsString();
 }
 //---------------------------------------------------------------------------
 void VActPanel::SetData(const rec::Act& rec)
@@ -67,7 +69,7 @@ void VActPanel::SetData(const rec::Act& rec)
 	mPropGrid->GetPropertyByLabel(L"Цвет")->SetValueFromString(rec.mColor);
 	mPropGrid->GetPropertyByLabel(L"Скрипт")->SetValueFromString(rec.mScript);
 	mPropGrid->GetPropertyByLabel("Идентификатор")->SetValueFromString(rec.mID);
-	mPropGrid->GetPropertyByLabel("Версия")->SetValueFromString(rec.mVID);
+	//mPropGrid->GetPropertyByLabel("Версия")->SetValueFromString(rec.mVID);
 }
 //-----------------------------------------------------------------------------
 void VActPanel::SetModel(std::shared_ptr<IModel>& newModel)

@@ -61,14 +61,15 @@ void Cfg::DbConnect::Save()
 //---------------------------------------------------------------------------
 void Cfg::DbProp::Load()
 {
-	wxString query = "SELECT t_prop.id AS prop_id "
-		" , t_prop.label AS prop_label "
-		" , t_prop.type AS prop_type "
-		" , val "
-		" , t_cls_prop.id AS id "
-		" FROM t_cls_prop "
-		" LEFT JOIN t_prop ON t_prop.id = t_cls_prop.prop_id "
-		" WHERE t_cls_prop.cls_id = 2 ";
+	wxString query =
+		"SELECT  prop.id    AS prop_id"
+		" , prop.title AS prop_title"
+		" , prop.kind  AS prop_kind"
+		" , val"
+		" , prop_cls.id AS id"
+		" FROM prop_cls"
+		" LEFT JOIN prop ON prop.id = prop_cls.prop_id"
+		" WHERE prop_cls.cls_id = 2";
 		
 	auto table= whDataMgr::GetDB().ExecWithResultsSPtr (query);
 	if(table)

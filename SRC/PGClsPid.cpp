@@ -281,6 +281,9 @@ bool wxRegExpValidator::Validate(wxWindow *WXUNUSED(parent))
 		return true;
 	return false;
 }
+
+wxRegExpValidator titleValidator("^([[:alnum:][:space:]!()*+,-.:;<=>^_|¹])+$"); //wxRE_DEFAULT
+
 //-----------------------------------------------------------------------------
 /*
 bool wxRegExpValidator::TransferToWindow()

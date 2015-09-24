@@ -26,8 +26,8 @@ bool MActProp::GetSelectQuery(wxString& query)const
 {
 	auto data = GetData();
 	query = wxString::Format(
-		"SELECT t_ref_act_prop.id, prop_label FROM t_ref_act_prop "
-		" LEFT JOIN t_prop ON t_prop.id = t_ref_act_prop.prop_id "
+		"SELECT ref_act_prop.id, prop_title FROM ref_act_prop "
+		" LEFT JOIN prop ON prop.id = ref_act_prop.prop_id "
 		" WHERE id = %s",
 		data.mID);
 	return true;
@@ -43,7 +43,7 @@ bool MActProp::GetInsertQuery(wxString& query)const
 		auto prop = GetData();
 		auto act = parentAct->GetData();
 
-		query = wxString::Format("INSERT INTO t_ref_act_prop (prop_id, act_id) "
+		query = wxString::Format("INSERT INTO ref_act_prop (prop_id, act_id) "
 			"VALUES (%s, %s) RETURNING id, prop_id",
 			prop.mProp.mID, act.mID);
 		return true;
@@ -61,7 +61,7 @@ bool MActProp::GetUpdateQuery(wxString& query)const
 		auto prop = GetData();
 		auto act = parentAct->GetData();
 	
-		query = wxString::Format("UPDATE t_ref_act_prop SET "
+		query = wxString::Format("UPDATE ref_act_prop SET "
 								"prop_id='%s', act_id='%s' "
 								"WHERE id = %s ",
 								prop.mProp.mID, act.mID,
@@ -81,7 +81,7 @@ bool MActProp::GetDeleteQuery(wxString& query)const
 		auto prop = GetData();
 		auto act = parentAct->GetData();
 
-		query = wxString::Format("DELETE FROM t_ref_act_prop WHERE id = %s ",
+		query = wxString::Format("DELETE FROM ref_act_prop WHERE id = %s ",
 								prop.mID );
 		return true;
 	}
@@ -136,8 +136,8 @@ bool MActPropArray::GetSelectChildsQuery(wxString& query)const
 	{
 		auto act = parentAct->GetData();
 		query = wxString::Format(
-			"SELECT t_ref_act_prop.id, t_prop.label,t_prop.id FROM t_ref_act_prop "
-			" LEFT JOIN t_prop ON t_prop.id = t_ref_act_prop.prop_id "
+			"SELECT ref_act_prop.id, prop.title, prop.id FROM ref_act_prop "
+			" LEFT JOIN prop ON prop.id = ref_act_prop.prop_id "
 			" WHERE act_id = %s ", act.mID);
 		return true;
 	}

@@ -42,8 +42,8 @@ bool MAct::GetSelectQuery(wxString& query)const
 {
 	auto data = GetData();
 	query = wxString::Format(
-		"SELECT id, label, description, color, vid, script "
-		"FROM t_act WHERE id=%s",
+		"SELECT id, title, note, color, script "
+		"FROM act WHERE id=%s",
 		data.mID);
 	return true;
 }
@@ -51,8 +51,8 @@ bool MAct::GetSelectQuery(wxString& query)const
 bool MAct::GetInsertQuery(wxString& query)const
 {
 	auto act = GetData();
-	query = wxString::Format("INSERT INTO t_act (label,description,color,script) "
-		"VALUES ('%s', %s, %s, %s) RETURNING id,label,description,color,vid,script",
+	query = wxString::Format("INSERT INTO act (title,note,color,script) "
+		"VALUES ('%s', %s, %s, %s) RETURNING id,title,note,color,script",
 		act.mLabel,
 		act.mComment.IsEmpty() ? L"NULL" : wxString::Format(L"'%s'", act.mComment),
 		act.mColor.IsEmpty() ? L"NULL" : wxString::Format(L"'%s'", act.mColor),
@@ -64,7 +64,7 @@ bool MAct::GetUpdateQuery(wxString& query)const
 {
 	auto act = GetData();
 	query = wxString::Format("UPDATE t_act SET "
-		"label='%s', description=%s, color=%s, script=%s "
+		"title='%s', note=%s, color=%s, script=%s "
 		"WHERE id = %s ",
 		act.mLabel,
 		act.mComment.IsEmpty() ? L"NULL" : wxString::Format(L"'%s'", act.mComment),
@@ -77,7 +77,7 @@ bool MAct::GetUpdateQuery(wxString& query)const
 bool MAct::GetDeleteQuery(wxString& query)const
 {
 	auto act = GetData();
-	query = wxString::Format("DELETE FROM t_act WHERE id = %s ",
+	query = wxString::Format("DELETE FROM act WHERE id = %s ",
 		act.mID);
 	return true;
 }
@@ -89,8 +89,7 @@ bool MAct::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 	table->GetAsString(1, row, data.mLabel);
 	table->GetAsString(2, row, data.mComment);
 	table->GetAsString(3, row, data.mColor);
-	table->GetAsString(4, row, data.mVID);
-	table->GetAsString(5, row, data.mScript);
+	table->GetAsString(4, row, data.mScript);
 	SetData(data);
 	return true;
 };
@@ -145,7 +144,7 @@ MActArray::MActArray(const char option)
 bool MActArray::GetSelectChildsQuery(wxString& query)const
 {
 	query = wxString::Format(
-		"SELECT id, label, description, color, vid, script  FROM t_act");
+		"SELECT id, title, note, color, script  FROM act");
 	return true;
 }
 //-------------------------------------------------------------------------
