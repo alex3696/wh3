@@ -111,6 +111,98 @@ private:
 
 
 namespace rec{
+//-----------------------------------------------------------------------------
+class SqlData
+{
+public:
+	struct error : virtual exception_base {};
+	virtual wxString SqlVal()const = 0;
+};
+//-----------------------------------------------------------------------------
+class SqlLong : public SqlData
+{
+public:
+	SqlLong() :mVal(nullptr){}
+	~SqlLong(){ delete mVal; }
+	SqlLong(const long&     rv)
+		: mVal(new long(rv))
+	{
+	}
+	SqlLong(const wxString& rv)
+	{
+		long val;
+		if (rv.ToLong(&val))
+			mVal = (new long(val));
+		else
+			mVal = nullptr;
+	} 
+	SqlLong(const SqlLong&  tocopy)
+	{
+		//SetNull();
+		mVal = (tocopy.mVal) ? new long(*tocopy.mVal) : nullptr;
+	}
+	
+	operator wxString() const
+	{
+		if (mVal)
+			return wxString::Format("%d", *mVal);
+		//wxLog BOOST_THROW_EXCEPTION(error() << wxstr("data is null"));
+		return wxEmptyString;
+	}
+	operator long() const
+	{
+		if (mVal)
+			return *mVal;
+		BOOST_THROW_EXCEPTION(error() << wxstr("data is null"));
+	}
+	virtual wxString SqlVal()const override 
+	{
+		return this->operator wxString();
+	}
+	
+	SqlLong& operator=(const long&     rv)
+	{
+		if (mVal)
+			*mVal = rv;
+		else
+			mVal = new long(rv);
+		return *this;
+	}
+	SqlLong& operator=(const wxString& rv)
+	{
+		if (!rv.IsEmpty())
+		{
+			long val;
+			if (!rv.ToLong(&val))
+				BOOST_THROW_EXCEPTION(error() << wxstr("Can`t convert to long"));
+			return operator=(val);
+		}
+		SetNull();
+		return *this;
+	}
+	SqlLong& operator=(const SqlLong&  rv)
+	{
+		if (rv.mVal)
+			return operator=(*rv.mVal);
+		else
+			SetNull();
+		return *this;
+	}
+
+	bool operator==(const SqlLong& rv)const
+	{
+		return (mVal && rv.mVal) ? *mVal == *rv.mVal : false;
+	}
+
+	inline bool IsNull()const	{ return mVal ? true : false; }
+	inline void SetNull()		{ delete mVal; mVal = nullptr; }
+	//inline bool IsEmpty()const	{ return mVal ? true : false; }
+	//inline void Clear()			{ delete mVal; mVal = nullptr; }
+private:
+	long* mVal;
+};
+
+
 
 
 
@@ -123,7 +215,7 @@ struct Base
 	Base(const wxString& id, const wxString& label)
 		:mId(id), mLabel(label)
 	{}
-	wxString	mId;
+	SqlLong		mId;
 	wxString	mLabel;
 
 	inline bool operator == (const rec::Base& b)const

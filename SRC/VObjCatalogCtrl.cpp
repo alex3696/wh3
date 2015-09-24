@@ -408,7 +408,7 @@ void VObjCatalogCtrl::OnCmdUp(wxCommandEvent& evt)
 		}
 		else
 		{
-			if (rootObj.mCls.mParent.mId.ToCULong(&pid) && pid)
+			if (!rootObj.mCls.mParent.mId.IsNull())
 				new_root.mCls.mID = rootObj.mCls.mParent.mId;
 		}
 		mCatalogModel->SetData(new_root);
