@@ -191,7 +191,7 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 			" RIGHT JOIN(SELECT COALESCE(SUM(qty), 0) AS qty, cls_id "
 			" FROM obj_tree o "
 			" WHERE o.pid = %s "
-			" o.id>99"
+			" AND o.id>99"
 			" GROUP BY o.cls_id) osum ON osum.cls_id = r.id "
 			, root.mObj.mID );
 		return true;

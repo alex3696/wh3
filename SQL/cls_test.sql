@@ -3,6 +3,8 @@
 SET default_transaction_isolation =serializable;
 SET client_min_messages='debug1';
 SHOW client_min_messages;
+
+SELECT whgrant_grouptouser('Admin','postgres');
 ---------------------------------------------------------------------------------------------------
 -- домены
 ---------------------------------------------------------------------------------------------------
@@ -17,8 +19,8 @@ CREATE DOMAIN WHNAME AS NAME
 DROP SEQUENCE IF EXISTS seq_cls_id CASCADE;
 DROP SEQUENCE IF EXISTS seq_act_id CASCADE;
 DROP SEQUENCE IF EXISTS seq_prop_id CASCADE;
-DROP SEQUENCE IF EXISTS seq_prop_cls_id CASCADE;
-DROP SEQUENCE IF EXISTS seq_ref_cls_act_id CASCADE;
+DROP SEQUENCE IF EXISTS seq_prop_cls_id     CASCADE;
+DROP SEQUENCE IF EXISTS seq_ref_cls_act_id  CASCADE;
 DROP SEQUENCE IF EXISTS seq_ref_act_prop_id CASCADE;
 DROP SEQUENCE IF EXISTS seq_obj_id CASCADE;
 DROP SEQUENCE IF EXISTS seq_log_id CASCADE;
@@ -74,8 +76,14 @@ DROP TABLE IF EXISTS favorite_prop CASCADE;
 -- функции
 ---------------------------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS fn_array1_to_table(anyarray);
+DROP FUNCTION IF EXISTS get_path_array(bigint);
+DROP FUNCTION IF EXISTS get_path(bigint);
 
 
+
+DROP FUNCTION IF EXISTS ftg_ins_cls_tree();
+DROP FUNCTION IF EXISTS ftg_del_cls_tree();
+DROP FUNCTION IF EXISTS ftg_upd_cls_tree();
 
 ---------------------------------------------------------------------------------------------------
 CREATE TABLE cls ( 
