@@ -67,6 +67,7 @@ DROP TABLE IF EXISTS ref_act_prop CASCADE;
 DROP TABLE IF EXISTS obj CASCADE;
 DROP TABLE IF EXISTS obj_details_qty CASCADE;
 DROP TABLE IF EXISTS log CASCADE;
+DROP TABLE IF EXISTS log_act_detail CASCADE;
 DROP TABLE IF EXISTS lock_src CASCADE;
 DROP TABLE IF EXISTS lock_dst CASCADE;
 DROP TABLE IF EXISTS lock_dstact CASCADE;
@@ -575,28 +576,28 @@ CREATE TABLE log_move_num (
 ---------------------------------------------------------------------------------------------------
 -- базовая таблица логов действий номерных объектов
 ---------------------------------------------------------------------------------------------------
-DROP TABLE IF EXISTS log_act_ CASCADE;
+DROP TABLE IF EXISTS log_act CASCADE;
 CREATE TABLE log_act (
    objnum_id     BIGINT   NOT NULL 
   ,act_id        BIGINT   NOT NULL 
-/*
+
 ,CONSTRAINT pk_logact__id       PRIMARY KEY (id)
 ,CONSTRAINT fk_logact__username FOREIGN KEY (username)
     REFERENCES                 wh_role (rolname)                   
     MATCH FULL ON UPDATE CASCADE ON DELETE NO ACTION
 
 ,CONSTRAINT fk_logact__srcobjnumid FOREIGN KEY (src_objnum_id)
-    REFERENCES                        t_objnum  (id)
+    REFERENCES                        obj_num  (id)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 
 ,CONSTRAINT fk_logact__objnumid FOREIGN KEY (objnum_id)
-    REFERENCES                           t_objnum  (id)
+    REFERENCES                        obj_num  (id)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 
 ,CONSTRAINT fk_logact__actid FOREIGN KEY (act_id)
-    REFERENCES                           t_act  (id)
+    REFERENCES                           act  (id)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-*/
+
 )INHERITS (log);
 
 
@@ -1015,6 +1016,260 @@ CREATE RULE rl_id_cls_tree AS
 */
 
 
+
+---------------------------------------------------------------------------------------------------
+-- базовая таблица деталей ИСТОРИИ действий
+---------------------------------------------------------------------------------------------------
+CREATE TABLE log_act_detail(
+  id BIGINT NOT NULL 
+);
+---------------------------------------------------------------------------------------------------
+-- функция создания таблицы ИСТОРИИ действий для нумерованного объекта
+---------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS fn_create_log_table(IN _id BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION fn_create_log_table(IN _id BIGINT)
+    RETURNS VOID AS
+$body$	
+DECLARE
+    new_tablename   NAME;
+    --_creating_script VARCHAR;
+BEGIN
+    -- проверяем наличие таблички -- SELECT table_name INTO new_tablename 
+    SELECT table_name INTO new_tablename
+        FROM information_schema.tables WHERE table_name = 'log_act_'||_id;
+    IF FOUND THEN
+        RAISE EXCEPTION 'fn_create_log_table: Таблица "%" уже сужествует',new_tablename;
+    END IF;
+    --_creating_script :=
+    EXECUTE 
+       'CREATE TABLE log_act_'||_id||'(
+          CONSTRAINT pk_logact_id__'||_id||'   PRIMARY KEY (id)
+         ,CONSTRAINT fk_logact_id__'||_id||'   FOREIGN KEY (id)
+                      REFERENCES                   log_act (id)
+                      MATCH FULL ON UPDATE CASCADE ON DELETE NO ACTION
+           )INHERITS (log_act_detail);
+        GRANT SELECT ON TABLE log_act_'       ||_id||' TO "Guest"; 
+        GRANT INSERT,DELETE ON TABLE log_act_'||_id||' TO "User"; '::VARCHAR;
+    --RAISE DEBUG 'fn_create_log_table: %',_creating_script;
+    --EXECUTE _creating_script;
+END;
+$body$
+LANGUAGE 'plpgsql';
+
+--SELECT fn_create_log_table(55);
+--DROP TABLE log_act_55;
+
+
+---------------------------------------------------------------------------------------------------
+-- тригер при удалении класса удаляет таблицу логов действий
+---------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS ftr_bd_clsnum() CASCADE;
+CREATE OR REPLACE FUNCTION ftr_bd_clsnum()  RETURNS trigger AS
+$body$
+DECLARE
+BEGIN
+  EXECUTE 'DROP TABLE IF EXISTS log_act_'||OLD.id||' CASCADE';
+RETURN OLD;
+END;
+$body$
+LANGUAGE 'plpgsql';
+CREATE TRIGGER tr_bd_clsnum BEFORE DELETE ON cls_num FOR EACH ROW EXECUTE PROCEDURE ftr_bd_clsnum();
+
+---------------------------------------------------------------------------------------------------
+-- функция удаления ненужных столбцов из таблицы состояния (в истории удаляются)
+---------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS fn_clear_prop (IN _id BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION fn_clear_prop(IN _id BIGINT)
+    RETURNS VOID AS
+$body$
+DECLARE
+    --rec        RECORD;
+    col_name   NAME;
+    tbl_name   NAME;
+    
+    -- ищем все свойства которые надо удалить, т.е. те что удалены или изменены в действии
+    del_prop CURSOR (_cls_id INTEGER, tbl NAME)  IS 
+        SELECT column_name FROM information_schema.columns -- выбрать все столбцы таблицы 
+          WHERE table_name=tbl||'_'||_cls_id
+        EXCEPT ALL                                         -- исключая те столбцы, 
+        ( SELECT distinct prop.title FROM ref_act_prop -- которые есть в действиях класса
+            LEFT JOIN prop ON prop.id = ref_act_prop.prop_id 
+            WHERE act_id IN 
+              (SELECT act_id FROM ref_cls_act WHERE cls_id=_cls_id  )
+          UNION ALL SELECT column_name FROM information_schema.columns WHERE table_name='log_act_detail'
+        );
+BEGIN
+    tbl_name := quote_ident('log_act_'||_id);
+    
+    FOR rec IN del_prop(_id,'log_act') LOOP
+        col_name := quote_ident(rec.column_name);
+        RAISE DEBUG 'fn_clear_prop: DEL COLUMN % FROM TABLE %',col_name,tbl_name;
+        EXECUTE 'ALTER TABLE '||tbl_name||' DROP COLUMN IF EXISTS '||col_name;
+    END LOOP;
+
+END;
+$body$
+LANGUAGE 'plpgsql';
+
+--ALTER TABLE log_act_55 ADD COLUMN TEST1 TEXT;
+--SELECT fn_clear_prop(55);
+
+---------------------------------------------------------------------------------------------------
+-- функция добавлени нужных столбцов в таблицы истории
+---------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS fn_append_prop (IN _id BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION fn_append_prop(IN _id BIGINT)
+    RETURNS VOID AS
+$body$
+DECLARE
+    --rec        RECORD;
+    col_name   NAME;
+    tbl_name   NAME;
+
+    -- ищем все свойства всех действий этого класса которые надо добавлять
+    new_prop CURSOR (_cls_id INTEGER, tbl NAME)  IS 
+        SELECT distinct prop.title AS prop_label FROM ref_act_prop             -- которые есть в действиях класса
+          LEFT JOIN prop ON prop.id = ref_act_prop.prop_id 
+          WHERE act_id IN 
+            (SELECT act_id FROM ref_cls_act WHERE cls_id = _cls_id )
+        EXCEPT ALL -- исключая те столбцы что уже есть
+        ( SELECT column_name FROM information_schema.columns 
+            WHERE table_name=tbl||'_'||_cls_id
+          EXCEPT ALL SELECT column_name FROM information_schema.columns WHERE table_name='log_act_detail'
+        );
+
+BEGIN
+    tbl_name := quote_ident('log_act_'||_id);
+
+    FOR rec IN new_prop(_id,'log_act') LOOP
+        col_name := quote_ident(rec.prop_label);
+        RAISE DEBUG 'fn_append_prop: ADD COLUMN % TO TABLE %',col_name,tbl_name;
+        EXECUTE 'ALTER TABLE '||tbl_name||' ADD COLUMN '||col_name||' TEXT;';
+    END LOOP;
+
+END;
+$body$
+LANGUAGE 'plpgsql';
+---------------------------------------------------------------------------------------------------
+-- триггер срабатывающий при изменениии свойст действия
+---------------------------------------------------------------------------------------------------
+
+DROP FUNCTION IF EXISTS ftr_aiu_ref_act_prop() CASCADE;
+CREATE OR REPLACE FUNCTION ftr_aiu_ref_act_prop()  RETURNS trigger AS
+$body$
+DECLARE
+
+    -- находим все классы, в которых есть действие изменённое или вставленное
+    cursor_changed_class CURSOR ( _act_id INTEGER ) IS
+        SELECT cls_id FROM ref_cls_act 
+        WHERE act_id = _act_id ;
+
+BEGIN
+    CASE TG_OP
+    WHEN 'INSERT' THEN
+        RAISE DEBUG '%: В ДЕЙСТВИИ % ДОБАВЛЕНО СВОЙСТВО % ',TG_NAME,NEW.act_id,NEW.prop_id;
+    WHEN 'UPDATE' THEN
+        RAISE DEBUG '%: В ДЕЙСТВИИ % ОБНОВЛЕНО СВОЙСТВО % ',TG_NAME,NEW.act_id,NEW.prop_id;
+    WHEN 'DELETE' THEN
+        RAISE DEBUG '%: В ДЕЙСТВИИ % УДАЛЕНО СВОЙСТВО % ',TG_NAME,OLD.act_id,OLD.prop_id;
+    ELSE
+        RAISE DEBUG '%: неизвестная операция ',TG_NAME;
+    END CASE;
+
+    -- добавление нового действия - добавление столбцов связанных с NEW.act_label 
+
+    IF TG_OP='UPDATE' OR TG_OP='DELETE' THEN
+        FOR changed IN cursor_changed_class(OLD.act_id) LOOP
+            PERFORM fn_clear_prop(changed.cls_id);
+        END LOOP;
+    END IF;
+    
+    IF TG_OP='UPDATE' OR TG_OP='INSERT' THEN
+        FOR changed IN cursor_changed_class(NEW.act_id) LOOP
+            PERFORM fn_append_prop(changed.cls_id);
+        END LOOP;
+    END IF;
+
+RETURN NEW;
+END;
+$body$
+LANGUAGE 'plpgsql';
+CREATE TRIGGER tg_aiu_ref_act_prop AFTER INSERT OR UPDATE OR DELETE 
+   ON ref_act_prop FOR EACH ROW EXECUTE PROCEDURE ftr_aiu_ref_act_prop();
+
+---------------------------------------------------------------------------------------------------
+-- триггер срабатывающий при изменениии действий класса
+---------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS ftr_aiu_ref_cls_act() CASCADE;
+CREATE OR REPLACE FUNCTION ftr_aiu_ref_cls_act()  RETURNS trigger AS
+$body$
+DECLARE
+    class_id INTEGER;
+BEGIN
+  IF TG_OP='INSERT' THEN
+    PERFORM table_name FROM information_schema.tables WHERE table_name = 'log_act_'||NEW.cls_id;
+    IF NOT FOUND THEN
+        PERFORM fn_create_log_table(NEW.cls_id);
+    END IF;
+    PERFORM fn_append_prop(NEW.cls_id);
+  END IF;
+
+  IF TG_OP='UPDATE' THEN
+    PERFORM fn_clear_prop(OLD.cls_id);
+    PERFORM fn_append_prop(NEW.cls_id);
+  END IF;
+
+  IF TG_OP='DELETE' THEN
+    PERFORM fn_clear_prop(OLD.cls_id);
+  END IF;
+  
+  
+RETURN NEW;
+END;
+$body$
+LANGUAGE 'plpgsql';
+CREATE TRIGGER tr_aiu_ref_cls_act 
+    AFTER INSERT OR UPDATE OR DELETE ON ref_cls_act 
+    FOR EACH ROW EXECUTE PROCEDURE ftr_aiu_ref_cls_act();
+
+---------------------------------------------------------------------------------------------------
+-- триггер срабатывающий при изменениии свойства
+---------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS ftr_au_prop() CASCADE;
+CREATE OR REPLACE FUNCTION ftr_au_prop()  RETURNS trigger AS
+$body$
+DECLARE
+    -- ищем все классы в котором есть свойство 
+    cursor_of_id CURSOR IS 
+        SELECT DISTINCT(ref_cls_act.cls_id) AS class_id
+        FROM prop
+        RIGHT JOIN ref_act_prop ON prop.id = ref_act_prop.prop_id
+        RIGHT JOIN ref_cls_act  ON ref_cls_act.act_id = ref_act_prop.act_id
+        WHERE ref_act_prop.prop_id=OLD.id;
+
+    changed        RECORD;
+BEGIN
+    IF OLD.title<>NEW.title THEN
+
+        RAISE DEBUG 'tr_bu_act_prop: ИЗМЕНЕНО СВОЙСТВО % --> % ',OLD.title,NEW.title;
+        
+        FOR changed IN cursor_of_id 
+        LOOP
+            RAISE DEBUG 'tr_bu_act_prop: ИЗМЕНЕНО ПОЛЕ % --> % в таблицах "%" истории ',
+                OLD.title, NEW.title, changed.class_id;
+            EXECUTE 'ALTER TABLE  log_act_'||changed.class_id||' RENAME COLUMN '
+                ||quote_ident(OLD.title)||' TO '||quote_ident(NEW.title);
+    END LOOP;
+    END IF;
+RETURN NEW;
+END;
+$body$
+LANGUAGE 'plpgsql';
+CREATE TRIGGER tr_au_prop AFTER UPDATE ON prop FOR EACH ROW EXECUTE PROCEDURE ftr_au_prop();
+
+
+
+
 ---------------------------------------------------------------------------------------------------
 PRINT '';
 PRINT '- Вставка тестовых классов и объектов';
@@ -1027,7 +1282,44 @@ INSERT INTO cls_tree(id,pid,title,kind) VALUES (2,1,'RootNumType',1);
 
 INSERT INTO obj_num(id,pid,title,cls_id)VALUES (0,0,'nullNumRoot',2);
 INSERT INTO obj_num(id,pid,title,cls_id)VALUES (1,0,'RootObj',2);
-INSERT INTO act (id, title) VALUES (0, 'Move');
+
+
+---------------------------------------------------------------------------------------------------
+PRINT '';
+PRINT '- создаём 1 пустое и одно действие с свойствами';
+PRINT '';
+---------------------------------------------------------------------------------------------------
+
+DELETE FROM prop CASCADE;
+DELETE FROM act CASCADE;
+DELETE FROM cls_tree WHERE title='TestCls';
+
+DECLARE @cls_id_1;
+SET @cls_id_1 = INSERT INTO cls_tree(pid,title,kind) VALUES (1,'TestCls',1) RETURNING id;
+
+DECLARE @prop_id_1,@prop_id_2;
+SET @prop_id_1 = INSERT INTO prop(title, kind)VALUES ('prop_id_1', 0)RETURNING id;
+SET @prop_id_2 = INSERT INTO prop(title, kind)VALUES ('prop_id_2', 0)RETURNING id;
+
+DECLARE @act_id_1,@act_id_2;
+SET @act_id_1 = INSERT INTO act (title) VALUES ('Ремонт')RETURNING id;
+SET @act_id_2 = INSERT INTO act (title) VALUES ('Проверка')RETURNING id;
+
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_1, @prop_id_1);
+
+INSERT INTO ref_cls_act(cls_id, act_id) VALUES (@cls_id_1, @act_id_1);
+INSERT INTO ref_cls_act(cls_id, act_id) VALUES (@cls_id_1, @act_id_2);
+
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_2, @prop_id_1);    
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_2, @prop_id_2);    
+
+DELETE FROM ref_act_prop WHERE act_id=@act_id_2 AND  prop_id=@prop_id_2;    
+
+UPDATE prop SET title='prop_id_11' WHERE title='prop_id_1';
+
+DELETE FROM prop WHERE title='prop_id_2';
+
+
 
 /*
 delete from cls_abstr WHERE id>5000;
