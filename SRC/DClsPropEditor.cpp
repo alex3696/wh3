@@ -101,7 +101,7 @@ void DClsPropEditor::GetData(rec::ClsProp& rec) const
 	// значение свойства получается из диалоа
 	//rec.mProp.mLabel = mPropGrid->GetPropertyByLabel("Свойство")->GetValueAsString();
 	rec.mVal = mPropGrid->GetPropertyByLabel("Значение")->GetValueAsString();
-	rec.mID = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
+	rec.mId = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
 }
 //---------------------------------------------------------------------------
 void DClsPropEditor::SetData(const rec::ClsProp& rec)
@@ -110,7 +110,7 @@ void DClsPropEditor::SetData(const rec::ClsProp& rec)
 
 	mPropGrid->GetPropertyByLabel(L"Свойство")->SetValueFromString(rec.mProp.mLabel);
 	mPropGrid->GetPropertyByLabel(L"Значение")->SetValueFromString(rec.mVal);
-	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(rec.mID);
+	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(rec.mId.toStr());
 }
 //---------------------------------------------------------------------------
 

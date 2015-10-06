@@ -101,7 +101,10 @@ wxString  wxObjParentProperty::ValueToString(wxVariant &  value, int  argFlags) 
 
 	#ifdef _DEBUG
 	return wxString::Format("[%s]%s pid=%s", 
-		obj.mCls.mLabel, obj.mObj.mLabel, obj.mObj.mId.SqlVal());
+		obj.mCls.mLabel.toStr(),
+		obj.mObj.mLabel.toStr(), 
+		obj.mObj.mId.SqlVal()
+		);
 	#else
 	return wxString::Format("[%s]%s", obj.mCls.mLabel, obj.mObj.mLabel);
 	#endif

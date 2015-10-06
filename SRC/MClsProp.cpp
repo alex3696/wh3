@@ -34,7 +34,7 @@ bool MClsProp::GetSelectQuery(wxString& query)const
 		" FROM t_cls_prop "
 		" LEFT JOIN t_prop ON t_prop.id = t_cls_prop.prop_id "
 		" WHERE t_cls_prop.id = %s "
-		, clsProp.mID);
+		, clsProp.mId.SqlVal());
 	return true;
 }
 //-------------------------------------------------------------------------
@@ -52,9 +52,9 @@ bool MClsProp::GetInsertQuery(wxString& query)const
 			"INSERT INTO t_cls_prop (val, cls_id, prop_id) "
 			" VALUES(%s, '%s', '%s') "
 			" RETURNING id "
-			, prop.mVal.IsEmpty() ? "NULL" : wxString::Format("'%s'", prop.mVal)
+			, prop.mVal.SqlVal()
 			, cls.mID
-			, prop.mProp.mID);
+			, prop.mProp.mId.SqlVal() );
 		return true;
 	}
 	return false;
@@ -74,10 +74,10 @@ bool MClsProp::GetUpdateQuery(wxString& query)const
 			"UPDATE	t_class_prop "
 			" SET val=%s, cls_id='%s', prop_id='%s' "
 			" WHERE id=%s "
-			, prop.mVal.IsEmpty() ? L"NULL" : wxString::Format(L"'%s'", prop.mVal)
+			, prop.mVal.SqlVal()
 			, cls.mID
-			, prop.mProp.mID
-			, prop.mID);
+			, prop.mProp.mId.SqlVal()
+			, prop.mId.SqlVal() );
 		return true;
 	}
 	return false;
@@ -95,7 +95,7 @@ bool MClsProp::GetDeleteQuery(wxString& query)const
 
 		query = wxString::Format(
 			"DELETE FROM t_cls_prop WHERE id = %s ",
-			prop.mID);
+			prop.mId.SqlVal() );
 		return true;
 	}
 	return false;
@@ -104,11 +104,11 @@ bool MClsProp::GetDeleteQuery(wxString& query)const
 bool MClsProp::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 {
 	T_Data data;
-	table->GetAsString(0, row, data.mProp.mID);
-	table->GetAsString(1, row, data.mProp.mLabel);
+	data.mProp.mId = table->GetAsLong(0, row);
+	data.mProp.mLabel = table->GetAsString(1, row);
 	table->GetAsString(2, row, data.mProp.mType);
-	table->GetAsString(3, row, data.mVal);
-	table->GetAsString(4, row, data.mID);
+	data.mVal = table->GetAsString(3, row);
+	data.mId = table->GetAsLong(4, row);
 	SetData(data);
 	return true;
 };
@@ -123,10 +123,10 @@ bool MClsProp::GetFieldValue(unsigned int col, wxVariant &variant)
 	case 1:
 		variant = variant << wxDataViewIconText(data.mProp.mLabel, mgr->m_ico_classprop24);
 		break;
-	case 2:	variant = data.mVal;						break;
+	case 2:	variant = data.mVal;					break;
 	case 3: variant = data.mProp.GetTypeString();	break;
-	case 4: variant = data.mProp.mID;				break;
-	case 5: variant = data.mID;						break;
+	case 4: variant = data.mProp.mId.toStr();		break;
+	case 5: variant = data.mId.toStr();				break;
 	}//switch(col) 
 	return true;
 }

@@ -83,7 +83,7 @@ bool PnlPropGrid::UpdateModel()
 			if (pgProp)
 			{
 				propData.mVal = pgProp->GetValueAsString(); 
-				if (!propData.mVal.IsEmpty())
+				if (!propData.mVal.IsNull())
 					prop->SetData(propData);
 				else
 					hasEmpty = true;

@@ -61,24 +61,22 @@ bool MFavProp::GetSelectQuery(wxString& query)const
 	if (catalog->mCfg->GetData().mObjCatalog)
 	{
 		query = wxString::Format(
-			" SELECT distinct "
-			"t_prop.id, t_prop.label, t_prop.type, cls_id "
-			"FROM t_favorite_prop "
-			"LEFT JOIN t_prop  ON t_prop.id = t_favorite_prop.prop_id "
-			"WHERE t_favorite_prop.user_label = CURRENT_USER "
-			"AND   t_favorite_prop.cls_id IN(SELECT distinct(cls_id)FROM t_objnum WHERE pid = %s)"
+			" SELECT distinct prop.id, prop.title, prop.kind, cls_id "
+			" FROM favorite_prop "
+			" LEFT JOIN prop  ON prop.id = favorite_prop.prop_id "
+			" WHERE favorite_prop.user_label = CURRENT_USER "
+			" AND favorite_prop.cls_id IN(SELECT distinct(cls_id)FROM obj_tree WHERE pid = %s)"
 			, root.mObj.mID);
 		return true;
 	}
 	else
 	{
 		query = wxString::Format(
-			" SELECT distinct "
-			"t_prop.id, t_prop.label, t_prop.type, cls_id "
-			"FROM t_favorite_prop "
-			"LEFT JOIN t_prop  ON t_prop.id = t_favorite_prop.prop_id "
-			"WHERE t_favorite_prop.user_label = CURRENT_USER "
-			"AND t_favorite_prop.cls_id IN(SELECT id FROM t_cls WHERE pid = %s) "
+			" SELECT distinct prop.id, prop.title, prop.kind, cls_id "
+			" FROM favorite_prop "
+			" LEFT JOIN prop  ON prop.id = favorite_prop.prop_id "
+			" WHERE favorite_prop.user_label = CURRENT_USER "
+			" AND favorite_prop.cls_id IN(SELECT id FROM cls_real WHERE pid = %s)"
 			, root.mCls.mID );
 		return true;
 	}

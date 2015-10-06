@@ -41,7 +41,7 @@ bool ObjPropValLoader::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const
 		if (prop)
 		{
 			auto prop_data = prop->GetData();
-			table->GetAsString(i + 1, 0, prop_data.mVal);
+			prop_data.mVal = table->GetAsString(i + 1, 0);
 			prop->SetData(prop_data);
 		}
 	}
@@ -69,7 +69,7 @@ bool ObjPropValLoader::GetSelectQuery(wxString& query)const
 		if (prop)
 		{
 			const auto& prop_data = prop->GetData();
-			prop_fields += wxString::Format(", \"%s\"", prop_data.mProp.mLabel);
+			prop_fields += wxString::Format(", \"%s\"", prop_data.mProp.mLabel.toStr());
 		}
 	}
 

@@ -212,7 +212,7 @@ void CtrlPnl::OnClsPropAppend(const IModel& model, const std::vector<unsigned in
 		const auto& data = item->GetData();
 		propCategory->AppendChild( new wxStringProperty(
 			data.mProp.mLabel
-			, wxString::Format("ClsProp_%s", data.mProp.mLabel)
+			, wxString::Format("ClsProp_%s", data.mProp.mLabel.toStr())
 			, data.mVal));
 	}
 
@@ -277,7 +277,7 @@ void CtrlPnl::OnObjPropAppend(const IModel& model, const std::vector<unsigned in
 		const auto& data = item->GetData();
 		propCategory->AppendChild(new wxStringProperty(
 			data.mProp.mLabel
-			, wxString::Format("ObjProp_%s", data.mProp.mLabel)
+			, wxString::Format("ObjProp_%s", data.mProp.mLabel.SqlVal())
 			, data.mVal));
 	}
 

@@ -1,4 +1,5 @@
 ﻿
+
 SET default_transaction_isolation =serializable;
 SET client_min_messages='debug1';
 SHOW client_min_messages;
@@ -48,6 +49,12 @@ GRANT USAGE ON TABLE seq_perm_id TO "User";
 -- таблицы
 ---------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS cls CASCADE;
+DROP TABLE IF EXISTS cls_abstr CASCADE;
+DROP TABLE IF EXISTS cls_qtyi  CASCADE;
+DROP TABLE IF EXISTS cls_qtyf  CASCADE;
+DROP TABLE IF EXISTS cls_num   CASCADE;
+
+
 DROP TABLE IF EXISTS perm CASCADE;
 DROP TABLE IF EXISTS prop_kind CASCADE;
 DROP TABLE IF EXISTS prop CASCADE;
@@ -61,6 +68,12 @@ DROP TABLE IF EXISTS log CASCADE;
 DROP TABLE IF EXISTS lock_src CASCADE;
 DROP TABLE IF EXISTS lock_dst CASCADE;
 DROP TABLE IF EXISTS lock_dstact CASCADE;
+DROP TABLE IF EXISTS favorite_prop CASCADE;
+
+---------------------------------------------------------------------------------------------------
+-- функции
+---------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS fn_array1_to_table(anyarray);
 
 
 
@@ -69,68 +82,81 @@ CREATE TABLE cls (
     id     BIGINT   NOT NULL DEFAULT nextval('seq_cls_id')
     ,title WHNAME   NOT NULL                          
     ,note  TEXT              DEFAULT NULL
+
+,CONSTRAINT pk_cls__id    PRIMARY KEY ( id )   
+,CONSTRAINT uk_cls__title UNIQUE ( title ) 
 );
 ---------------------------------------------------------------------------------------------------
-CREATE TABLE cls_tree ( 
-  pid   BIGINT   NOT NULL DEFAULT 1
+CREATE TABLE cls_abstr ( 
+ id  BIGINT NOT NULL 
+,pid BIGINT NOT NULL DEFAULT 1
 
-,CONSTRAINT pk_clstree__id    PRIMARY KEY ( id )
-,CONSTRAINT uk_clstree__title UNIQUE ( title )
-,CONSTRAINT fk_clstree__pid   FOREIGN KEY ( pid )
-    REFERENCES                    cls_tree( id )
+,CONSTRAINT pk_clsabstr__id    PRIMARY KEY ( id )
+,CONSTRAINT fk_clsabstr__pid   FOREIGN KEY ( pid )
+    REFERENCES                    cls_abstr( id )
     MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
-,CONSTRAINT ck_clstree__root  CHECK (  (id=1 AND pid=1) -- main root
+,CONSTRAINT ck_clsabstr__root  CHECK (  (id=0 AND pid=0) -- main root
                                OR(id>0 AND id<>pid)   )  -- один корень                             
-)INHERITS (cls);
-CREATE INDEX idx_clstree_pid ON cls_tree(pid);
+,CONSTRAINT fk_clsabstr__id   FOREIGN KEY ( id )
+    REFERENCES                    cls( id )
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 
-INSERT INTO cls_tree(id,title,pid)VALUES (1,'RootClsTree',1);
---INSERT INTO cls_tree(id,title,pid)VALUES (1,'root',0);
+
+);
+CREATE INDEX idx_clsabstr_pid ON cls_abstr(pid);
+
 ---------------------------------------------------------------------------------------------------
 CREATE TABLE cls_qtyi ( 
+ id  BIGINT NOT NULL 
+,pid BIGINT NOT NULL DEFAULT 1
 
- CONSTRAINT pk_clsqtyi__id    PRIMARY KEY ( id )
-,CONSTRAINT uk_clsqtyi__title UNIQUE ( title )
+
+,CONSTRAINT pk_clsqtyi__id    PRIMARY KEY ( id )
 ,CONSTRAINT fk_clsqtyi__pid   FOREIGN KEY ( pid )
-    REFERENCES                    cls_tree( id )
+    REFERENCES                    cls_abstr( id )
     MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
-)INHERITS (cls_tree);
+,CONSTRAINT ck_clsqtyi__root  CHECK ( id>0 AND id<>pid )
+,CONSTRAINT fk_clsqtyi__id   FOREIGN KEY ( id )
+    REFERENCES                    cls( id )
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+
+);
 CREATE INDEX idx_clsqtyi_pid ON cls_qtyi(pid);
 ---------------------------------------------------------------------------------------------------
 CREATE TABLE cls_qtyf ( 
-  measure WHNAME NOT NULL
+ id  BIGINT NOT NULL 
+,pid BIGINT NOT NULL DEFAULT 1
+,measure WHNAME NOT NULL
 
 ,CONSTRAINT pk_clsqtyf__id    PRIMARY KEY ( id )
-,CONSTRAINT uk_clsqtyf__title UNIQUE ( title )
 ,CONSTRAINT fk_clsqtyf__pid   FOREIGN KEY ( pid )
-    REFERENCES                    cls_tree( id )
+    REFERENCES                    cls_abstr( id )
     MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
-)INHERITS (cls_tree);
+
+,CONSTRAINT ck_clsqtyf__root  CHECK ( id>0 AND id<>pid )
+,CONSTRAINT fk_clsqtyf__id   FOREIGN KEY ( id )
+    REFERENCES                    cls( id )
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+    
+);
 CREATE INDEX idx_cls_qtyf__measure ON cls_qtyf(measure);
 CREATE INDEX idx_clsqtyf_pid ON cls_qtyf(pid);
 ---------------------------------------------------------------------------------------------------
 CREATE TABLE cls_num ( 
- CONSTRAINT pk_clsnum__id    PRIMARY KEY ( id )
-,CONSTRAINT uk_clsnum__title UNIQUE ( title )
+ id  BIGINT NOT NULL 
+,pid BIGINT NOT NULL DEFAULT 1
+
+,CONSTRAINT pk_clsnum__id    PRIMARY KEY ( id )
 ,CONSTRAINT fk_clsnum__pid   FOREIGN KEY ( pid )
-    REFERENCES                    cls_tree( id )
+    REFERENCES                    cls_abstr( id )
     MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
-)INHERITS (cls_tree);
+
+,CONSTRAINT ck_clsnum__root  CHECK ( id>0 AND id<>pid )
+,CONSTRAINT fk_clsnum__id   FOREIGN KEY ( id )
+    REFERENCES                    cls( id )
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+);
 CREATE INDEX idx_clsnum_pid ON cls_num(pid);
-
-INSERT INTO cls_num(id,title,pid)VALUES (1,'RootClsNum',1);
-
----------------------------------------------------------------------------------------------------
---DROP VIEW IF EXISTS cls_all CASCADE;
-CREATE VIEW cls_all AS
-SELECT id, title, note, pid, NULL::WHNAME  AS measure FROM ONLY cls_tree
-UNION ALL
-SELECT id, title, note, pid, 'ед.'::WHNAME AS measure FROM cls_num
-UNION ALL
-SELECT id, title, note, pid, 'шт.'::WHNAME AS measure FROM cls_qtyi
-UNION ALL
-SELECT id, title, note, pid, measure                  FROM cls_qtyf
-;
 
 
 ---------------------------------------------------------------------------------------------------
@@ -141,12 +167,12 @@ CREATE TABLE prop_kind(
 ,title WHNAME NOT NULL
 ,CONSTRAINT pk_propkind__id    PRIMARY KEY ( id )
 );
-INSERT INTO prop_kind (id, title) VALUES (0, 'text');
-INSERT INTO prop_kind (id, title) VALUES (1, 'numberic');
-INSERT INTO prop_kind (id, title) VALUES (2, 'date');
-INSERT INTO prop_kind (id, title) VALUES (3, 'link');
-INSERT INTO prop_kind (id, title) VALUES (4, 'file');
-INSERT INTO prop_kind (id, title) VALUES (5, 'array');
+INSERT INTO prop_kind (id, title) VALUES (0, 'text')
+                                        ,(1, 'numberic')
+                                        ,(2, 'date')
+                                        ,(3, 'link')
+                                        ,(4, 'file')
+                                        ,(5, 'array');
 ---------------------------------------------------------------------------------------------------
 -- основная описания свойств(переменных) действий
 ---------------------------------------------------------------------------------------------------
@@ -219,7 +245,7 @@ CREATE TABLE act (
 ,CONSTRAINT pk_act__id    PRIMARY KEY ( id  )
 ,CONSTRAINT uk_act__title UNIQUE ( title )
 );
-INSERT INTO act (id, title) VALUES (0, 'Move');
+
 ---------------------------------------------------------------------------------------------------
 -- табличка связи классов с действиями
 ---------------------------------------------------------------------------------------------------
@@ -274,8 +300,6 @@ CREATE TABLE perm
   ,obj_id      BIGINT                DEFAULT NULL
   ,src_path        TEXT              DEFAULT NULL
 );
-GRANT SELECT ON TABLE perm               TO "Guest";
-GRANT INSERT,DELETE,UPDATE ON TABLE perm TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 CREATE TABLE perm_move
 (
@@ -375,7 +399,6 @@ CREATE TABLE obj_num (
 ,move_logid BIGINT  
 ,act_logid  BIGINT   
 ,CONSTRAINT pk_objnum__id          PRIMARY KEY(id)
-,CONSTRAINT uk_objnum__clsid       UNIQUE (cls_id)
 ,CONSTRAINT uk_objnum__clsid_title UNIQUE (cls_id, title) 
 ,CONSTRAINT uk_objnum__movelogid   UNIQUE (move_logid) 
 ,CONSTRAINT uk_objnum__actlogid    UNIQUE (act_logid) 
@@ -386,32 +409,28 @@ CREATE TABLE obj_num (
 ,CONSTRAINT fk_objnum_clsnum   FOREIGN KEY (cls_id)
     REFERENCES                 cls_num     (    id)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-,CONSTRAINT ck_objnum_one_root CHECK (  (id=1 AND pid=1) 
-                                      OR(id<>pid AND id>1 AND pid>0 ))
+,CONSTRAINT ck_objnum_one_root CHECK (  (id=0 AND pid=0) 
+                                      OR( id>0 AND id<>pid ))
 ) INHERITS (obj);
 CREATE INDEX idx_objnum_pid ON obj_num ("pid") ;
-INSERT INTO obj_num(id,pid,cls_id,title)  
-        VALUES (1,1,(SELECT id FROM cls_num WHERE title='RootClsNum'),'RootObjNum');
-
-
 ---------------------------------------------------------------------------------------------------
 -- таблица КОЛИЧЕСТВЕННЫХ ОБЪЕКТОВ названия
 ---------------------------------------------------------------------------------------------------
-CREATE TABLE obj_qtyi
+CREATE TABLE obj_names_qtyi
 (
- CONSTRAINT pk_objqtyi__id     PRIMARY KEY( id )
-,CONSTRAINT uk_objqtyi__clsid_label UNIQUE( cls_id, title )
-,CONSTRAINT fk_objqtyi__clsid FOREIGN KEY (cls_id)
+ CONSTRAINT pk_namesobjqtyi__id     PRIMARY KEY( id )
+,CONSTRAINT uk_namesobjqtyi__clsid_label UNIQUE( cls_id, title )
+,CONSTRAINT fk_namesobjqtyi__clsid FOREIGN KEY (cls_id)
     REFERENCES                  cls_qtyi  (    id)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 ) INHERITS (obj);
 ---------------------------------------------------------------------------------------------------
-CREATE TABLE obj_qtyf
+CREATE TABLE obj_names_qtyf
 (
- CONSTRAINT pk_objqtyf__id     PRIMARY KEY( id )
-,CONSTRAINT uk_objqtyf__clsid_label UNIQUE( cls_id, title )
-,CONSTRAINT fk_objqtyf__clsid FOREIGN KEY (cls_id)
-    REFERENCES                  cls_qtyi  (    id)
+ CONSTRAINT pk_namesobjqtyf__id     PRIMARY KEY( id )
+,CONSTRAINT uk_namesobjqtyf__clsid_label UNIQUE( cls_id, title )
+,CONSTRAINT fk_namesobjqtyf__clsid FOREIGN KEY (cls_id)
+    REFERENCES                  cls_qtyf  (    id)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 ) INHERITS (obj);
 
@@ -430,16 +449,17 @@ CREATE TABLE obj_details_qty (
 -- таблица КОЛИЧЕСТВЕННЫХ ОБЪЕКТОВ ЭЛЕМЕНТЫ
 ---------------------------------------------------------------------------------------------------
 CREATE TABLE obj_details_qtyi (
- CONSTRAINT pk_detailobjqtyi_oid_pid   PRIMARY KEY(objqty_id, pid)
+ qty        NUMERIC(20,0) NOT NULL              CHECK (qty>=0)
+,CONSTRAINT pk_detailobjqtyi_oid_pid   PRIMARY KEY(objqty_id, pid)
 ,CONSTRAINT uk_detailobjqtyi_log_id    UNIQUE (move_logid) --при разделении 2 объекта появится с одинаковым last_log_id
 ,CONSTRAINT fk_detailobjqtyi_items_pid FOREIGN KEY (pid)
-    REFERENCES                  obj_num    (id)
+    REFERENCES                          obj_num    (id)
     MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
 ,CONSTRAINT fk_detailobjqtyi_objqtykey FOREIGN KEY (objqty_id)
-    REFERENCES                 obj_qtyi  (id)
+    REFERENCES                     obj_names_qtyi  (id)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 ) INHERITS (obj_details_qty);
-CREATE INDEX idx_detailobjqtyi_pid ON obj_details_qtyi USING btree("pid") ;
+CREATE INDEX idx_detailobjqtyi_pid ON obj_details_qtyi("pid") ;
 CREATE INDEX idx_detailobjqtyi_movelogid ON obj_details_qtyi("move_logid") ;
 ---------------------------------------------------------------------------------------------------
 -- таблица КОЛИЧЕСТВЕННЫХ ОБЪЕКТОВ ЭЛЕМЕНТЫ
@@ -451,11 +471,11 @@ CREATE TABLE obj_details_qtyf (
     REFERENCES                  obj_num    (id)
     MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
 ,CONSTRAINT fk_detailobjqtyf_objqtykey FOREIGN KEY (objqty_id)
-    REFERENCES                 obj_qtyf  (id)
+    REFERENCES                 obj_names_qtyf  (id)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 ) INHERITS (obj_details_qty);
-CREATE INDEX idx_detailobjqtyf_pid ON obj_details_qtyf USING btree("pid") ;
-CREATE INDEX idx_detailobjqtyf_id ON obj_details_qtyf USING btree("objqty_id") ;
+CREATE INDEX idx_detailobjqtyf_pid ON obj_details_qtyf("pid") ;
+CREATE INDEX idx_detailobjqtyf_id ON obj_details_qtyf("objqty_id") ;
 CREATE INDEX idx_detailobjqtyf_movelogid ON obj_details_qtyf("move_logid") ;
 
 
@@ -498,7 +518,7 @@ CREATE TABLE log_move_qtyi (
     REFERENCES                              obj_num  (id)
     MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE
 ,CONSTRAINT fk_logmoveqtyi__objqtyid FOREIGN KEY (objqtyi_id)
-    REFERENCES                        obj_qtyi  (id)
+    REFERENCES                        obj_names_qtyi  (id)
     MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE
 )INHERITS (log_move);
 ---------------------------------------------------------------------------------------------------
@@ -519,7 +539,7 @@ CREATE TABLE log_move_qtyf (
     REFERENCES                              obj_num  (id)
     MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE
 ,CONSTRAINT fk_pk_logmoveqtyf__objqtyid FOREIGN KEY (objqtyf_id)
-    REFERENCES                        obj_qtyf  (id)
+    REFERENCES                        obj_names_qtyf  (id)
     MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE
 )INHERITS (log_move);
   
@@ -606,7 +626,7 @@ CREATE TABLE lock_srcqtyi(
 
 ,CONSTRAINT pk_srcqtyi__oid_pid   PRIMARY KEY (oid, pid)
 ,CONSTRAINT fk_srcqtyi__oid_pid   FOREIGN KEY (oid, pid)
-    REFERENCES              obj_qtyi_details  (objqty_id, pid)
+    REFERENCES              obj_details_qtyi  (objqty_id, pid)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 ,CONSTRAINT fk_srcnum__username   FOREIGN KEY (lock_user)
     REFERENCES                       wh_role (rolname)
@@ -621,7 +641,7 @@ CREATE TABLE lock_srcqtyf(
   
 ,CONSTRAINT pk_srcqtyf__oid_pid   PRIMARY KEY (oid, pid)
 ,CONSTRAINT fk_srcqtyf__oid_pid   FOREIGN KEY (oid, pid)
-    REFERENCES              obj_qtyf_details  (objqty_id, pid)
+    REFERENCES              obj_details_qtyf  (objqty_id, pid)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 ,CONSTRAINT fk_srcnum__username   FOREIGN KEY (lock_user)
     REFERENCES                       wh_role (rolname)
@@ -681,16 +701,252 @@ CREATE TABLE lock_dstact(
  
 );
 
+-----------------------------------------------------------------------------------------------------------------------------
+-- таблица избранных свойст объектов отображаемых при просмотре пользователем каталога объектов по типу или по местоположению
+-----------------------------------------------------------------------------------------------------------------------------
+--DROP TABLE IF EXISTS favorite_prop CASCADE;
+CREATE TABLE favorite_prop(
+    id           BIGSERIAL NOT NULL UNIQUE
+    ,user_label  NAME      NOT NULL DEFAULT CURRENT_USER 
+    ,cls_id      INTEGER       NOT NULL
+    ,act_id      INTEGER   NOT NULL
+    ,prop_id     INTEGER   NOT NULL
+
+,CONSTRAINT pk_favoriteprop__id           PRIMARY KEY ( id ) 
+,CONSTRAINT uk_favoriteprop__id           UNIQUE (user_label, cls_id, act_id, prop_id )
+
+,CONSTRAINT fk_favoriteprop__user_label   FOREIGN KEY (user_label) 
+    REFERENCES                               wh_role (rolname)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+,CONSTRAINT fk_favoriteprop__ref_act_prop FOREIGN KEY (act_id, prop_id) 
+    REFERENCES                           ref_act_prop (act_id, prop_id) 
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+,CONSTRAINT fk_favoriteprop__ref_class_act FOREIGN KEY (cls_id, act_id) 
+    REFERENCES                           ref_cls_act (cls_id, act_id) 
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+
+);
 
 
 
+---------------------------------------------------------------------------------------------------
+--DROP VIEW IF EXISTS cls_tree CASCADE;
+CREATE VIEW cls_real AS
+SELECT id, pid, measure, kind, title, note FROM
+(
+SELECT id, pid, 'ед.'::WHNAME AS measure,1::SMALLINT AS kind FROM cls_num
+UNION ALL
+SELECT id, pid, 'шт.'::WHNAME AS measure,2::SMALLINT AS kind FROM cls_qtyi
+UNION ALL
+SELECT id, pid, measure                 ,3::SMALLINT AS kind FROM cls_qtyf
+) cdif
+LEFT JOIN cls USING (id);
+
+/*
+SELECT id, title, note, pid, 'ед.'::WHNAME AS measure,1::SMALLINT AS kind FROM cls_num
+UNION ALL
+SELECT id, title, note, pid, 'шт.'::WHNAME AS measure,2::SMALLINT AS kind FROM cls_qtyi
+UNION ALL
+SELECT id, title, note, pid, measure                 ,3::SMALLINT AS kind FROM cls_qtyf
+*/
+
+---------------------------------------------------------------------------------------------------
+
+CREATE VIEW cls_tree AS
+SELECT id, pid, measure, kind, title, note FROM
+(
+SELECT id, pid, NULL::WHNAME AS measure, 0::SMALLINT AS kind FROM cls_abstr
+UNION ALL
+SELECT id, pid, 'ед.'::WHNAME AS measure,1::SMALLINT AS kind FROM cls_num
+UNION ALL
+SELECT id, pid, 'шт.'::WHNAME AS measure,2::SMALLINT AS kind FROM cls_qtyi
+UNION ALL
+SELECT id, pid, measure                 ,3::SMALLINT AS kind FROM cls_qtyf
+) cdif
+LEFT JOIN cls USING (id);
+
+/*
+SELECT id, title, note, pid, NULL::WHNAME  AS measure,0::SMALLINT AS kind  FROM ONLY cls_abstr
+UNION ALL
+SELECT id, title, note, pid, measure, kind FROM cls_real
+*/
+---------------------------------------------------------------------------------------------------
+
+CREATE VIEW obj_qtyf AS
+SELECT id, title, cls_id, pid, move_logid, qty
+FROM ONLY obj_names_qtyf n
+LEFT JOIN obj_details_qtyf d ON n.id=objqty_id;
+
+---------------------------------------------------------------------------------------------------
+
+CREATE VIEW obj_qtyi AS
+SELECT id, title, cls_id, pid, move_logid, qty
+FROM  obj_names_qtyi n
+LEFT JOIN obj_details_qtyi d ON n.id=objqty_id;
+
+---------------------------------------------------------------------------------------------------
+DROP VIEW IF EXISTS obj_tree CASCADE;
+CREATE OR REPLACE VIEW obj_tree AS
+SELECT id, title, cls_id, pid, move_logid, 1::NUMERIC AS qty, act_logid, 1::SMALLINT AS cls_kind FROM ONLY obj_num
+UNION ALL
+SELECT id, title, cls_id, pid, move_logid, qty,            NULL::BIGINT, 2::SMALLINT AS cls_kind FROM ONLY obj_qtyf
+UNION ALL
+SELECT id, title, cls_id, pid, move_logid, qty,            NULL::BIGINT, 3::SMALLINT AS cls_kind FROM ONLY obj_qtyi;
 
 
+-----------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------    
+-- функция получения пути объектов и типов в виде путей и таблицы, по идентификация объекта (уникальность)
+-----------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS fget_objnum_pathinfo_table(IN _id BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION fget_objnum_pathinfo_table(IN node_id BIGINT)
+ RETURNS TABLE(
+     _obj_id      BIGINT
+    ,_obj_pid     BIGINT
+    ,_obj_title   WHNAME
+    ,_cls_id      BIGINT
+    ,_cls_title   WHNAME
+    ,_move_logid  BIGINT
+    ,_patharray   NAME[]
+    ,pathid       NAME[]
+    ,_path        TEXT
+    
+) AS $BODY$ 
+BEGIN
+RETURN QUERY 
+    WITH RECURSIVE parents AS 
+    (SELECT
+        o.id, o.pid, o.title, c.id, cls.title, o.move_logid
+        ,ARRAY[ ARRAY[cls.title,o.title]::NAME[] ]::NAME[] AS path
+        ,ARRAY[ ARRAY[c.id,o.id]::NAME[] ]::NAME[] AS pathid
+        , '/['||cls.title||']'||o.title AS _path
+        FROM obj_num AS o
+        LEFT JOIN cls_num c ON c.id=o.cls_id
+        LEFT JOIN cls ON cls.id=c.id
+         WHERE o.id = node_id   --[item.pid]
+        AND o.id>1
+     UNION ALL
+     SELECT
+        o.id, o.pid, o.title, c.id, cls.title, o.move_logid
+        ,p.path || ARRAY[cls.title,o.title]::NAME[]
+        ,p.pathid || ARRAY[c.id,o.id]::NAME[]
+        ,'/['||cls.title||']'||o.title|| p._path
+        FROM 
+        parents AS p, obj_num AS o 
+        LEFT JOIN cls_num c  ON c.id=o.cls_id
+        LEFT JOIN cls ON cls.id=c.id
+        WHERE 
+        o.id = p.pid
+        AND o.id<>1   
+        )
+   SELECT * FROM parents;
+
+END; 
+$BODY$ LANGUAGE plpgsql VOLATILE  COST 100 ROWS 100;
+GRANT EXECUTE ON FUNCTION fget_objnum_pathinfo_table(BIGINT) TO "Guest";
+GRANT EXECUTE ON FUNCTION fget_objnum_pathinfo_table(BIGINT) TO "Admin" WITH GRANT OPTION;
+
+--SELECT * FROM fget_objnum_pathinfo_table(553);
 
 
+-----------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------    
+-- функция получения пути объектов и типов в виде 2мерного массива
+-----------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS get_path_array(IN node_pid BIGINT ) CASCADE;
+CREATE OR REPLACE FUNCTION get_path_array(IN node_pid BIGINT ) RETURNS NAME[]  AS $$ 
+	SELECT 	
+		_patharray
+	FROM	
+		fget_objnum_pathinfo_table($1)
+	WHERE	
+		_obj_pid=1
+$$ LANGUAGE SQL;
+
+GRANT EXECUTE ON FUNCTION get_path_array(BIGINT) TO "Guest";
+GRANT EXECUTE ON FUNCTION get_path_array(BIGINT) TO "Admin" WITH GRANT OPTION;
 
 
+--SELECT * FROM get_path_array(101);  
 
+
+-----------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------    
+-- функция получения пути объектов и типов в виде строки
+-----------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS get_path(IN node_pid BIGINT ) CASCADE;
+CREATE OR REPLACE FUNCTION get_path(IN node_pid BIGINT ) RETURNS TEXT  AS $$ 
+    SELECT _path 
+      FROM fget_objnum_pathinfo_table($1) 
+      WHERE _obj_pid=1
+$$ LANGUAGE SQL;
+
+GRANT EXECUTE ON FUNCTION get_path(BIGINT) TO "Guest";
+GRANT EXECUTE ON FUNCTION get_path(BIGINT) TO "Admin" WITH GRANT OPTION;
+
+-----------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------    
+-- функция получения информации о наследовании класса
+-----------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS fget_cls_pathinfo_table(IN _in_id INTEGER) CASCADE;
+CREATE OR REPLACE FUNCTION fget_cls_pathinfo_table(IN _in_id INTEGER)
+ RETURNS TABLE(	
+		_id		BIGINT,
+		_title 		WHNAME,
+		_kind 		SMALLINT,
+		_pid 		BIGINT,
+		_note 	        TEXT,
+		_measure 	WHNAME,
+		_path		NAME[]
+		--,_cycle		BOOLEAN
+		) AS $BODY$ 
+BEGIN
+RETURN QUERY(
+	WITH RECURSIVE parents AS 
+		(SELECT	c.id, cls.title, c.kind, c.pid, cls.note, c.measure
+			,ARRAY[cls.title]::NAME[] AS path	--,FALSE AS cycle
+		FROM cls_tree AS c 
+		LEFT JOIN cls ON cls.id=c.id
+		WHERE 
+			_in_id IS NOT NULL 
+			AND  c.id = _in_id
+			AND  c.id > 1
+
+		UNION ALL
+		SELECT 	c.id, cls.title, 1::SMALLINT AS kind, c.pid, cls.note, 'шт.'::WHNAME
+			,path || cls.title::NAME	--,t.classname = ANY(path) 
+		FROM parents AS p, cls_num AS c 
+		LEFT JOIN cls ON cls.id=c.id
+		WHERE 
+			c.id = p.pid 
+			AND c.id > 1
+		)
+	SELECT  * FROM 	parents 
+	);
+END; 
+$BODY$ LANGUAGE plpgsql VOLATILE  COST 100 ROWS 1000;
+GRANT EXECUTE ON FUNCTION fget_cls_pathinfo_table(INTEGER) TO "Guest";
+--SELECT * FROM fget_cls_pathinfo_table('SmartMonitor(rev 1.0)')
+SELECT * FROM fget_cls_pathinfo_table(553);
+
+
+-----------------------------------------------------------------------------------------------------------------------------    
+-- функция преобразования одномерного массива идентификаторов класса в таблицу
+-----------------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS fn_array1_to_table(IN anyarray);
+CREATE OR REPLACE FUNCTION fn_array1_to_table(IN anyarray)
+  RETURNS TABLE(idx integer, id anyelement) 
+  AS $BODY$ 
+  SELECT row, $1[row] from generate_subscripts($1, 1) as row
+$BODY$ LANGUAGE sql IMMUTABLE;
+--SELECT * FROM fn_array1_to_table('{101,102,103,104}'::int[]);
+
+
+/*
 ---------------------------------------------------------------------------------------------------
 -- функция поиска корня дерева наследования
 ---------------------------------------------------------------------------------------------------
@@ -709,7 +965,7 @@ WITH RECURSIVE parents AS (
     FROM parents AS p, pg_inherits AS t 
     WHERE t.inhrelid=p.inhparent 
   )
-  SELECT relname /*inhparent,pg_class.**/ FROM parents 
+  SELECT relname FROM parents 
  LEFT JOIN pg_class ON pg_class.oid=parents.inhparent
  ORDER BY idx desc LIMIT 1
  $BODY$ LANGUAGE sql STABLE;
@@ -728,7 +984,7 @@ BEGIN
   --_root_table:=quote_ident(SUBSTRING(TG_TABLE_NAME, '^[[:alnum:]]+'));
   _root_table:=quote_ident(get_inherit_root(TG_TABLE_NAME));
   
-  EXECUTE 'SELECT id FROM '||_root_table||' WHERE id = '||NEW.id INTO _id; 
+  EXECUTE 'SELECT id FROM '||_root_table||' WHERE id = '||NEW.id INTO _id|| ' OR title='||NEW.title; 
   IF _id IS NOT NULL THEN
     RAISE EXCEPTION '%: Unique id(%) for tables %_XXX',TG_NAME,NEW.id, _root_table;
   END IF;
@@ -738,7 +994,7 @@ $body$
 LANGUAGE 'plpgsql';
 
 
-CREATE TRIGGER tr_bi_cls_tree BEFORE INSERT ON cls_tree FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
+CREATE TRIGGER tr_bi_cls_abstr BEFORE INSERT ON cls_abstr FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
 CREATE TRIGGER tr_bi_cls_num  BEFORE INSERT ON cls_num  FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
 CREATE TRIGGER tr_bi_cls_qtyi BEFORE INSERT ON cls_qtyi FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
 CREATE TRIGGER tr_bi_cls_qtyf BEFORE INSERT ON cls_qtyf FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
@@ -748,8 +1004,8 @@ CREATE TRIGGER tr_bi_prop_qtyi BEFORE INSERT ON prop_qtyi FOR EACH ROW EXECUTE P
 CREATE TRIGGER tr_bi_prop_qtyf BEFORE INSERT ON prop_qtyf FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
 
 CREATE TRIGGER tr_bi_obj_num  BEFORE INSERT ON obj_num FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-CREATE TRIGGER tr_bi_obj_qtyi BEFORE INSERT ON obj_qtyi FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-CREATE TRIGGER tr_bi_obj_qtyf BEFORE INSERT ON obj_qtyf FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
+CREATE TRIGGER tr_bi_objnames_qtyi BEFORE INSERT ON obj_names_qtyi FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
+CREATE TRIGGER tr_bi_objnames_qtyf BEFORE INSERT ON obj_names_qtyf FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
 
 CREATE TRIGGER tr_bi_perm_act       BEFORE INSERT ON perm_act       FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
 CREATE TRIGGER tr_bi_perm_move_num  BEFORE INSERT ON perm_move_num  FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
@@ -759,59 +1015,167 @@ CREATE TRIGGER tr_bi_perm_move_qtyf BEFORE INSERT ON perm_move_qtyf FOR EACH ROW
 CREATE TRIGGER tr_bi_log_move_num   BEFORE INSERT ON log_move_num   FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
 CREATE TRIGGER tr_bi_log_move_qtyi  BEFORE INSERT ON log_move_qtyi  FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
 CREATE TRIGGER tr_bi_log_move_qtyf  BEFORE INSERT ON log_move_qtyf  FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
+*/
+
+---------------------------------------------------------------------------------------------------
+-- тригер создания класса
+---------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS ftg_ins_cls_tree() CASCADE;
+CREATE FUNCTION ftg_ins_cls_tree() RETURNS TRIGGER AS $$
+BEGIN
+  NEW.id := COALESCE(NEW.id,nextval('seq_cls_id'));
+  INSERT INTO cls (id, title, note) VALUES ( NEW.id, NEW.title, NEW.note);
+  CASE NEW.kind 
+   WHEN 0 THEN INSERT INTO cls_abstr(id, pid)VALUES (NEW.id, NEW.pid); NEW.measure:=NULL;
+   WHEN 1 THEN INSERT INTO cls_num  (id, pid)VALUES (NEW.id, NEW.pid); NEW.measure:=NULL;
+   WHEN 2 THEN INSERT INTO cls_qtyi (id, pid)VALUES (NEW.id, NEW.pid); NEW.measure:=NULL;
+   WHEN 3 THEN INSERT INTO cls_qtyf(id, pid, measure)VALUES (NEW.id, NEW.pid, NEW.measure);
+   ELSE RAISE EXCEPTION ' %: wrong kind %',TG_NAME,NEW.kind ;
+  END CASE;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER tr_ii_cls_tree INSTEAD OF INSERT ON cls_tree FOR EACH ROW EXECUTE PROCEDURE ftg_ins_cls_tree();
+---------------------------------------------------------------------------------------------------
+-- тригер редактирования класса
+---------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS ftg_upd_cls_tree() CASCADE;
+CREATE FUNCTION ftg_upd_cls_tree() RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.id<>OLD.id THEN
+    RAISE EXCEPTION ' %: can`t change id',TG_NAME;
+  END IF;
+  UPDATE cls SET title=NEW.title, note=NEW.note WHERE id=NEW.id;
+  CASE NEW.kind 
+   WHEN 0 THEN UPDATE cls_abstr SET pid=NEW.pid; NEW.measure:=NULL;
+   WHEN 1 THEN UPDATE cls_num   SET pid=NEW.pid; NEW.measure:=NULL;
+   WHEN 2 THEN UPDATE cls_qtyi  SET pid=NEW.pid; NEW.measure:=NULL;
+   WHEN 3 THEN UPDATE cls_qtyf  SET pid=NEW.pid, measure=NEW.measure ;
+   ELSE RAISE EXCEPTION ' %: wrong kind %',TG_NAME,NEW.kind ;
+  END CASE;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER tr_iu_cls_tree INSTEAD OF UPDATE ON cls_tree FOR EACH ROW EXECUTE PROCEDURE ftg_upd_cls_tree();
+---------------------------------------------------------------------------------------------------
+-- тригер удаления класса
+---------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS ftg_del_cls_tree() CASCADE;
+CREATE FUNCTION ftg_del_cls_tree() RETURNS TRIGGER AS $$
+BEGIN
+  DELETE FROM cls WHERE id = OLD.id;
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER tr_id_cls_tree INSTEAD OF DELETE ON cls_tree FOR EACH ROW EXECUTE PROCEDURE ftg_del_cls_tree();
+
+/*
+DROP RULE rl_id_cls_tree ON cls_tree;
+CREATE RULE rl_id_cls_tree AS 
+ ON DELETE TO cls_tree
+ DO INSTEAD
+ DELETE FROM cls WHERE id = OLD.id;
+*/
 
 
+---------------------------------------------------------------------------------------------------
+PRINT '';
+PRINT '- Вставка тестовых классов и объектов';
+PRINT '';
+---------------------------------------------------------------------------------------------------
+
+INSERT INTO cls_tree(id,pid,title,kind) VALUES (0,0,'nullClsRoot',0);
+INSERT INTO cls_tree(id,pid,title,kind) VALUES (1,0,'AbstrClsRoot',0);
+INSERT INTO cls_tree(id,pid,title,kind) VALUES (2,1,'RootNumType',1);
+
+--INSERT INTO cls_abstr(id,pid,title)   VALUES (0,0,'nullClsRoot');
+--INSERT INTO cls_abstr(id,pid,title)   VALUES (1,0,'AbstrClsRoot');
+--INSERT INTO cls_num  (id,pid,title)   VALUES (2,1,'RootNumType');
 
 
+INSERT INTO obj_num(id,pid,title,cls_id)VALUES (0,0,'nullNumRoot',2);
+INSERT INTO obj_num(id,pid,title,cls_id)VALUES (1,0,'RootObj',2);
+INSERT INTO act (id, title) VALUES (0, 'Move');
 
-
-delete from cls_tree WHERE id>5000;
+/*
+delete from cls_abstr WHERE id>5000;
 delete from cls_num WHERE id>5000;
 delete from cls_qtyi WHERE id>5000;
 delete from cls_qtyf WHERE id>5000;
 
 delete from obj WHERE id>5000;
 
-INSERT INTO cls_num(id,title)         VALUES (10000,'clsn10000');
-INSERT INTO cls_qtyi(id,title)        VALUES (10001,'clsi10001');
-INSERT INTO cls_qtyf(id,title)        VALUES (10000,'clsqf10000');
+INSERT INTO cls_num(id,title,pid)         VALUES (10000,'clsn10000',1);
+INSERT INTO cls_qtyi(id,title,pid)        VALUES (10001,'clsi10001',1);
+INSERT INTO cls_qtyf(id,title,pid)        VALUES (10000,'clsqf10000',1);
 
 
 INSERT INTO obj_num(id,title,cls_id,pid) VALUES (10000,'objnum10000',10000,1);
-INSERT INTO obj_qtyi(id,title,cls_id)    VALUES (10001,'objqtyi10001',10001);
-INSERT INTO obj_qtyi(id,title,cls_id)    VALUES (10000,'objqtyi10000',10000);
+INSERT INTO obj_names_qtyi(id,title,cls_id)    VALUES (10001,'objqtyi10001',10001);
+INSERT INTO obj_names_qtyi(id,title,cls_id)    VALUES (10000,'objqtyi10000',10000);
 
 
+INSERT INTO obj_num(title,cls_id,pid) VALUES ('objnum10001',10000,1);
+INSERT INTO obj_num(title,cls_id,pid) VALUES ('objnum10002',10000,1);
+INSERT INTO obj_num(title,cls_id,pid) VALUES ('objnum10003',10000,1);
+*/
 
-/*
+
 ---------------------------------------------------------------------------------------------------
-DECLARE @clstitle, @qty, @pid ;
---SET @qty= 400;
+PRINT '';
+PRINT '- Вставка тестовых свойств';
+PRINT '';
+---------------------------------------------------------------------------------------------------
+/*
+DECLARE @prop_qty ;
+SET @prop_qty= 10;
+WHILE (@prop_qty > 0)
+BEGIN
+  INSERT INTO prop(title, kind)VALUES ('TestProp@prop_qty', 0);
+  SET @prop_qty=@prop_qty-1;
+END
+*/
+
+
+---------------------------------------------------------------------------------------------------
+DECLARE @clstitle, @qty, @pid, @cnumid, @cqtyiid, @cqtyfid , @oqtyiid, @oqtyfid, @opid ;
+SET @opid= 1;
+SET @pid= 1;
 SET @qty= 10;
+--SET @qty= 10;
 
 WHILE (@qty > 0)
 BEGIN
-  SET @pid = INSERT INTO cls_tree(title) VALUES ('clsa@qty') RETURNING id;
-  INSERT INTO cls_num(title,pid)         VALUES ('clsn@qty',  @pid);
-  INSERT INTO cls_qtyi(title,pid)        VALUES ('clsqi@qty', @pid);
-  INSERT INTO cls_qtyf(title,pid,measure)VALUES ('clsqf@qty', @pid, '(mes.)');
+  SET @pid =     INSERT INTO cls_tree(pid,title,kind) VALUES (@pid,'clsa@qty',0)RETURNING id;
+  SET @cnumid =  INSERT INTO cls_tree(pid,title,kind) VALUES (@pid,'clsn@qty',1)RETURNING id;
+  SET @cqtyiid = INSERT INTO cls_tree(pid,title,kind) VALUES (@pid,'clsqi@qty',2)RETURNING id;
+  SET @cqtyfid = INSERT INTO cls_tree(pid,title,kind,measure) VALUES (@pid,'clsqf@qty',3, 'mes.')RETURNING id;
+
+  SET @opid = INSERT INTO obj_num(title,cls_id,pid)        VALUES ( 'objnum@cnumid',  @cnumid,@opid)RETURNING id;
+  SET @oqtyiid = INSERT INTO obj_names_qtyi(title,cls_id) VALUES ('objqtyi@cqtyiid', @cqtyiid)RETURNING id;
+  SET @oqtyfid = INSERT INTO obj_names_qtyf(title,cls_id) VALUES ('objqtyf@cqtyfid', @cqtyfid)RETURNING id;
+
+  INSERT INTO obj_details_qtyi(objqty_id, pid, qty) VALUES (@oqtyiid, @opid, 1);
+  INSERT INTO obj_details_qtyf(objqty_id, pid, qty) VALUES (@oqtyfid, @opid, 1);
+
+
 
   SET @qty=@qty-1;
 END
 VACUUM FULL ANALYSE ;
-*/
+
 
 
 SELECT * FROM cls_all WHERE measure = 'шт.';
 
 
-SELECT * FROM cls_all WHERE pid between 0 and 110;
+SELECT * FROM cls_tree WHERE pid between 0 and 110;
 
 
-SELECT * FROM cls WHERE id between 104 and 118;
+SELECT * FROM cls_real WHERE id between 104 and 118;
 
 
-SELECT * FROM cls_all WHERE pid = 0 OR pid<110;
+SELECT * FROM ONLY cls_abstr WHERE pid = 1;
 
 
 

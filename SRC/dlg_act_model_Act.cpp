@@ -63,10 +63,9 @@ void Act::DoAct()
 		if (prop)
 		{
 			auto propData = prop->GetData();
-			wxString val = propData.mVal.IsEmpty() ? "NULL" : propData.mVal;
 
-
-			propdata += wxString::Format("{%s,%s}", propData.mProp.mLabel, val);
+			propdata += wxString::Format("{%s,%s}", 
+				propData.mProp.mLabel.toStr(), propData.mVal.SqlVal());
 			if (propQty - 1!= i )
 				propdata += ",";
 		}

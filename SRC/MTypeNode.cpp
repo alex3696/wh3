@@ -29,11 +29,10 @@ bool MTypeItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t
 {
 	T_Data data;
 	table->GetAsString(0, row, data.mLabel);
-	table->GetAsString(1, row, mQty);
-	table->GetAsString(2, row, data.mID);
-	table->GetAsString(3, row, data.mType);
-	table->GetAsString(4, row, data.mMeasure);
-	table->GetAsString(5, row, data.mDefaultPid);
+	table->GetAsString(1, row, data.mID);
+	table->GetAsString(2, row, data.mType);
+	table->GetAsString(3, row, data.mMeasure);
+	table->GetAsString(4, row, mQty);
 	SetData(data);
 	return true;
 };
@@ -187,23 +186,34 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 	if (catalog->mCfg->GetData().mObjCatalog)
 	{
 		query = wxString::Format(
-			"SELECT cls_label, COALESCE(SUM(qty),0), "
-			"cls_id,  type, measurename, cls_default_pid "
-			" FROM w_obj "
-			" WHERE obj_pid = %s "
-			" GROUP BY cls_label, cls_id, type, measurename, cls_default_pid"
+			"SELECT r.title, r.id, r.kind, r.measure, osum.qty "
+			" FROM cls_real r "
+			" RIGHT JOIN(SELECT COALESCE(SUM(qty), 0) AS qty, cls_id "
+			" FROM obj_tree o "
+			" WHERE o.pid = %s "
+			" o.id>99"
+			" GROUP BY o.cls_id) osum ON osum.cls_id = r.id "
 			, root.mObj.mID );
 		return true;
 	}
 	else
 	{
 		query = wxString::Format(
-			"SELECT t_cls.label, COALESCE(SUM(w_obj.qty),0), t_cls.id, t_cls.type, "
-			"t_cls.measurename, t_cls.default_pid "
-			" FROM t_cls "
-			" LEFT JOIN w_obj ON w_obj.cls_id = t_cls.id "
-			" WHERE t_cls.pid = %s "
-			" GROUP BY t_cls.id "
+			" SELECT t.title, t.id, t.kind, t.measure "
+			" ,(SELECT COALESCE(SUM(qty), 0) "
+			"     FROM obj_tree o WHERE t.id = o.cls_id GROUP BY o.cls_id)  AS qty "
+			" FROM cls_tree t "
+			" WHERE t.pid = %s"
+			" AND id > 99 "
+			/*
+			"SELECT t.title, osum.qty, t.id, t.kind, t.measure "
+			" FROM cls_tree t "
+			" LEFT JOIN(SELECT COALESCE(SUM(qty), 0) AS qty, cls_id "
+			" FROM obj_tree o "
+			" GROUP BY o.cls_id) osum ON osum.cls_id = t.id "
+			" WHERE t.pid = %s "
+			" AND t.id > 99 "
+			*/
 			, root.mCls.mID );
 		return true;
 
@@ -214,3 +224,27 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 }
 
 
+/*
+SELECT t.title, osum.qty, t.id, t.kind, t.measure , t.pid
+FROM cls_tree t
+RIGHT   JOIN LATERAL
+(
+SELECT COALESCE(count(*), 0) AS qty, n.cls_id
+FROM obj_num n
+WHERE cls_id IN (SELECT id FROM cls_num WHERE pid = 100 AND id > 99)
+GROUP BY n.cls_id
+UNION ALL
+SELECT COALESCE(SUM(qty), 0) AS qty, cls_id
+FROM ONLY obj_names_qtyi n
+LEFT JOIN obj_details_qtyi d ON n.id=objqty_id
+WHERE cls_id IN (SELECT id FROM cls_qtyi WHERE pid = 100 AND id > 99)
+GROUP BY n.cls_id
+UNION ALL
+SELECT COALESCE(SUM(qty), 0) AS qty, cls_id
+FROM ONLY obj_names_qtyf n
+LEFT JOIN obj_details_qtyf d ON n.id=objqty_id
+WHERE cls_id IN (SELECT id FROM cls_qtyf WHERE pid = 100 AND id > 99)
+GROUP BY n.cls_id
+
+) osum ON osum.cls_id = t.id
+*/

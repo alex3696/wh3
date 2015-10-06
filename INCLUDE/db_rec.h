@@ -141,7 +141,6 @@ public:
 		//SetNull();
 		mVal = (tocopy.mVal) ? new long(*tocopy.mVal) : nullptr;
 	}
-	
 	operator wxString() const
 	{
 		if (mVal)
@@ -159,7 +158,10 @@ public:
 	{
 		return this->operator wxString();
 	}
-	
+	inline wxString toStr()const
+	{
+		return operator wxString();
+	}
 	SqlLong& operator=(const long&     rv)
 	{
 		if (mVal)
@@ -188,8 +190,74 @@ public:
 			SetNull();
 		return *this;
 	}
-
 	bool operator==(const SqlLong& rv)const
+	{
+		return (mVal && rv.mVal) ? *mVal == *rv.mVal : false;
+	}
+	bool operator==(const wxString& rv)const
+	{
+		return (*this == SqlLong(rv));
+	}
+	inline bool IsNull()const	{ return mVal ? true : false; }
+	inline void SetNull()		{ delete mVal; mVal = nullptr; }
+	//inline bool IsEmpty()const	{ return mVal ? true : false; }
+	//inline void Clear()			{ delete mVal; mVal = nullptr; }
+private:
+	long* mVal;
+};
+//-----------------------------------------------------------------------------
+class SqlString : public SqlData
+{
+public:
+	SqlString() :mVal(nullptr){}
+	~SqlString(){ delete mVal; }
+	SqlString(const wxString& rv)
+		:mVal(new wxString(rv))
+	{}
+	SqlString(const SqlString&  tocopy)
+	{
+		mVal = (tocopy.mVal) ? new wxString(*tocopy.mVal) : nullptr;
+	}
+	operator wxString() const
+	{
+		if (mVal)
+			return *mVal;
+		//wxLog BOOST_THROW_EXCEPTION(error() << wxstr("data is null"));
+		return wxEmptyString;
+	}
+	virtual wxString SqlVal()const override
+	{
+		return (mVal) ? wxString::Format("'%s'", *mVal) : wxString("NULL");
+	}
+
+	inline wxString toStr()const
+	{
+		return operator wxString();
+	}
+
+
+	SqlString& operator=(const wxString& rv)
+	{
+		if (!rv.IsEmpty())
+		{
+			if (mVal)
+				*mVal = rv;
+			else
+				mVal = new wxString(rv);
+		}
+		else
+			SetNull();
+		return *this;
+	}
+	SqlString& operator=(const SqlString&  rv)
+	{
+		if (rv.mVal)
+			return operator=(*rv.mVal);
+		else
+			SetNull();
+		return *this;
+	}
+	bool operator==(const SqlString& rv)const
 	{
 		return (mVal && rv.mVal) ? *mVal == *rv.mVal : false;
 	}
@@ -199,7 +267,7 @@ public:
 	//inline bool IsEmpty()const	{ return mVal ? true : false; }
 	//inline void Clear()			{ delete mVal; mVal = nullptr; }
 private:
-	long* mVal;
+	wxString* mVal;
 };
 
 
@@ -216,7 +284,7 @@ struct Base
 		:mId(id), mLabel(label)
 	{}
 	SqlLong		mId;
-	wxString	mLabel;
+	SqlString	mLabel;
 
 	inline bool operator == (const rec::Base& b)const
 	{
@@ -314,17 +382,18 @@ struct ObjTitle
 };
 //-----------------------------------------------------------------------------
 /// Информация о свойстве действия - запись из БД 
-struct Prop
+struct Prop: public Base
 {
 	struct error : virtual exception_base {};
 
-	wxString	mID;
-	wxString	mLabel;	
+	//wxString	mID;
+	//wxString	mLabel;	
 	wxString	mType = L"0";
 
 	Prop(){}
 	Prop(const wxString& label, const wxString& type = L"0")
-		:mLabel(label), mType(type)
+		//:mLabel(label), mType(type)
+		:Base(wxEmptyString,label), mType(type)
 	{}
 
 
@@ -377,7 +446,7 @@ class PropVal
 {
 public:
 	Prop		mProp;
-	wxString	mVal;
+	SqlString	mVal;
 };
 
 //-----------------------------------------------------------------------------
@@ -387,7 +456,7 @@ class ClsProp : public PropVal
 public:
 	//Prop		mProp;
 	//wxString	mVal;
-	wxString	mID;
+	SqlLong	mId;
 
 };
 
@@ -397,7 +466,7 @@ class ActProp final
 {
 public:
 	Prop		mProp;
-	wxString	mID;
+	SqlLong	mId;
 
 };
 

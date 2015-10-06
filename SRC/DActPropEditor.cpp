@@ -60,7 +60,7 @@ void DActPropEditor::OnChangeModel(const IModel* model, const T_Model::T_Data* d
 			if (prop)
 			{
 				const rec::Prop& propData = prop->GetData();
-				if (propData.mID == actPropData.mID)
+				if (propData.mId == actPropData.mId)
 					break;
 			}
 				

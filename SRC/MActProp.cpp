@@ -29,7 +29,7 @@ bool MActProp::GetSelectQuery(wxString& query)const
 		"SELECT ref_act_prop.id, prop_title FROM ref_act_prop "
 		" LEFT JOIN prop ON prop.id = ref_act_prop.prop_id "
 		" WHERE id = %s",
-		data.mID);
+		data.mId.SqlVal());
 	return true;
 }
 //-------------------------------------------------------------------------
@@ -45,7 +45,7 @@ bool MActProp::GetInsertQuery(wxString& query)const
 
 		query = wxString::Format("INSERT INTO ref_act_prop (prop_id, act_id) "
 			"VALUES (%s, %s) RETURNING id, prop_id",
-			prop.mProp.mID, act.mID);
+			prop.mProp.mId.SqlVal(), act.mID);
 		return true;
 	}
 	return false;
@@ -64,8 +64,8 @@ bool MActProp::GetUpdateQuery(wxString& query)const
 		query = wxString::Format("UPDATE ref_act_prop SET "
 								"prop_id='%s', act_id='%s' "
 								"WHERE id = %s ",
-								prop.mProp.mID, act.mID,
-								prop.mID);
+								prop.mProp.mId.SqlVal(), act.mID,
+								prop.mId.SqlVal() );
 		return true;
 	}
 	return false;
@@ -82,7 +82,7 @@ bool MActProp::GetDeleteQuery(wxString& query)const
 		auto act = parentAct->GetData();
 
 		query = wxString::Format("DELETE FROM ref_act_prop WHERE id = %s ",
-								prop.mID );
+								prop.mId.SqlVal() );
 		return true;
 	}
 	return false;
@@ -91,9 +91,9 @@ bool MActProp::GetDeleteQuery(wxString& query)const
 bool MActProp::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 {
 	T_Data data;
-	table->GetAsString(0, row, data.mID);
-	table->GetAsString(1, row, data.mProp.mLabel);
-	table->GetAsString(2, row, data.mProp.mID);
+	data.mId = table->GetAsString(0, row);
+	data.mProp.mLabel = table->GetAsString(1, row);
+	data.mProp.mId = table->GetAsLong(2, row);
 	SetData(data);
 	return true;
 };
@@ -107,8 +107,8 @@ bool MActProp::GetFieldValue(unsigned int col, wxVariant &variant)
 	default:break;
 	case 1:	variant = variant << wxDataViewIconText(data.mProp.mLabel, mgr->m_ico_classprop24);
 			break;
-	case 2:	variant = data.mID;			break;
-	case 3:	variant = data.mProp.mID;	break;
+	case 2:	variant = data.mId.toStr();			break;
+	case 3:	variant = data.mProp.mId.toStr();	break;
 	}//switch(col) 
 	return true;
 }

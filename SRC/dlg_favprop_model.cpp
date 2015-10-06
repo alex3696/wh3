@@ -23,8 +23,8 @@ void FavPropItem::LoadChilds()
 bool FavPropItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 {
 	T_Data data;
-	table->GetAsString(0, row, data.mID);
-	table->GetAsString(1, row, data.mLabel);
+	data.mId = table->GetAsLong(0, row);
+	data.mLabel = table->GetAsString(1, row);
 	table->GetAsString(2, row, data.mType);
 	data.mSelected = !(table->GetAsString(3, row).IsEmpty());
 	SetData(data);
@@ -94,13 +94,13 @@ bool FavPropItem::GetUpdateQuery(wxString& query)const
 		" INSERT INTO t_favorite_prop(prop_id, cls_id, act_id) "
 		"    SELECT upd.prop_id, upd.cls_id, upd.act_id  FROM upd "
 		, cls.mID
-		, this->GetData().mID);
+		, this->GetData().mId.SqlVal());
 	else
 		query = wxString::Format(
 		"DELETE FROM t_favorite_prop "
 		" WHERE cls_id = %s AND prop_id = %s AND user_label = CURRENT_USER "
 		, cls.mID
-		, prop_data.mID);
+		, prop_data.mId.SqlVal());
 	
 	return true;
 }

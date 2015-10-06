@@ -213,20 +213,22 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 
 		wxString leftJoin;
 		
+		/*
 		if ("1" != typeItemData.mID && "1" == typeItemData.mType)
 			leftJoin =wxString::Format(
-				" LEFT JOIN t_state_%s USING(obj_id) "
+				" LEFT JOIN log_act_%s USING(obj_id) "
 				, typeItemData.mID
 				);
+		*/
 
 		if (catalogModel->mCfg->GetData().mObjCatalog)
 		{
 			query = wxString::Format(
-				"SELECT w_obj.obj_id, obj_pid, w_obj.label, qty "
-				", last_log_id, NULL AS path %s "
-				" FROM w_obj "
+				" SELECT o.id, o.pid, o.title, o.qty "
+				" , move_logid, NULL AS path %s "
+				" FROM obj_tree o "
 				" %s "
-				" WHERE obj_pid = %s AND w_obj.cls_id = %s "
+				" WHERE o.pid = %s AND o.cls_id = %s "
 				, qq
 				, leftJoin
 				, catalogData.mObj.mID
@@ -237,11 +239,11 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 		else
 		{
 			query = wxString::Format(
-				"SELECT w_obj.obj_id, obj_pid, w_obj.label, qty "
-				 ", last_log_id, get_path( obj_pid) %s "
-				" FROM w_obj "
+				"SELECT o.id, o.pid, o.title, o.qty "
+				" , move_logid, get_path(o.pid)  AS path %s "
+				" FROM obj_tree o "
 				" %s "
-				" WHERE w_obj.cls_id = %s "
+				" WHERE o.cls_id = %s "
 				, qq
 				, leftJoin
 				, typeItemData.mID

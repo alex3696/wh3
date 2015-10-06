@@ -66,7 +66,7 @@ void DPropEditor::GetData(rec::Prop& rec) const
 
 	rec.mLabel = mPropGrid->GetPropertyByLabel("Èìÿ")->GetValueAsString();
 	rec.mType = wxString::Format("%d", mPropGrid->GetPropertyByLabel("Òèï")->GetChoiceSelection());
-	rec.mID = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
+	rec.mId = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
 }
 //---------------------------------------------------------------------------
 void DPropEditor::SetData(const rec::Prop& rec)
@@ -79,7 +79,7 @@ void DPropEditor::SetData(const rec::Prop& rec)
 	rec.mType.ToULong(&sel);
 	mPropGrid->GetPropertyByLabel(L"Òèï")->SetChoiceSelection(sel);
 
-	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(rec.mID);
+	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(rec.mId.toStr());
 }
 //-----------------------------------------------------------------------------
 void DPropEditor::SetModel(std::shared_ptr<IModel>& newModel)

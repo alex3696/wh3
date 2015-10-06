@@ -34,11 +34,10 @@ bool MObjCatalog::GetSelectQuery(wxString& query)const
 		if (data.mObj.mID.empty())
 			return false;
 		query = wxString::Format(
-			"SELECT t_objnum.id, t_objnum.label, t_objnum.pid "
-			"      ,t_cls.id,    t_cls.label, t_cls.pid "
-			"FROM t_objnum "
-			"LEFT JOIN t_cls ON t_cls.id = t_objnum.id "
-			"WHERE t_objnum.id = %s "
+			" SELECT o.id, o.title, o.pid, t.id, t.title, t.pid "
+			" FROM obj_tree o "
+			" LEFT JOIN cls_tree t ON t.id = o.cls_id "
+			" WHERE o.id = %s "
 			, data.mObj.mID
 			);
 		
@@ -50,8 +49,8 @@ bool MObjCatalog::GetSelectQuery(wxString& query)const
 		if (data.mCls.mID.empty())
 			return false;
 		query = wxString::Format(
-			"SELECT NULL,NULL, NULL, id, label  , pid "
-			" FROM t_cls "
+			"SELECT NULL,NULL, NULL, id, title  , pid "
+			" FROM cls_tree "
 			" WHERE id=%s "
 			, data.mCls.mID
 			);

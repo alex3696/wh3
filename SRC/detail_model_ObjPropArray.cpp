@@ -13,10 +13,10 @@ ObjProp::ObjProp(const char option)
 bool ObjProp::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 {
 	T_Data data;
-	table->GetAsString(0, row, data.mProp.mID);
-	table->GetAsString(1, row, data.mProp.mLabel);
+	data.mProp.mId = table->GetAsLong(0, row);
+	data.mProp.mLabel = table->GetAsString(1, row);
 	table->GetAsString(2, row, data.mProp.mType);
-	table->GetAsString(3, row, data.mVal);
+	data.mVal = table->GetAsString(3, row);
 	SetData(data);
 	return true;
 };

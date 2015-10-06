@@ -55,7 +55,7 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 	OnShowLoginWnd();
 	
 
-	
+	/*
 	m_wndFavorites = new wh::favorites::Panel(this);
 
 	m_AuiMgr.AddPane(m_wndFavorites,wxAuiPaneInfo().
@@ -72,6 +72,7 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 	
 	
 	OnShowFavorites();
+	*/
 	
 
 	//DoMenuPreferences();
