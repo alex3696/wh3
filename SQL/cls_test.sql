@@ -946,77 +946,6 @@ $BODY$ LANGUAGE sql IMMUTABLE;
 --SELECT * FROM fn_array1_to_table('{101,102,103,104}'::int[]);
 
 
-/*
----------------------------------------------------------------------------------------------------
--- функция поиска корня дерева наследования
----------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS get_inherit_root(IN _name NAME) CASCADE;
-CREATE OR REPLACE FUNCTION get_inherit_root(IN _name NAME) 
-    RETURNS NAME
-    AS $BODY$ 
-WITH RECURSIVE parents AS (
-  SELECT 1 AS idx,inhrelid, inhparent 
-    ,ARRAY[ t.inhrelid ] AS path
-    FROM pg_inherits AS t 
-    WHERE t.inhrelid=(SELECT oid FROM pg_class WHERE relname=_name)
-  UNION ALL
-    SELECT p.idx+1 AS idx,t.inhrelid, t.inhparent 
-    ,path || ARRAY[t.inhrelid]
-    FROM parents AS p, pg_inherits AS t 
-    WHERE t.inhrelid=p.inhparent 
-  )
-  SELECT relname FROM parents 
- LEFT JOIN pg_class ON pg_class.oid=parents.inhparent
- ORDER BY idx desc LIMIT 1
- $BODY$ LANGUAGE sql STABLE;
-
-SELECT * FROM get_inherit_root('prop_num');
----------------------------------------------------------------------------------------------------
--- функция поиска корня дерева наследования и проверки идентификатора
----------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS ftr_bi_uid() CASCADE;
-CREATE OR REPLACE FUNCTION ftr_bi_uid()  RETURNS trigger AS
-$body$
-DECLARE
-  _root_table NAME;
-  _id BIGINT;
-BEGIN
-  --_root_table:=quote_ident(SUBSTRING(TG_TABLE_NAME, '^[[:alnum:]]+'));
-  _root_table:=quote_ident(get_inherit_root(TG_TABLE_NAME));
-  
-  EXECUTE 'SELECT id FROM '||_root_table||' WHERE id = '||NEW.id INTO _id|| ' OR title='||NEW.title; 
-  IF _id IS NOT NULL THEN
-    RAISE EXCEPTION '%: Unique id(%) for tables %_XXX',TG_NAME,NEW.id, _root_table;
-  END IF;
-RETURN NEW;
-END;
-$body$
-LANGUAGE 'plpgsql';
-
-
-CREATE TRIGGER tr_bi_cls_abstr BEFORE INSERT ON cls_abstr FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-CREATE TRIGGER tr_bi_cls_num  BEFORE INSERT ON cls_num  FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-CREATE TRIGGER tr_bi_cls_qtyi BEFORE INSERT ON cls_qtyi FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-CREATE TRIGGER tr_bi_cls_qtyf BEFORE INSERT ON cls_qtyf FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-
-CREATE TRIGGER tr_bi_prop_num  BEFORE INSERT ON prop_num  FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-CREATE TRIGGER tr_bi_prop_qtyi BEFORE INSERT ON prop_qtyi FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-CREATE TRIGGER tr_bi_prop_qtyf BEFORE INSERT ON prop_qtyf FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-
-CREATE TRIGGER tr_bi_obj_num  BEFORE INSERT ON obj_num FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-CREATE TRIGGER tr_bi_objnames_qtyi BEFORE INSERT ON obj_names_qtyi FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-CREATE TRIGGER tr_bi_objnames_qtyf BEFORE INSERT ON obj_names_qtyf FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-
-CREATE TRIGGER tr_bi_perm_act       BEFORE INSERT ON perm_act       FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-CREATE TRIGGER tr_bi_perm_move_num  BEFORE INSERT ON perm_move_num  FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-CREATE TRIGGER tr_bi_perm_move_qtyi BEFORE INSERT ON perm_move_qtyi FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-CREATE TRIGGER tr_bi_perm_move_qtyf BEFORE INSERT ON perm_move_qtyf FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-
-CREATE TRIGGER tr_bi_log_move_num   BEFORE INSERT ON log_move_num   FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-CREATE TRIGGER tr_bi_log_move_qtyi  BEFORE INSERT ON log_move_qtyi  FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-CREATE TRIGGER tr_bi_log_move_qtyf  BEFORE INSERT ON log_move_qtyf  FOR EACH ROW EXECUTE PROCEDURE ftr_bi_uid();
-*/
-
 ---------------------------------------------------------------------------------------------------
 -- тригер создания класса
 ---------------------------------------------------------------------------------------------------
@@ -1087,11 +1016,6 @@ PRINT '';
 INSERT INTO cls_tree(id,pid,title,kind) VALUES (0,0,'nullClsRoot',0);
 INSERT INTO cls_tree(id,pid,title,kind) VALUES (1,0,'AbstrClsRoot',0);
 INSERT INTO cls_tree(id,pid,title,kind) VALUES (2,1,'RootNumType',1);
-
---INSERT INTO cls_abstr(id,pid,title)   VALUES (0,0,'nullClsRoot');
---INSERT INTO cls_abstr(id,pid,title)   VALUES (1,0,'AbstrClsRoot');
---INSERT INTO cls_num  (id,pid,title)   VALUES (2,1,'RootNumType');
-
 
 INSERT INTO obj_num(id,pid,title,cls_id)VALUES (0,0,'nullNumRoot',2);
 INSERT INTO obj_num(id,pid,title,cls_id)VALUES (1,0,'RootObj',2);
