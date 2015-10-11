@@ -289,7 +289,7 @@ void MainFrame::CreateObjCatalog(const wxString& _objclass,const wxString& _objn
 	wh::rec::PathItem root;
 	root.mCls.mID = "1";
 	root.mCls.mLabel = "Object";
-	root.mObj.mID = "1";
+	root.mObj.mId = "1";
 	root.mObj.mLabel = "Object0";
 
 	node->SetData(root);

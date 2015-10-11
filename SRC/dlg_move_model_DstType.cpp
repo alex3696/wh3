@@ -37,9 +37,9 @@ bool DstType::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t r
 	dst_cls.mLabel = table->GetAsString(1, row);
 	
 	DstObj::DataType dst_obj;
-	dst_obj.mID = table->GetAsString(2, row);
+	dst_obj.mId = table->GetAsString(2, row);
 	dst_obj.mLabel = table->GetAsString(3, row);
-	dst_obj.mPID = ObjArrayToPath(table->GetAsString(4, row));
+	dst_obj.mParent.mId = ObjArrayToPath(table->GetAsString(4, row));
 
 	auto dstObjModel = std::make_shared<DstObj>();
 	dstObjModel->SetData(dst_obj);
@@ -77,8 +77,8 @@ bool DstTypeArray::GetSelectChildsQuery(wxString& query)const
 		" LEFT JOIN t_cls cls ON cls.id = _dst_cls_id "
 		" ORDER BY _dst_cls_id "
 		, movable.mCls.mID.SqlVal()
-		, movable.mObj.mID
-		, movable.mObj.mPID
+		, movable.mObj.mId.SqlVal()
+		, movable.mObj.mParent.mId.SqlVal()
 		);
 	return true;
 }
@@ -100,9 +100,9 @@ bool DstTypeArray::LoadChildDataFromDb(std::shared_ptr<IModel>& child,
 	{
 		DstObj::DataType dst_obj;
 
-		dst_obj.mID = table->GetAsString(2, pos);
+		dst_obj.mId = table->GetAsString(2, pos);
 		dst_obj.mLabel = table->GetAsString(3, pos);
-		dst_obj.mPID = ObjArrayToPath(table->GetAsString(4, pos));
+		dst_obj.mParent.mId = ObjArrayToPath(table->GetAsString(4, pos));
 		
 		auto dstObjModel = std::make_shared<DstObj>();
 		dstObjModel->SetData(dst_obj,true);

@@ -403,8 +403,9 @@ void VObjCatalogCtrl::OnCmdUp(wxCommandEvent& evt)
 
 		if (mCatalogModel->mCfg->GetData().mObjCatalog)
 		{
-			if (rootObj.mObj.mPID.ToCULong(&pid) && 0 < pid)
-				new_root.mObj.mID = rootObj.mObj.mPID;
+			pid = rootObj.mObj.mParent.mId;
+			if (0 < pid)
+				new_root.mObj.mId = rootObj.mObj.mParent.mId;
 		}
 		else
 		{
@@ -440,7 +441,7 @@ void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 
 	detail::view::CtrlPnl* pnl = new detail::view::CtrlPnl(notebook);
 	main_farame->AddTab(pnl);
-	pnl->SetObject(cls_data.mID, obj_data.mID, obj_data.mPID);
+	pnl->SetObject(cls_data.mID, obj_data.mId, obj_data.mParent.mId);
 	
 }
 //-----------------------------------------------------------------------------
@@ -706,8 +707,8 @@ void VObjCatalogCtrl::OnActivated(wxDataViewEvent& evt)
 				if ("1" == typeData.mType )
 				{
 					const auto& objData = objItem->GetData();
-					new_root.mObj.mID = objData.mID;
-					new_root.mObj.mPID = objData.mPID;
+					new_root.mObj.mId = objData.mId;
+					new_root.mObj.mParent.mId = objData.mParent.mId;
 					new_root.mObj.mLabel = objData.mLabel;
 					new_root.mCls.mID = typeData.mID;
 					new_root.mCls.mLabel = typeData.mLabel;

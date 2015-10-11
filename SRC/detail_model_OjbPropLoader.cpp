@@ -79,7 +79,8 @@ bool ObjPropValLoader::GetSelectQuery(wxString& query)const
 		" WHERE obj_id = %s "
 		, prop_fields
 		, obj_data.mCls.mID.SqlVal()
-		, obj_data.mObj.mID);
+		, obj_data.mObj.mId.SqlVal() 
+		);
 
 	return true;
 }

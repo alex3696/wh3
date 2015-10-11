@@ -113,7 +113,7 @@ void CtrlPanel::OnActivated(wxDataViewEvent& evt)
 		if (objItem)
 		{
 			const auto& obj = objItem->GetData();
-			mov_data.mObj.mPID = obj.mID;
+			mov_data.mObj.mParent.mId = obj.mId;
 			mMovable->SetData(mov_data);
 			mMovable->Save();
 		}

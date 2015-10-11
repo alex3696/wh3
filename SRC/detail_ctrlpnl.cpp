@@ -189,8 +189,8 @@ void CtrlPnl::UpdateTab()
 
 	const wxString lbl = wxString::Format("[%s]%s (%s %s)"
 		, main_detail.mCls.mLabel.toStr()
-		, main_detail.mObj.mLabel
-		, main_detail.mObj.mQty
+		, main_detail.mObj.mLabel.toStr()
+		, main_detail.mObj.mQty.toStr()
 		, main_detail.mCls.mMeasure.toStr()
 		);
 	main_farame->UpdateTab(this, lbl, *ico);

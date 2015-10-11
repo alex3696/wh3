@@ -132,12 +132,12 @@ void Frame::OnChangeModel(const IModel* model, const object_catalog::MObjItem::T
 		if (catalog->mCfg->GetData().mObjCatalog)
 		{
 			mPGPath->SetValueFromString(mObj->GetPathString());
-			mPGPid->SetValueFromString(catalog->GetData().mObj.mID);
+			mPGPid->SetValueFromString(catalog->GetData().mObj.mId.toStr() );
 		}
 		else
 		{
 			rec::Obj tmp_obj_data;
-			tmp_obj_data.mPID = cls_data.mDefaultObjPid.mId;
+			tmp_obj_data.mParent.mId = cls_data.mDefaultObjPid.mId;
 			auto obj_model = std::make_shared<MObjItem>();
 			obj_model->SetData(tmp_obj_data);
 
@@ -156,7 +156,7 @@ void Frame::OnChangeModel(const IModel* model, const object_catalog::MObjItem::T
 	case msUpdated:	
 		SetTitle("Редактирование объекта");
 		mPGPath->SetValueFromString(mObj->GetPathString());
-		mPGPid->SetValueFromString(obj_data.mPID);
+		mPGPid->SetValueFromString(obj_data.mParent.mId.toStr() );
 		mPGPath->Enable(false);
 
 			
@@ -172,8 +172,8 @@ void Frame::GetData(object_catalog::MObjItem::T_Data& data) const
 	data.mLabel = mPropGrid->GetPropertyByLabel("Имя")->GetValueAsString();
 	data.mQty = mPGQty->GetValueAsString();
 	//data.mObj.??? = mPropGrid->GetPropertyByLabel("Путь")->GetValueAsString();
-	data.mID = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
-	data.mPID = mPropGrid->GetPropertyByLabel("PID")->GetValueAsString();
+	data.mId = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
+	data.mParent.mId = mPropGrid->GetPropertyByLabel("PID")->GetValueAsString();
 	
 
 }
@@ -183,7 +183,7 @@ void Frame::SetData(const object_catalog::MObjItem::T_Data& data)
 	mPropGrid->CommitChangesFromEditor();
 
 	mPropGrid->GetPropertyByLabel(L"Имя")->SetValueFromString(data.mLabel);
-	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(data.mID);
+	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(data.mId);
 	//mPropGrid->GetPropertyByLabel(L"PID")->SetValueFromString(data.mPID);
 }
 //---------------------------------------------------------------------------

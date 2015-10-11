@@ -21,11 +21,11 @@ bool MObjItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t 
 
 	unsigned int col = 0;
 
-	table->GetAsString(col++, row, data.mID);
-	table->GetAsString(col++, row, data.mPID);
-	table->GetAsString(col++, row, data.mLabel);
-	table->GetAsString(col++, row, data.mQty);
-	table->GetAsString(col++, row, data.mLastLogId);
+	data.mId = table->GetAsString(col++, row);
+	data.mParent.mId = table->GetAsString(col++, row);
+	data.mLabel = table->GetAsString(col++, row);
+	data.mQty = table->GetAsString(col++, row);
+	data.mLastMoveLogId = table->GetAsString(col++, row);
 
 	table->GetAsString(col++, row, mPath);
 	while (col < table->GetColumnCount())
@@ -94,8 +94,8 @@ bool MObjItem::GetInsertQuery(wxString& query)const
 	const auto& newObj = this->GetData();
 
 	wxString pid = "NULL";
-	if (!newObj.mPID.IsEmpty())
-		pid = newObj.mPID;
+	if (!newObj.mParent.mId.IsNull())
+		pid = newObj.mParent.mId;
 	else
 	{
 		if (cls.mDefaultObjPid.mId.IsNull())
@@ -109,11 +109,12 @@ bool MObjItem::GetInsertQuery(wxString& query)const
 	{
 		query = wxString::Format(
 			"INSERT INTO obj_tree( title, cls_id, pid, qty )"
-			" VALUES('%s', %s, %s, %s)"
-			, newObj.mLabel
+			" VALUES(%s, %s, %s, %s)"
+			, newObj.mLabel.SqlVal()
 			, cls.mID.SqlVal()
 			, pid
-			, newObj.mQty);
+			, newObj.mQty.SqlVal()
+			);
 		return true;
 	}
 	return false;
@@ -129,8 +130,8 @@ bool MObjItem::GetUpdateQuery(wxString& query)const
 	const auto& newObj = this->GetData();
 
 	wxString pid = "NULL";
-	if (!newObj.mPID.IsEmpty())
-		pid = newObj.mPID;
+	if (!newObj.mParent.mId.IsNull())
+		pid = newObj.mParent.mId;
 	else
 	{
 		if (cls.mDefaultObjPid.mId.IsNull())
@@ -145,10 +146,15 @@ bool MObjItem::GetUpdateQuery(wxString& query)const
 	{
 		query = wxString::Format(
 			"UPDATE obj_tree SET "
-			"       title='%s', pid=%s, qty=%s "
+			"       title=%s, pid=%s, qty=%s "
 			" WHERE id=%s AND cls_id=%s AND pid=%s "
-			, newObj.mLabel, newObj.mPID, newObj.mQty
-			, oldObj.mID, cls.mID.SqlVal(), oldObj.mPID);
+			, newObj.mLabel.SqlVal()
+			, newObj.mParent.mId.SqlVal()
+			, newObj.mQty.SqlVal()
+			, oldObj.mId.SqlVal()
+			, cls.mID.SqlVal()
+			, oldObj.mParent.mId.SqlVal()
+			);
 		return true;
 	}
 	return false;
@@ -170,7 +176,10 @@ bool MObjItem::GetDeleteQuery(wxString& query)const
 		query = wxString::Format(
 			"DELETE FROM obj_tree WHERE "
 			" id=%s AND cls_id=%s AND pid=%s "
-			, oldObj.mID, cls.mID.SqlVal(), oldObj.mPID);
+			, oldObj.mId.SqlVal()
+			, cls.mID.toStr()
+			, oldObj.mParent.mId.SqlVal()
+			);
 		return true;
 	}
 	return false;
@@ -222,7 +231,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 				" WHERE o.pid = %s AND o.cls_id = %s "
 				, qq
 				, leftJoin
-				, catalogData.mObj.mID
+				, catalogData.mObj.mId.toStr()
 				, typeItemData.mID.SqlVal()
 				);
 			return true;

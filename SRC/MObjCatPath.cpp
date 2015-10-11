@@ -20,8 +20,8 @@ bool MPathItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t
 	T_Data data;
 	if (table->GetColumnCount()>2)
 	{
-		table->GetAsString(0, row, data.mObj.mID);
-		table->GetAsString(1, row, data.mObj.mLabel);
+		data.mObj.mId = table->GetAsString(0, row);
+		data.mObj.mLabel = table->GetAsString(1, row);
 		data.mCls.mID = table->GetAsString(2, row );
 		data.mCls.mLabel = table->GetAsString(3, row);
 		SetData(data);
@@ -56,7 +56,7 @@ bool MPath::GetSelectChildsQuery(wxString& query)const
 			query = wxString::Format(
 				" SELECT _obj_id, _obj_title, _cls_id, _cls_title "
 				" FROM fget_objnum_pathinfo_table(%s)"
-				, data.mObj.mID
+				, data.mObj.mId.SqlVal()
 				);
 			return true;
 		}
@@ -92,7 +92,7 @@ wxString MPath::GetPathStr()const
 		{
 			str_path += wxString::Format("[%s]%s/"
 				, node->GetData().mCls.mLabel.toStr()
-				, node->GetData().mObj.mLabel);
+				, node->GetData().mObj.mLabel.toStr() );
 		}
 		else
 		{
@@ -167,8 +167,8 @@ ObjPathItem::ObjPathItem(const char option)
 bool ObjPathItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 {
 	T_Data data;
-	table->GetAsString(0, row, data.mObj.mID);
-	table->GetAsString(1, row, data.mObj.mLabel);
+	data.mObj.mId = table->GetAsString(0, row);
+	data.mObj.mLabel = table->GetAsString(1, row);
 	data.mCls.mID = table->GetAsString(2, row);
 	data.mCls.mLabel = table->GetAsString(3, row);
 	SetData(data);
@@ -188,7 +188,7 @@ bool ObjPath::GetSelectChildsQuery(wxString& query)const
 		query = wxString::Format(
 				" SELECT _obj_id, _obj_title, _cls_id, _cls_title "
 				" FROM fget_objnum_pathinfo_table(%s)"
-				, obj_data.mPID.IsEmpty() ? "0" : obj_data.mPID
+				, obj_data.mParent.mId.IsNull() ? "0" : obj_data.mParent.mId.toStr()
 				);
 		return true;
 	}
@@ -206,7 +206,7 @@ wxString ObjPath::AsString()const
 		auto node = std::dynamic_pointer_cast<ObjPathItem>(GetChild(i - 1));
 		str_path += wxString::Format("[%s]%s/"
 			, node->GetData().mCls.mLabel.toStr()
-			, node->GetData().mObj.mLabel);
+			, node->GetData().mObj.mLabel.toStr() );
 
 	}
 	return str_path;

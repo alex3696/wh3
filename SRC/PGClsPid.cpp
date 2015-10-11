@@ -224,9 +224,9 @@ void wxObjTitleProperty::RefreshChildren()
 	const wh_rec_ObjTitle& obj = wh_rec_ObjTitleRefFromVariant(m_value);
 	Item(0)->SetValue(WXVARIANT(obj.mLabel));
 	Item(1)->SetValue(WXVARIANT(obj.mQty));
-	Item(2)->SetValue(WXVARIANT(obj.mID));
+	Item(2)->SetValue(WXVARIANT(obj.mId));
 	Item(3)->SetValue(WXVARIANT(wh_rec_ObjParent(wxEmptyString, wxEmptyString, 
-		obj.mPID, wxEmptyString)));
+		obj.mParent.mId, wxEmptyString)));
 }
 //-----------------------------------------------------------------------------
 wxVariant wxObjTitleProperty::ChildChanged(wxVariant& thisValue,
@@ -240,8 +240,8 @@ wxVariant wxObjTitleProperty::ChildChanged(wxVariant& thisValue,
 	default: break;
 	case 0: obj.mLabel = childValue.GetString(); break;
 	case 1: obj.mQty = childValue.GetString(); break;
-	case 2: obj.mID = childValue.GetString(); break;
-	case 3: obj.mPID = wh_rec_ObjParentRefFromVariant(m_value).mObj.mId; break;
+	case 2: obj.mId = childValue.GetString(); break;
+	case 3: obj.mParent.mId = wh_rec_ObjParentRefFromVariant(m_value).mObj.mId; break;
 	}
 	wxVariant newVariant;
 	newVariant << obj;
@@ -254,9 +254,10 @@ wxString  wxObjTitleProperty::ValueToString(wxVariant &  value, int  argFlags)  
 	const auto& obj = wh_rec_ObjTitleRefFromVariant(value);
 
 	return wxString::Format("%s (кол-во %s) [%s]"
-		, obj.mLabel
-		, obj.mQty
-		, obj.mID);
+		, obj.mLabel.toStr()
+		, obj.mQty.toStr()
+		, obj.mId.toStr()
+		);
 }
 
 

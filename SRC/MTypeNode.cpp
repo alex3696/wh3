@@ -177,7 +177,7 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 			" WHERE o.pid = %s "
 			" AND o.id>99"
 			" GROUP BY o.cls_id) osum ON osum.cls_id = r.id "
-			, root.mObj.mID );
+			, root.mObj.mId.SqlVal() );
 		return true;
 	}
 	else

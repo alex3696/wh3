@@ -121,7 +121,7 @@ void Frame::OnForward(wxCommandEvent& evt)
 						wxString::Format("¬ведите данные дл€ выполнени€ '%s' c '%s %s'"
 						, mSelectedAct->GetData().mLabel
 						, mActObj->GetData().mCls.mLabel.toStr()
-						, mActObj->GetData().mObj.mLabel);
+						, mActObj->GetData().mObj.mLabel.toStr() );
 					mCaptionTxt->SetLabel(str);
 					mPnlPropGrid->SetModel(mSelectedAct->mPropArray);
 				}

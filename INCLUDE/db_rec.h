@@ -369,23 +369,16 @@ struct Cls
 /// Объект - основные метаданные 
 struct ObjTitle
 {
-	/*
-	SqlLong		mID;
-	SqlLong		mPID;
+	SqlLong		mId;
 	SqlString	mLabel;
+	Base		mParent;
 	SqlString	mQty;
 	SqlLong		mLastMoveLogId;
 	SqlLong		mLastActLogId;
-	*/
-	wxString	mID;
-	wxString	mPID;
-	wxString	mLabel;
-	wxString	mQty;
-	wxString	mLastLogId;
-	
+
 	ObjTitle(){}
 	ObjTitle(const wxString& id,const wxString& label)
-		: mID(id), mLabel(label)
+		: mId(id), mLabel(label)
 	{}
 	
 };

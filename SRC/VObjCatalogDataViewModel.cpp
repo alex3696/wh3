@@ -100,10 +100,10 @@ void VObjCatalogDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 		{
 		case 1:		val = obj.mLabel;	break;
 		case 2:		val = obj.mQty + " (" + typeItem->GetData().mMeasure.toStr() + ")"; break;
-		case 3:		val = obj.mID;			break;
-		case 4:		val = obj.mPID;			break;
-		case 5:		val = obj.mLastLogId;	break;
-		case 6:		val = objItem->mPath;	break;
+		case 3:		val = obj.mId;				break;
+		case 4:		val = obj.mParent.mId;		break;
+		case 5:		val = obj.mLastMoveLogId;	break;
+		case 6:		val = objItem->mPath;		break;
 		default:	if (obj.mProp.size() > (col - 7) )
 						val = obj.mProp[col - 7];
 					break;
