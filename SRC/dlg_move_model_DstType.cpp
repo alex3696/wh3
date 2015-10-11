@@ -33,8 +33,8 @@ bool DstType::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t r
 {
 	T_Data dst_cls;
 	dst_cls.mType = "1";
-	table->GetAsString(0, row, dst_cls.mID);
-	table->GetAsString(1, row, dst_cls.mLabel);
+	dst_cls.mID = table->GetAsString(0, row);
+	dst_cls.mLabel = table->GetAsString(1, row);
 	
 	DstObj::DataType dst_obj;
 	dst_obj.mID = table->GetAsString(2, row);
@@ -76,7 +76,7 @@ bool DstTypeArray::GetSelectChildsQuery(wxString& query)const
 		" FROM lock_for_move(%s,%s,%s) "
 		" LEFT JOIN t_cls cls ON cls.id = _dst_cls_id "
 		" ORDER BY _dst_cls_id "
-		, movable.mCls.mID
+		, movable.mCls.mID.SqlVal()
 		, movable.mObj.mID
 		, movable.mObj.mPID
 		);

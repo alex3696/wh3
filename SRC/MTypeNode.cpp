@@ -28,10 +28,10 @@ MTypeItem::MTypeItem(const char option)
 bool MTypeItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 {
 	T_Data data;
-	table->GetAsString(0, row, data.mLabel);
-	table->GetAsString(1, row, data.mID);
-	table->GetAsString(2, row, data.mType);
-	table->GetAsString(3, row, data.mMeasure);
+	data.mLabel = table->GetAsString(0, row);
+	data.mID = table->GetAsLong(1, row);
+	data.mType = table->GetAsString(2, row);
+	data.mMeasure = table->GetAsString(3, row);
 	table->GetAsString(4, row, mQty);
 	SetData(data);
 	return true;
@@ -113,23 +113,15 @@ bool MTypeItem::GetInsertQuery(wxString& query)const
 
 	const wxString parent = cls.mParent.mId.IsNull() ? wxString("1") : cls.mParent.mId;
 
-	wxString measure;
-	if ("0" == cls.mType)
-		measure = "NULL";
-	else if ("1" == cls.mType)
-		measure = "'ед.'";
-	else
-		measure = "'" + cls.mMeasure + "'";
-
 	query = wxString::Format(
-		"INSERT INTO t_cls "
-		" (label, description, type, measurename, pid) VALUES "
-		" ('%s', %s, %s, %s, '%s') "
-		" RETURNING id, label, description, type, measurename, pid, vid"
-		, cls.mLabel
-		, cls.mComment.IsEmpty() ? L"NULL" : wxString::Format(L"'%s'", cls.mComment)
+		"INSERT INTO cls_tree "
+		" (title, note, kind, measure, pid) VALUES "
+		" (%s, %s, %s, %s, %s) "
+		" RETURNING title, id, kind, measure, 0"
+		, cls.mLabel.SqlVal()
+		, cls.mComment.SqlVal()
 		, cls.mType
-		, measure
+		, cls.mMeasure.SqlVal()
 		, parent
 		);
 	return true;
@@ -141,24 +133,16 @@ bool MTypeItem::GetUpdateQuery(wxString& query)const
 
 	wxString parent = cls.mParent.mId.IsNull() ? wxString("1") : cls.mParent.mId;
 
-	wxString measure;
-	if ("0" == cls.mType)
-		measure = "NULL";
-	else if ("1" == cls.mType)
-		measure = "'ед.'";
-	else
-		measure = "'" + cls.mMeasure + "'";
-
 	query = wxString::Format(
-		"UPDATE t_cls SET "
-		" label='%s', description=%s, type=%s, measurename=%s, pid=%s "
+		"UPDATE cls_tree SET "
+		" title=%s, note=%s, kind=%s, measure=%s, pid=%s "
 		" WHERE id = %s "
-		, cls.mLabel
-		, cls.mComment.IsEmpty() ? L"NULL" : wxString::Format(L"'%s'", cls.mComment)
+		, cls.mLabel.SqlVal()
+		, cls.mComment.SqlVal()
 		, cls.mType
-		, measure
+		, cls.mMeasure.SqlVal()
 		, parent
-		, cls.mID);
+		, cls.mID.SqlVal() );
 	return true;
 }
 //-------------------------------------------------------------------------
@@ -166,8 +150,8 @@ bool MTypeItem::GetDeleteQuery(wxString& query)const
 {
 	const auto& cls = GetData();
 	query = wxString::Format(
-		"DELETE FROM t_cls WHERE id = %s ",
-		cls.mID);
+		"DELETE FROM cls WHERE id = %s ",
+		cls.mID.SqlVal() );
 	return true;
 }
 
@@ -214,7 +198,7 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 			" WHERE t.pid = %s "
 			" AND t.id > 99 "
 			*/
-			, root.mCls.mID );
+			, root.mCls.mID.SqlVal() );
 		return true;
 
 	}

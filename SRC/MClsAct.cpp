@@ -27,27 +27,25 @@ bool MClsAct::GetSelectQuery(wxString& query)const
 	auto parentArray = dynamic_cast<MClsActArray*>(this->mParent);
 	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
 
-	if (parentCls)
-	{
-		const rec::Cls& cls = parentCls->GetStored();
-		if ("1" != cls.mType)
-			return false;
-		const rec::ClsActAccess& oldClsAct = this->GetStored();
-		//const rec::ClsActAccess& newClsAct = this->GetData();
+	if (!parentCls)
+		return false;
+	
+	const rec::Cls& cls = parentCls->GetStored();
+	if ("1" != cls.mType)
+		return false;
+	const rec::ClsActAccess& oldPerm = this->GetStored();
 
-		query = wxString::Format(
-			"SELECT t_access_act.id, access_group, access_disabled, script_restrict "
-			", act_id, t_act.label "
-			", cls_id, t_cls.label, obj_label "
-			", src_path "
-			" FROM t_access_act "
-			" LEFT JOIN t_act ON t_act.id = t_access_act.act_id "
-			" LEFT JOIN t_cls ON t_cls.id = t_access_act.cls_id "
-			" WHERE t_access_act.id = %s "
-			, oldClsAct.mID);
-		return true;
-	}
-	return false;
+	query = wxString::Format(
+		"SELECT perm_act.id, access_group, access_disabled, script_restrict "
+		"     , src_cls.id, src_cls.title, src_obj.id, src_obj.title, src_path "
+		"     , act.id, act.title "
+		"  FROM perm_act "
+		"    LEFT JOIN cls src_cls     ON src_cls.id = perm_act.src_cls_id "
+		"    LEFT JOIN obj_num src_obj ON src_obj.id = perm_act.src_obj_id "
+		"    LEFT JOIN act ON act.id = perm_act.act_id "
+		"  WHERE perm_act.id = %s "
+		, oldPerm.mId.SqlVal());
+	return true;
 }
 //-------------------------------------------------------------------------
 bool MClsAct::GetInsertQuery(wxString& query)const
@@ -55,38 +53,40 @@ bool MClsAct::GetInsertQuery(wxString& query)const
 	auto parentArray = dynamic_cast<MClsActArray*>(this->mParent);
 	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
 
-	if (parentCls)
-	{
-		const rec::Cls& cls = parentCls->GetStored();
-		if ("1" != cls.mType)
-			return false;
-		//const rec::ClsActAccess& oldClsAct = this->GetStored();
-		const rec::ClsActAccess& newClsAct = this->GetData();
+	if (!parentCls)
+		return false;
+	const rec::Cls& cls = parentCls->GetStored();
+	if ("1" != cls.mType)
+		return false;
+	//const rec::ClsActAccess& oldClsAct = this->GetStored();
+	const rec::ClsActAccess& newPerm = this->GetData();
 
-		const wxString script = newClsAct.mScriptRestrict.IsEmpty() ? "NULL"
-			: wxString::Format("'%s'", newClsAct.mScriptRestrict);
-		const wxString obj_id = newClsAct.mObjLabel.IsEmpty() ? "NULL" : newClsAct.mObjID;
-		const wxString path = newClsAct.mPath.IsEmpty() ? "NULL" 
-			: wxString::Format("'%s'", newClsAct.mPath);
+	
 
-		query = wxString::Format("INSERT INTO t_access_act("
-			" access_group, access_disabled, script_restrict "
-			", act_id "
-			", cls_id, obj_id"
-			", src_path  "
-			") VALUES ('%s', %s, %s, %s, %s, %s, %s) "
-			" RETURNING id, access_group, access_disabled, script_restrict "
-			", act_id, NULL "
-			", cls_id, NULL, obj_id "
-			", src_path "
-			, newClsAct.mAcessGroup, newClsAct.mAccessDisabled, script
-			, newClsAct.mActID
-			, cls.mID, obj_id
-			, path
-			);
-		return true;
-	}
-	return false;
+	query = wxString::Format(
+		" INSERT INTO perm_act( "
+		"  access_group, access_disabled, script_restrict "
+		" ,src_cls_id, src_obj_id, src_path "
+		" ,act_id "
+		")VALUES("
+		"   %s, %s, %s "
+		"  ,%s, %s, %s "
+		"  ,%s ) "
+		" RETURNING id, access_group, access_disabled, script_restrict "
+		"          ,src_cls_id, src_obj_id, src_path "
+		"          ,act_id "
+		, newPerm.mAcessGroup.SqlVal()
+		, newPerm.mAccessDisabled.SqlVal()
+		, newPerm.mScriptRestrict.SqlVal()
+
+		, cls.mID.SqlVal() //newPerm.mSrcCls.mId = cls.mID;
+		, newPerm.mSrcObj.mId.SqlVal()
+		, newPerm.mSrcPath.SqlVal()
+
+		, newPerm.mAct.mId.SqlVal()
+		);
+	return true;
+	
 }
 //-------------------------------------------------------------------------
 bool MClsAct::GetUpdateQuery(wxString& query)const
@@ -94,36 +94,35 @@ bool MClsAct::GetUpdateQuery(wxString& query)const
 	auto parentArray = dynamic_cast<MClsActArray*>(this->mParent);
 	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
 
-	if (parentCls)
-	{
-		const rec::Cls& cls = parentCls->GetStored();
-		if ("1" != cls.mType)
-			return false;
-		const rec::ClsActAccess& oldClsAct = this->GetStored();
-		const rec::ClsActAccess& newClsAct = this->GetData();
+	if (!parentCls)
+		return false;
 
-		const wxString script = newClsAct.mScriptRestrict.IsEmpty() ? "NULL"
-			: wxString::Format("'%s'", newClsAct.mScriptRestrict);
-		const wxString obj_id = newClsAct.mObjLabel.IsEmpty() ? "NULL" : newClsAct.mObjID;
-		const wxString path = newClsAct.mPath.IsEmpty() ? "NULL"
-			: wxString::Format("'%s'", newClsAct.mPath);
+	const rec::Cls& cls = parentCls->GetStored();
+	if ("1" != cls.mType)
+		return false;
+	const rec::ClsActAccess& oldPerm = this->GetStored();
+	const rec::ClsActAccess& newPerm = this->GetData();
 
-		query = wxString::Format(
-			"UPDATE	t_access_act "
-			" SET access_group='%s', access_disabled=%s, script_restrict=%s  "
-			", act_id=%s "
-			", cls_id=%s, obj_id=%s "
-			", src_path=%s "
+	query = wxString::Format(
+			"UPDATE perm_act SET "
+			"  access_group=%s, access_disabled=%s, script_restrict=%s  "
+			" ,src_cls_id = %s, src_obj_id = %s, src_path = %s "
+			" ,act_id = %s "
 			" WHERE id=%s "
-			, newClsAct.mAcessGroup, newClsAct.mAccessDisabled, script
-			, newClsAct.mActID
-			, cls.mID, obj_id
-			, path
-			, oldClsAct.mID);
+			, newPerm.mAcessGroup.SqlVal()
+			, newPerm.mAccessDisabled.SqlVal()
+			, newPerm.mScriptRestrict.SqlVal()
 
-		return true;
-	}
-	return false;
+			, cls.mID.SqlVal() //newPerm.mSrcCls.mId = cls.mID;
+			, newPerm.mSrcObj.mId.SqlVal()
+			, newPerm.mSrcPath.SqlVal()
+
+			, newPerm.mAct.mId.SqlVal()
+
+			, oldPerm.mId.SqlVal()
+			);
+
+	return true;
 }
 //-------------------------------------------------------------------------
 bool MClsAct::GetDeleteQuery(wxString& query)const
@@ -131,40 +130,38 @@ bool MClsAct::GetDeleteQuery(wxString& query)const
 	auto parentArray = dynamic_cast<MClsActArray*>(this->mParent);
 	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
 
-	if (parentCls)
-	{
-		const rec::Cls& cls = parentCls->GetStored();
-		if ("1" != cls.mType)
-			return false;
-		const rec::ClsActAccess& oldClsAct = this->GetStored();
-		//const rec::ClsActAccess& newClsAct = this->GetData();
+	if (!parentCls)
+		return false;
+	
+	const rec::Cls& cls = parentCls->GetStored();
+	if ("1" != cls.mType)
+		return false;
+	const rec::ClsActAccess& oldPerm = this->GetStored();
 
-		query = wxString::Format(
-			"DELETE FROM t_access_act WHERE id = %s ",
-			//"DELETE FROM t_ref_class_act WHERE cls_id=% AND act_id=%"
-			oldClsAct.mID);
-		return true;
-	}
-	return false;
+	query = wxString::Format(
+		"DELETE FROM perm_act WHERE id = %s ",
+		oldPerm.mId.SqlVal() );
+	return true;
+	
 }
 //-------------------------------------------------------------------------
 bool MClsAct::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 {
+	unsigned int i = 0;
 	T_Data data;
-	table->GetAsString(0, row, data.mID);
-	table->GetAsString(1, row, data.mAcessGroup);
-	table->GetAsString(2, row, data.mAccessDisabled);
-	table->GetAsString(3, row, data.mScriptRestrict);
-	
-	table->GetAsString(4, row, data.mActID);
-	table->GetAsString(5, row, data.mActLabel);
+	data.mId             = table->GetAsString(i++, row);
+	data.mAcessGroup     = table->GetAsString(i++, row );
+	data.mAccessDisabled = table->GetAsString(i++, row);
+	data.mScriptRestrict = table->GetAsString(i++, row);
 
-	table->GetAsString(6, row, data.mClsID);
-	table->GetAsString(7, row, data.mClsLabel);
-	table->GetAsString(8, row, data.mObjID);
-	table->GetAsString(9, row, data.mObjLabel);
-	
-	table->GetAsString(10, row, data.mPath);
+	data.mSrcCls.mId     = table->GetAsString(i++, row);
+	data.mSrcCls.mLabel  = table->GetAsString(i++, row);
+	data.mSrcObj.mId     = table->GetAsString(i++, row);
+	data.mSrcObj.mLabel  = table->GetAsString(i++, row);
+	data.mSrcPath        = table->GetAsString(i++, row);
+
+	data.mAct.mId        = table->GetAsString(i++, row);
+	data.mAct.mLabel     = table->GetAsString(i++, row);
 	
 	SetData(data);
 	return true;
@@ -177,13 +174,13 @@ bool MClsAct::GetFieldValue(unsigned int col, wxVariant &variant)
 	switch (col)
 	{
 	default:	break;
-	case 1:	variant = variant << wxDataViewIconText(data.mActLabel, mgr->m_ico_act24);
+	case 1:	variant = variant << wxDataViewIconText(data.mAct.mLabel, mgr->m_ico_act24);
 		break;
 	case 2:	variant = ("1" == data.mAccessDisabled) ? "Запретить" : "Разрешить";	break;
 	case 3:	variant = data.mAcessGroup;	break;
-	case 4: variant = data.mObjLabel;	break;
-	case 5: variant = data.mPath;		break;
-	case 6: variant = data.mID;			break;
+	case 4: variant = data.mSrcObj.mLabel;	break;
+	case 5: variant = data.mSrcPath;	break;
+	case 6: variant = data.mId.toStr();	break;
 	}//switch(col) 
 	return true;
 }
@@ -204,26 +201,23 @@ MClsActArray::MClsActArray(const char option)
 bool MClsActArray::GetSelectChildsQuery(wxString& query)const
 {
 	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(this->mParent);
-	if (parentCls)
-	{
-		const auto& cls = parentCls->GetStored();
+	if (!parentCls)
+		return false;
 
-		query = wxString::Format(
-			"SELECT t_access_act.id, access_group, access_disabled, script_restrict "
-			", act_id, t_act.label "
-			", t_access_act.cls_id, t_cls.label "
-			", obj_id, t_objnum.label"
-			", src_path "
-			" FROM t_access_act "
-			" LEFT JOIN t_act ON t_act.id = t_access_act.act_id "
-			" LEFT JOIN t_cls ON t_cls.id = t_access_act.cls_id "
-			" LEFT JOIN t_objnum ON t_objnum.id = t_access_act.obj_id "
-			" WHERE t_access_act.cls_id = %s "
-			, cls.mID);
+	const auto& cls = parentCls->GetStored();
 
-		return true;
-	}
-	return false;
+	query = wxString::Format(
+		"SELECT perm_act.id, access_group, access_disabled, script_restrict "
+		"     , src_cls.id, src_cls.title, src_obj.id, src_obj.title, src_path "
+		"     , act.id, act.title "
+		"  FROM perm_act "
+		"    LEFT JOIN cls src_cls     ON src_cls.id = perm_act.src_cls_id "
+		"    LEFT JOIN obj_num src_obj ON src_obj.id = perm_act.src_obj_id "
+		"    LEFT JOIN act ON act.id = perm_act.act_id "
+        "  WHERE perm_act.src_cls_id = %s "
+		, cls.mID.SqlVal() );
+
+	return true;
 
 }
 //-------------------------------------------------------------------------

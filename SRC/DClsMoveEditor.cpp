@@ -114,19 +114,23 @@ void DClsMoveEditor::GetData(rec::ClsSlotAccess& rec) const
 	rec.mAcessGroup = mPropGrid->GetPropertyByLabel(L"Группа")->GetValueAsString();
 	rec.mScriptRestrict = mPropGrid->GetPropertyByLabel(L"Скрипт")->GetValueAsString();
 	
-	rec.mMovCls = mPropGrid->GetPropertyByLabel("Класс")->GetValueAsString();
-	rec.mMovObj = mPropGrid->GetPropertyByLabel("Объект")->GetValueAsString();
+	rec.mCls.mLabel = mPropGrid->GetPropertyByLabel("Класс")->GetValueAsString();
+	rec.mObj.mLabel = mPropGrid->GetPropertyByLabel("Объект")->GetValueAsString();
 
 	wh::ObjKeyPath path;
+	wxString generated_path;
+
 	path.ParsePath(mPropGrid->GetPropertyByLabel("Источник")->GetValueAsString());
-	path.GenerateArray(rec.mSrcPath, true);
+	path.GenerateArray(generated_path, true);
+	rec.mSrcPath = generated_path;
 
 	path.ParsePath(mPropGrid->GetPropertyByLabel("Приемник")->GetValueAsString());
-	path.GenerateArray(rec.mDstPath, true);
+	path.GenerateArray(generated_path, true);
+	rec.mDstPath = generated_path;
 
 
 
-	rec.mID = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
+	rec.mId = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
 }
 //---------------------------------------------------------------------------
 void DClsMoveEditor::SetData(const rec::ClsSlotAccess& rec)
@@ -137,8 +141,8 @@ void DClsMoveEditor::SetData(const rec::ClsSlotAccess& rec)
 	mPropGrid->GetPropertyByLabel(L"Группа")->SetValueFromString(rec.mAcessGroup);
 	mPropGrid->GetPropertyByLabel(L"Скрипт")->SetValueFromString(rec.mScriptRestrict);
 
-	mPropGrid->GetPropertyByLabel(L"Класс")->SetValueFromString(rec.mMovCls);
-	mPropGrid->GetPropertyByLabel(L"Объект")->SetValueFromString(rec.mMovObj);
+	mPropGrid->GetPropertyByLabel(L"Класс")->SetValueFromString(rec.mCls.mLabel);
+	mPropGrid->GetPropertyByLabel(L"Объект")->SetValueFromString(rec.mObj.mLabel);
 
 	wh::ObjKeyPath path;
 	wxString pathStr;
@@ -151,7 +155,7 @@ void DClsMoveEditor::SetData(const rec::ClsSlotAccess& rec)
 	path.GeneratePath(pathStr);
 	mPropGrid->GetPropertyByLabel("Приемник")->SetValueFromString(pathStr);
 
-	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(rec.mID);
+	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(rec.mId);
 }
 //---------------------------------------------------------------------------
 

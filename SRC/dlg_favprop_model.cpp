@@ -85,21 +85,21 @@ bool FavPropItem::GetUpdateQuery(wxString& query)const
 	if (prop_data.mSelected)
 		query = wxString::Format(
 		"WITH upd AS( "
-		" SELECT distinct(t_ref_act_prop.prop_id), t_ref_class_act.cls_id, t_ref_class_act.act_id "
-		"  FROM t_ref_class_act "
-		"  INNER JOIN t_ref_act_prop ON t_ref_act_prop.act_id = t_ref_class_act.act_id "
-		"  WHERE t_ref_class_act.cls_id = %s "
-		"  AND t_ref_act_prop.prop_id = %s "
+		" SELECT distinct(ref_act_prop.prop_id), ref_cls_act.cls_id, ref_cls_act.act_id "
+		"  FROM ref_cls_act "
+		"  INNER JOIN ref_act_prop ON ref_act_prop.act_id = ref_cls_act.act_id "
+		"  WHERE ref_cls_act.cls_id = %s "
+		"  AND ref_act_prop.prop_id = %s "
 		"  ) "
-		" INSERT INTO t_favorite_prop(prop_id, cls_id, act_id) "
+		" INSERT INTO favorite_prop(prop_id, cls_id, act_id) "
 		"    SELECT upd.prop_id, upd.cls_id, upd.act_id  FROM upd "
-		, cls.mID
-		, this->GetData().mId.SqlVal());
+		, cls.mID.SqlVal()
+		, prop_data.mId.SqlVal());
 	else
 		query = wxString::Format(
-		"DELETE FROM t_favorite_prop "
+		"DELETE FROM favorite_prop "
 		" WHERE cls_id = %s AND prop_id = %s AND user_label = CURRENT_USER "
-		, cls.mID
+		, cls.mID.SqlVal()
 		, prop_data.mId.SqlVal());
 	
 	return true;
@@ -147,23 +147,22 @@ bool FavPropArray::GetSelectChildsQuery(wxString& query)const
 	const auto& typeData = typeItemModel->GetData();
 
 	query = wxString::Format(
-		"SELECT t_prop.id, t_prop.label, t_prop.type, favprop.prop_id "
+		"SELECT prop.id, prop.title, prop.kind, favprop.prop_id "
 		"  FROM( "
-		"    SELECT distinct(t_ref_act_prop.prop_id) "
-		"      FROM t_ref_class_act "
-		"      INNER JOIN t_ref_act_prop ON t_ref_act_prop.act_id = t_ref_class_act.act_id "
-		"      WHERE t_ref_class_act.cls_id = %s "
+		"    SELECT distinct(ref_act_prop.prop_id) "
+		"      FROM ref_cls_act "
+		"      INNER JOIN ref_act_prop ON ref_act_prop.act_id = ref_cls_act.act_id "
+		"      WHERE ref_cls_act.cls_id = %s "
 		"  ) all_prop "
-		"  LEFT JOIN ("
-		"    SELECT distinct(t_favorite_prop.prop_id) FROM t_favorite_prop "
-		"      WHERE t_favorite_prop.cls_id = %s "
-		"      AND t_favorite_prop.user_label = CURRENT_USER "
+		"  LEFT JOIN( "
+		"    SELECT distinct(favorite_prop.prop_id) FROM favorite_prop "
+		"      WHERE favorite_prop.cls_id = %s "
+		"      AND favorite_prop.user_label = CURRENT_USER "
 		"  ) favprop "
 		"  ON favprop.prop_id = all_prop.prop_id "
-		"  LEFT JOIN t_prop ON t_prop.id = all_prop.prop_id "
-		, typeData.mID
-		, typeData.mID);
-
+		"  LEFT JOIN prop ON prop.id = all_prop.prop_id "
+		, typeData.mID.SqlVal()
+		, typeData.mID.SqlVal() );
 	return true;
 }
 //-----------------------------------------------------------------------------

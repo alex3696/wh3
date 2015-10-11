@@ -34,7 +34,7 @@ void MovableObj::Unlock()
 
 	wxString query = wxString::Format(
 		"SELECT lock_reset(%s,%s,%s)"
-		, movable.mCls.mID
+		, movable.mCls.mID.toStr()
 		, movable.mObj.mID
 		, movable.mObj.mPID);
 	
@@ -53,7 +53,7 @@ void MovableObj::Move(std::shared_ptr<wh::dlg_move::model::DstObj> dst,
 
 	wxString query = wxString::Format(
 		"SELECT move_object(%s,%s,%s,%s,%s)"
-		, movable.mCls.mID
+		, movable.mCls.mID.toStr()
 		, movable.mObj.mID
 		, movable.mObj.mPID
 		, destination.mID
@@ -64,7 +64,7 @@ void MovableObj::Move(std::shared_ptr<wh::dlg_move::model::DstObj> dst,
 
 	query = wxString::Format(
 		"SELECT lock_reset(%s,%s,%s)"
-		, movable.mCls.mID
+		, movable.mCls.mID.toStr()
 		, movable.mObj.mID
 		, movable.mObj.mPID);
 	whDataMgr::GetDB().Exec(query);

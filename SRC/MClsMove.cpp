@@ -26,96 +26,120 @@ bool MClsMove::GetSelectQuery(wxString& query)const
 {
 	auto parentArray = dynamic_cast<MClsMoveArray*>(this->mParent);
 	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
-
 	if (parentCls)
-	{
-		const rec::Cls& cls = parentCls->GetStored();
-		if ("0" == cls.mType)
-			return false;
-		//const rec::ClsSlotAccess& oldClsSlot = this->GetStored();
-		const rec::ClsSlotAccess& newClsSlot = this->GetData();
+		return false;
+	
+	const rec::Cls& cls = parentCls->GetStored();
+	if ("0" == cls.mType)
+		return false;
+	const rec::ClsSlotAccess& oldPerm = this->GetData();
 
-		query = wxString::Format(
-			"SELECT id, access_group, access_disabled, script_restrict, "
-			" dst_cls_id, dst_obj_id, dst_path, "
-			" mov_cls_id, mov_obj_id, src_path "
-			" FROM t_access_slot "
-			" WHERE id = %s ",
-			newClsSlot.mID);
-		return true;
-	}
-	return false;
+	query = wxString::Format(
+		"SELECT perm_move.id, access_group, access_disabled, script_restrict "
+		"     , mov_cls.id, mov_cls.title, mov_obj.id, mov_obj.title "
+		"     , src_cls.id, src_cls.title, src_obj.id, src_obj.title, src_path "
+		"     , dst_cls.id, dst_cls.title, dst_obj.id, dst_obj.title, dst_path "
+		"  FROM perm_move "
+		"    LEFT JOIN cls      mov_cls ON mov_cls.id = perm_move.cls_id "
+		"    LEFT JOIN obj_tree mov_obj ON mov_obj.id = perm_move.obj_id "
+		"    LEFT JOIN cls      src_cls ON src_cls.id = perm_move.src_cls_id "
+		"    LEFT JOIN obj_num  src_obj ON src_obj.id = perm_move.src_obj_id "
+		"    LEFT JOIN cls      dst_cls ON dst_cls.id = perm_move.dst_cls_id "
+		"    LEFT JOIN obj_num  dst_obj ON dst_obj.id = perm_move.dst_obj_id "
+		"  WHERE perm_act.id = %s "
+		, oldPerm.mId.SqlVal());
+	return true;
 }
 //-------------------------------------------------------------------------
 bool MClsMove::GetInsertQuery(wxString& query)const
 {
 	auto parentArray = dynamic_cast<MClsMoveArray*>(this->mParent);
 	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
-
 	if (parentCls)
-	{
-		const rec::Cls& cls = parentCls->GetStored();
-		if ("0" == cls.mType)
-			return false;
-		//const rec::ClsSlotAccess& oldClsSlot = this->GetStored();
-		const rec::ClsSlotAccess& newClsSlot = this->GetData();
+		return false;
 
-		query = wxString::Format(
-			"INSERT INTO t_access_slot "
-			"(access_group, access_disabled, script_restrict, "
-			" dst_cls_id, dst_obj_id, dst_path, "
-			" mov_cls_id, mov_obj_id, src_path "
-			") VALUES( '%s', %s, '%s', "
-			" '%s', '%s', '%s', "
-			" '%s', '%s', '%s' ) "
-			" RETURNING id "
-			, newClsSlot.mAcessGroup
-			, newClsSlot.mAccessDisabled
-			, newClsSlot.mScriptRestrict
-			, cls.mID
-			, newClsSlot.mDstObj
-			, newClsSlot.mDstPath
-			, newClsSlot.mMovCls
-			, newClsSlot.mMovObj
-			, newClsSlot.mSrcPath);
-		return true;
-	}
-	return false;
+	const rec::Cls& cls = parentCls->GetStored();
+	if (!(cls.IsNumberic() || cls.IsQuantity()))
+		return false;
+
+	const rec::ClsSlotAccess& newPerm = this->GetData();
+
+	query = wxString::Format(
+		" INSERT INTO perm_move( "
+		"  access_group, access_disabled, script_restrict "
+		" ,cls_id, obj_id "
+		" ,src_cls_id, src_obj_id, src_path "
+		" ,dst_cls_id, dst_obj_id, dst_path "
+		")VALUES("
+		"   %s, %s, %s "
+		"  ,%s, %s "
+		"  ,%s, %s, %s "
+		"  ,%s, %s, %s ) "
+		" RETURNING id, access_group, access_disabled, script_restrict "
+		"          ,cls_id, obj_id "
+		"          ,src_cls_id, src_obj_id, src_path "
+		"          ,act_id "
+		, newPerm.mAcessGroup.SqlVal()
+		, newPerm.mAccessDisabled.SqlVal()
+		, newPerm.mScriptRestrict.SqlVal()
+
+		, newPerm.mCls.mId.SqlVal()
+		, newPerm.mObj.mId.SqlVal()
+
+		, newPerm.mSrcCls.mId.SqlVal()
+		, newPerm.mSrcObj.mId.SqlVal()
+		, newPerm.mSrcPath.SqlVal()
+
+		, newPerm.mDstCls.mId.SqlVal()
+		, newPerm.mDstObj.mId.SqlVal()
+		, newPerm.mDstPath.SqlVal()
+
+		);
+	return true;
+	
 }
 //-------------------------------------------------------------------------
 bool MClsMove::GetUpdateQuery(wxString& query)const
 {
 	auto parentArray = dynamic_cast<MClsMoveArray*>(this->mParent);
 	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
-
 	if (parentCls)
-	{
-		const rec::Cls& cls = parentCls->GetStored();
-		if ("0" == cls.mType)
-			return false;
-		const rec::ClsSlotAccess& oldClsSlot = this->GetStored();
-		const rec::ClsSlotAccess& newClsSlot = this->GetData();
+		return false;
 
-		query = wxString::Format(
-			"UPDATE	t_access_slot "
-			" SET access_group='%s', access_disabled=%s, script_restrict='%s' "
-			" dst_cls_id=%s, dst_obj_id=%s, dst_path=%s "
-			" mov_cls_id=%s, mov_obj_id=%s, src_path=%s "
-			" WHERE id=%s "
-			, newClsSlot.mAcessGroup
-			, newClsSlot.mAccessDisabled
-			, newClsSlot.mScriptRestrict
-			, newClsSlot.mDstCls
-			, newClsSlot.mDstObj
-			, newClsSlot.mDstPath
-			, newClsSlot.mMovCls
-			, newClsSlot.mMovObj
-			, newClsSlot.mSrcPath
-			, oldClsSlot.mID);
+	const rec::Cls& cls = parentCls->GetStored();
+	if (!(cls.IsNumberic() || cls.IsQuantity() ))
+		return false;
 
-		return true;
-	}
-	return false;
+	const rec::ClsSlotAccess& oldPerm = this->GetStored();
+	const rec::ClsSlotAccess& newPerm = this->GetData();
+
+	query = wxString::Format(
+		"UPDATE perm_move SET "
+		"  access_group='%s', access_disabled=%s, script_restrict=%s  "
+		" ,cls_id='%s', obj_id=%s "
+		" ,src_cls_id = %s , src_obj_id = %s , src_path = %s "
+		" ,dst_cls_id = %s , dst_obj_id = %s , dst_path = %s "
+		" WHERE id=%s "
+		, newPerm.mAcessGroup.SqlVal()
+		, newPerm.mAccessDisabled.SqlVal()
+		, newPerm.mScriptRestrict.SqlVal()
+
+		, newPerm.mCls.mId.SqlVal()
+		, newPerm.mObj.mId.SqlVal()
+
+		, newPerm.mSrcCls.mId.SqlVal()
+		, newPerm.mSrcObj.mId.SqlVal()
+		, newPerm.mSrcPath.SqlVal()
+
+		, newPerm.mDstCls.mId.SqlVal()
+		, newPerm.mDstObj.mId.SqlVal()
+		, newPerm.mDstPath.SqlVal()
+
+		, oldPerm.mId.SqlVal()
+		);
+
+	return true;
+	
 }
 //-------------------------------------------------------------------------
 bool MClsMove::GetDeleteQuery(wxString& query)const
@@ -123,35 +147,44 @@ bool MClsMove::GetDeleteQuery(wxString& query)const
 	auto parentArray = dynamic_cast<MClsMoveArray*>(this->mParent);
 	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
 
-	if (parentCls)
-	{
-		//const rec::Cls& cls = parentCls->GetStored();
+	if (!parentCls)
+		return false;
+	
+	const rec::ClsSlotAccess& oldPerm = this->GetStored();
 
-		const rec::ClsSlotAccess& oldClsSlot = this->GetStored();
+	query = wxString::Format(
+			"DELETE FROM perm_move WHERE id = %s ",
+			oldPerm.mId.SqlVal());
 
-		query = wxString::Format(
-			"DELETE FROM t_access_slot WHERE id = %s ",
-			oldClsSlot.mID);
-		return true;
-	}
-	return false;
+	return true;
 }
 //-------------------------------------------------------------------------
 bool MClsMove::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 {
+	unsigned int i = 0;
 	T_Data data;
-	table->GetAsString(0, row, data.mID);
-	table->GetAsString(1, row, data.mAcessGroup);
-	table->GetAsString(2, row, data.mAccessDisabled);
-	table->GetAsString(3, row, data.mScriptRestrict);
-	
-	table->GetAsString(4, row, data.mDstCls);
-	table->GetAsString(5, row, data.mDstObj);
-	table->GetAsString(6, row, data.mDstPath);
-	
-	table->GetAsString(7, row, data.mMovCls);
-	table->GetAsString(8, row, data.mMovObj);
-	table->GetAsString(9, row, data.mSrcPath);
+	data.mId = table->GetAsString(i++, row);
+	data.mAcessGroup = table->GetAsString(i++, row);
+	data.mAccessDisabled = table->GetAsString(i++, row);
+	data.mScriptRestrict = table->GetAsString(i++, row);
+
+	data.mCls.mId = table->GetAsLong(i++, row);
+	data.mCls.mLabel = table->GetAsString(i++, row);
+	data.mObj.mId = table->GetAsLong(i++, row);
+	data.mObj.mLabel = table->GetAsString(i++, row);
+
+	data.mSrcCls.mId = table->GetAsLong(i++, row);
+	data.mSrcCls.mLabel = table->GetAsString(i++, row);
+	data.mSrcObj.mId = table->GetAsLong(i++, row);
+	data.mSrcObj.mLabel = table->GetAsString(i++, row);
+	data.mSrcPath = table->GetAsString(i++, row);
+
+	data.mDstCls.mId = table->GetAsLong(i++, row);
+	data.mDstCls.mLabel = table->GetAsString(i++, row);
+	data.mDstObj.mId = table->GetAsLong(i++, row);
+	data.mDstObj.mLabel = table->GetAsString(i++, row);
+	data.mDstPath = table->GetAsString(i++, row);
+
 	SetData(data);
 	return true;
 };
@@ -168,9 +201,14 @@ bool MClsMove::GetFieldValue(unsigned int col, wxVariant &variant)
 			("1" == data.mAccessDisabled) ? "Запретить" : "Разрешить", mgr->m_ico_accept24);
 		break;
 	case 2:	variant = data.mAcessGroup;						break;
-	case 3: variant = wxString::Format("[%s]%s", data.mMovCls, data.mMovObj);		break;
-	case 4: variant = data.mSrcPath;							break;
-	case 5: variant = data.mDstPath + "/[THIS]" + data.mDstObj;	break;
+	case 3: variant = wxString::Format("[%s]%s"
+						, data.mCls.mLabel.toStr() 
+						, data.mObj.mLabel.toStr() );
+		break;
+	case 4: variant = data.mSrcPath.toStr();				
+		break;
+	case 5: variant = data.mDstPath.toStr() + "/[THIS]" + data.mDstObj.mLabel.toStr();	
+		break;
 	}//switch(col) 
 	return true;
 }
@@ -191,21 +229,26 @@ MClsMoveArray::MClsMoveArray(const char option)
 bool MClsMoveArray::GetSelectChildsQuery(wxString& query)const
 {
 	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(GetParent());
-	if (parentCls)
-	{
-		const auto& cls = parentCls->GetStored();
+	if (!parentCls)
+		return false;
+	const auto& cls = parentCls->GetStored();
 
-		query = wxString::Format(
-			"SELECT id, access_group, access_disabled, script_restrict, "
-			" dst_cls_id, dst_obj_id, dst_path, "
-			" mov_cls_id, mov_obj_id, src_path "
-			" FROM t_access_slot "
-			" WHERE dst_cls_id = '%s' "
-			, cls.mID);
+	query = wxString::Format(
+		"SELECT perm_move.id, access_group, access_disabled, script_restrict "
+		"     , mov_cls.id, mov_cls.title, mov_obj.id, mov_obj.title "
+		"     , src_cls.id, src_cls.title, src_obj.id, src_obj.title, src_path "
+		"     , dst_cls.id, dst_cls.title, dst_obj.id, dst_obj.title, dst_path "
+		"  FROM perm_move "
+		"    LEFT JOIN cls      mov_cls ON mov_cls.id = perm_move.cls_id "
+		"    LEFT JOIN obj_tree mov_obj ON mov_obj.id = perm_move.obj_id "
+		"    LEFT JOIN cls      src_cls ON src_cls.id = perm_move.src_cls_id "
+		"    LEFT JOIN obj_num  src_obj ON src_obj.id = perm_move.src_obj_id "
+		"    LEFT JOIN cls      dst_cls ON dst_cls.id = perm_move.dst_cls_id "
+		"    LEFT JOIN obj_num  dst_obj ON dst_obj.id = perm_move.dst_obj_id "
+		"  WHERE dst_cls_id = %s "
+		, cls.mID.SqlVal() );
 			
-		return true;
-	}
-	return false;
+	return true;
 }
 //-------------------------------------------------------------------------
 std::shared_ptr<IModel> MClsMoveArray::CreateChild()

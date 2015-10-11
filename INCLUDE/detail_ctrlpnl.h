@@ -15,7 +15,7 @@ class CtrlPnl
 
 {
 	// hold parent node 
-	std::shared_ptr<model::Obj> mObj = make_shared<model::Obj>();
+	std::shared_ptr<model::Obj> mObj = std::make_shared<model::Obj>();
 
 	wxAuiManager		mAuiMgr;
 	wxAuiToolBar*		mToolBar = nullptr;

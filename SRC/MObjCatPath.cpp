@@ -22,15 +22,15 @@ bool MPathItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t
 	{
 		table->GetAsString(0, row, data.mObj.mID);
 		table->GetAsString(1, row, data.mObj.mLabel);
-		table->GetAsString(2, row, data.mCls.mID);
-		table->GetAsString(3, row, data.mCls.mLabel);
+		data.mCls.mID = table->GetAsString(2, row );
+		data.mCls.mLabel = table->GetAsString(3, row);
 		SetData(data);
 		return true;
 	}
 	else
 	{
-		table->GetAsString(0, row, data.mCls.mID);
-		table->GetAsString(1, row, data.mCls.mLabel);
+		data.mCls.mID = table->GetAsString(0, row);
+		data.mCls.mLabel = table->GetAsString(1, row);
 		SetData(data);
 		return true;
 	}
@@ -65,7 +65,7 @@ bool MPath::GetSelectChildsQuery(wxString& query)const
 			query = wxString::Format(
 				" SELECT _id, _title "
 				" FROM fget_cls_pathinfo_table(%s)"
-				, data.mCls.mID
+				, data.mCls.mID.SqlVal()
 				);
 			return true;
 		}
@@ -91,13 +91,13 @@ wxString MPath::GetPathStr()const
 		if (objCatalog)
 		{
 			str_path += wxString::Format("[%s]%s/"
-				, node->GetData().mCls.mLabel
+				, node->GetData().mCls.mLabel.toStr()
 				, node->GetData().mObj.mLabel);
 		}
 		else
 		{
 			str_path += wxString::Format("%s/"
-				, node->GetData().mCls.mLabel);
+				, node->GetData().mCls.mLabel.toStr());
 		}
 	}
 	return str_path;
@@ -114,8 +114,8 @@ ClsPathItem::ClsPathItem(const char option)
 bool ClsPathItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 {
 	T_Data data;
-	table->GetAsString(0, row, data.mID);
-	table->GetAsString(1, row, data.mLabel);
+	data.mID = table->GetAsString(0, row);
+	data.mLabel= table->GetAsString(1, row );
 	SetData(data);
 	return true;
 };
@@ -132,7 +132,7 @@ bool ClsPath::GetSelectChildsQuery(wxString& query)const
 		query = wxString::Format(
 				" SELECT _id, _title "
 				" FROM fget_cls_pathinfo_table(%s)"
-				, cls_data.mID
+				, cls_data.mID.SqlVal()
 				);
 		return true;
 	}
@@ -148,7 +148,7 @@ wxString ClsPath::AsString()const
 	for (unsigned int i = qty; i > 0; i--)
 	{
 		auto node = std::dynamic_pointer_cast<ClsPathItem>(GetChild(i - 1));
-		str_path += wxString::Format("%s/", node->GetData().mLabel);
+		str_path += wxString::Format("%s/", node->GetData().mLabel.toStr() );
 	}
 	return str_path;
 }
@@ -169,8 +169,8 @@ bool ObjPathItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size
 	T_Data data;
 	table->GetAsString(0, row, data.mObj.mID);
 	table->GetAsString(1, row, data.mObj.mLabel);
-	table->GetAsString(2, row, data.mCls.mID);
-	table->GetAsString(3, row, data.mCls.mLabel);
+	data.mCls.mID = table->GetAsString(2, row);
+	data.mCls.mLabel = table->GetAsString(3, row);
 	SetData(data);
 	return true;
 };
@@ -188,7 +188,7 @@ bool ObjPath::GetSelectChildsQuery(wxString& query)const
 		query = wxString::Format(
 				" SELECT _obj_id, _obj_title, _cls_id, _cls_title "
 				" FROM fget_objnum_pathinfo_table(%s)"
-				, obj_data.mPID
+				, obj_data.mPID.IsEmpty() ? "0" : obj_data.mPID
 				);
 		return true;
 	}
@@ -205,7 +205,7 @@ wxString ObjPath::AsString()const
 	{
 		auto node = std::dynamic_pointer_cast<ObjPathItem>(GetChild(i - 1));
 		str_path += wxString::Format("[%s]%s/"
-			, node->GetData().mCls.mLabel
+			, node->GetData().mCls.mLabel.toStr()
 			, node->GetData().mObj.mLabel);
 
 	}

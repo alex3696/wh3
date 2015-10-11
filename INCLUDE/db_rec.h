@@ -146,7 +146,7 @@ public:
 		if (mVal)
 			return wxString::Format("%d", *mVal);
 		//wxLog BOOST_THROW_EXCEPTION(error() << wxstr("data is null"));
-		return wxEmptyString;
+		return wxEmptyString2;
 	}
 	operator long() const
 	{
@@ -156,7 +156,7 @@ public:
 	}
 	virtual wxString SqlVal()const override 
 	{
-		return this->operator wxString();
+		return (mVal) ? wxString::Format("%d", *mVal) : wxString("NULL");
 	}
 	inline wxString toStr()const
 	{
@@ -198,7 +198,7 @@ public:
 	{
 		return (*this == SqlLong(rv));
 	}
-	inline bool IsNull()const	{ return mVal ? true : false; }
+	inline bool IsNull()const	{ return mVal ? false : true; }
 	inline void SetNull()		{ delete mVal; mVal = nullptr; }
 	//inline bool IsEmpty()const	{ return mVal ? true : false; }
 	//inline void Clear()			{ delete mVal; mVal = nullptr; }
@@ -223,18 +223,20 @@ public:
 		if (mVal)
 			return *mVal;
 		//wxLog BOOST_THROW_EXCEPTION(error() << wxstr("data is null"));
-		return wxEmptyString;
+		return wxEmptyString2;
 	}
 	virtual wxString SqlVal()const override
 	{
 		return (mVal) ? wxString::Format("'%s'", *mVal) : wxString("NULL");
 	}
 
-	inline wxString toStr()const
+	inline const wxString& toStr()const
 	{
-		return operator wxString();
+		if (mVal)
+			return *mVal;
+		//wxLog BOOST_THROW_EXCEPTION(error() << wxstr("data is null"));
+		return wxEmptyString2;
 	}
-
 
 	SqlString& operator=(const wxString& rv)
 	{
@@ -262,7 +264,7 @@ public:
 		return (mVal && rv.mVal) ? *mVal == *rv.mVal : false;
 	}
 
-	inline bool IsNull()const	{ return mVal ? true : false; }
+	inline bool IsNull()const	{ return mVal ? false : true; }
 	inline void SetNull()		{ delete mVal; mVal = nullptr; }
 	//inline bool IsEmpty()const	{ return mVal ? true : false; }
 	//inline void Clear()			{ delete mVal; mVal = nullptr; }
@@ -315,14 +317,13 @@ struct Cls
 {
 	struct error : virtual exception_base {};
 	
-	wxString	mID;		
-	wxString	mVID;
-	wxString	mLabel;		
+	SqlLong		mID;
+	SqlString	mLabel;
 	wxString	mType;		
 	Base		mParent;
-	wxString	mComment;
-	wxString	mMeasure;
-	wxString	mDefaultPid;
+	SqlString	mComment;
+	SqlString	mMeasure;
+	Base		mDefaultObjPid;
 
 	Cls(){}
 	Cls(const wxString& id, const wxString& label)
@@ -368,12 +369,20 @@ struct Cls
 /// Объект - основные метаданные 
 struct ObjTitle
 {
+	/*
+	SqlLong		mID;
+	SqlLong		mPID;
+	SqlString	mLabel;
+	SqlString	mQty;
+	SqlLong		mLastMoveLogId;
+	SqlLong		mLastActLogId;
+	*/
 	wxString	mID;
 	wxString	mPID;
 	wxString	mLabel;
 	wxString	mQty;
 	wxString	mLastLogId;
-
+	
 	ObjTitle(){}
 	ObjTitle(const wxString& id,const wxString& label)
 		: mID(id), mLabel(label)
@@ -514,45 +523,59 @@ struct ClsObjQty final
 };
 
 //-----------------------------------------------------------------------------
-/// Разрешения действий класса
-struct ClsActAccess final
+/// Разрешение
+struct Perm
 {
-	wxString	mID;
-	wxString	mAcessGroup;
-	wxString	mAccessDisabled;
-	wxString	mScriptRestrict;
-
-	wxString	mActID;
-	wxString	mActLabel;  // имя действия???
-	//wxString	mClsLabel;  // тип объекта ???
+	SqlLong	    mId;
+	SqlString	mAcessGroup;
+	SqlLong		mAccessDisabled;
+	SqlString	mScriptRestrict;
 	
-	wxString	mClsID;  // имя класса
-	wxString	mClsLabel;  // id класса
+	Base		mSrcCls;
+	Base		mSrcObj;
+	SqlString	mSrcPath;
 
-	wxString	mObjID;  // имя объекта
-	wxString	mObjLabel;  // имя объекта
-	wxString	mPath; //текущее положение объекта в который перемещают
 
-	
+};
+//-----------------------------------------------------------------------------
+
+/// Разрешения действий класса
+struct ClsActAccess final : public Perm
+{
+	//SqlLong	    mId;
+	//SqlString	mAcessGroup;
+	//SqlLong		mAccessDisabled;
+	//SqlString	mScriptRestrict;
+
+	//Base		mCls;
+	//Base		mObj;
+
+	//Base		mSrcCls;
+	//Base		mSrcObj;
+	//SqlString	mSrcPath;
+
+	Base		mAct;
 };
 
 //-----------------------------------------------------------------------------
 /// Разрешения действий класса
-struct ClsSlotAccess final
+struct ClsSlotAccess final : public Perm
 {
-	wxString	mID;
-	wxString	mAcessGroup;
-	wxString	mAccessDisabled;
-	wxString	mScriptRestrict;
-	
-	wxString	mDstCls;
-	wxString	mDstObj;  
-	wxString	mDstPath; 
+	//SqlLong	    mId;
+	//SqlString	mAcessGroup;
+	//SqlLong		mAccessDisabled;
+	//SqlString	mScriptRestrict;
 
-	wxString	mMovCls;
-	wxString	mMovObj;
-	wxString	mSrcPath;
+	//Base		mSrcCls;
+	//Base		mSrcObj;
+	//SqlString	mSrcPath;
 
+	Base		mCls;
+	Base		mObj;
+
+	Base		mDstCls;
+	Base		mDstObj;
+	SqlString	mDstPath;
 };
 
 //-----------------------------------------------------------------------------

@@ -26,14 +26,14 @@ bool MClsProp::GetSelectQuery(wxString& query)const
 {
 	auto clsProp = GetData();
 	query = wxString::Format(
-		"SELECT t_prop.id AS prop_id "
-		" , t_prop.type AS prop_type "
-		" , t_prop.label AS prop_label "
+		"SELECT prop.id AS prop_id "
+		" , prop.kind AS prop_type "
+		" , prop.title AS prop_label "
 		" , val "
-		" , t_cls_prop.id AS id "
-		" FROM t_cls_prop "
-		" LEFT JOIN t_prop ON t_prop.id = t_cls_prop.prop_id "
-		" WHERE t_cls_prop.id = %s "
+		" , prop_cls.id AS id "
+		" FROM prop_cls "
+		" LEFT JOIN prop ON prop.id = prop_cls.prop_id "
+		" WHERE t_prop_cls.id = %s "
 		, clsProp.mId.SqlVal());
 	return true;
 }
@@ -49,11 +49,11 @@ bool MClsProp::GetInsertQuery(wxString& query)const
 		const rec::Cls& cls = parentCls->GetData();
 
 		query = wxString::Format(
-			"INSERT INTO t_cls_prop (val, cls_id, prop_id) "
+			"INSERT INTO prop_cls (val, cls_id, prop_id) "
 			" VALUES(%s, '%s', '%s') "
 			" RETURNING id "
 			, prop.mVal.SqlVal()
-			, cls.mID
+			, cls.mID.SqlVal()
 			, prop.mProp.mId.SqlVal() );
 		return true;
 	}
@@ -71,11 +71,11 @@ bool MClsProp::GetUpdateQuery(wxString& query)const
 		const rec::Cls& cls = parentCls->GetData();
 
 		query = wxString::Format(
-			"UPDATE	t_class_prop "
+			"UPDATE	prop_cls "
 			" SET val=%s, cls_id='%s', prop_id='%s' "
 			" WHERE id=%s "
 			, prop.mVal.SqlVal()
-			, cls.mID
+			, cls.mID.SqlVal()
 			, prop.mProp.mId.SqlVal()
 			, prop.mId.SqlVal() );
 		return true;
@@ -94,7 +94,7 @@ bool MClsProp::GetDeleteQuery(wxString& query)const
 		//const rec::Cls& cls = parentCls->GetData();
 
 		query = wxString::Format(
-			"DELETE FROM t_cls_prop WHERE id = %s ",
+			"DELETE FROM prop_cls WHERE id = %s ",
 			prop.mId.SqlVal() );
 		return true;
 	}
@@ -155,15 +155,15 @@ bool MClsPropArray::GetSelectChildsQuery(wxString& query)const
 		auto cls = parentCls->GetData();
 
 		query = wxString::Format(
-			"SELECT t_prop.id AS prop_id "
-			" , t_prop.label AS prop_label "
-			" , t_prop.type AS prop_type "
+			"SELECT prop.id AS prop_id "
+			" , prop.title AS prop_label "
+			" , prop.kind AS prop_type "
 			" , val "
-			" , t_cls_prop.id AS id "
-			" FROM t_cls_prop "
-			" LEFT JOIN t_prop ON t_prop.id = t_cls_prop.prop_id "
-			" WHERE t_cls_prop.cls_id = %s "
-			, cls.mID);
+			" , prop_cls.id AS id "
+			" FROM prop_cls "
+			" LEFT JOIN prop ON prop.id = prop_cls.prop_id "
+			" WHERE prop_cls.cls_id = %s "
+			, cls.mID.SqlVal());
 		return true;
 	}
 	return false;

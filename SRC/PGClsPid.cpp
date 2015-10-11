@@ -28,8 +28,8 @@ void wxClsParentProperty::RefreshChildren()
 {
 	if (!GetChildCount()) return;
 	const wh_rec_Base& parent = wh_rec_BaseRefFromVariant(m_value);
-	Item(0)->SetValue(WXVARIANT(parent.mLabel));
-	Item(1)->SetValue(WXVARIANT((wxString)parent.mId));
+	Item(0)->SetValue(WXVARIANT(parent.mLabel.toStr() ));
+	Item(1)->SetValue(WXVARIANT((wxString)parent.mId.toStr() ));
 }
 //-----------------------------------------------------------------------------
 wxVariant wxClsParentProperty::ChildChanged(wxVariant& thisValue,
@@ -189,9 +189,9 @@ wxString  wxClsProperty::ValueToString(wxVariant &  value, int  argFlags)  const
 	const wh_rec_Cls& cls = wh_rec_ClsRefFromVariant(value);
 
 	return wxString::Format("%s (%s) [%s]"
-		,cls.mLabel
-		,cls.mMeasure
-		,cls.mID);
+		, cls.mLabel.toStr()
+		, cls.mMeasure.toStr()
+		, cls.mID.toStr() );
 }
 
 //-----------------------------------------------------------------------------

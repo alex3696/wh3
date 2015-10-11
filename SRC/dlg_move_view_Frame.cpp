@@ -69,7 +69,7 @@ void Frame::SetModel(std::shared_ptr<dlg_move::model::MovableObj>& model)
 		mCtrlPanel->SetModel(model);
 
 		const wxString movLabel = wxString::Format("[%s]%s"
-			,mMovable->GetData().mCls.mLabel
+			, mMovable->GetData().mCls.mLabel.toStr()
 			,mMovable->GetData().mObj.mLabel
 			//,mMovable->GetData().mCls.mMeasure
 			);

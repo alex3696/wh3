@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "VClsDataEditorPanel.h"
+#include "PGClsPid.h"
 
 using namespace wh;
 using namespace wh::view;
@@ -36,9 +37,7 @@ VClsDataEditorPanel::VClsDataEditorPanel(wxWindow*		parent,
 	mPropGrid->Append(new wxStringProperty(L"Ед.измерений", wxPG_LABEL));
 	mPropGrid->Append(new wxStringProperty(L"Родительский класс"));
 	mPropGrid->Append(new wxStringProperty(L"#"))->Enable(false);
-	mPropGrid->Append(new wxStringProperty(L"VID"))->Enable(false);
-
-	
+		
 
 	mPropGrid->ResetColumnSizes();
 	this->Layout();
@@ -56,7 +55,6 @@ void VClsDataEditorPanel::GetData(rec::Cls& rec) const
 	rec.mMeasure = mPropGrid->GetPropertyByLabel(L"Ед.измерений")->GetValueAsString();
 	rec.mParent.mId = mPropGrid->GetPropertyByLabel(L"Родительский класс")->GetValueAsString();
 	rec.mID = mPropGrid->GetPropertyByLabel(L"#")->GetValueAsString();
-	rec.mVID = mPropGrid->GetPropertyByLabel(L"VID")->GetValueAsString();
 }
 //---------------------------------------------------------------------------
 void VClsDataEditorPanel::SetData(const rec::Cls& rec)
@@ -72,7 +70,6 @@ void VClsDataEditorPanel::SetData(const rec::Cls& rec)
 	mPropGrid->GetPropertyByLabel(L"Ед.измерений")->SetValueFromString(rec.mMeasure);
 	mPropGrid->GetPropertyByLabel(L"Родительский класс")->SetValueFromString(rec.mParent.mId);
 	mPropGrid->GetPropertyByLabel(L"#")->SetValueFromString(rec.mID);
-	mPropGrid->GetPropertyByLabel(L"VID")->SetValueFromString(rec.mVID);
 }
 //-----------------------------------------------------------------------------
 void VClsDataEditorPanel::SetModel(std::shared_ptr<IModel>& newModel)

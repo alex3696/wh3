@@ -633,6 +633,21 @@ void VObjCatalogCtrl::OnDelete(wxCommandEvent& evt)
 		objArray->Save();
 		//OnCmdReload(wxCommandEvent(wxID_REFRESH));
 	}
+	else
+	{
+		wxDataViewItem selectedItem = mTableView->GetSelection();
+		if (!selectedItem.IsOk())
+			return;
+		auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
+		auto typeItem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
+		if (!typeItem)
+			return;
+
+		typeItem->MarkDeleted();
+		auto arr = typeItem->GetParent();
+		arr->Save();
+
+	}
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::SetModel(std::shared_ptr<IModel> model)

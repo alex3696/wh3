@@ -58,8 +58,8 @@ DClsActEditor::DClsActEditor(wxWindow*		parent,
 				
 				auto clsAct = mModel->GetData();
 				
-				clsAct.mActID = actData.mID;
-				clsAct.mActLabel = actData.mLabel;
+				clsAct.mAct.mId = actData.mID;
+				clsAct.mAct.mLabel = actData.mLabel;
 				
 				mModel->SetData(clsAct);
 				return true;
@@ -144,7 +144,7 @@ void DClsActEditor::GetData(rec::ClsActAccess& rec) const
 {
 	mPropGrid->CommitChangesFromEditor();
 
-	rec.mActLabel = mPropGrid->GetPropertyByLabel(L"Действие")->GetValueAsString();
+	rec.mAct.mLabel = mPropGrid->GetPropertyByLabel(L"Действие")->GetValueAsString();
 
 
 	wxString accessDisabled = mPropGrid->GetPropertyByLabel(L"Запретить")->GetValueAsString();
@@ -152,37 +152,41 @@ void DClsActEditor::GetData(rec::ClsActAccess& rec) const
 
 	rec.mAcessGroup = mPropGrid->GetPropertyByLabel(L"Группа")->GetValueAsString();
 	rec.mScriptRestrict = mPropGrid->GetPropertyByLabel(L"Скрипт")->GetValueAsString();
-	rec.mObjLabel = mPropGrid->GetPropertyByLabel("Объект")->GetValueAsString();
+	rec.mSrcObj.mLabel = mPropGrid->GetPropertyByLabel("Объект")->GetValueAsString();
 
 	wh::ObjKeyPath path;
 	path.ParsePath(mPropGrid->GetPropertyByLabel("Путь")->GetValueAsString());
 
 	if (path.size())
-		path.GenerateArray(rec.mPath, true);
+	{
+		wxString generated_path;
+		path.GenerateArray(generated_path, true);
+		rec.mSrcPath = generated_path;
+	}
 	else
-		rec.mPath.clear();
+		rec.mSrcPath.SetNull();
 
-	rec.mID = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
+	rec.mId = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
 }
 //---------------------------------------------------------------------------
 void DClsActEditor::SetData(const rec::ClsActAccess& rec)
 {
 	mPropGrid->CommitChangesFromEditor();
 
-	mPropGrid->GetPropertyByLabel(L"Действие")->SetValueFromString(rec.mActLabel);
+	mPropGrid->GetPropertyByLabel(L"Действие")->SetValueFromString(rec.mAct.mLabel.toStr());
 	mPropGrid->GetPropertyByLabel(L"Запретить")->
 		SetValueFromString(("1" == rec.mAccessDisabled) ? "true" : "false");
 	mPropGrid->GetPropertyByLabel(L"Группа")->SetValueFromString(rec.mAcessGroup);
 	mPropGrid->GetPropertyByLabel(L"Скрипт")->SetValueFromString(rec.mScriptRestrict);
-	mPropGrid->GetPropertyByLabel(L"Объект")->SetValueFromString(rec.mObjLabel);
+	mPropGrid->GetPropertyByLabel(L"Объект")->SetValueFromString(rec.mSrcObj.mLabel.toStr());
 	
 	wh::ObjKeyPath path;
-	path.ParseArray(rec.mPath);
+	path.ParseArray(rec.mSrcPath);
 	wxString pathStr;
 	path.GeneratePath(pathStr);
 	mPropGrid->GetPropertyByLabel("Путь")->SetValueFromString(pathStr);
 	
-	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(rec.mID);
+	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(rec.mId.toStr());
 }
 //---------------------------------------------------------------------------
 

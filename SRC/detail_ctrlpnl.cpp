@@ -188,10 +188,10 @@ void CtrlPnl::UpdateTab()
 		return;
 
 	const wxString lbl = wxString::Format("[%s]%s (%s %s)"
-		, main_detail.mCls.mLabel
+		, main_detail.mCls.mLabel.toStr()
 		, main_detail.mObj.mLabel
 		, main_detail.mObj.mQty
-		, main_detail.mCls.mMeasure
+		, main_detail.mCls.mMeasure.toStr()
 		);
 	main_farame->UpdateTab(this, lbl, *ico);
 	//mPropGrid->SetCaptionBackgroundColour(wxColour(255, 200, 200));

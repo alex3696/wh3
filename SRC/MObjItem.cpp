@@ -92,28 +92,30 @@ bool MObjItem::GetInsertQuery(wxString& query)const
 
 	const rec::Cls& cls = parentCls->GetStored();
 	const auto& newObj = this->GetData();
-	wxString pid = (newObj.mPID.IsEmpty()) ? "0" : newObj.mPID;
+
+	wxString pid = "NULL";
+	if (!newObj.mPID.IsEmpty())
+		pid = newObj.mPID;
+	else
+	{
+		if (cls.mDefaultObjPid.mId.IsNull())
+			pid = "1";
+		else
+			pid = cls.mDefaultObjPid.mId;
+	}
 
 	ClsType ct;
 	if (cls.GetClsType(ct))
-		switch (ct)
-		{
-		case ctSingle:
-			query = wxString::Format(
-				"INSERT INTO t_objnum (cls_id, label, pid ) "
-				" VALUES (%s, '%s', %s ) RETURNING id,pid,label,1  ",
-				cls.mID, newObj.mLabel, pid);
-			return true;
-		case ctQtyByOne:
-		case ctQtyByFloat:	
-			query = wxString::Format(
-				" SELECT id_,pid_,label_,qty_ FROM fn_insert_objqty(%s, '%s', %s, %s)"
-				, cls.mID, newObj.mLabel, pid, newObj.mQty);
-			return true;
-		default://ctAbstract
-			break;
-		}
-	
+	{
+		query = wxString::Format(
+			"INSERT INTO obj_tree( title, cls_id, pid, qty )"
+			" VALUES('%s', %s, %s, %s)"
+			, newObj.mLabel
+			, cls.mID.SqlVal()
+			, pid
+			, newObj.mQty);
+		return true;
+	}
 	return false;
 }
 //-------------------------------------------------------------------------
@@ -125,31 +127,29 @@ bool MObjItem::GetUpdateQuery(wxString& query)const
 	const rec::Cls& cls = parentCls->GetStored();
 	const auto& oldObj = this->GetStored();
 	const auto& newObj = this->GetData();
-	wxString pid = (newObj.mPID.IsEmpty()) ? "0" : newObj.mPID;
+
+	wxString pid = "NULL";
+	if (!newObj.mPID.IsEmpty())
+		pid = newObj.mPID;
+	else
+	{
+		if (cls.mDefaultObjPid.mId.IsNull())
+			pid = "1";
+		else
+			pid = cls.mDefaultObjPid.mId;
+	}
+
 
 	ClsType ct;
 	if (cls.GetClsType(ct))
-		switch (ct)
 	{
-		case ctSingle:
-			query = wxString::Format(
-				"UPDATE t_objnum SET "
-				" label='%s', pid=%s "
-				" WHERE id=%s ",
-				newObj.mLabel, newObj.mPID,
-				oldObj.mID);
-			return true;
-
-		case ctQtyByOne:
-		case ctQtyByFloat:
-			query = wxString::Format(
-				" SELECT fn_update_objqty(%s, %s, '%s', %s, %s) "
-				, oldObj.mID, oldObj.mPID
-				, newObj.mLabel, newObj.mPID, newObj.mQty
-				);
-			return true;
-		default://ctAbstract
-			break;
+		query = wxString::Format(
+			"UPDATE obj_tree SET "
+			"       title='%s', pid=%s, qty=%s "
+			" WHERE id=%s AND cls_id=%s AND pid=%s "
+			, newObj.mLabel, newObj.mPID, newObj.mQty
+			, oldObj.mID, cls.mID.SqlVal(), oldObj.mPID);
+		return true;
 	}
 	return false;
 }
@@ -166,21 +166,12 @@ bool MObjItem::GetDeleteQuery(wxString& query)const
 
 	ClsType ct;
 	if (cls.GetClsType(ct))
-		switch (ct)
-	{
-		case ctSingle:
-			query = wxString::Format(
-				"DELETE FROM t_objnum WHERE id=%s "
-				, oldObj.mID);
-			return true;
-		case ctQtyByOne:
-		case ctQtyByFloat:
-			query = wxString::Format(
-				"SELECT fn_delete_objqty(%s, %s)"
-				, oldObj.mID, oldObj.mPID	);
-			return true;
-		default://ctAbstract
-			break;
+	{ 		
+		query = wxString::Format(
+			"DELETE FROM obj_tree WHERE "
+			" id=%s AND cls_id=%s AND pid=%s "
+			, oldObj.mID, cls.mID.SqlVal(), oldObj.mPID);
+		return true;
 	}
 	return false;
 }
@@ -232,7 +223,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 				, qq
 				, leftJoin
 				, catalogData.mObj.mID
-				, typeItemData.mID
+				, typeItemData.mID.SqlVal()
 				);
 			return true;
 		}
@@ -246,7 +237,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 				" WHERE o.cls_id = %s "
 				, qq
 				, leftJoin
-				, typeItemData.mID
+				, typeItemData.mID.SqlVal()
 				);
 			return true;
 		}

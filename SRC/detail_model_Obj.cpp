@@ -41,11 +41,11 @@ bool Obj::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 	table->GetAsString(3, row, data.mObj.mQty);
 	table->GetAsString(4, row, data.mObj.mLastLogId);
 
-	table->GetAsString(5, row, data.mCls.mID);
-	table->GetAsString(6, row, data.mCls.mLabel);
-	table->GetAsString(7, row, data.mCls.mType);
-	table->GetAsString(8, row, data.mCls.mMeasure);
-	table->GetAsString(9, row, data.mCls.mDefaultPid);
+	data.mCls.mID = table->GetAsString(5, row);
+	data.mCls.mLabel = table->GetAsString(6, row);
+	data.mCls.mType = table->GetAsString(7, row);
+	data.mCls.mMeasure = table->GetAsString(8, row);
+	data.mCls.mDefaultObjPid.mId = table->GetAsString(9, row);
 
 	data.mCls.mParent.mId = table->GetAsLong (10, row );
 	data.mCls.mParent.mLabel = table->GetAsString(11, row);
@@ -57,18 +57,18 @@ bool Obj::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 bool Obj::GetSelectQuery(wxString& query)const
 {
 	const auto& data = GetData();
-	if (data.mCls.mID.IsEmpty() || data.mObj.mID.IsEmpty() || data.mObj.mPID.IsEmpty())
+	if (data.mCls.mID.IsNull() || data.mObj.mID.IsEmpty() || data.mObj.mPID.IsEmpty())
 		return false;
 	
 	query = wxString::Format(
-		" SELECT obj_id, obj_pid, w_obj.label, qty, last_log_id "
-		"  , cls_id,  cls_label, w_obj.type, w_obj.measurename, w_obj.cls_default_pid "
-		"    ,parent.id "
-		"    ,parent.label "
-		" FROM w_obj "
-		" LEFT JOIN t_cls parent ON cls_pid = parent.id "
-		" WHERE cls_id=%s  AND obj_id=%s AND obj_pid=%s "
-		, data.mCls.mID
+		"SELECT  o.id, o.pid, o.title, o.qty, o.move_logid "
+		"      , co.id, co.title, co.kind, co.measure, NULL as defaultPid "
+		"      , cparent.id, cparent.title "
+		" FROM obj_tree o "
+		" LEFT JOIN cls_real co ON co.id = o.cls_id "
+		" LEFT JOIN cls cparent ON co.pid = cparent.id "
+		" WHERE o.cls_id=%s  AND o.id=%s AND o.pid=%s "
+		, data.mCls.mID.SqlVal()
 		, data.mObj.mID
 		, data.mObj.mPID
 		);

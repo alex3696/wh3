@@ -200,6 +200,66 @@
       <UniqueConstraints/>
       <SchTrHis/>
     </Tbl>
+    <Tbl UsSo="1" nm="prop_clsnum">
+      <TblOpts>WITHOUT OIDS</TblOpts>
+      <Pk ClNs="cls_id, prop_id" nm="pkprop_clsnum"/>
+      <Cl au="0" df="nextval('t_cls_prop_id_seq'::regclass)" nm="id" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="val" nu="1">
+        <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="cls_id" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="prop_id" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Fk deAc="0" nm="t_cls_prop_cls_id_fkey" prLkCl="cls_id" upAc="0">
+        <PrTb mn="0" nm="t_clsnum" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="prop_clsnum" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="cls_id" prCl="cls_id"/>
+      </Fk>
+      <Fk deAc="0" nm="t_cls_prop_prop_id_fkey" prLkCl="id" upAc="0">
+        <PrTb mn="0" nm="t_prop" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="prop_clsnum" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="prop_id" prCl="id"/>
+      </Fk>
+      <UniqueConstraints>
+        <UnCon nm="uk_cls_prop__id">
+          <ClNs>id</ClNs>
+        </UnCon>
+      </UniqueConstraints>
+      <SchTrHis/>
+    </Tbl>
+    <Tbl UsSo="1" nm="prop_clsqty">
+      <TblOpts>WITHOUT OIDS</TblOpts>
+      <Pk ClNs="cls_id, prop_id" nm="pkprop_clsnum_dup"/>
+      <Cl au="0" df="nextval('t_cls_prop_id_seq'::regclass)" nm="id" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="val" nu="1">
+        <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="cls_id" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="prop_id" nu="0">
+        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Fk deAc="0" nm="t_cls_prop_cls_id_fkey" prLkCl="cls_id" upAc="0">
+        <PrTb mn="0" nm="t_clsqty" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="prop_clsqty" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="cls_id" prCl="cls_id"/>
+      </Fk>
+      <Fk deAc="0" nm="t_cls_prop_prop_id_fkey" prLkCl="id" upAc="0">
+        <PrTb mn="0" nm="t_prop" oe="1" sch="public" zr="0"/>
+        <CdTb mn="1" nm="prop_clsqty" oe="0" sch="public" zr="1"/>
+        <ClPr cdCl="prop_id" prCl="id"/>
+      </Fk>
+      <UniqueConstraints/>
+      <SchTrHis/>
+    </Tbl>
     <Tbl UsSo="1" nm="t_access_act">
       <TblOpts>WITHOUT OIDS</TblOpts>
       <Pk ClNs="id" nm="pk_access_act"/>
@@ -423,38 +483,6 @@
         </UnCon>
         <UnCon nm="uk_cls_type_id">
           <ClNs>type, id</ClNs>
-        </UnCon>
-      </UniqueConstraints>
-      <SchTrHis/>
-    </Tbl>
-    <Tbl UsSo="1" nm="t_cls_prop">
-      <TblOpts>WITHOUT OIDS</TblOpts>
-      <Pk ClNs="cls_id, prop_id" nm="pk_cls_prop"/>
-      <Cl au="0" df="nextval('t_cls_prop_id_seq'::regclass)" nm="id" nu="0">
-        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="" nm="val" nu="1">
-        <DT arr="0" ds="Text" en="" id="703" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="" nm="cls_id" nu="0">
-        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="" nm="prop_id" nu="0">
-        <DT arr="0" ds="Integer" en="" id="4" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Fk deAc="0" nm="t_cls_prop_cls_id_fkey" prLkCl="id" upAc="0">
-        <PrTb mn="0" nm="t_cls" oe="1" sch="public" zr="0"/>
-        <CdTb mn="1" nm="t_cls_prop" oe="0" sch="public" zr="1"/>
-        <ClPr cdCl="cls_id" prCl="id"/>
-      </Fk>
-      <Fk deAc="0" nm="t_cls_prop_prop_id_fkey" prLkCl="id" upAc="0">
-        <PrTb mn="0" nm="t_prop" oe="1" sch="public" zr="0"/>
-        <CdTb mn="1" nm="t_cls_prop" oe="0" sch="public" zr="1"/>
-        <ClPr cdCl="prop_id" prCl="id"/>
-      </Fk>
-      <UniqueConstraints>
-        <UnCon nm="uk_cls_prop__id">
-          <ClNs>id</ClNs>
         </UnCon>
       </UniqueConstraints>
       <SchTrHis/>
@@ -2781,19 +2809,16 @@ WHERE wh_role.rolcanlogin</Sql>
     <TbGl bkCl="ffff0000" sch="public" tbl="t_act" x="928" y="482"/>
     <TbGl bkCl="ffcccccc" sch="public" tbl="t_ref_act_prop" x="485" y="619"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="wh_role" x="124" y="38"/>
-    <TbGl bkCl="ffff0000" sch="public" tbl="t_cls_prop" x="869" y="276"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="prop_clsnum" x="869" y="276"/>
     <TbGl bkCl="ff009900" sch="public" tbl="t_objnum" x="1374" y="372"/>
     <TbGl bkCl="ff00cc00" sch="public" tbl="t_objqty" x="1382" y="208"/>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.prop_clsnum.t_cls_prop_prop_id_fkey" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls.fk_class__default_pid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls.fk_class__parent" parentEdge="" positioner="">
-      <positionableLines/>
-    </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls_prop.t_cls_prop_cls_id_fkey" parentEdge="" positioner="">
-      <positionableLines/>
-    </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls_prop.t_cls_prop_prop_id_fkey" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_objnum.fk_objnum_pid" parentEdge="" positioner="">
@@ -2891,6 +2916,106 @@ WHERE wh_role.rolcanlogin</Sql>
     <Notes/>
     <Zones/>
   </Dgm>
+  <Dgm nm="Классы">
+    <RnCf ClkAct="true" FtSz="11" lkStgy="KeyToKeyStrategy" zm="1.0">
+      <VbCfg>
+        <Fg ky="Auto Number" vl="0"/>
+        <Fg ky="Check" vl="0"/>
+        <Fg ky="Comment" vl="0"/>
+        <Fg ky="Data Type" vl="1"/>
+        <Fg ky="Default" vl="0"/>
+        <Fg ky="ENUM Values" vl="0"/>
+        <Fg ky="Length" vl="1"/>
+        <Fg ky="Name" vl="1"/>
+        <Fg ky="Nullable" vl="0"/>
+        <Fg ky="Schema Name" vl="0"/>
+        <Fg ky="Signed" vl="0"/>
+      </VbCfg>
+    </RnCf>
+    <DiaProps>
+      <Show AllCols="1" FkCols="1" FkNms="1" PkCols="1"/>
+      <ErNotation>DbwErNotation</ErNotation>
+      <DbTableRectangleFill>HeaderFooterFill</DbTableRectangleFill>
+      <svg path=""/>
+    </DiaProps>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="t_cls" x="542" y="139"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="t_clsnum" x="163" y="215"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="t_clsqty" x="1012" y="227"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="t_objnum" x="167" y="391"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="t_objqty" x="1067" y="460"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="t_objqtykey" x="1002" y="330"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="prop_clsnum" x="103" y="119"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="prop_clsqty" x="1070" y="120"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="t_prop" x="574" y="19"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="log_move_objnum" x="123" y="531"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="log_move_objqty" x="1017" y="579"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="log_act_" x="92" y="715"/>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_act_.fk_logact__objnumid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_act_.fk_logact__srcobjnumid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objnum.fk_logmoveobjnum__dstobjnumid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objnum.fk_logmoveobjnum__objnumid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objnum.fk_logmoveobjnum__srcobjnumid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objqty.fk_logmoveobjqty__dstobjnumid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objqty.fk_logmoveobjqty__objqtyid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objqty.fk_logmoveobjqty__srcobjnumid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.prop_clsnum.t_cls_prop_cls_id_fkey" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.prop_clsnum.t_cls_prop_prop_id_fkey" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.prop_clsqty.t_cls_prop_cls_id_fkey" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.prop_clsqty.t_cls_prop_prop_id_fkey" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls.fk_class__default_pid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="SOUTH" nm="public.t_cls.fk_class__parent" parentEdge="NORTH" positioner="OneLineUserLinkPositioner">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="NORTH" nm="public.t_clsnum.fk_clsnum__cls" parentEdge="WEST" positioner="TwoLineUserLinkPositioner">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="NORTH" nm="public.t_clsqty.fk_clsnum__cls" parentEdge="EAST" positioner="TwoLineUserLinkPositioner">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_objnum.fk_objnum_clsnum" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_objnum.fk_objnum_pid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_objqty.fk_obj_items_pid" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_objqty.fk_objqty_objqtykey" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_objqtykey.fk_objqtykey_cls_id" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <Notes/>
+    <Zones/>
+  </Dgm>
   <Dgm nm="Классы-Действия-Свойства">
     <RnCf ClkAct="true" FtSz="9" lkStgy="KeyToKeyStrategy" zm="1.0">
       <VbCfg>
@@ -2913,16 +3038,30 @@ WHERE wh_role.rolcanlogin</Sql>
       <DbTableRectangleFill>HeaderFooterFill</DbTableRectangleFill>
       <svg path=""/>
     </DiaProps>
-    <TbGl bkCl="ffff0000" sch="public" tbl="t_prop" x="143" y="501"/>
-    <TbGl bkCl="ffff0000" sch="public" tbl="t_act" x="135" y="309"/>
-    <TbGl bkCl="ffcccccc" sch="public" tbl="t_ref_act_prop" x="542" y="392"/>
-    <TbGl bkCl="ff009900" sch="public" tbl="t_cls_prop" x="89" y="153"/>
-    <TbGl bkCl="ffffcc66" sch="public" tbl="t_favorite_prop" x="804" y="564"/>
-    <TbGl bkCl="ffffcc66" sch="public" tbl="t_access_act" x="767" y="153"/>
-    <TbGl bkCl="ffffcc66" sch="public" tbl="t_access_slot" x="755" y="0"/>
-    <TbGl bkCl="ffcccccc" sch="public" tbl="t_ref_class_act" x="555" y="226"/>
-    <TbGl bkCl="ffff0000" sch="public" tbl="t_cls" x="96" y="29"/>
-    <TbGl bkCl="ffff0000" sch="public" tbl="t_clsnum" x="333" y="148"/>
+    <TbGl bkCl="ff009900" sch="public" tbl="t_prop" x="346" y="319"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_act" x="310" y="590"/>
+    <TbGl bkCl="ffcccccc" sch="public" tbl="t_ref_act_prop" x="757" y="486"/>
+    <TbGl bkCl="ff009900" sch="public" tbl="prop_clsnum" x="639" y="238"/>
+    <TbGl bkCl="ffffcc66" sch="public" tbl="t_favorite_prop" x="1280" y="599"/>
+    <TbGl bkCl="ffffcc66" sch="public" tbl="t_access_act" x="1243" y="188"/>
+    <TbGl bkCl="ffffcc66" sch="public" tbl="t_access_slot" x="1231" y="35"/>
+    <TbGl bkCl="ffcccccc" sch="public" tbl="t_ref_class_act" x="832" y="359"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_cls" x="337" y="35"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_clsnum" x="641" y="141"/>
+    <TbGl bkCl="ffff0000" sch="public" tbl="t_clsqty" x="82" y="142"/>
+    <TbGl bkCl="ff009900" sch="public" tbl="prop_clsqty" x="80" y="214"/>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.prop_clsnum.t_cls_prop_cls_id_fkey" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.prop_clsnum.t_cls_prop_prop_id_fkey" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.prop_clsqty.t_cls_prop_cls_id_fkey" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.prop_clsqty.t_cls_prop_prop_id_fkey" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_access_act.fk_access_act_cls" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
@@ -2935,13 +3074,10 @@ WHERE wh_role.rolcanlogin</Sql>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls.fk_class__parent" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls_prop.t_cls_prop_cls_id_fkey" parentEdge="" positioner="">
-      <positionableLines/>
-    </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls_prop.t_cls_prop_prop_id_fkey" parentEdge="" positioner="">
-      <positionableLines/>
-    </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_clsnum.fk_clsnum__cls" parentEdge="" positioner="">
+      <positionableLines/>
+    </FkGl>
+    <FkGl bkCl="ff000000" childEdge="" nm="public.t_clsqty.fk_clsnum__cls" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_favorite_prop.fk_favorite_prop__ref_act_prop" parentEdge="" positioner="">
@@ -3076,8 +3212,6 @@ WHERE wh_role.rolcanlogin</Sql>
     <TbGl bkCl="ffffcc66" sch="public" tbl="log_move_objnum" x="78" y="398"/>
     <TbGl bkCl="ffffcc66" sch="public" tbl="log_move_objqty" x="759" y="387"/>
     <TbGl bkCl="ffffcc66" sch="public" tbl="log_act_" x="44" y="529"/>
-    <TbGl bkCl="ffffcc66" sch="public" tbl="wh_role" x="400" y="642"/>
-    <TbGl bkCl="ff6666ff" sch="public" tbl="t_log_101" x="854" y="666"/>
     <FkGl bkCl="ff000000" childEdge="" nm="public.log_act_.fk_logact__actid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
@@ -3085,9 +3219,6 @@ WHERE wh_role.rolcanlogin</Sql>
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.log_act_.fk_logact__srcobjnumid" parentEdge="" positioner="">
-      <positionableLines/>
-    </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.log_act_.fk_logact__username" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objnum.fk_logmoveobjnum__dstobjnumid" parentEdge="" positioner="">
@@ -3099,9 +3230,6 @@ WHERE wh_role.rolcanlogin</Sql>
     <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objnum.fk_logmoveobjnum__srcobjnumid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objnum.fk_logmoveobjnum__username" parentEdge="" positioner="">
-      <positionableLines/>
-    </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objqty.fk_logmoveobjqty__dstobjnumid" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
@@ -3109,9 +3237,6 @@ WHERE wh_role.rolcanlogin</Sql>
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objqty.fk_logmoveobjqty__srcobjnumid" parentEdge="" positioner="">
-      <positionableLines/>
-    </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.log_move_objqty.fk_logmoveobjqty__username" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_cls.fk_class__default_pid" parentEdge="" positioner="">
@@ -3124,15 +3249,6 @@ WHERE wh_role.rolcanlogin</Sql>
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_clsqty.fk_clsnum__cls" parentEdge="" positioner="">
-      <positionableLines/>
-    </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_log_101.fk_logact_101" parentEdge="" positioner="">
-      <positionableLines/>
-    </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_log_101.fk_lognum_101" parentEdge="" positioner="">
-      <positionableLines/>
-    </FkGl>
-    <FkGl bkCl="ff000000" childEdge="" nm="public.t_log_101.fk_logusr_101" parentEdge="" positioner="">
       <positionableLines/>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="" nm="public.t_objnum.fk_objnum_clsnum" parentEdge="" positioner="">
@@ -3153,7 +3269,7 @@ WHERE wh_role.rolcanlogin</Sql>
     <Notes/>
     <Zones/>
   </Dgm>
-  <RnmMgr NxRnmId="22">
+  <RnmMgr NxRnmId="23">
     <RnmCh ObjCls="Column" ParCls="Table" ParNme="f_favorite_class_prop" SupCls="Schema" SupNme="public">
       <Rnm id="2" nNm="id" oNm="Idi"/>
       <Rnm id="1" nNm="Idi" oNm="Id"/>
@@ -3205,6 +3321,7 @@ WHERE wh_role.rolcanlogin</Sql>
       <Rnm id="20" nNm="pid" oNm="parent"/>
     </RnmCh>
     <RnmCh ObjCls="Table" ParCls="Schema" ParNme="public" SupCls="" SupNme="">
+      <Rnm id="22" nNm="prop_clsnum" oNm="t_cls_prop"/>
       <Rnm id="21" nNm="t_cls_prop" oNm="t_class_prop"/>
     </RnmCh>
   </RnmMgr>
@@ -3224,15 +3341,17 @@ WHERE wh_role.rolcanlogin</Sql>
     </BasicOptionMgr>
   </DbDocOptionMgr>
   <OpenEditors>
+    <OpenEditor ClsNm="Diagram" fqn="null.Классы" selected="0"/>
+    <OpenEditor ClsNm="Diagram" fqn="null.Разрешения перемещений" selected="0"/>
     <OpenEditor ClsNm="Diagram" fqn="null.Состояния-Логи" selected="0"/>
     <OpenEditor ClsNm="Diagram" fqn="null.User_Config" selected="0"/>
-    <OpenEditor ClsNm="Diagram" fqn="null.Классы-Действия-Свойства" selected="0"/>
+    <OpenEditor ClsNm="Diagram" fqn="null.Классы-Действия-Свойства" selected="1"/>
   </OpenEditors>
   <TreePaths>
     <TreePath/>
     <TreePath>/Schemas (1)</TreePath>
     <TreePath>/Schemas (1)/public</TreePath>
-    <TreePath>/Schemas (1)/public/Tables (34)</TreePath>
-    <TreePath>/Diagrams (5)</TreePath>
+    <TreePath>/Schemas (1)/public/Tables (35)</TreePath>
+    <TreePath>/Diagrams (6)</TreePath>
   </TreePaths>
 </Db>

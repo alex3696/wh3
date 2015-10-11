@@ -34,7 +34,7 @@ bool MPropChild::GetInsertQuery(wxString& query)const
 {
 	auto data = GetData();
 	query = wxString::Format
-		("INSERT INTO prop(title, kind)VALUES('%s', %s)RETURNING id, title, kind",
+		("INSERT INTO prop(title, kind)VALUES(%s, %s)RETURNING id, title, kind",
 		data.mLabel.SqlVal(), data.mType);
 	return true;
 }
@@ -43,7 +43,7 @@ bool MPropChild::GetUpdateQuery(wxString& query)const
 {
 	const auto& data = GetData();
 	query = wxString::Format(
-		"UPDATE prop SET title='%s' , kind=%s WHERE id=%s"
+		"UPDATE prop SET title=%s , kind=%s WHERE id=%s"
 		, data.mLabel.SqlVal(), data.mType, data.mId.SqlVal());
 	return true;
 }

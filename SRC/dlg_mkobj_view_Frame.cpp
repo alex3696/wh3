@@ -137,7 +137,7 @@ void Frame::OnChangeModel(const IModel* model, const object_catalog::MObjItem::T
 		else
 		{
 			rec::Obj tmp_obj_data;
-			tmp_obj_data.mPID = cls_data.mDefaultPid;
+			tmp_obj_data.mPID = cls_data.mDefaultObjPid.mId;
 			auto obj_model = std::make_shared<MObjItem>();
 			obj_model->SetData(tmp_obj_data);
 
@@ -147,7 +147,7 @@ void Frame::OnChangeModel(const IModel* model, const object_catalog::MObjItem::T
 			opath->Load();
 
 			mPGPath->SetValueFromString(opath->AsString());
-			mPGPid->SetValueFromString(cls_data.mDefaultPid);
+			mPGPid->SetValueFromString(cls_data.mDefaultObjPid.mId);
 		}
 		
 		mPGPath->Enable(true);

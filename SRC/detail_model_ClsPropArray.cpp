@@ -37,15 +37,15 @@ bool ClsPropArray::GetSelectChildsQuery(wxString& query)const
 		const auto& data = parentCls->GetData();
 
 		query = wxString::Format(
-			"SELECT t_prop.id AS prop_id "
-			" , t_prop.label AS prop_label "
-			" , t_prop.type AS prop_type "
+			"SELECT prop.id AS prop_id "
+			" , prop.title AS prop_label "
+			" , t_prop.kind AS prop_type "
 			" , val "
-			" , t_cls_prop.id AS id "
-			" FROM t_cls_prop "
-			" LEFT JOIN t_prop ON t_prop.id = t_cls_prop.prop_id "
-			" WHERE t_cls_prop.cls_id = %s "
-			, data.mCls.mID);
+			" , prop_cls.id AS id "
+			" FROM prop_cls "
+			" LEFT JOIN prop ON prop.id = prop_cls.prop_id "
+			" WHERE prop_cls.cls_id = %s "
+			, data.mCls.mID.SqlVal());
 		return true;
 	}
 	return false;

@@ -17,8 +17,7 @@
 #include <functional>		// std::bind
 #include <unordered_map>
 
-
-using namespace std::tr1;
+//using namespace std::tr1;
 
 #ifdef __WX__
 
@@ -53,6 +52,8 @@ using namespace std::tr1;
 #include <wx/busyinfo.h>
 #include <wx/wupdlock.h>
 #include <wx/regex.h>
+
+static const wxString wxEmptyString2;
 
 #if wxUSE_DATEPICKCTRL
     #include <wx/datectrl.h>

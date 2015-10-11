@@ -71,19 +71,19 @@ void VObjCatalogDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 				if (1 == col)
 				{
 					ico = &mgr->m_ico_type_abstract24;
-					val = wxString::Format("%s", cls.mLabel);
+					val = wxString::Format("%s", cls.mLabel.toStr());
 				}
 				break;
 			case ctQtyByFloat:
 			case ctQtyByOne:ico = &mgr->m_ico_type_qty24;
 							val = wxString::Format("%s - %s (%s)",
 							//cls.mClsLabel, cls.mQty, cls.mMeasure);
-								cls.mLabel, typeItem->GetQty(), cls.mMeasure);
+							cls.mLabel.toStr(), typeItem->GetQty(), cls.mMeasure.toStr());
 							break;
 			case ctSingle:	ico = &mgr->m_ico_type_num24;
 							val = wxString::Format("%s - %s (%s)",
 							//cls.mLabel, cls.mQty, cls.mMeasure);
-								cls.mLabel, typeItem->GetQty(), cls.mMeasure);
+							cls.mLabel.toStr(), typeItem->GetQty(), cls.mMeasure.toStr());
 							break;
 			} // switch (clsType)
 		} // if (cls.GetClsType(clsType))
@@ -99,7 +99,7 @@ void VObjCatalogDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 		switch (col)
 		{
 		case 1:		val = obj.mLabel;	break;
-		case 2:		val = obj.mQty + " (" + typeItem->GetData().mMeasure + ")"; break;
+		case 2:		val = obj.mQty + " (" + typeItem->GetData().mMeasure.toStr() + ")"; break;
 		case 3:		val = obj.mID;			break;
 		case 4:		val = obj.mPID;			break;
 		case 5:		val = obj.mLastLogId;	break;
