@@ -167,7 +167,7 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 
 	const auto& root = catalog->GetData();
 
-	if (catalog->mCfg->GetData().mObjCatalog)
+	if (rec::CatalogCfg::ctObjCatalog == catalog->mCfg->GetData().mType)
 	{
 		query = wxString::Format(
 			"SELECT r.title, r.id, r.kind, r.measure, osum.qty "
@@ -180,7 +180,7 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 			, root.mObj.mId.SqlVal() );
 		return true;
 	}
-	else
+	else if (rec::CatalogCfg::ctClsCatalog == catalog->mCfg->GetData().mType)
 	{
 		query = wxString::Format(
 			" SELECT t.title, t.id, t.kind, t.measure "

@@ -67,11 +67,11 @@ wxString MObjItem::GetPathString()
 				const auto catalog = dynamic_cast<MObjCatalog*>(cls_array->GetParent());
 				if (catalog)
 				{
-					if (catalog->mCfg->GetData().mObjCatalog)
+					if (rec::CatalogCfg::ctObjCatalog == catalog->mCfg->GetData().mType)
 					{
 						return catalog->mPath->GetPathStr();
 					}
-					else
+					else if (rec::CatalogCfg::ctClsCatalog == catalog->mCfg->GetData().mType)
 					{
 						auto path = std::make_shared<model::ObjPath>();
 						this->AddChild(std::dynamic_pointer_cast<IModel>(path));
@@ -195,13 +195,13 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 	if (typeItemModel)
 	{
 		auto typeArrayModel = dynamic_cast<MTypeArray*>(typeItemModel->GetParent());
-		auto catalogModel = dynamic_cast<MObjCatalog*>(typeArrayModel->GetParent());
+		auto catalog = dynamic_cast<MObjCatalog*>(typeArrayModel->GetParent());
 
 		const auto& typeItemData = typeItemModel->GetData();
-		const auto& catalogData = catalogModel->GetData();
+		const auto& catalogData = catalog->GetData();
 
 		wxString qq;
-		for (const auto& it : catalogModel->GetFavProps())
+		for (const auto& it : catalog->GetFavProps())
 		{
 			auto typeIt = it.mCls->find(typeItemData.mID);
 			if (it.mCls->end() != typeIt)
@@ -221,7 +221,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 				);
 		*/
 
-		if (catalogModel->mCfg->GetData().mObjCatalog)
+		if (rec::CatalogCfg::ctObjCatalog == catalog->mCfg->GetData().mType)
 		{
 			query = wxString::Format(
 				" SELECT o.id, o.pid, o.title, o.qty "
@@ -236,7 +236,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 				);
 			return true;
 		}
-		else
+		else if (rec::CatalogCfg::ctClsCatalog == catalog->mCfg->GetData().mType)
 		{
 			query = wxString::Format(
 				"SELECT o.id, o.pid, o.title, o.qty "

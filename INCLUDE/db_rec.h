@@ -480,41 +480,6 @@ struct Obj : public ObjTitle
 	std::deque<wxString> mProp;
 };
 
-
-//-----------------------------------------------------------------------------
-/// Объекты номерного класса
-struct ClsObjNum final
-{
-	wxString	mLabel;
-	wxString	mPID;
-	wxString	mID;
-
-	ClsObjNum(){}
-	ClsObjNum(const wxString& label, const wxString& id)
-		:mLabel(label), mID(id)
-	{}
-
-
-
-};
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-/// Объекты количественного класса
-struct ClsObjQty final
-{
-	wxString	mLabel;
-	wxString	mID;
-	wxString	mPID;
-	wxString	mQty;
-
-	ClsObjQty(){}
-	ClsObjQty(const wxString& label, const wxString& pid = wxEmptyString)
-		:mLabel(label), mPID(pid)
-	{}
-
-
-};
-
 //-----------------------------------------------------------------------------
 /// Разрешение
 struct Perm
@@ -606,18 +571,7 @@ struct UserRole
 
 
 };
-//-----------------------------------------------------------------------------
-/// Избранное свойство
-struct ClsActProp
-{
-	wxString	mID;
-		
-	wxString	mActID;
-	wxString	mActLabel;
 
-	wxString	mPropID;
-	wxString	mPropLabel;
-};
 //-----------------------------------------------------------------------------
 struct PathItem
 {
@@ -671,16 +625,30 @@ struct FavoriteProp : public Prop
 //-----------------------------------------------------------------------------
 struct CatalogCfg
 {
-	
-	CatalogCfg(bool ocat = true)
-		:mObjCatalog(ocat)
+	enum Type
+	{
+		ctNull = 0,
+		ctObjCatalog,
+		ctClsCatalog,
+		ctClsDlg,
+		ctObjDlg,
+	};
+
+	CatalogCfg(Type tp = ctObjCatalog)
+		:mType(tp)
 	{}
-	bool mObjCatalog;
+	
+	Type mType = ctObjCatalog;
+
+	//bool mObjCatalog;
 
     //#ifdef _DEBUG
 	//bool mShowDebugColumns = true;
     //#else
 	bool mShowDebugColumns = false;
+
+
+	
     //#endif
 };
 //-----------------------------------------------------------------------------

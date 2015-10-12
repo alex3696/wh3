@@ -51,7 +51,7 @@ bool MPath::GetSelectChildsQuery(wxString& query)const
 	if (catalog)
 	{
 		const auto& data = catalog->GetData();
-		if(catalog->mCfg->GetData().mObjCatalog)
+		if (rec::CatalogCfg::ctObjCatalog == catalog->mCfg->GetData().mType)
 		{ 
 			query = wxString::Format(
 				" SELECT _obj_id, _obj_title, _cls_id, _cls_title "
@@ -60,7 +60,7 @@ bool MPath::GetSelectChildsQuery(wxString& query)const
 				);
 			return true;
 		}
-		else
+		else if (rec::CatalogCfg::ctClsCatalog == catalog->mCfg->GetData().mType)
 		{
 			query = wxString::Format(
 				" SELECT _id, _title "
@@ -82,19 +82,18 @@ wxString MPath::GetPathStr()const
 
 	wxString str_path = "/";
 	unsigned int qty = GetChildQty();
-	bool objCatalog = catalog->mCfg->GetData().mObjCatalog;
 
 	for (unsigned int i = qty; i > 0; i--)
 	{
 		auto node = std::dynamic_pointer_cast<MPathItem>(GetChild(i - 1));
 
-		if (objCatalog)
+		if (rec::CatalogCfg::ctObjCatalog == catalog->mCfg->GetData().mType)
 		{
 			str_path += wxString::Format("[%s]%s/"
 				, node->GetData().mCls.mLabel.toStr()
 				, node->GetData().mObj.mLabel.toStr() );
 		}
-		else
+		else if (rec::CatalogCfg::ctClsCatalog == catalog->mCfg->GetData().mType)
 		{
 			str_path += wxString::Format("%s/"
 				, node->GetData().mCls.mLabel.toStr());

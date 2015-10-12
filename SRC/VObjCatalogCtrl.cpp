@@ -176,19 +176,12 @@ void VObjCatalogCtrl::UpdateToolsStates()
 	
 	if (mCatalogModel)
 	{
-		enum CatalogType
-		{
-			ctNone = 0, // Find results
-			ctObj,
-			ctType
-		};
-
-		CatalogType ct(ctNone);
-		ct = mCatalogModel->mCfg->GetData().mObjCatalog ? ctObj : ctType;
+		using namespace rec;
+		CatalogCfg::Type ct(mCatalogModel->mCfg->GetData().mType);
 
 		switch (ct)
 		{
-		case ctObj:	mToolDisable[wxID_MKCLS] += 1;
+		case CatalogCfg::ctObjCatalog:	mToolDisable[wxID_MKCLS] += 1; break;
 		default: //ctNone, ctType:	
 			break;
 		}
@@ -401,13 +394,13 @@ void VObjCatalogCtrl::OnCmdUp(wxCommandEvent& evt)
 		unsigned long pid(0);
 		rec::PathItem new_root = rootObj;
 
-		if (mCatalogModel->mCfg->GetData().mObjCatalog)
+		if (rec::CatalogCfg::ctObjCatalog == mCatalogModel->mCfg->GetData().mType)
 		{
 			pid = rootObj.mObj.mParent.mId;
 			if (0 < pid)
 				new_root.mObj.mId = rootObj.mObj.mParent.mId;
 		}
-		else
+		else if (rec::CatalogCfg::ctClsCatalog == mCatalogModel->mCfg->GetData().mType)
 		{
 			if (!rootObj.mCls.mParent.mId.IsNull())
 				new_root.mCls.mID = rootObj.mCls.mParent.mId;
@@ -554,7 +547,7 @@ void VObjCatalogCtrl::OnMkObj(wxCommandEvent& evt)
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnMkCls(wxCommandEvent& evt)
 {
-	if (mCatalogModel && !mCatalogModel->mCfg->GetData().mObjCatalog)
+	if (mCatalogModel && rec::CatalogCfg::ctClsCatalog == mCatalogModel->mCfg->GetData().mType)
 	{
 		const auto& root = mCatalogModel->GetData();
 
@@ -656,12 +649,29 @@ void VObjCatalogCtrl::SetModel(std::shared_ptr<IModel> model)
 	mCatalogModel = std::dynamic_pointer_cast<wh::object_catalog::MObjCatalog>(model);
 	if (mCatalogModel)
 	{
+		rec::CatalogCfg::Type ct(mCatalogModel->mCfg->GetData().mType);
+		switch (ct)
+		{
+		default:break;
+		case wh::rec::CatalogCfg::ctObjCatalog:
+			mToolBar->SetToolBitmap(whID_CATALOG_SELECT, m_ResMgr->m_ico_folder_obj24);
+			break;
+		case wh::rec::CatalogCfg::ctClsCatalog:
+			mToolBar->SetToolBitmap(whID_CATALOG_SELECT, m_ResMgr->m_ico_folder_type24);
+			break;
+		case wh::rec::CatalogCfg::ctClsDlg:
+		case wh::rec::CatalogCfg::ctObjDlg:
+			mToolBar->Clear();
+			mReloadTool = mToolBar->AddTool(wxID_REFRESH, "Обновить", m_ResMgr->m_ico_refresh24);
+			Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdReload, this, wxID_REFRESH);
+			mUpTool = mToolBar->AddTool(wxID_BACKWARD, "Назад", m_ResMgr->m_ico_back24);
+			Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdUp, this, wxID_BACKWARD);
+			mToolBar->Realize();
+			break;
+		
+		}
+		
 		mTableView->SetModel(model);
-
-		if (mCatalogModel->mCfg->GetData().mObjCatalog)
-			mToolBar->SetToolBitmap(whID_CATALOG_SELECT,m_ResMgr->m_ico_folder_obj24);
-		else
-			mToolBar->SetToolBitmap(whID_CATALOG_SELECT,m_ResMgr->m_ico_folder_type24);
 	
 		mConnPathChange.disconnect();
 		auto funcOnChange = std::bind(&VObjCatalogCtrl::OnChangePath,
@@ -677,6 +687,7 @@ void VObjCatalogCtrl::SetModel(std::shared_ptr<IModel> model)
 		OnChangePath(*mCatalogModel->mPath.get(), vec);
 	
 	}
+
 }
 //---------------------------------------------------------------------------
 void VObjCatalogCtrl::OnActivated(wxDataViewEvent& evt)
@@ -689,12 +700,11 @@ void VObjCatalogCtrl::OnActivated(wxDataViewEvent& evt)
 		auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
 		auto objItem = dynamic_cast<object_catalog::MObjItem*> (modelInterface);
 
-		bool IsObjCatalog = mCatalogModel->mCfg->GetData().mObjCatalog;
 		object_catalog::MTypeItem* typeItem(nullptr);
 		rec::PathItem new_root;
 		
 
-		if (IsObjCatalog)
+		if (rec::CatalogCfg::ctObjCatalog == mCatalogModel->mCfg->GetData().mType)
 		{
 			if (objItem)
 			{
@@ -719,7 +729,7 @@ void VObjCatalogCtrl::OnActivated(wxDataViewEvent& evt)
 				}
 			}//if (objItem)
 		}
-		else //if (IsObjCatalog)
+		else if (rec::CatalogCfg::ctClsCatalog == mCatalogModel->mCfg->GetData().mType)
 		{
 			if (!objItem)
 			{

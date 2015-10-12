@@ -2,13 +2,14 @@
 #define __PGCLSPID_H
 
 #include "db_rec.h"
+#include "BtnProperty.h"
 
 using wh_rec_Base = wh::rec::Base;
 WX_PG_DECLARE_VARIANT_DATA(wh_rec_Base)
 
 
 //-----------------------------------------------------------------------------
-class wxClsParentProperty : public wxPGProperty
+class wxClsParentProperty : public BtnProperty//wxPGProperty
 {
 	WX_PG_DECLARE_PROPERTY_CLASS(wxClsParentProperty)
 public:
@@ -23,6 +24,7 @@ public:
 	virtual void RefreshChildren();
 
 protected:
+	virtual wxString  ValueToString(wxVariant &  value, int  argFlags = 0)  const;
 };
 
 
@@ -30,7 +32,7 @@ protected:
 using wh_rec_ObjParent = wh::rec::ObjParent;
 WX_PG_DECLARE_VARIANT_DATA(wh_rec_ObjParent)
 /// PG Свойство - родитель-объект 
-class wxObjParentProperty : public wxPGProperty
+class wxObjParentProperty : public BtnProperty//wxPGProperty
 {
 	WX_PG_DECLARE_PROPERTY_CLASS(wxObjParentProperty)
 public:

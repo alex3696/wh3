@@ -1,6 +1,7 @@
 #include "_pch.h"
 #include "VClsDataEditorPanel.h"
 #include "PGClsPid.h"
+#include "dlgselectcls_ctrlpnl.h"
 
 using namespace wh;
 using namespace wh::view;
@@ -35,9 +36,59 @@ VClsDataEditorPanel::VClsDataEditorPanel(wxWindow*		parent,
 	mPropGrid->Append(new wxLongStringProperty(L"Описание"));
 	mPropGrid->Append(new wxEnumProperty(L"Тип экземпляров", wxPG_LABEL, soc, 0));
 	mPropGrid->Append(new wxStringProperty(L"Ед.измерений", wxPG_LABEL));
-	mPropGrid->Append(new wxStringProperty(L"Родительский класс"));
+	
+	auto clsparent = new wxClsParentProperty(L"Родительский класс");
+	mPropGrid->Append(clsparent);
 	mPropGrid->Append(new wxStringProperty(L"#"))->Enable(false);
 		
+	std::function<bool(wxPGProperty*)> selecFunc = [this](wxPGProperty* prop)
+	{
+		select::ClsDlg dlg(nullptr);
+
+		auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
+
+		rec::CatalogCfg cfg;
+		cfg.mType = rec::CatalogCfg::ctClsDlg;
+		catalog->mCfg->SetData(cfg, true);
+
+		wh::rec::PathItem root;
+		root.mCls.mID = 1;
+		catalog->SetData(root);
+
+		catalog->Load();
+
+		dlg.SetModel(catalog);
+
+		if (wxID_OK == dlg.ShowModal())
+		{
+			/*
+			wxDataViewItemArray selected;
+			dlg.GetSelections(selected);
+			if (!selected.empty())
+			{
+				unsigned int row = dlg.GetRow(selected[0]);
+				auto childModel = mActArray->GetChild(row);
+				auto actModel = std::dynamic_pointer_cast<MAct>(childModel);
+				const auto& actData = actModel->GetData();
+
+				mPropGrid->CommitChangesFromEditor();
+
+				auto clsAct = mModel->GetData();
+
+				clsAct.mAct.mId = actData.mID;
+				clsAct.mAct.mLabel = actData.mLabel;
+
+				mModel->SetData(clsAct);
+				return true;
+			}
+			*/
+		}
+		
+		return false;
+	};
+
+	clsparent->SetOnClickButonFunc(selecFunc);
+
 
 	mPropGrid->ResetColumnSizes();
 	this->Layout();
@@ -53,7 +104,7 @@ void VClsDataEditorPanel::GetData(rec::Cls& rec) const
 	rec.mComment = mPropGrid->GetPropertyByLabel(L"Описание")->GetValueAsString();
 	rec.mType = wxString::Format("%d", mPropGrid->GetPropertyByLabel(L"Тип экземпляров")->GetChoiceSelection());
 	rec.mMeasure = mPropGrid->GetPropertyByLabel(L"Ед.измерений")->GetValueAsString();
-	rec.mParent.mId = mPropGrid->GetPropertyByLabel(L"Родительский класс")->GetValueAsString();
+	rec.mParent << mPropGrid->GetPropertyByLabel(L"Родительский класс")->GetValue();
 	rec.mID = mPropGrid->GetPropertyByLabel(L"#")->GetValueAsString();
 }
 //---------------------------------------------------------------------------
@@ -68,7 +119,8 @@ void VClsDataEditorPanel::SetData(const rec::Cls& rec)
 	rec.mType.ToULong(&items_type);
 	mPropGrid->GetPropertyByLabel(L"Тип экземпляров")->SetChoiceSelection(items_type);
 	mPropGrid->GetPropertyByLabel(L"Ед.измерений")->SetValueFromString(rec.mMeasure);
-	mPropGrid->GetPropertyByLabel(L"Родительский класс")->SetValueFromString(rec.mParent.mId);
+
+	mPropGrid->GetPropertyByLabel(L"Родительский класс")->SetValue(wxVariant(rec.mParent));
 	mPropGrid->GetPropertyByLabel(L"#")->SetValueFromString(rec.mID);
 }
 //-----------------------------------------------------------------------------

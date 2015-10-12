@@ -21,14 +21,14 @@ MObjCatalog::MObjCatalog(const char option)
 	this->AddChild(std::dynamic_pointer_cast<IModel>(mFavProps));
 	this->AddChild(std::dynamic_pointer_cast<IModel>(mCfg));
 
-	rec::CatalogCfg cfg(false);
+	rec::CatalogCfg cfg(rec::CatalogCfg::ctClsCatalog);
 	mCfg->SetData(cfg);
 }
 
 //-------------------------------------------------------------------------
 bool MObjCatalog::GetSelectQuery(wxString& query)const
 {
-	if (mCfg->GetData().mObjCatalog)
+	if (rec::CatalogCfg::ctObjCatalog == mCfg->GetData().mType)
 	{
 		const auto& data = this->GetData();
 		if (data.mObj.mId.IsNull())
@@ -42,7 +42,7 @@ bool MObjCatalog::GetSelectQuery(wxString& query)const
 			);
 		
 	}
-	else
+	else if (rec::CatalogCfg::ctClsCatalog == mCfg->GetData().mType)
 	{
 		
 		const auto& data = this->GetData();
@@ -82,7 +82,7 @@ void MObjCatalog::LoadChilds()
 //-------------------------------------------------------------------------
 void MObjCatalog::SetObjCatalog(unsigned int objPid)
 {
-	rec::CatalogCfg cfg(true);
+	rec::CatalogCfg cfg(rec::CatalogCfg::ctObjCatalog);
 	mCfg->SetData(cfg);
 	wh::rec::PathItem root;
 	root.mObj.mId = wxString::Format("%d", objPid);
@@ -92,7 +92,7 @@ void MObjCatalog::SetObjCatalog(unsigned int objPid)
 //-------------------------------------------------------------------------
 void MObjCatalog::SetClsCatalog(unsigned int clsPid)
 {
-	rec::CatalogCfg cfg(false);
+	rec::CatalogCfg cfg(rec::CatalogCfg::ctClsCatalog);
 	mCfg->SetData(cfg);
 
 	wh::rec::PathItem root;

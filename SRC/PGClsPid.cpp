@@ -9,13 +9,17 @@ using namespace wh;
 
 WX_PG_IMPLEMENT_VARIANT_DATA_DUMMY_EQ(wh_rec_Base)
 
-WX_PG_IMPLEMENT_PROPERTY_CLASS(wxClsParentProperty, wxPGProperty,
+//WX_PG_IMPLEMENT_PROPERTY_CLASS(wxClsParentProperty, wxPGProperty,
+//								wh_rec_Base, const wh_rec_Base&, TextCtrl)
+WX_PG_IMPLEMENT_PROPERTY_CLASS(wxClsParentProperty, wxStringProperty,
 								wh_rec_Base, const wh_rec_Base&, TextCtrl)
 
+								
 //-----------------------------------------------------------------------------
 wxClsParentProperty::wxClsParentProperty(const wxString& label,
 const wxString& name, const wh_rec_Base& value)
-	: wxPGProperty(label, name)
+	//: wxPGProperty(label, name)
+	: BtnProperty(label, name)
 {
 	SetValue(WXVARIANT(value));
 	AddPrivateChild(new wxStringProperty("Имя", wxPG_LABEL, value.mLabel));
@@ -47,6 +51,12 @@ wxVariant wxClsParentProperty::ChildChanged(wxVariant& thisValue,
 	newVariant << cls_parent;
 	return newVariant;
 }
+//-----------------------------------------------------------------------------
+wxString  wxClsParentProperty::ValueToString(wxVariant &  value, int  argFlags)  const
+{
+	const auto& obj = wh_rec_BaseRefFromVariant(m_value);
+	return obj.mLabel.toStr();
+}
 
 
 
@@ -55,13 +65,14 @@ wxVariant wxClsParentProperty::ChildChanged(wxVariant& thisValue,
 //-----------------------------------------------------------------------------
 
 WX_PG_IMPLEMENT_VARIANT_DATA_DUMMY_EQ(wh_rec_ObjParent)
-WX_PG_IMPLEMENT_PROPERTY_CLASS(wxObjParentProperty, wxPGProperty,
+//WX_PG_IMPLEMENT_PROPERTY_CLASS(wxObjParentProperty, wxPGProperty,
+//								wh_rec_ObjParent, const wh_rec_ObjParent&, TextCtrl)
+WX_PG_IMPLEMENT_PROPERTY_CLASS(wxObjParentProperty, wxStringProperty,
 								wh_rec_ObjParent, const wh_rec_ObjParent&, TextCtrl)
-
 //-----------------------------------------------------------------------------
 wxObjParentProperty::wxObjParentProperty(const wxString& label,
 const wxString& name, const wh_rec_ObjParent& value)
-: wxPGProperty(label, name)
+: BtnProperty(label, name)
 {
 	SetValue(WXVARIANT(value));
 	AddPrivateChild(new wxClsParentProperty("Класс", wxPG_LABEL, wh_rec_Base() ));
@@ -103,7 +114,7 @@ wxString  wxObjParentProperty::ValueToString(wxVariant &  value, int  argFlags) 
 	return wxString::Format("[%s]%s pid=%s", 
 		obj.mCls.mLabel.toStr(),
 		obj.mObj.mLabel.toStr(), 
-		obj.mObj.mId.SqlVal()
+		obj.mObj.mId.toStr()
 		);
 	#else
 	return wxString::Format("[%s]%s", obj.mCls.mLabel, obj.mObj.mLabel);

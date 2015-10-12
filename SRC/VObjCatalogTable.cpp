@@ -115,12 +115,12 @@ void VObjCatalogTable::ResetColumns()
 		GetColumn(3)->SetHidden(hidden);
 		GetColumn(4)->SetHidden(hidden);
 
-		if (mCatalogModel->mCfg->GetData().mObjCatalog)
+		if (rec::CatalogCfg::ctObjCatalog == mCatalogModel->mCfg->GetData().mType)
 		{
 			GetColumn(5)->SetHidden(true);
 			this->DisableAutosizeColumn(5);
 		}
-		else
+		else if (rec::CatalogCfg::ctClsCatalog == mCatalogModel->mCfg->GetData().mType)
 		{
 			GetColumn(5)->SetHidden(false);
 			EnableAutosizeColumn(5);
@@ -133,26 +133,29 @@ void VObjCatalogTable::BuildColumns()
 {
 	int colIndex = 7;
 
-	for (const auto& prop : mCatalogModel->GetFavProps())
-	{
-		wxString name = prop.mLabel;
-		unsigned int width = 50;
-
-		auto fieldType = StringToFt(prop.mType);
-		if (ftText != fieldType)
+	if (msNull != mCatalogModel->mFavProps->GetState())
+		for (const auto& prop : mCatalogModel->GetFavProps())
 		{
-			wxWindowDC dc(this);
-			auto dcWidth = dc.GetTextExtent(name).GetWidth()+20;
-			auto typeWidth = GetColumnWidthBy(fieldType);
-			//width = (dcWidth > typeWidth && dcWidth < typeWidth*3) ? dcWidth : typeWidth;
-			width = ( typeWidth*3-dcWidth > 0) ? dcWidth : typeWidth;
-		}
-		else
-			EnableAutosizeColumn(colIndex - 1);
+			wxString name = prop.mLabel;
+			unsigned int width = 50;
+
+			auto fieldType = StringToFt(prop.mType);
+			if (ftText != fieldType)
+			{
+				wxWindowDC dc(this);
+				auto dcWidth = dc.GetTextExtent(name).GetWidth()+20;
+				auto typeWidth = GetColumnWidthBy(fieldType);
+				//width = (dcWidth > typeWidth && dcWidth < typeWidth*3) ? dcWidth : typeWidth;
+				width = ( typeWidth*3-dcWidth > 0) ? dcWidth : typeWidth;
+			}
+			else
+				EnableAutosizeColumn(colIndex - 1);
 			
-		AppendTextColumn(name, colIndex++, wxDATAVIEW_CELL_INERT, width,
-			wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
-	}
+			AppendTextColumn(name, colIndex++, wxDATAVIEW_CELL_INERT, width,
+				wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
+		}
+	
+	
 	this->OnResize(wxSizeEvent());
 
 }

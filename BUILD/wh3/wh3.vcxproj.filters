@@ -139,6 +139,12 @@
     <Filter Include="SIG_MODEL\Detail\view">
       <UniqueIdentifier>{e2040487-031c-4e31-9ce3-fa641109f7ef}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SIG_MODEL\DlgSelectCls">
+      <UniqueIdentifier>{d9a37787-a9ed-4ff4-bbe4-138b7d7c6718}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SIG_MODEL\DlgSelectCls\View">
+      <UniqueIdentifier>{bf9c4fd1-eb44-4a13-a8d8-b25c352d0e2a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -371,6 +377,9 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\detail_model_OjbPropLoader.cpp">
       <Filter>SIG_MODEL\Detail\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlgselectcls_ctrlpnl.cpp">
+      <Filter>SIG_MODEL\DlgSelectCls\View</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -643,6 +652,9 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\PGClsPid.h">
       <Filter>GUI\Controls\PropertyGridExt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlgselectcls_ctrlpnl.h">
+      <Filter>SIG_MODEL\DlgSelectCls\View</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

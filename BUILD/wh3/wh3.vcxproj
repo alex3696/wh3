@@ -148,6 +148,7 @@
     <ClCompile Include="..\..\SRC\detail_model_ObjPropArray.cpp" />
     <ClCompile Include="..\..\SRC\detail_model_OjbPropLoader.cpp" />
     <ClCompile Include="..\..\SRC\DGroupEditor.cpp" />
+    <ClCompile Include="..\..\SRC\dlgselectcls_ctrlpnl.cpp" />
     <ClCompile Include="..\..\SRC\dlg_act_model_Act.cpp" />
     <ClCompile Include="..\..\SRC\dlg_act_model_ActProp.cpp" />
     <ClCompile Include="..\..\SRC\dlg_act_model_Obj.cpp" />
@@ -265,6 +266,7 @@
     <ClInclude Include="..\..\INCLUDE\detail_ctrlpnl.h" />
     <ClInclude Include="..\..\INCLUDE\detail_model.h" />
     <ClInclude Include="..\..\INCLUDE\DGroupEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\dlgselectcls_ctrlpnl.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_act_model_Act.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_act_model_ActProp.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_act_model_Obj.h" />

@@ -129,12 +129,12 @@ void Frame::OnChangeModel(const IModel* model, const object_catalog::MObjItem::T
 	case msCreated: 
 		SetTitle("Создание объекта");
 		
-		if (catalog->mCfg->GetData().mObjCatalog)
+		if ( rec::CatalogCfg::ctObjCatalog == catalog->mCfg->GetData().mType )
 		{
 			mPGPath->SetValueFromString(mObj->GetPathString());
 			mPGPid->SetValueFromString(catalog->GetData().mObj.mId.toStr() );
 		}
-		else
+		if (rec::CatalogCfg::ctClsCatalog == catalog->mCfg->GetData().mType)
 		{
 			rec::Obj tmp_obj_data;
 			tmp_obj_data.mParent.mId = cls_data.mDefaultObjPid.mId;
