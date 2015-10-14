@@ -115,12 +115,12 @@ void VObjCatalogTable::ResetColumns()
 		GetColumn(3)->SetHidden(hidden);
 		GetColumn(4)->SetHidden(hidden);
 
-		if (rec::CatalogCfg::ctObjCatalog == mCatalogModel->mCfg->GetData().mType)
+		if (mCatalogModel->IsObjTree())
 		{
 			GetColumn(5)->SetHidden(true);
 			this->DisableAutosizeColumn(5);
 		}
-		else if (rec::CatalogCfg::ctClsCatalog == mCatalogModel->mCfg->GetData().mType)
+		else
 		{
 			GetColumn(5)->SetHidden(false);
 			EnableAutosizeColumn(5);

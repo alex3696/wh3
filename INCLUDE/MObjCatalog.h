@@ -63,10 +63,13 @@ public:
 	std::shared_ptr<MTypeArray>		mTypeArray;
 	std::shared_ptr<MFavProp>		mFavProps;
 	
+	void SetCatalog(bool isObjCatalog, bool isSelectDlg, 
+		bool isFindResult, const wxString& root_find);
 
-	void SetObjCatalog(unsigned int objPid);
-	void SetClsCatalog(unsigned int clsPid);
-
+	bool IsObjTree()const;
+	bool IsSelectDlg()const;
+	bool IsFindResult()const;
+	bool IsShowDebug()const;
 
 	virtual void LoadChilds()override;
 

@@ -625,31 +625,20 @@ struct FavoriteProp : public Prop
 //-----------------------------------------------------------------------------
 struct CatalogCfg
 {
-	enum Type
+	bool mIsOjbTree;
+	bool mIsSelectDlg;
+	bool mIsFindResult;
+	bool mShowDebugColumns;
+
+	CatalogCfg(bool isObjTree = true, bool isSelectDlg = false,
+		bool isFindResult = false, bool debugColumns = false)
+		: mIsOjbTree(isObjTree)
+		, mIsSelectDlg(isSelectDlg)
+		, mIsFindResult(isFindResult)
+		, mShowDebugColumns(debugColumns)
 	{
-		ctNull = 0,
-		ctObjCatalog,
-		ctClsCatalog,
-		ctClsDlg,
-		ctObjDlg,
-	};
+	}
 
-	CatalogCfg(Type tp = ctObjCatalog)
-		:mType(tp)
-	{}
-	
-	Type mType = ctObjCatalog;
-
-	//bool mObjCatalog;
-
-    //#ifdef _DEBUG
-	//bool mShowDebugColumns = true;
-    //#else
-	bool mShowDebugColumns = false;
-
-
-	
-    //#endif
 };
 //-----------------------------------------------------------------------------
 

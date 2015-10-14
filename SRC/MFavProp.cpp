@@ -58,7 +58,7 @@ bool MFavProp::GetSelectQuery(wxString& query)const
 
 	const auto& root = catalog->GetData();
 
-	if (rec::CatalogCfg::ctObjCatalog == catalog->mCfg->GetData().mType)
+	if (catalog->IsObjTree())
 	{
 		query = wxString::Format(
 			" SELECT distinct prop.id, prop.title, prop.kind, cls_id "
@@ -69,7 +69,7 @@ bool MFavProp::GetSelectQuery(wxString& query)const
 			, root.mObj.mId.SqlVal() );
 		return true;
 	}
-	else if (rec::CatalogCfg::ctClsCatalog == catalog->mCfg->GetData().mType)
+	else
 	{
 		query = wxString::Format(
 			" SELECT distinct prop.id, prop.title, prop.kind, cls_id "

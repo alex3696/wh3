@@ -32,10 +32,13 @@ VClsDataEditorPanel::VClsDataEditorPanel(wxWindow*		parent,
 	soc.Add(L"Количественный(целочисленный)", 2);
 	soc.Add(L"Количественный(дробный)", 3);
 
-	mPropGrid->Append(new wxStringProperty(L"Имя"));
+	auto pgp_name = mPropGrid->Append(new wxStringProperty(L"Имя"));
 	mPropGrid->Append(new wxLongStringProperty(L"Описание"));
 	mPropGrid->Append(new wxEnumProperty(L"Тип экземпляров", wxPG_LABEL, soc, 0));
-	mPropGrid->Append(new wxStringProperty(L"Ед.измерений", wxPG_LABEL));
+	auto pgp_measure = mPropGrid->Append(new wxStringProperty(L"Ед.измерений", wxPG_LABEL));
+
+	pgp_name->SetValidator(wxRegExpValidator(titleValidator));
+	pgp_measure->SetValidator(wxRegExpValidator(titleValidator));
 	
 	auto clsparent = new wxClsParentProperty(L"Родительский класс");
 	mPropGrid->Append(clsparent);
@@ -46,10 +49,7 @@ VClsDataEditorPanel::VClsDataEditorPanel(wxWindow*		parent,
 		select::ClsDlg dlg(nullptr);
 
 		auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
-
-		rec::CatalogCfg cfg;
-		cfg.mType = rec::CatalogCfg::ctClsDlg;
-		catalog->mCfg->SetData(cfg, true);
+		catalog->SetCatalog(false, true, false, "1");
 
 		wh::rec::PathItem root;
 		root.mCls.mID = 1;

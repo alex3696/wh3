@@ -67,11 +67,11 @@ wxString MObjItem::GetPathString()
 				const auto catalog = dynamic_cast<MObjCatalog*>(cls_array->GetParent());
 				if (catalog)
 				{
-					if (rec::CatalogCfg::ctObjCatalog == catalog->mCfg->GetData().mType)
+					if (catalog->IsObjTree())
 					{
 						return catalog->mPath->GetPathStr();
 					}
-					else if (rec::CatalogCfg::ctClsCatalog == catalog->mCfg->GetData().mType)
+					else
 					{
 						auto path = std::make_shared<model::ObjPath>();
 						this->AddChild(std::dynamic_pointer_cast<IModel>(path));
@@ -108,7 +108,7 @@ bool MObjItem::GetInsertQuery(wxString& query)const
 	if (cls.GetClsType(ct))
 	{
 		query = wxString::Format(
-			"INSERT INTO obj_tree( title, cls_id, pid, qty )"
+			"INSERT INTO obj( title, cls_id, pid, qty )"
 			" VALUES(%s, %s, %s, %s)"
 			, newObj.mLabel.SqlVal()
 			, cls.mID.SqlVal()
@@ -145,7 +145,7 @@ bool MObjItem::GetUpdateQuery(wxString& query)const
 	if (cls.GetClsType(ct))
 	{
 		query = wxString::Format(
-			"UPDATE obj_tree SET "
+			"UPDATE obj SET "
 			"       title=%s, pid=%s, qty=%s "
 			" WHERE id=%s AND cls_id=%s AND pid=%s "
 			, newObj.mLabel.SqlVal()
@@ -174,7 +174,7 @@ bool MObjItem::GetDeleteQuery(wxString& query)const
 	if (cls.GetClsType(ct))
 	{ 		
 		query = wxString::Format(
-			"DELETE FROM obj_tree WHERE "
+			"DELETE FROM obj WHERE "
 			" id=%s AND cls_id=%s AND pid=%s "
 			, oldObj.mId.SqlVal()
 			, cls.mID.toStr()
@@ -221,12 +221,12 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 				);
 		*/
 
-		if (rec::CatalogCfg::ctObjCatalog == catalog->mCfg->GetData().mType)
+		if (catalog->IsObjTree())
 		{
 			query = wxString::Format(
 				" SELECT o.id, o.pid, o.title, o.qty "
 				" , move_logid, NULL AS path %s "
-				" FROM obj_tree o "
+				" FROM obj o "
 				" %s "
 				" WHERE o.pid = %s AND o.cls_id = %s "
 				, qq
@@ -236,12 +236,12 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 				);
 			return true;
 		}
-		else if (rec::CatalogCfg::ctClsCatalog == catalog->mCfg->GetData().mType)
+		else
 		{
 			query = wxString::Format(
 				"SELECT o.id, o.pid, o.title, o.qty "
 				" , move_logid, get_path(o.pid)  AS path %s "
-				" FROM obj_tree o "
+				" FROM obj o "
 				" %s "
 				" WHERE o.cls_id = %s "
 				, qq

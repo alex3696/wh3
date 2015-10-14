@@ -21,28 +21,28 @@ MObjCatalog::MObjCatalog(const char option)
 	this->AddChild(std::dynamic_pointer_cast<IModel>(mFavProps));
 	this->AddChild(std::dynamic_pointer_cast<IModel>(mCfg));
 
-	rec::CatalogCfg cfg(rec::CatalogCfg::ctClsCatalog);
+	rec::CatalogCfg cfg(false);
 	mCfg->SetData(cfg);
 }
 
 //-------------------------------------------------------------------------
 bool MObjCatalog::GetSelectQuery(wxString& query)const
 {
-	if (rec::CatalogCfg::ctObjCatalog == mCfg->GetData().mType)
+	if (IsObjTree())
 	{
 		const auto& data = this->GetData();
 		if (data.mObj.mId.IsNull())
 			return false;
 		query = wxString::Format(
 			" SELECT o.id, o.title, o.pid, t.id, t.title, t.pid "
-			" FROM obj_tree o "
-			" LEFT JOIN cls_tree t ON t.id = o.cls_id "
+			" FROM obj o "
+			" LEFT JOIN cls t ON t.id = o.cls_id "
 			" WHERE o.id = %s "
 			, data.mObj.mId.SqlVal()
 			);
 		
 	}
-	else if (rec::CatalogCfg::ctClsCatalog == mCfg->GetData().mType)
+	else
 	{
 		
 		const auto& data = this->GetData();
@@ -50,7 +50,7 @@ bool MObjCatalog::GetSelectQuery(wxString& query)const
 			return false;
 		query = wxString::Format(
 			"SELECT NULL,NULL, NULL, id, title  , pid "
-			" FROM cls_tree "
+			" FROM cls "
 			" WHERE id=%s "
 			, data.mCls.mID.SqlVal()
 			);
@@ -80,23 +80,40 @@ void MObjCatalog::LoadChilds()
 	mPath->Load();
 }
 //-------------------------------------------------------------------------
-void MObjCatalog::SetObjCatalog(unsigned int objPid)
+
+void MObjCatalog::SetCatalog(bool isObjCatalog, bool isSelectDlg,
+	bool isFindResult, const wxString& root_find)
 {
-	rec::CatalogCfg cfg(rec::CatalogCfg::ctObjCatalog);
-	mCfg->SetData(cfg);
+	rec::CatalogCfg cfg(isObjCatalog, isSelectDlg, isFindResult);
+	mCfg->SetData(cfg,true);
+
 	wh::rec::PathItem root;
-	root.mObj.mId = wxString::Format("%d", objPid);
+	isObjCatalog ? root.mObj.mId = root_find : root.mCls.mID = root_find;
+
 	SetData(root);
 	Load();
 }
 //-------------------------------------------------------------------------
-void MObjCatalog::SetClsCatalog(unsigned int clsPid)
+bool MObjCatalog::IsObjTree()const
 {
-	rec::CatalogCfg cfg(rec::CatalogCfg::ctClsCatalog);
-	mCfg->SetData(cfg);
-
-	wh::rec::PathItem root;
-	root.mCls.mID = wxString::Format("%d", clsPid);
-	SetData(root);
-	Load();
+	const auto& cfg = mCfg->GetData();
+	return cfg.mIsOjbTree;
+}
+//-------------------------------------------------------------------------
+bool MObjCatalog::IsSelectDlg()const
+{
+	const auto& cfg = mCfg->GetData();
+	return cfg.mIsSelectDlg;
+}
+//-------------------------------------------------------------------------
+bool MObjCatalog::IsFindResult()const
+{
+	const auto& cfg = mCfg->GetData();
+	return cfg.mIsFindResult;
+}
+//-------------------------------------------------------------------------
+bool MObjCatalog::IsShowDebug()const
+{
+	const auto& cfg = mCfg->GetData();
+	return cfg.mShowDebugColumns;
 }

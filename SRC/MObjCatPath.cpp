@@ -51,7 +51,7 @@ bool MPath::GetSelectChildsQuery(wxString& query)const
 	if (catalog)
 	{
 		const auto& data = catalog->GetData();
-		if (rec::CatalogCfg::ctObjCatalog == catalog->mCfg->GetData().mType)
+		if (catalog->IsObjTree())
 		{ 
 			query = wxString::Format(
 				" SELECT _obj_id, _obj_title, _cls_id, _cls_title "
@@ -60,7 +60,7 @@ bool MPath::GetSelectChildsQuery(wxString& query)const
 				);
 			return true;
 		}
-		else if (rec::CatalogCfg::ctClsCatalog == catalog->mCfg->GetData().mType)
+		else
 		{
 			query = wxString::Format(
 				" SELECT _id, _title "
@@ -87,13 +87,13 @@ wxString MPath::GetPathStr()const
 	{
 		auto node = std::dynamic_pointer_cast<MPathItem>(GetChild(i - 1));
 
-		if (rec::CatalogCfg::ctObjCatalog == catalog->mCfg->GetData().mType)
+		if (catalog->IsObjTree())
 		{
 			str_path += wxString::Format("[%s]%s/"
 				, node->GetData().mCls.mLabel.toStr()
 				, node->GetData().mObj.mLabel.toStr() );
 		}
-		else if (rec::CatalogCfg::ctClsCatalog == catalog->mCfg->GetData().mType)
+		else
 		{
 			str_path += wxString::Format("%s/"
 				, node->GetData().mCls.mLabel.toStr());

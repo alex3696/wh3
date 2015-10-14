@@ -48,7 +48,6 @@ DPropEditor::DPropEditor(wxWindow*		parent,
 	wxRegExpValidator vl("^([[:alnum:][:space:]!()*+,-.:;<=>^_|¹])+$"); //wxRE_DEFAULT
 	lbl->SetValidator(vl);
 
-
 	mPropGrid->Append(new wxEnumProperty(L"Òèï", wxPG_LABEL, soc, 0));
 	mPropGrid->Append(new wxStringProperty(L"ID", wxPG_LABEL))->Enable(false);
 

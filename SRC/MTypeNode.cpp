@@ -39,10 +39,18 @@ bool MTypeItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t
 //-------------------------------------------------------------------------
 void MTypeItem::LoadChilds()
 {
-	//auto type_array = dynamic_cast<MTypeArray*>(this->GetParent());
-	//auto catalog = dynamic_cast<MObjCatalog*>(type_array->GetParent());
-	if ( "0" != GetData().mType)
-		mObjArray->Load();
+	auto type_array = dynamic_cast<MTypeArray*>(this->GetParent());
+	auto catalog = dynamic_cast<MObjCatalog*>(type_array->GetParent());
+	if (!catalog)
+		return;
+
+	if (!catalog->IsObjTree() && catalog->IsSelectDlg())
+		return;
+
+	if( GetData().IsAbstract() )
+		return;
+
+	mObjArray->Load();
 	
 }
 //-------------------------------------------------------------------------
@@ -114,7 +122,7 @@ bool MTypeItem::GetInsertQuery(wxString& query)const
 	const wxString parent = cls.mParent.mId.IsNull() ? wxString("1") : cls.mParent.mId;
 
 	query = wxString::Format(
-		"INSERT INTO cls_tree "
+		"INSERT INTO cls "
 		" (title, note, kind, measure, pid) VALUES "
 		" (%s, %s, %s, %s, %s) "
 		" RETURNING title, id, kind, measure, 0"
@@ -134,7 +142,7 @@ bool MTypeItem::GetUpdateQuery(wxString& query)const
 	wxString parent = cls.mParent.mId.IsNull() ? wxString("1") : cls.mParent.mId;
 
 	query = wxString::Format(
-		"UPDATE cls_tree SET "
+		"UPDATE cls SET "
 		" title=%s, note=%s, kind=%s, measure=%s, pid=%s "
 		" WHERE id = %s "
 		, cls.mLabel.SqlVal()
@@ -167,26 +175,24 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 
 	const auto& root = catalog->GetData();
 
-	if (rec::CatalogCfg::ctObjCatalog == catalog->mCfg->GetData().mType)
+	if (catalog->IsObjTree())
 	{
 		query = wxString::Format(
 			"SELECT r.title, r.id, r.kind, r.measure, osum.qty "
-			" FROM cls_real r "
-			" RIGHT JOIN(SELECT COALESCE(SUM(qty), 0) AS qty, cls_id "
-			" FROM obj_tree o "
-			" WHERE o.pid = %s "
-			" AND o.id>99"
-			" GROUP BY o.cls_id) osum ON osum.cls_id = r.id "
+			"FROM(SELECT COALESCE(SUM(qty), 0) AS qty, cls_id FROM obj o"
+			"WHERE o.pid = %s  AND o.id>99 GROUP BY o.cls_id) osum"
+			"LEFT JOIN cls_real cr ON osum.cls_id = cr.id"
+			"LEFT JOIN cls_name r USING(id)"
 			, root.mObj.mId.SqlVal() );
 		return true;
 	}
-	else if (rec::CatalogCfg::ctClsCatalog == catalog->mCfg->GetData().mType)
+	else
 	{
 		query = wxString::Format(
 			" SELECT t.title, t.id, t.kind, t.measure "
 			" ,(SELECT COALESCE(SUM(qty), 0) "
-			"     FROM obj_tree o WHERE t.id = o.cls_id GROUP BY o.cls_id)  AS qty "
-			" FROM cls_tree t "
+			"     FROM obj o WHERE t.id = o.cls_id GROUP BY o.cls_id)  AS qty "
+			" FROM cls t "
 			" WHERE t.pid = %s"
 			" AND id > 99 "
 			/*

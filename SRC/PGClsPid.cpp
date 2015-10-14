@@ -295,6 +295,10 @@ bool wxRegExpValidator::Validate(wxWindow *WXUNUSED(parent))
 
 	if (mRegExp.IsValid() && mRegExp.Matches(val))
 		return true;
+
+	//::wxMessageBox(wxString::Format(wxT("%s is not allowed word"), val.c_str()),
+	//	wxT("Validation Failure"));
+
 	return false;
 }
 
