@@ -134,10 +134,9 @@ void CtrlPnl::UpdatePGColour()
 	wxWindowUpdateLocker	wndUpdateLocker(this);
 
 	const model::Obj::T_Data& main_detail = mObj->GetData();
-	ClsType	clsType;
 	wxColour cl;
-	if (main_detail.mCls.GetClsType(clsType))
-		switch (clsType)
+	if (!main_detail.mCls.mType.IsNull())
+		switch (main_detail.mCls.GetClsType())
 		{
 			default:
 				cl = (wxColour(240, 240, 240));
@@ -166,10 +165,9 @@ void CtrlPnl::UpdateTab()
 	wxWindowUpdateLocker	wndUpdateLocker(this);
 
 	const model::Obj::T_Data& main_detail = mObj->GetData();
-	ClsType	clsType;
 	const wxIcon*  ico(&wxNullIcon);
-	if (main_detail.mCls.GetClsType(clsType))
-		switch (clsType)
+	if (!main_detail.mCls.mType.IsNull())
+		switch (main_detail.mCls.GetClsType())
 	{
 		default:			
 			ico = &GetResMgr()->m_ico_type_abstract24;

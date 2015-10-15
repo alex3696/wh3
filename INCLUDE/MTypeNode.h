@@ -42,6 +42,7 @@ protected:
 	std::shared_ptr<MClsActArray>	mActArray;
 	std::shared_ptr<MClsMoveArray>	mMoveArray;
 
+	virtual bool GetSelectQuery(wxString&)const override;
 	virtual bool GetInsertQuery(wxString&)const override;
 	virtual bool GetUpdateQuery(wxString&)const override;
 	virtual bool GetDeleteQuery(wxString&)const override;
@@ -63,7 +64,7 @@ public:
 
 protected:
 	virtual bool GetSelectChildsQuery(wxString& query)const override;
-
+	virtual std::shared_ptr<IModel> CreateChild()override;
 };
 //-------------------------------------------------------------------------
 }//object_catalog {

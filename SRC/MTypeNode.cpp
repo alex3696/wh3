@@ -27,12 +27,23 @@ MTypeItem::MTypeItem(const char option)
 //-------------------------------------------------------------------------
 bool MTypeItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 {
-	T_Data data;
+	T_Data data = this->GetData();
 	data.mLabel = table->GetAsString(0, row);
 	data.mID = table->GetAsLong(1, row);
 	data.mType = table->GetAsString(2, row);
 	data.mMeasure = table->GetAsString(3, row);
-	table->GetAsString(4, row, mQty);
+	mQty = table->GetAsString(4, row);
+	data.mDefaultObj.mId = table->GetAsString(5, row);
+	
+	auto type_array = dynamic_cast<MTypeArray*>(this->GetParent());
+	if (type_array)
+	{
+		auto catalog = dynamic_cast<MObjCatalog*>(type_array->GetParent());
+		if (catalog)
+			data.mParent = catalog->GetData().mCls.mParent;
+	}
+	
+
 	SetData(data);
 	return true;
 };
@@ -114,6 +125,10 @@ std::shared_ptr<MClsMoveArray> MTypeItem::GetClsMoveArray()
 	return mMoveArray;
 }
 //-------------------------------------------------------------------------
+bool MTypeItem::GetSelectQuery(wxString& query)const
+{
+	return false;
+}
 //-------------------------------------------------------------------------
 bool MTypeItem::GetInsertQuery(wxString& query)const
 {
@@ -123,14 +138,15 @@ bool MTypeItem::GetInsertQuery(wxString& query)const
 
 	query = wxString::Format(
 		"INSERT INTO cls "
-		" (title, note, kind, measure, pid) VALUES "
+		" (title, note, kind, measure, pid, default_objid) VALUES "
 		" (%s, %s, %s, %s, %s) "
 		" RETURNING title, id, kind, measure, 0"
 		, cls.mLabel.SqlVal()
 		, cls.mComment.SqlVal()
-		, cls.mType
+		, cls.mType.SqlVal()
 		, cls.mMeasure.SqlVal()
 		, parent
+		, cls.mDefaultObj.mId.SqlVal()
 		);
 	return true;
 }
@@ -143,13 +159,14 @@ bool MTypeItem::GetUpdateQuery(wxString& query)const
 
 	query = wxString::Format(
 		"UPDATE cls SET "
-		" title=%s, note=%s, kind=%s, measure=%s, pid=%s "
+		" title=%s, note=%s, kind=%s, measure=%s, pid=%s, default_objid=%s "
 		" WHERE id = %s "
 		, cls.mLabel.SqlVal()
 		, cls.mComment.SqlVal()
-		, cls.mType
+		, cls.mType.SqlVal()
 		, cls.mMeasure.SqlVal()
 		, parent
+		, cls.mDefaultObj.mId.SqlVal()
 		, cls.mID.SqlVal() );
 	return true;
 }
@@ -167,6 +184,22 @@ bool MTypeItem::GetDeleteQuery(wxString& query)const
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
+std::shared_ptr<IModel> MTypeArray::CreateChild()
+{
+	auto child = std::make_shared < MTypeItem >();
+	rec::Cls cls;
+
+	auto catalog = dynamic_cast<MObjCatalog*>(this->GetParent());
+	if (catalog)
+	{
+		cls.mParent.mId = catalog->GetData().mCls.mID;
+		cls.mParent.mLabel = catalog->GetData().mCls.mLabel;
+	}
+	child->SetData(cls);
+	return child;
+
+}
+//-------------------------------------------------------------------------
 bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 {
 	auto catalog = dynamic_cast<MObjCatalog*>(this->GetParent());
@@ -178,7 +211,7 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 	if (catalog->IsObjTree())
 	{
 		query = wxString::Format(
-			"SELECT r.title, r.id, r.kind, r.measure, osum.qty "
+			"SELECT r.title, r.id, r.kind, r.measure, osum.qty, r.default_objid "
 			"FROM(SELECT COALESCE(SUM(qty), 0) AS qty, cls_id FROM obj o"
 			"WHERE o.pid = %s  AND o.id>99 GROUP BY o.cls_id) osum"
 			"LEFT JOIN cls_real cr ON osum.cls_id = cr.id"
@@ -192,6 +225,7 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 			" SELECT t.title, t.id, t.kind, t.measure "
 			" ,(SELECT COALESCE(SUM(qty), 0) "
 			"     FROM obj o WHERE t.id = o.cls_id GROUP BY o.cls_id)  AS qty "
+			" ,default_objid "
 			" FROM cls t "
 			" WHERE t.pid = %s"
 			" AND id > 99 "

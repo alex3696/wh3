@@ -319,11 +319,11 @@ struct Cls
 	
 	SqlLong		mID;
 	SqlString	mLabel;
-	wxString	mType;		
+	SqlLong		mType;
 	Base		mParent;
 	SqlString	mComment;
 	SqlString	mMeasure;
-	Base		mDefaultObjPid;
+	Base		mDefaultObj;
 
 	Cls(){}
 	Cls(const wxString& id, const wxString& label)
@@ -331,36 +331,21 @@ struct Cls
 	{
 	}
 
-	bool GetClsType(ClsType& result)const
+	ClsType GetClsType()const
 	{
-		long tmp;
-		if (mType.ToLong(&tmp) && tmp >= 0 && tmp <= 3)
-		{
-			result = ClsType(tmp);
-			return true;
-		}
-		return false;
+		return  ClsType(long(mType));
 	}
 	bool IsAbstract()const
 	{
-		ClsType ct;
-		if (!GetClsType(ct))
-			BOOST_THROW_EXCEPTION(error() << wxstr("Wrong cls type"));
-		return ctAbstract == ct;
+		return ctAbstract == GetClsType();
 	}
 	bool IsNumberic()const
 	{
-		ClsType ct;
-		if (!GetClsType(ct))
-			BOOST_THROW_EXCEPTION(error() << wxstr("Wrong cls type"));
-		return ctSingle == ct;
+		return ctSingle == GetClsType();
 	}
 	bool IsQuantity()const
 	{
-		ClsType ct;
-		if (!GetClsType(ct))
-			BOOST_THROW_EXCEPTION(error() << wxstr("Wrong cls type"));
-		return ctQtyByOne == ct || ctQtyByFloat == ct;
+		return ctQtyByOne == GetClsType() || ctQtyByFloat == GetClsType();
 	}
 
 };

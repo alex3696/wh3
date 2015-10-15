@@ -195,9 +195,7 @@ void VObjCatalogCtrl::UpdateToolsStates()
 		if (typeItem)
 		{
 			const auto& cls_data = typeItem->GetData();
-			ClsType clsType;
-			cls_data.GetClsType(clsType);
-			switch (clsType)
+			switch (cls_data.GetClsType())
 			{
 			case ctSingle:
 				mToolDisable[wxID_REPLACE] += 1;
@@ -222,9 +220,7 @@ void VObjCatalogCtrl::UpdateToolsStates()
 			{
 				typeItem = dynamic_cast<MTypeItem*> (objArray->GetParent());
 				const auto& cls_data = typeItem->GetData();
-				ClsType clsType;
-				cls_data.GetClsType(clsType);
-				switch (clsType)
+				switch (cls_data.GetClsType())
 				{
 				case ctSingle:
 					break;
@@ -549,6 +545,8 @@ void VObjCatalogCtrl::OnMkCls(wxCommandEvent& evt)
 
 		rec::Cls cls_data;
 		cls_data.mParent.mId = root.mCls.mID;
+		cls_data.mParent.mLabel = root.mCls.mLabel;
+
 		newItem->SetData(cls_data);
 
 		DClsEditor editor;
@@ -592,7 +590,8 @@ void VObjCatalogCtrl::OnEdit(wxCommandEvent& evt)
 			//newItem->Load();
 
 			DClsEditor editor;
-			editor.SetModel(std::dynamic_pointer_cast<IModel>(typeItem->shared_from_this()));
+			std::shared_ptr<IModel> model = typeItem->shared_from_this();
+			editor.SetModel(model);
 
 			if (wxID_OK == editor.ShowModal())
 			{

@@ -108,9 +108,8 @@ void Frame::OnChangeModel(const IModel* model, const object_catalog::MObjItem::T
 
 
 
-	ClsType ct;
-	if (cls_data.GetClsType(ct))
-		switch (ct)
+	if (!cls_data.mType.IsNull())
+		switch (cls_data.GetClsType())
 		{
 		case ctSingle: 
 			mPGQty->SetValueFromString("1"); 
@@ -137,7 +136,7 @@ void Frame::OnChangeModel(const IModel* model, const object_catalog::MObjItem::T
 		else
 		{
 			rec::Obj tmp_obj_data;
-			tmp_obj_data.mParent.mId = cls_data.mDefaultObjPid.mId;
+			tmp_obj_data.mParent.mId = cls_data.mDefaultObj.mId;
 			auto obj_model = std::make_shared<MObjItem>();
 			obj_model->SetData(tmp_obj_data);
 
@@ -147,7 +146,7 @@ void Frame::OnChangeModel(const IModel* model, const object_catalog::MObjItem::T
 			opath->Load();
 
 			mPGPath->SetValueFromString(opath->AsString());
-			mPGPid->SetValueFromString(cls_data.mDefaultObjPid.mId);
+			mPGPid->SetValueFromString(cls_data.mDefaultObj.mId);
 		}
 		
 		mPGPath->Enable(true);

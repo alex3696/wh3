@@ -61,12 +61,11 @@ void DvModel::GetValue(wxVariant &variant, const wxDataViewItem &dataViewItem, u
 	if (typeItem)
 	{
 		const auto& cls = typeItem->GetData();
-		ClsType	clsType;
-		if (cls.GetClsType(clsType))
+		if (!cls.mType.IsNull())
 		{
 			auto mgr = ResMgr::GetInstance();
 			wxIcon* ico = &wxNullIcon;
-			switch (clsType)
+			switch (cls.GetClsType())
 			{
 			default/*0*/:		ico = &mgr->m_ico_type_abstract24;	break;
 			case ctQtyByFloat:	

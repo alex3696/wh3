@@ -26,70 +26,8 @@ VClsDataEditorPanel::VClsDataEditorPanel(wxWindow*		parent,
 	mPropGrid = new wxPropertyGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxPG_DEFAULT_STYLE | wxPG_SPLITTER_AUTO_CENTER);
 	GetSizer()->Insert(0, mPropGrid, 1, wxALL | wxEXPAND, 0);
 
-	wxPGChoices soc;
-	soc.Add(L"Абстрактный", 0);
-	soc.Add(L"Номерной", 1);
-	soc.Add(L"Количественный(целочисленный)", 2);
-	soc.Add(L"Количественный(дробный)", 3);
-
-	auto pgp_name = mPropGrid->Append(new wxStringProperty(L"Имя"));
-	mPropGrid->Append(new wxLongStringProperty(L"Описание"));
-	mPropGrid->Append(new wxEnumProperty(L"Тип экземпляров", wxPG_LABEL, soc, 0));
-	auto pgp_measure = mPropGrid->Append(new wxStringProperty(L"Ед.измерений", wxPG_LABEL));
-
-	pgp_name->SetValidator(wxRegExpValidator(titleValidator));
-	pgp_measure->SetValidator(wxRegExpValidator(titleValidator));
-	
-	auto clsparent = new wxClsParentProperty(L"Родительский класс");
-	mPropGrid->Append(clsparent);
-	mPropGrid->Append(new wxStringProperty(L"#"))->Enable(false);
+	mPropGrid->Append(new wxClsProperty("Основные", "base_cls_prop"))->SetExpanded(true);
 		
-	std::function<bool(wxPGProperty*)> selecFunc = [this](wxPGProperty* prop)
-	{
-		select::ClsDlg dlg(nullptr);
-
-		auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
-		catalog->SetCatalog(false, true, false, "1");
-
-		wh::rec::PathItem root;
-		root.mCls.mID = 1;
-		catalog->SetData(root);
-
-		catalog->Load();
-
-		dlg.SetModel(catalog);
-
-		if (wxID_OK == dlg.ShowModal())
-		{
-			/*
-			wxDataViewItemArray selected;
-			dlg.GetSelections(selected);
-			if (!selected.empty())
-			{
-				unsigned int row = dlg.GetRow(selected[0]);
-				auto childModel = mActArray->GetChild(row);
-				auto actModel = std::dynamic_pointer_cast<MAct>(childModel);
-				const auto& actData = actModel->GetData();
-
-				mPropGrid->CommitChangesFromEditor();
-
-				auto clsAct = mModel->GetData();
-
-				clsAct.mAct.mId = actData.mID;
-				clsAct.mAct.mLabel = actData.mLabel;
-
-				mModel->SetData(clsAct);
-				return true;
-			}
-			*/
-		}
-		
-		return false;
-	};
-
-	clsparent->SetOnClickButonFunc(selecFunc);
-
-
 	mPropGrid->ResetColumnSizes();
 	this->Layout();
 
@@ -100,28 +38,28 @@ void VClsDataEditorPanel::GetData(rec::Cls& rec) const
 {
 	mPropGrid->CommitChangesFromEditor();
 
-	rec.mLabel = mPropGrid->GetPropertyByLabel(L"Имя")->GetValueAsString();
-	rec.mComment = mPropGrid->GetPropertyByLabel(L"Описание")->GetValueAsString();
-	rec.mType = wxString::Format("%d", mPropGrid->GetPropertyByLabel(L"Тип экземпляров")->GetChoiceSelection());
-	rec.mMeasure = mPropGrid->GetPropertyByLabel(L"Ед.измерений")->GetValueAsString();
-	rec.mParent << mPropGrid->GetPropertyByLabel(L"Родительский класс")->GetValue();
-	rec.mID = mPropGrid->GetPropertyByLabel(L"#")->GetValueAsString();
+	auto pgp_cls = mPropGrid->GetPropertyByLabel("Основные");
+	if (pgp_cls)
+	{
+		auto var = pgp_cls->GetValue();
+		rec = (rec::Cls)wh_rec_ClsRefFromVariant(var);
+	}
+
 }
 //---------------------------------------------------------------------------
 void VClsDataEditorPanel::SetData(const rec::Cls& rec)
 {
 	mPropGrid->CommitChangesFromEditor();
+	
+	auto pgp_cls = mPropGrid->GetPropertyByLabel("Основные");
+	if (pgp_cls)
+	{
+		wxVariant var;
+		var << (wh_rec_Cls)rec;
 
-	mPropGrid->GetPropertyByLabel(L"Имя")->SetValueFromString(rec.mLabel);
-	mPropGrid->GetPropertyByLabel(L"Описание")->SetValueFromString(rec.mComment);
+		pgp_cls->SetValue(var);
+	}
 
-	unsigned long items_type = 0;
-	rec.mType.ToULong(&items_type);
-	mPropGrid->GetPropertyByLabel(L"Тип экземпляров")->SetChoiceSelection(items_type);
-	mPropGrid->GetPropertyByLabel(L"Ед.измерений")->SetValueFromString(rec.mMeasure);
-
-	mPropGrid->GetPropertyByLabel(L"Родительский класс")->SetValue(wxVariant(rec.mParent));
-	mPropGrid->GetPropertyByLabel(L"#")->SetValueFromString(rec.mID);
 }
 //-----------------------------------------------------------------------------
 void VClsDataEditorPanel::SetModel(std::shared_ptr<IModel>& newModel)

@@ -72,8 +72,8 @@ bool FavPropItem::GetUpdateQuery(wxString& query)const
 
 	const rec::Cls& cls = parentCls->GetStored();
 	const auto& newObj = this->GetData();
-	ClsType ct;
-	if (!cls.GetClsType(ct) && ct != ctSingle)
+
+	if (!cls.IsNumberic())
 		return false;
 	
 	const auto& prop_data = this->GetData();

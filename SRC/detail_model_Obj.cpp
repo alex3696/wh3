@@ -45,7 +45,7 @@ bool Obj::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 	data.mCls.mLabel = table->GetAsString(6, row);
 	data.mCls.mType = table->GetAsString(7, row);
 	data.mCls.mMeasure = table->GetAsString(8, row);
-	data.mCls.mDefaultObjPid.mId = table->GetAsString(9, row);
+	data.mCls.mDefaultObj.mId = table->GetAsString(9, row);
 
 	data.mCls.mParent.mId = table->GetAsLong (10, row );
 	data.mCls.mParent.mLabel = table->GetAsString(11, row);

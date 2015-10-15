@@ -56,15 +56,14 @@ void VObjCatalogDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 	if (typeItem)
 	{
 		const auto& cls = typeItem->GetData();
-		ClsType	clsType;
 		
-		if (cls.GetClsType(clsType))
+		if (!cls.mType.IsNull() )
 		{
 			//const wxIcon*	clsIcon(&wxNullIcon);
 			//wxString		clsLabel;
 			
 			auto mgr = ResMgr::GetInstance();
-			switch (clsType)
+			switch (cls.GetClsType() )
 			{
 			
 			default: //ctAbstract
@@ -147,8 +146,9 @@ bool VObjCatalogDataViewModel::GetAttr(const wxDataViewItem &dataViewItem, unsig
 			auto typeArray = dynamic_cast<object_catalog::MTypeArray*> (typeItem->GetParent());
 			auto catalog = dynamic_cast<object_catalog::MObjCatalog*> (typeArray->GetParent());
 			
-			ClsType clsType;
-			if (typeItem->GetData().GetClsType(clsType) && ctSingle!=clsType && col > 6)
+			if (!typeItem->GetData().mType.IsNull() 
+				&& ctSingle != !typeItem->GetData().GetClsType()
+				&& col > 6)
 				//attr.SetBackgroundColour(wxColour(240, 240, 240));
 				has_bg = false;
 			else
@@ -172,11 +172,10 @@ bool VObjCatalogDataViewModel::GetAttr(const wxDataViewItem &dataViewItem, unsig
 
 		if (typeItem)
 		{
-			ClsType	clsType;
 			const auto& cls = typeItem->GetData();
-			if (cls.GetClsType(clsType))
+			if (!cls.mType.IsNull())
 			{
-				switch (clsType)
+				switch (cls.GetClsType())
 				{
 				default://0 
 						attr.SetColour(wxColour(100, 100, 100)); break;

@@ -87,6 +87,7 @@ DClsEditor::DClsEditor(wxWindow*		parent,
 //-----------------------------------------------------------------------------
 DClsEditor::~DClsEditor()
 {
+	mChangeConnection.disconnect();
 	mAuiMgr.UnInit();
 }
 //-----------------------------------------------------------------------------
@@ -101,18 +102,19 @@ void DClsEditor::SetModel(std::shared_ptr<IModel>& newModel)
 		{
 			mClsPanel->SetModel(newModel);
 
+			//mClsNode->Load();
 			auto clsState = mClsNode->GetState();
 			auto cls = mClsNode->GetData();
 
 			if (msNull != clsState && msCreated != clsState && msDeleted != clsState)
 			{
 				mClsNode->GetClsPropArray()->Load();
-				if (cls.mType == "1")
+				if (cls.IsNumberic())
 				{
 					mClsNode->GetClsActArray()->Load();
 					mClsNode->GetClsMoveArray()->Load();
 				}
-				else if (cls.mType == "2" || cls.mType == "3")
+				else if (cls.IsQuantity())
 				{
 					mClsNode->GetClsMoveArray()->Load();
 				}
@@ -167,12 +169,11 @@ void DClsEditor::OnChangeModel(const IModel* model,
 		mClsActPanel->Show(false);
 		mClsMovePanel->Show(false);
 
-		if (cls.mType == "0")
+		if (cls.mType.IsNull())
+			return;
+		switch (cls.GetClsType() )
 		{
-
-		}
-		else if (cls.mType == "1")
-		{
+		case ctSingle:
 			mClsPropPanel->Show(true);
 			mClsActPanel->Show(true);
 			mClsMovePanel->Show(true);
@@ -180,12 +181,15 @@ void DClsEditor::OnChangeModel(const IModel* model,
 			mNotebook->AddPage(mClsPropPanel, "Свойства", false, 1);
 			mNotebook->AddPage(mClsActPanel, "Действия", false, 3);
 			mNotebook->AddPage(mClsMovePanel, "Перемещения", false, 5);
-		}
-		else if (cls.mType == "2" || cls.mType == "3")
-		{
+			break;
+		case ctQtyByFloat: case ctQtyByOne:
 			mClsPropPanel->Show(true);
-
 			mNotebook->AddPage(mClsPropPanel, "Свойства", false, 1);
-		}
+			break;
+		case ctAbstract:
+		default:break;
+		}//switch
+
+
 	}
 }

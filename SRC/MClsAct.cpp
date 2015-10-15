@@ -41,7 +41,7 @@ bool MClsAct::GetSelectQuery(wxString& query)const
 		"     , act.id, act.title "
 		"  FROM perm_act "
 		"    LEFT JOIN cls src_cls     ON src_cls.id = perm_act.src_cls_id "
-		"    LEFT JOIN obj_num src_obj ON src_obj.id = perm_act.src_obj_id "
+		"    LEFT JOIN obj src_obj ON src_obj.id = perm_act.src_obj_id "
 		"    LEFT JOIN act ON act.id = perm_act.act_id "
 		"  WHERE perm_act.id = %s "
 		, oldPerm.mId.SqlVal());
@@ -212,7 +212,7 @@ bool MClsActArray::GetSelectChildsQuery(wxString& query)const
 		"     , act.id, act.title "
 		"  FROM perm_act "
 		"    LEFT JOIN cls src_cls     ON src_cls.id = perm_act.src_cls_id "
-		"    LEFT JOIN obj_num src_obj ON src_obj.id = perm_act.src_obj_id "
+		"    LEFT JOIN obj src_obj ON src_obj.id = perm_act.src_obj_id "
 		"    LEFT JOIN act ON act.id = perm_act.act_id "
         "  WHERE perm_act.src_cls_id = %s "
 		, cls.mID.SqlVal() );

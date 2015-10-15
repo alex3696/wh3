@@ -98,14 +98,13 @@ bool MObjItem::GetInsertQuery(wxString& query)const
 		pid = newObj.mParent.mId;
 	else
 	{
-		if (cls.mDefaultObjPid.mId.IsNull())
+		if (cls.mDefaultObj.mId.IsNull())
 			pid = "1";
 		else
-			pid = cls.mDefaultObjPid.mId;
+			pid = cls.mDefaultObj.mId;
 	}
 
-	ClsType ct;
-	if (cls.GetClsType(ct))
+	if (!cls.mType.IsNull() )
 	{
 		query = wxString::Format(
 			"INSERT INTO obj( title, cls_id, pid, qty )"
@@ -134,15 +133,14 @@ bool MObjItem::GetUpdateQuery(wxString& query)const
 		pid = newObj.mParent.mId;
 	else
 	{
-		if (cls.mDefaultObjPid.mId.IsNull())
+		if (cls.mDefaultObj.mId.IsNull())
 			pid = "1";
 		else
-			pid = cls.mDefaultObjPid.mId;
+			pid = cls.mDefaultObj.mId;
 	}
 
 
-	ClsType ct;
-	if (cls.GetClsType(ct))
+	if (!cls.mType.IsNull())
 	{
 		query = wxString::Format(
 			"UPDATE obj SET "
@@ -170,8 +168,7 @@ bool MObjItem::GetDeleteQuery(wxString& query)const
 	const rec::Cls& cls = parentCls->GetStored();
 	const auto& oldObj = this->GetStored();
 
-	ClsType ct;
-	if (cls.GetClsType(ct))
+	if (!cls.mType.IsNull() )
 	{ 		
 		query = wxString::Format(
 			"DELETE FROM obj WHERE "

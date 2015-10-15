@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "PGClsPid.h"
+#include "dlgselectcls_ctrlpnl.h"
 
 using namespace wh;
 
@@ -22,8 +23,50 @@ const wxString& name, const wh_rec_Base& value)
 	: BtnProperty(label, name)
 {
 	SetValue(WXVARIANT(value));
-	AddPrivateChild(new wxStringProperty("Имя", wxPG_LABEL, value.mLabel));
-	AddPrivateChild(new wxStringProperty("#", wxPG_LABEL, value.mId));
+
+	auto pgp_title = new wxStringProperty("Имя", wxPG_LABEL, value.mLabel);
+	auto pgp_id = new wxStringProperty("#", wxPG_LABEL, value.mId);
+
+	pgp_title->ChangeFlag(wxPG_PROP_READONLY, true);
+	pgp_id->ChangeFlag(wxPG_PROP_READONLY, true);
+
+	ChangeFlag(wxPG_PROP_READONLY, true);
+	
+	AddPrivateChild(pgp_title);
+	AddPrivateChild(pgp_id);
+
+
+	std::function<bool(wxPGProperty*)> selecFunc = [this](wxPGProperty* prop)
+	{
+		select::ClsDlg dlg(nullptr);
+
+		auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
+		catalog->SetCatalog(false, true, false, "0");
+
+		wh::rec::PathItem root;
+		root.mCls.mID = 1;
+		catalog->SetData(root);
+
+		catalog->Load();
+
+		dlg.SetModel(catalog);
+
+		if (wxID_OK == dlg.ShowModal())
+		{
+			wh::rec::Cls cls;
+			if (dlg.GetSelectedCls(cls))
+			{
+				Item(0)->SetValue(WXVARIANT(cls.mLabel.toStr()));
+				Item(1)->SetValue(WXVARIANT(cls.mID.toStr()));
+				return true;
+			}
+		}
+
+		return false;
+	};
+
+	SetOnClickButonFunc(selecFunc);
+
 }
 //-----------------------------------------------------------------------------
 wxClsParentProperty::~wxClsParentProperty() { }
@@ -55,6 +98,13 @@ wxVariant wxClsParentProperty::ChildChanged(wxVariant& thisValue,
 wxString  wxClsParentProperty::ValueToString(wxVariant &  value, int  argFlags)  const
 {
 	const auto& obj = wh_rec_BaseRefFromVariant(m_value);
+
+	return wxString::Format("%s #%s"
+		,obj.mLabel.toStr()
+		,obj.mId.toStr()
+		);
+
+
 	return obj.mLabel.toStr();
 }
 
@@ -145,13 +195,28 @@ const wxString& name, const wh_rec_Cls& value)
 	soc.Add(L"Количественный(целочисленный)", 2);
 	soc.Add(L"Количественный(дробный)", 3);
 
-	AddPrivateChild(new wxStringProperty("Имя"));
-	AddPrivateChild(new wxStringProperty(L"Ед.измерений"));
-	AddPrivateChild(new wxEnumProperty(L"Тип экземпляров", wxPG_LABEL, soc, 0));
-	AddPrivateChild(new wxLongStringProperty(L"Описание"));
-	AddPrivateChild(new wxStringProperty("#"));
-	//AddPrivateChild(new wxStringProperty(L"VID"));
-	AddPrivateChild(new wxClsParentProperty(L"Родительский класс"));
+	auto pgp_title = new wxStringProperty("Имя");
+	auto pgp_measure = new wxStringProperty(L"Ед.измерений");
+	auto pgp_kind = new wxEnumProperty(L"Тип экземпляров", wxPG_LABEL, soc, 0);
+	auto pgp_note = new wxLongStringProperty(L"Описание");
+	auto pgp_id = new wxStringProperty("#");
+	auto pgp_parent = new wxClsParentProperty(L"Родительский класс");
+	auto pgp_defobj = new wxClsParentProperty("Родитель.объект по умолч.");
+	
+	AddPrivateChild(pgp_title);
+	AddPrivateChild(pgp_measure);
+	AddPrivateChild(pgp_kind);
+	AddPrivateChild(pgp_note);
+	AddPrivateChild(pgp_id);
+	AddPrivateChild(pgp_parent);
+	AddPrivateChild(pgp_defobj);
+
+	pgp_title->SetValidator(wxRegExpValidator(titleValidator));
+	pgp_measure->SetValidator(wxRegExpValidator(titleValidator));
+
+	pgp_id->ChangeFlag(wxPG_PROP_READONLY, true);
+
+
 }
 //-----------------------------------------------------------------------------
 wxClsProperty::~wxClsProperty() { }
@@ -160,17 +225,16 @@ void wxClsProperty::RefreshChildren()
 {
 	if (!GetChildCount()) return;
 	const wh_rec_Cls& cls = wh_rec_ClsRefFromVariant(m_value);
-	Item(0)->SetValue(WXVARIANT(cls.mLabel));
+	Item(0)->SetValue(WXVARIANT(cls.mLabel.toStr() ));
 	
-	Item(1)->SetValue(WXVARIANT(cls.mMeasure));
+	Item(1)->SetValue(WXVARIANT(cls.mMeasure.toStr() ));
+
+	Item(2)->SetChoiceSelection(cls.mType.IsNull() ? 0 : (long)cls.mType);
 	
-	unsigned long items_type = 0;
-	cls.mType.ToULong(&items_type);
-	Item(2)->SetChoiceSelection(items_type);
-	
-	Item(3)->SetValue(WXVARIANT(cls.mComment));
-	Item(4)->SetValue(WXVARIANT(cls.mID));
-	Item(5)->SetValue(WXVARIANT(cls.mParent));
+	Item(3)->SetValue(WXVARIANT(cls.mComment.toStr()));
+	Item(4)->SetValue(WXVARIANT(cls.mID.toStr() ));
+	Item(5)->SetValue(WXVARIANT(cls.mParent ));
+	Item(6)->SetValue(WXVARIANT(cls.mDefaultObj));
 }
 //-----------------------------------------------------------------------------
 wxVariant wxClsProperty::ChildChanged(wxVariant& thisValue,
@@ -188,6 +252,7 @@ wxVariant wxClsProperty::ChildChanged(wxVariant& thisValue,
 	case 3: cls.mComment = childValue.GetString(); break;
 	case 4: cls.mID = childValue.GetString(); break;
 	case 5: cls.mParent = wh_rec_BaseRefFromVariant(childValue); break;
+	case 6: cls.mDefaultObj = wh_rec_BaseRefFromVariant(childValue); break;
 	}
 	wxVariant newVariant;
 	newVariant << cls;
@@ -199,7 +264,7 @@ wxString  wxClsProperty::ValueToString(wxVariant &  value, int  argFlags)  const
 {
 	const wh_rec_Cls& cls = wh_rec_ClsRefFromVariant(value);
 
-	return wxString::Format("%s (%s) [%s]"
+	return wxString::Format("%s (%s) #%s"
 		, cls.mLabel.toStr()
 		, cls.mMeasure.toStr()
 		, cls.mID.toStr() );
@@ -264,7 +329,7 @@ wxString  wxObjTitleProperty::ValueToString(wxVariant &  value, int  argFlags)  
 {
 	const auto& obj = wh_rec_ObjTitleRefFromVariant(value);
 
-	return wxString::Format("%s (кол-во %s) [%s]"
+	return wxString::Format("%s (кол-во %s) #%s"
 		, obj.mLabel.toStr()
 		, obj.mQty.toStr()
 		, obj.mId.toStr()

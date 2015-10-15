@@ -156,7 +156,7 @@ CREATE TABLE cls_real (
     REFERENCES cls_name( id ) MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE
  ,pid            BIGINT NOT NULL DEFAULT 1
     REFERENCES cls_tree( id ) MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE
- ,default_objpid BIGINT  DEFAULT 1
+ ,default_objid BIGINT NOT NULL DEFAULT 1
  ,measure        WHNAME NOT NULL
 
  ,kind           SMALLINT NOT NULL CHECK ( kind BETWEEN 1 AND 3 )
@@ -380,6 +380,7 @@ CREATE TABLE perm_act
 );--INHERITS (perm);
 CREATE INDEX idx_permact__user ON perm_act(access_group);
 CREATE INDEX idx_permact__srcclsobj ON perm_act(src_cls_id, src_obj_id);
+CREATE INDEX idx_permact__actid ON perm_act(act_id);
 ---------------------------------------------------------------------------------------------------
 
 
@@ -546,25 +547,25 @@ CREATE TABLE favorite_prop(
 ---------------------------------------------------------------------------------------------------
 DROP VIEW IF EXISTS cls CASCADE;
 CREATE VIEW cls AS
-SELECT id, pid, measure, kind, title, note,default_objpid FROM
+SELECT id, pid, measure, kind, title, note,default_objid FROM
 (
-SELECT id, pid, NULL::WHNAME AS measure,NULL::BIGINT AS default_objpid  FROM cls_tree
+SELECT id, pid, NULL::WHNAME AS measure,NULL::BIGINT AS default_objid  FROM cls_tree
 UNION ALL
-SELECT cr.id, pid, measure, default_objpid FROM cls_real cr
+SELECT id, pid, measure, default_objid FROM cls_real
 ) cdif
 LEFT JOIN cls_name USING (id);
 /*
 DROP VIEW IF EXISTS cls CASCADE;
 CREATE VIEW cls AS
-SELECT id, pid, measure, kind, title, note,default_objpid FROM
+SELECT id, pid, measure, kind, title, note,default_objid FROM
 (
-SELECT id, pid, NULL::WHNAME AS measure, 0::SMALLINT AS kind,NULL::BIGINT AS default_objpid  FROM cls_tree
+SELECT id, pid, NULL::WHNAME AS measure, 0::SMALLINT AS kind,NULL::BIGINT AS default_objid  FROM cls_tree
 UNION ALL
-SELECT id, pid, measure,1::SMALLINT AS kind,default_objpid FROM cls_num LEFT JOIN cls_real USING (id)
+SELECT id, pid, measure,1::SMALLINT AS kind,default_objid FROM cls_num LEFT JOIN cls_real USING (id)
 UNION ALL
-SELECT id, pid, measure,2::SMALLINT AS kind,default_objpid FROM cls_qtyi LEFT JOIN cls_real USING (id)
+SELECT id, pid, measure,2::SMALLINT AS kind,default_objid FROM cls_qtyi LEFT JOIN cls_real USING (id)
 UNION ALL
-SELECT id, pid, measure,3::SMALLINT AS kind,default_objpid FROM cls_qtyf LEFT JOIN cls_real USING (id)
+SELECT id, pid, measure,3::SMALLINT AS kind,default_objid FROM cls_qtyf LEFT JOIN cls_real USING (id)
 ) cdif
 LEFT JOIN cls_name USING (id);
 */
@@ -790,19 +791,20 @@ DROP FUNCTION IF EXISTS ftg_ins_cls() CASCADE;
 CREATE FUNCTION ftg_ins_cls() RETURNS TRIGGER AS $$
 BEGIN
   NEW.id := COALESCE(NEW.id,nextval('seq_cls_id'));
+  NEW.default_objid := COALESCE(NEW.default_objid,1);
+    
   INSERT INTO cls_name (id, title, note, kind) VALUES ( NEW.id, NEW.title, NEW.note,NEW.kind);
   
-
   CASE NEW.kind 
    WHEN 0 THEN INSERT INTO cls_tree (id, pid)VALUES (NEW.id, NEW.pid); NEW.measure:=NULL;
    WHEN 1 THEN
-     INSERT INTO cls_real(id, pid, default_objpid, measure,kind)  VALUES (NEW.id, NEW.pid, NEW.default_objpid, NEW.measure,NEW.kind);
+     INSERT INTO cls_real(id, pid, default_objid, measure,kind)  VALUES (NEW.id, NEW.pid, NEW.default_objid, NEW.measure,NEW.kind);
      INSERT INTO cls_num  (id)VALUES (NEW.id);
    WHEN 2 THEN 
-     INSERT INTO cls_real(id, pid, default_objpid, measure,kind)  VALUES (NEW.id, NEW.pid, NEW.default_objpid, NEW.measure,NEW.kind);
+     INSERT INTO cls_real(id, pid, default_objid, measure,kind)  VALUES (NEW.id, NEW.pid, NEW.default_objid, NEW.measure,NEW.kind);
      INSERT INTO cls_qtyi  (id)VALUES (NEW.id);
    WHEN 3 THEN 
-     INSERT INTO cls_real(id, pid, default_objpid, measure,kind)  VALUES (NEW.id, NEW.pid, NEW.default_objpid, NEW.measure,NEW.kind);
+     INSERT INTO cls_real(id, pid, default_objid, measure,kind)  VALUES (NEW.id, NEW.pid, NEW.default_objid, NEW.measure,NEW.kind);
      INSERT INTO cls_qtyf  (id)VALUES (NEW.id);
    ELSE RAISE EXCEPTION ' %: wrong kind %',TG_NAME,NEW.kind ;
   END CASE;
@@ -823,7 +825,7 @@ BEGIN
   CASE NEW.kind 
    WHEN 0 THEN UPDATE cls_tree SET pid=NEW.pid WHERE id=NEW.id; 
    WHEN 1 OR 2 OR 3 THEN 
-     UPDATE cls_real SET pid=NEW.pid, default_objpid=NEW.default_objpid, measure=NEW.measure WHERE id=NEW.id;
+     UPDATE cls_real SET pid=NEW.pid, default_objid=NEW.default_objid, measure=NEW.measure WHERE id=NEW.id;
    ELSE RAISE EXCEPTION ' %: wrong kind %',TG_NAME,NEW.kind ;
   END CASE;
   RETURN NEW;

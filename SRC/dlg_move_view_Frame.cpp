@@ -76,25 +76,23 @@ void Frame::SetModel(std::shared_ptr<dlg_move::model::MovableObj>& model)
 
 		mLblMovableObj->SetLabel(movLabel);
 
-		ClsType clstype;
-		if (mMovable->GetData().mCls.GetClsType(clstype))
+		if (mMovable->GetData().mCls.mType.IsNull())
+			return;
+		switch (mMovable->GetData().mCls.GetClsType())
 		{
-			switch (clstype)
-			{
-			case wh::ctQtyByOne:
-				mqtySpin->Show();
-				mqtyCtrl->Hide();
-				break;
-			case wh::ctQtyByFloat:
-				mqtySpin->Hide();
-				mqtyCtrl->Show();
-				break;
-			default: 
-				mqtySpin->Hide();
-				mqtyCtrl->Hide();
-				break;
-			}//switch
-		}
+		case wh::ctQtyByOne:
+			mqtySpin->Show();
+			mqtyCtrl->Hide();
+			break;
+		case wh::ctQtyByFloat:
+			mqtySpin->Hide();
+			mqtyCtrl->Show();
+			break;
+		default: 
+			mqtySpin->Hide();
+			mqtyCtrl->Hide();
+			break;
+		}//switch
 
 	}//if (mMovable)
 }
@@ -117,22 +115,24 @@ void Frame::OnOk(wxCommandEvent& evt)
 	auto selected = mCtrlPanel->GetSelected();
 	if (selected)
 	{
-		ClsType clstype;
-		if (mMovable->GetData().mCls.GetClsType(clstype))
-		{
-			wxString qty;
-			bool isQtyOk = false;
-			unsigned long long_tmp;
-			double double_tmp;
+		const auto& cls = mMovable->GetData().mCls;
+		
+		if (cls.mType.IsNull())
+			return;
 
-			switch (clstype)
-			{
+		wxString qty;
+		bool isQtyOk = false;
+		unsigned long long_tmp;
+		double double_tmp;
+
+		switch (cls.GetClsType())
+		{
 			case wh::ctSingle:
 				isQtyOk = true;
 				qty = "1";
 				break;
 			case wh::ctQtyByOne:
-				qty = wxString::Format("%d",mqtySpin->GetValue());
+				qty = wxString::Format("%d", mqtySpin->GetValue());
 				if (qty.ToULong(&long_tmp))
 					isQtyOk = true;
 				break;
@@ -143,16 +143,13 @@ void Frame::OnOk(wxCommandEvent& evt)
 				break;
 			default: //wh::ctAbstract:
 				break;
-			}
+		}
 
-			if (isQtyOk)
-			{
-				mMovable->Move(selected, qty);
-				EndModal(wxID_OK);
-			}
-			
-			
-		}// if (mMovable->GetData().mCls.GetClsType(clstype))
+		if (isQtyOk)
+		{
+			mMovable->Move(selected, qty);
+			EndModal(wxID_OK);
+		}
 	}// if (selected)
 }
 //---------------------------------------------------------------------------

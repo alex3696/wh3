@@ -41,11 +41,11 @@ bool MClsMove::GetSelectQuery(wxString& query)const
 		"     , dst_cls.id, dst_cls.title, dst_obj.id, dst_obj.title, dst_path "
 		"  FROM perm_move "
 		"    LEFT JOIN cls      mov_cls ON mov_cls.id = perm_move.cls_id "
-		"    LEFT JOIN obj_tree mov_obj ON mov_obj.id = perm_move.obj_id "
+		"    LEFT JOIN obj      mov_obj ON mov_obj.id = perm_move.obj_id "
 		"    LEFT JOIN cls      src_cls ON src_cls.id = perm_move.src_cls_id "
-		"    LEFT JOIN obj_num  src_obj ON src_obj.id = perm_move.src_obj_id "
+		"    LEFT JOIN obj      src_obj ON src_obj.id = perm_move.src_obj_id "
 		"    LEFT JOIN cls      dst_cls ON dst_cls.id = perm_move.dst_cls_id "
-		"    LEFT JOIN obj_num  dst_obj ON dst_obj.id = perm_move.dst_obj_id "
+		"    LEFT JOIN obj      dst_obj ON dst_obj.id = perm_move.dst_obj_id "
 		"  WHERE perm_act.id = %s "
 		, oldPerm.mId.SqlVal());
 	return true;
@@ -240,11 +240,11 @@ bool MClsMoveArray::GetSelectChildsQuery(wxString& query)const
 		"     , dst_cls.id, dst_cls.title, dst_obj.id, dst_obj.title, dst_path "
 		"  FROM perm_move "
 		"    LEFT JOIN cls      mov_cls ON mov_cls.id = perm_move.cls_id "
-		"    LEFT JOIN obj_tree mov_obj ON mov_obj.id = perm_move.obj_id "
+		"    LEFT JOIN obj      mov_obj ON mov_obj.id = perm_move.obj_id "
 		"    LEFT JOIN cls      src_cls ON src_cls.id = perm_move.src_cls_id "
-		"    LEFT JOIN obj_num  src_obj ON src_obj.id = perm_move.src_obj_id "
+		"    LEFT JOIN obj      src_obj ON src_obj.id = perm_move.src_obj_id "
 		"    LEFT JOIN cls      dst_cls ON dst_cls.id = perm_move.dst_cls_id "
-		"    LEFT JOIN obj_num  dst_obj ON dst_obj.id = perm_move.dst_obj_id "
+		"    LEFT JOIN obj      dst_obj ON dst_obj.id = perm_move.dst_obj_id "
 		"  WHERE dst_cls_id = %s "
 		, cls.mID.SqlVal() );
 			
