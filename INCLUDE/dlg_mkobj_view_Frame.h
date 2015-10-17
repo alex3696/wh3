@@ -5,6 +5,7 @@
 #include "MObjItem.h"
 #include "BaseOkCancelDialog.h"
 #include "BtnProperty.h"
+#include "PGClsPid.h"
 
 //-------------------------------------------------------------------------
 namespace wh{
@@ -23,8 +24,7 @@ class Frame
 	wxButton*				mbtnCancel;
 
 	wxPropertyGrid*			mPropGrid;
-	BtnProperty*			mPGPath;
-	wxPGProperty*			mPGPid;
+	wxClsParentProperty*	mPGParent;
 	wxFloatProperty*		mPGQty;
 
 	std::shared_ptr<MObjItem> mObj;

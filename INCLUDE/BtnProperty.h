@@ -61,8 +61,8 @@ public:
 //-------------------------------------------------------------------------------------------------
 /// Свойство с кнопкой "..."
 class BtnProperty 
-	: public wxPGProperty 
-	//: public wxStringProperty
+	//: public wxPGProperty 
+	: public wxStringProperty
 	
 {
 	//WX_PG_DECLARE_PROPERTY_CLASS(BtnProperty)

@@ -14,8 +14,8 @@ BtnStringEditor* gBtnStringEditor = NULL;
 
 
 BtnProperty::BtnProperty(const wxString& label, const wxString& name, const wxString& value)
-: wxPGProperty(label, name)
-//: wxStringProperty(label, name, value)
+//: wxPGProperty(label, name)
+: wxStringProperty(label, name, value)
 {
 	SetValue(WXVARIANT(value));
 
@@ -34,7 +34,7 @@ BtnProperty::~BtnProperty()
 	if (gBtnStringEditor)
 		gBtnStringEditor->mBtnPropMap.erase(this);
 }
-//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------
 void BtnProperty::SetOnClickButonFunc(std::function<bool(wxPGProperty*)>& func)
 {
 	if (gBtnStringEditor)

@@ -426,6 +426,12 @@ CREATE TABLE obj_num (
 );-- INHERITS (obj);
 CREATE INDEX idx_objnum_pid ON obj_num ("pid") ;
 
+
+ALTER TABLE cls_real
+  ADD CONSTRAINT cls_real_default_objid_fkey FOREIGN KEY (default_objid)
+      REFERENCES obj_num (id) MATCH FULL
+      ON UPDATE RESTRICT ON DELETE SET DEFAULT;
+
 ---------------------------------------------------------------------------------------------------
 -- детальные сведения объект количественный целочисленный
 ---------------------------------------------------------------------------------------------------
@@ -822,9 +828,9 @@ BEGIN
     RAISE EXCEPTION ' %: can`t change id and kind',TG_NAME;
   END IF;
   UPDATE cls_name SET title=NEW.title, note=NEW.note WHERE id=NEW.id;
-  CASE NEW.kind 
-   WHEN 0 THEN UPDATE cls_tree SET pid=NEW.pid WHERE id=NEW.id; 
-   WHEN 1 OR 2 OR 3 THEN 
+  CASE 
+   WHEN NEW.kind=0 THEN UPDATE cls_tree SET pid=NEW.pid WHERE id=NEW.id; 
+   WHEN (NEW.kind=1 OR NEW.kind=2 OR NEW.kind=3) THEN 
      UPDATE cls_real SET pid=NEW.pid, default_objid=NEW.default_objid, measure=NEW.measure WHERE id=NEW.id;
    ELSE RAISE EXCEPTION ' %: wrong kind %',TG_NAME,NEW.kind ;
   END CASE;
@@ -958,11 +964,11 @@ PRINT '';
 ---------------------------------------------------------------------------------------------------
 
 INSERT INTO cls(id,pid,title,kind) VALUES (0,0,'nullClsRoot',0);
-INSERT INTO cls(id,pid,title,kind) VALUES (1,0,'AbstrClsRoot',0);
+INSERT INTO cls(id,pid,title,kind) VALUES (1,0,'ClsRoot',0);
 INSERT INTO cls(id,pid,title,kind,measure) VALUES (2,1,'RootNumType',1,'шт.');
 
 INSERT INTO obj(id,pid,title,cls_id)VALUES (0,0,'nullNumRoot',2);
-INSERT INTO obj(id,pid,title,cls_id)VALUES (1,0,'RootObj',2);
+INSERT INTO obj(id,pid,title,cls_id)VALUES (1,0,'ObjRoot',2);
 
 
 ---------------------------------------------------------------------------------------------------

@@ -26,8 +26,8 @@ bool MObjItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t 
 	data.mLabel = table->GetAsString(col++, row);
 	data.mQty = table->GetAsString(col++, row);
 	data.mLastMoveLogId = table->GetAsString(col++, row);
-
-	table->GetAsString(col++, row, mPath);
+	mPath = table->GetAsString(col++, row);
+	data.mParent.mLabel = table->GetAsString(col++, row);
 	while (col < table->GetColumnCount())
 	{
 		wxString str_data;
@@ -222,8 +222,11 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 		{
 			query = wxString::Format(
 				" SELECT o.id, o.pid, o.title, o.qty "
-				" , move_logid, NULL AS path %s "
+				" , o.move_logid, NULL AS path "
+				" , parent.title "
+				" %s "
 				" FROM obj o "
+				" LEFT JOIN obj_name parent ON parent.id = o.id "
 				" %s "
 				" WHERE o.pid = %s AND o.cls_id = %s "
 				, qq
@@ -237,8 +240,11 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 		{
 			query = wxString::Format(
 				"SELECT o.id, o.pid, o.title, o.qty "
-				" , move_logid, get_path(o.pid)  AS path %s "
+				" , o.move_logid, get_path(o.pid)  AS path "
+				" , parent.title "
+				" %s "
 				" FROM obj o "
+				" LEFT JOIN obj_name parent ON parent.id = o.id "
 				" %s "
 				" WHERE o.cls_id = %s "
 				, qq

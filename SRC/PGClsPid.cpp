@@ -10,7 +10,7 @@ using namespace wh;
 
 WX_PG_IMPLEMENT_VARIANT_DATA_DUMMY_EQ(wh_rec_Base)
 
-WX_PG_IMPLEMENT_PROPERTY_CLASS(wxClsParentProperty, wxPGProperty,
+WX_PG_IMPLEMENT_PROPERTY_CLASS(wxClsParentProperty, wxStringProperty,
 								wh_rec_Base, const wh_rec_Base&, TextCtrl)
 
 
@@ -94,6 +94,13 @@ void wxClsParentProperty::RefreshChildren()
 	const wh_rec_Base& parent = wh_rec_BaseRefFromVariant(m_value);
 	Item(0)->SetValue(WXVARIANT(parent.mLabel.toStr() ));
 	Item(1)->SetValue(WXVARIANT(parent.mId.toStr() ));
+
+	const wxColour light_red(255, 200, 200);
+	if (parent.mLabel.IsNull() || parent.mId.IsNull())
+		this->SetBackgroundColour(light_red);
+	else
+		this->SetBackgroundColour(*wxWHITE);
+
 }
 //-----------------------------------------------------------------------------
 wxVariant wxClsParentProperty::ChildChanged(wxVariant& thisValue,
@@ -262,8 +269,8 @@ void wxClsProperty::RefreshChildren()
 	
 	Item(0)->SetBackgroundColour(cls.mLabel.IsNull() ? light_red : *wxWHITE);
 	Item(1)->SetBackgroundColour(cls.mMeasure.IsNull() ? light_red : *wxWHITE);
-	Item(5)->SetBackgroundColour(cls.mParent.mId.IsNull() ? light_red : *wxWHITE);
-	Item(6)->SetBackgroundColour(cls.mDefaultObj.mId.IsNull() ? light_red : *wxWHITE);
+	//Item(5)->SetBackgroundColour(cls.mParent.mId.IsNull() ? light_red : *wxWHITE);
+	//Item(6)->SetBackgroundColour(cls.mDefaultObj.mId.IsNull() ? light_red : *wxWHITE);
 
 }
 //-----------------------------------------------------------------------------

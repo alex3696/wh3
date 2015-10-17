@@ -34,6 +34,7 @@ bool MTypeItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t
 	data.mMeasure = table->GetAsString(3, row);
 	mQty = table->GetAsString(4, row);
 	data.mDefaultObj.mId = table->GetAsString(5, row);
+	data.mDefaultObj.mLabel = table->GetAsString(6, row);
 	
 	auto type_array = dynamic_cast<MTypeArray*>(this->GetParent());
 	if (type_array)
@@ -211,11 +212,12 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 	if (catalog->IsObjTree())
 	{
 		query = wxString::Format(
-			"SELECT r.title, r.id, r.kind, cr.measure, osum.qty, cr.default_objid "
+			"SELECT r.title, r.id, r.kind, cr.measure, osum.qty, cr.default_objid, ob.title "
 			"FROM(SELECT COALESCE(SUM(qty), 0) AS qty, cls_id FROM obj o "
 			"WHERE o.pid = %s  AND o.id>99 GROUP BY o.cls_id) osum "
 			"LEFT JOIN cls_real cr ON osum.cls_id = cr.id "
 			"LEFT JOIN cls_name r USING(id)" 
+			" LEFT JOIN obj_name ob ON ob.id = cr.default_objid "
 			, root.mObj.mId.SqlVal() );
 		return true;
 	}
@@ -225,10 +227,11 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 			" SELECT t.title, t.id, t.kind, t.measure "
 			" ,(SELECT COALESCE(SUM(qty), 0) "
 			"     FROM obj o WHERE t.id = o.cls_id GROUP BY o.cls_id)  AS qty "
-			" ,default_objid "
+			" ,default_objid, o.title "
 			" FROM cls t "
+			" LEFT JOIN obj_name o ON o.id = t.default_objid "
 			" WHERE t.pid = %s"
-			" AND id > 99 "
+			" AND t.id > 99 "
 			/*
 			"SELECT t.title, osum.qty, t.id, t.kind, t.measure "
 			" FROM cls_tree t "

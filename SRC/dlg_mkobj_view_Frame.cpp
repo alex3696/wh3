@@ -1,7 +1,7 @@
 #include "_pch.h"
 #include "dlg_mkobj_view_Frame.h"
 #include "MObjCatalog.h"
-
+#include "PGClsPid.h"
 
 using namespace wh;
 using namespace wh::object_catalog::view;
@@ -47,20 +47,9 @@ Frame::Frame(wxWindow* parent,
 	pg_mainInfo->AppendChild(mPGQty);
 	pg_mainInfo->AppendChild(new wxStringProperty(L"ID", wxPG_LABEL))->Enable(false);
 
-	auto pg_pathInfo = new wxPropertyCategory("Местоположение");
-	mPropGrid->Append(pg_pathInfo);
-
-
-
-	std::function<bool(wxPGProperty*)> selectProp =
-		std::bind(&Frame::OnSelectPath, this, std::placeholders::_1);
-	mPGPath = new BtnProperty("Путь");
-	mPGPath->SetOnClickButonFunc(selectProp);
-	pg_pathInfo->AppendChild(mPGPath);
-	
-	mPGPid = new wxStringProperty(L"PID", wxPG_LABEL);
-	pg_pathInfo->AppendChild(mPGPid)->Enable(false);
-	
+	mPGParent = new wxClsParentProperty("Местоположение");
+	mPGParent->SetObjTree(true);
+	mPropGrid->Append(mPGParent);
 	
 }
 //---------------------------------------------------------------------------
@@ -127,38 +116,12 @@ void Frame::OnChangeModel(const IModel* model, const object_catalog::MObjItem::T
 	default:		SetTitle("**error**");			break;
 	case msCreated: 
 		SetTitle("Создание объекта");
-		
-		if (catalog->IsObjTree())
-		{
-			mPGPath->SetValueFromString(mObj->GetPathString());
-			mPGPid->SetValueFromString(catalog->GetData().mObj.mId.toStr() );
-		}
-		else
-		{
-			rec::Obj tmp_obj_data;
-			tmp_obj_data.mParent.mId = cls_data.mDefaultObj.mId;
-			auto obj_model = std::make_shared<MObjItem>();
-			obj_model->SetData(tmp_obj_data);
-
-			auto opath = std::make_shared<object_catalog::model::ObjPath>();
-
-			obj_model->AddChild( std::dynamic_pointer_cast<IModel>(opath));
-			opath->Load();
-
-			mPGPath->SetValueFromString(opath->AsString());
-			mPGPid->SetValueFromString(cls_data.mDefaultObj.mId);
-		}
-		
-		mPGPath->Enable(true);
+		mPropGrid->SetPropertyValue(mPGParent,
+			WXVARIANT(catalog->IsObjTree() ? catalog->GetData().mObj : cls_data.mDefaultObj));
 		break;
-	case msExist:
-	case msUpdated:	
+	case msExist: case msUpdated:	
 		SetTitle("Редактирование объекта");
-		mPGPath->SetValueFromString(mObj->GetPathString());
-		mPGPid->SetValueFromString(obj_data.mParent.mId.toStr() );
-		mPGPath->Enable(false);
-
-			
+		mPropGrid->SetPropertyValue(mPGParent, WXVARIANT(obj_data.mParent));
 		break;
 	}
 }
@@ -170,9 +133,9 @@ void Frame::GetData(object_catalog::MObjItem::T_Data& data) const
 	// значение свойства получается из диалоа
 	data.mLabel = mPropGrid->GetPropertyByLabel("Имя")->GetValueAsString();
 	data.mQty = mPGQty->GetValueAsString();
-	//data.mObj.??? = mPropGrid->GetPropertyByLabel("Путь")->GetValueAsString();
 	data.mId = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
-	data.mParent.mId = mPropGrid->GetPropertyByLabel("PID")->GetValueAsString();
+
+	data.mParent = wh_rec_BaseRefFromVariant(mPGParent->GetValue());
 	
 
 }
@@ -183,13 +146,12 @@ void Frame::SetData(const object_catalog::MObjItem::T_Data& data)
 
 	mPropGrid->GetPropertyByLabel(L"Имя")->SetValueFromString(data.mLabel);
 	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(data.mId);
-	//mPropGrid->GetPropertyByLabel(L"PID")->SetValueFromString(data.mPID);
-}
-//---------------------------------------------------------------------------
-bool Frame::OnSelectPath(wxPGProperty* prop)
-{
+	
+	mPropGrid->SetPropertyValueString(mPGQty, data.mQty.toStr());
+	mPropGrid->SetPropertyValue(mPGParent, WXVARIANT(data.mParent));
 
-	return false;
+
+	
 }
 //---------------------------------------------------------------------------
 /*
