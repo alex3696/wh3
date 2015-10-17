@@ -29,7 +29,7 @@ bool MTypeItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t
 {
 	T_Data data = this->GetData();
 	data.mLabel = table->GetAsString(0, row);
-	data.mID = table->GetAsLong(1, row);
+	data.mId = table->GetAsLong(1, row);
 	data.mType = table->GetAsString(2, row);
 	data.mMeasure = table->GetAsString(3, row);
 	mQty = table->GetAsString(4, row);
@@ -139,11 +139,11 @@ bool MTypeItem::GetInsertQuery(wxString& query)const
 	query = wxString::Format(
 		"INSERT INTO cls "
 		" (title, note, kind, measure, pid, default_objid) VALUES "
-		" (%s, %s, %s, %s, %s) "
+		" (%s, %s, %s, %s, %s, %s) "
 		" RETURNING title, id, kind, measure, 0"
 		, cls.mLabel.SqlVal()
 		, cls.mComment.SqlVal()
-		, cls.mType.SqlVal()
+		, cls.mType.IsNull() ? "0" : cls.mType.SqlVal()
 		, cls.mMeasure.SqlVal()
 		, parent
 		, cls.mDefaultObj.mId.SqlVal()
@@ -167,7 +167,7 @@ bool MTypeItem::GetUpdateQuery(wxString& query)const
 		, cls.mMeasure.SqlVal()
 		, parent
 		, cls.mDefaultObj.mId.SqlVal()
-		, cls.mID.SqlVal() );
+		, cls.mId.SqlVal() );
 	return true;
 }
 //-------------------------------------------------------------------------
@@ -176,7 +176,7 @@ bool MTypeItem::GetDeleteQuery(wxString& query)const
 	const auto& cls = GetData();
 	query = wxString::Format(
 		"DELETE FROM cls WHERE id = %s ",
-		cls.mID.SqlVal() );
+		cls.mId.SqlVal() );
 	return true;
 }
 
@@ -192,7 +192,7 @@ std::shared_ptr<IModel> MTypeArray::CreateChild()
 	auto catalog = dynamic_cast<MObjCatalog*>(this->GetParent());
 	if (catalog)
 	{
-		cls.mParent.mId = catalog->GetData().mCls.mID;
+		cls.mParent.mId = catalog->GetData().mCls.mId;
 		cls.mParent.mLabel = catalog->GetData().mCls.mLabel;
 	}
 	child->SetData(cls);
@@ -211,11 +211,11 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 	if (catalog->IsObjTree())
 	{
 		query = wxString::Format(
-			"SELECT r.title, r.id, r.kind, r.measure, osum.qty, r.default_objid "
-			"FROM(SELECT COALESCE(SUM(qty), 0) AS qty, cls_id FROM obj o"
-			"WHERE o.pid = %s  AND o.id>99 GROUP BY o.cls_id) osum"
-			"LEFT JOIN cls_real cr ON osum.cls_id = cr.id"
-			"LEFT JOIN cls_name r USING(id)"
+			"SELECT r.title, r.id, r.kind, cr.measure, osum.qty, cr.default_objid "
+			"FROM(SELECT COALESCE(SUM(qty), 0) AS qty, cls_id FROM obj o "
+			"WHERE o.pid = %s  AND o.id>99 GROUP BY o.cls_id) osum "
+			"LEFT JOIN cls_real cr ON osum.cls_id = cr.id "
+			"LEFT JOIN cls_name r USING(id)" 
 			, root.mObj.mId.SqlVal() );
 		return true;
 	}
@@ -233,12 +233,14 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 			"SELECT t.title, osum.qty, t.id, t.kind, t.measure "
 			" FROM cls_tree t "
 			" LEFT JOIN(SELECT COALESCE(SUM(qty), 0) AS qty, cls_id "
-			" FROM obj_tree o "
+			" FROM obj o "
 			" GROUP BY o.cls_id) osum ON osum.cls_id = t.id "
 			" WHERE t.pid = %s "
 			" AND t.id > 99 "
 			*/
-			, root.mCls.mID.SqlVal() );
+			, root.mCls.mId.SqlVal() );
+		if (catalog->IsSelectDlg())
+			query += " AND t.kind=0 ";
 		return true;
 
 	}

@@ -157,7 +157,7 @@ bool VObjCatalogDataViewModel::GetAttr(const wxDataViewItem &dataViewItem, unsig
 				if (col > 6 && favProp.size())
 				{
 					const auto& field = favProp[col - 7];
-					const auto& typeId = typeItem->GetData().mID;
+					const auto& typeId = typeItem->GetData().mId;
 
 					auto it = field.mCls->find(typeId);
 					if (field.mCls->end()==it)

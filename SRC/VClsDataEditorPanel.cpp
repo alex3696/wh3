@@ -31,7 +31,7 @@ VClsDataEditorPanel::VClsDataEditorPanel(wxWindow*		parent,
 	mPropGrid->ResetColumnSizes();
 	this->Layout();
 
-	Bind(wxEVT_PG_CHANGED, &VClsDataEditorPanel::OnClassTypeChange, this);
+	//Bind(wxEVT_PG_CHANGED, &VClsDataEditorPanel::OnClassTypeChange, this);
 }
 //---------------------------------------------------------------------------
 void VClsDataEditorPanel::GetData(rec::Cls& rec) const

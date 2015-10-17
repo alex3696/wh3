@@ -198,6 +198,12 @@ public:
 	{
 		return (*this == SqlLong(rv));
 	}
+
+	bool operator==(const long& rv)const
+	{
+		return mVal ? operator==(rv) : false;
+	}
+
 	inline bool IsNull()const	{ return mVal ? false : true; }
 	inline void SetNull()		{ delete mVal; mVal = nullptr; }
 	//inline bool IsEmpty()const	{ return mVal ? true : false; }
@@ -313,12 +319,12 @@ struct ObjParent
 
 //-----------------------------------------------------------------------------
 /// Класс - основные метаданные - запись в таблицце классов 
-struct Cls
+struct Cls: public Base
 {
 	struct error : virtual exception_base {};
 	
-	SqlLong		mID;
-	SqlString	mLabel;
+	//SqlLong		mID;
+	//SqlString	mLabel;
 	SqlLong		mType;
 	Base		mParent;
 	SqlString	mComment;
@@ -327,7 +333,7 @@ struct Cls
 
 	Cls(){}
 	Cls(const wxString& id, const wxString& label)
-		:mID(id), mLabel(label)
+		:Base(id, label)
 	{
 	}
 
@@ -352,10 +358,10 @@ struct Cls
 
 //-----------------------------------------------------------------------------
 /// Объект - основные метаданные 
-struct ObjTitle
+struct ObjTitle : public Base
 {
-	SqlLong		mId;
-	SqlString	mLabel;
+	//SqlLong		mId;
+	//SqlString	mLabel;
 	Base		mParent;
 	SqlString	mQty;
 	SqlLong		mLastMoveLogId;
@@ -363,7 +369,7 @@ struct ObjTitle
 
 	ObjTitle(){}
 	ObjTitle(const wxString& id,const wxString& label)
-		: mId(id), mLabel(label)
+		: Base(id,label)
 	{}
 	
 };

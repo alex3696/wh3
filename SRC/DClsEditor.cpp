@@ -142,7 +142,7 @@ void DClsEditor::SetModel(std::shared_ptr<IModel>& newModel)
 //---------------------------------------------------------------------------
 void DClsEditor::UpdateModel()const
 {
-	//mClsPanel->UpdateModel();
+	mClsPanel->UpdateModel();
 	//mUserPanel->UpdateModel();
 	//??mGroupsPanel->UpdateModel();
 }

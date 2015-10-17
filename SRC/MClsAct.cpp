@@ -79,7 +79,7 @@ bool MClsAct::GetInsertQuery(wxString& query)const
 		, newPerm.mAccessDisabled.SqlVal()
 		, newPerm.mScriptRestrict.SqlVal()
 
-		, cls.mID.SqlVal() //newPerm.mSrcCls.mId = cls.mID;
+		, cls.mId.SqlVal() //newPerm.mSrcCls.mId = cls.mID;
 		, newPerm.mSrcObj.mId.SqlVal()
 		, newPerm.mSrcPath.SqlVal()
 
@@ -113,7 +113,7 @@ bool MClsAct::GetUpdateQuery(wxString& query)const
 			, newPerm.mAccessDisabled.SqlVal()
 			, newPerm.mScriptRestrict.SqlVal()
 
-			, cls.mID.SqlVal() //newPerm.mSrcCls.mId = cls.mID;
+			, cls.mId.SqlVal() //newPerm.mSrcCls.mId = cls.mID;
 			, newPerm.mSrcObj.mId.SqlVal()
 			, newPerm.mSrcPath.SqlVal()
 
@@ -215,7 +215,7 @@ bool MClsActArray::GetSelectChildsQuery(wxString& query)const
 		"    LEFT JOIN obj src_obj ON src_obj.id = perm_act.src_obj_id "
 		"    LEFT JOIN act ON act.id = perm_act.act_id "
         "  WHERE perm_act.src_cls_id = %s "
-		, cls.mID.SqlVal() );
+		, cls.mId.SqlVal() );
 
 	return true;
 

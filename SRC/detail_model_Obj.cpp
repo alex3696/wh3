@@ -20,7 +20,7 @@ void Obj::SetObject(const wxString& cls_id, const wxString& obj_id, const wxStri
 {
 	T_Data data;
 
-	data.mCls.mID = cls_id;
+	data.mCls.mId = cls_id;
 	data.mObj.mId = obj_id;
 	data.mObj.mParent.mId = obj_pid;
 
@@ -41,7 +41,7 @@ bool Obj::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 	data.mObj.mQty           = table->GetAsString(3, row);
 	data.mObj.mLastMoveLogId = table->GetAsString(4, row);
 
-	data.mCls.mID = table->GetAsString(5, row);
+	data.mCls.mId = table->GetAsString(5, row);
 	data.mCls.mLabel = table->GetAsString(6, row);
 	data.mCls.mType = table->GetAsString(7, row);
 	data.mCls.mMeasure = table->GetAsString(8, row);
@@ -57,18 +57,18 @@ bool Obj::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 bool Obj::GetSelectQuery(wxString& query)const
 {
 	const auto& data = GetData();
-	if (data.mCls.mID.IsNull() || data.mObj.mId.IsNull() || data.mObj.mParent.mId.IsNull())
+	if (data.mCls.mId.IsNull() || data.mObj.mId.IsNull() || data.mObj.mParent.mId.IsNull())
 		return false;
 	
 	query = wxString::Format(
 		"SELECT  o.id, o.pid, o.title, o.qty, o.move_logid "
 		"      , co.id, co.title, co.kind, co.measure, NULL as defaultPid "
 		"      , cparent.id, cparent.title "
-		" FROM obj_tree o "
+		" FROM obj o "
 		" LEFT JOIN cls_real co ON co.id = o.cls_id "
 		" LEFT JOIN cls cparent ON co.pid = cparent.id "
 		" WHERE o.cls_id=%s  AND o.id=%s AND o.pid=%s "
-		, data.mCls.mID.SqlVal()
+		, data.mCls.mId.SqlVal()
 		, data.mObj.mId.SqlVal()
 		, data.mObj.mParent.mId.SqlVal()
 		);

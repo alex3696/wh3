@@ -21,7 +21,7 @@ void Obj::Unlock()
 
 	wxString query = wxString::Format(
 		"SELECT lock_reset(%s,%s,%s)"
-		, subj.mCls.mID.SqlVal()
+		, subj.mCls.mId.SqlVal()
 		, subj.mObj.mId.SqlVal()
 		, subj.mObj.mParent.mId.SqlVal() );
 

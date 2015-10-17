@@ -23,8 +23,10 @@ public:
 		int childIndex, wxVariant& childValue) const;
 	virtual void RefreshChildren();
 
+	void SetObjTree(bool objTree);
 protected:
 	virtual wxString  ValueToString(wxVariant &  value, int  argFlags = 0)  const;
+
 };
 
 

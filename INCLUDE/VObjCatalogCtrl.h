@@ -21,7 +21,7 @@ class VObjCatalogCtrl
 	std::shared_ptr<wh::object_catalog::MObjCatalog> mCatalogModel;
 	
 	wxAuiToolBar*		mToolBar = nullptr;
-	wxStaticText*		mPathSring = nullptr;
+	wxTextCtrl*			mPathSring = nullptr;
 	
 	VObjCatalogTable*	mTableView = nullptr;
 
@@ -78,7 +78,8 @@ public:
 	void SetModel(std::shared_ptr<IModel> model);
 	void GetSelected(std::vector<unsigned int>& selected);
 
-	bool GetSelectedObjKey(rec::PathItem& objKey)const;
+	bool GetSelectedObjKey(rec::PathItem& objKey)const; 
+	bool GetCurrentParent(rec::PathItem& root)const;
 
 };
 

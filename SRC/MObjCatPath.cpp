@@ -22,14 +22,14 @@ bool MPathItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t
 	{
 		data.mObj.mId = table->GetAsString(0, row);
 		data.mObj.mLabel = table->GetAsString(1, row);
-		data.mCls.mID = table->GetAsString(2, row );
+		data.mCls.mId = table->GetAsString(2, row );
 		data.mCls.mLabel = table->GetAsString(3, row);
 		SetData(data);
 		return true;
 	}
 	else
 	{
-		data.mCls.mID = table->GetAsString(0, row);
+		data.mCls.mId = table->GetAsString(0, row);
 		data.mCls.mLabel = table->GetAsString(1, row);
 		SetData(data);
 		return true;
@@ -65,7 +65,7 @@ bool MPath::GetSelectChildsQuery(wxString& query)const
 			query = wxString::Format(
 				" SELECT _id, _title "
 				" FROM fget_cls_pathinfo_table(%s)"
-				, data.mCls.mID.SqlVal()
+				, data.mCls.mId.SqlVal()
 				);
 			return true;
 		}
@@ -113,7 +113,7 @@ ClsPathItem::ClsPathItem(const char option)
 bool ClsPathItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 {
 	T_Data data;
-	data.mID = table->GetAsString(0, row);
+	data.mId = table->GetAsString(0, row);
 	data.mLabel= table->GetAsString(1, row );
 	SetData(data);
 	return true;
@@ -131,7 +131,7 @@ bool ClsPath::GetSelectChildsQuery(wxString& query)const
 		query = wxString::Format(
 				" SELECT _id, _title "
 				" FROM fget_cls_pathinfo_table(%s)"
-				, cls_data.mID.SqlVal()
+				, cls_data.mId.SqlVal()
 				);
 		return true;
 	}
@@ -168,7 +168,7 @@ bool ObjPathItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size
 	T_Data data;
 	data.mObj.mId = table->GetAsString(0, row);
 	data.mObj.mLabel = table->GetAsString(1, row);
-	data.mCls.mID = table->GetAsString(2, row);
+	data.mCls.mId = table->GetAsString(2, row);
 	data.mCls.mLabel = table->GetAsString(3, row);
 	SetData(data);
 	return true;

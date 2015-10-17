@@ -53,7 +53,7 @@ bool MClsProp::GetInsertQuery(wxString& query)const
 			" VALUES(%s, '%s', '%s') "
 			" RETURNING id "
 			, prop.mVal.SqlVal()
-			, cls.mID.SqlVal()
+			, cls.mId.SqlVal()
 			, prop.mProp.mId.SqlVal() );
 		return true;
 	}
@@ -75,7 +75,7 @@ bool MClsProp::GetUpdateQuery(wxString& query)const
 			" SET val=%s, cls_id='%s', prop_id='%s' "
 			" WHERE id=%s "
 			, prop.mVal.SqlVal()
-			, cls.mID.SqlVal()
+			, cls.mId.SqlVal()
 			, prop.mProp.mId.SqlVal()
 			, prop.mId.SqlVal() );
 		return true;
@@ -163,7 +163,7 @@ bool MClsPropArray::GetSelectChildsQuery(wxString& query)const
 			" FROM prop_cls "
 			" LEFT JOIN prop ON prop.id = prop_cls.prop_id "
 			" WHERE prop_cls.cls_id = %s "
-			, cls.mID.SqlVal());
+			, cls.mId.SqlVal());
 		return true;
 	}
 	return false;

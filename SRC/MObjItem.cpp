@@ -110,7 +110,7 @@ bool MObjItem::GetInsertQuery(wxString& query)const
 			"INSERT INTO obj( title, cls_id, pid, qty )"
 			" VALUES(%s, %s, %s, %s)"
 			, newObj.mLabel.SqlVal()
-			, cls.mID.SqlVal()
+			, cls.mId.SqlVal()
 			, pid
 			, newObj.mQty.SqlVal()
 			);
@@ -150,7 +150,7 @@ bool MObjItem::GetUpdateQuery(wxString& query)const
 			, newObj.mParent.mId.SqlVal()
 			, newObj.mQty.SqlVal()
 			, oldObj.mId.SqlVal()
-			, cls.mID.SqlVal()
+			, cls.mId.SqlVal()
 			, oldObj.mParent.mId.SqlVal()
 			);
 		return true;
@@ -174,7 +174,7 @@ bool MObjItem::GetDeleteQuery(wxString& query)const
 			"DELETE FROM obj WHERE "
 			" id=%s AND cls_id=%s AND pid=%s "
 			, oldObj.mId.SqlVal()
-			, cls.mID.toStr()
+			, cls.mId.toStr()
 			, oldObj.mParent.mId.SqlVal()
 			);
 		return true;
@@ -200,7 +200,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 		wxString qq;
 		for (const auto& it : catalog->GetFavProps())
 		{
-			auto typeIt = it.mCls->find(typeItemData.mID);
+			auto typeIt = it.mCls->find(typeItemData.mId);
 			if (it.mCls->end() != typeIt)
 				qq += wxString::Format(", \"%s\"", it.mLabel);
 			else
@@ -229,7 +229,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 				, qq
 				, leftJoin
 				, catalogData.mObj.mId.toStr()
-				, typeItemData.mID.SqlVal()
+				, typeItemData.mId.SqlVal()
 				);
 			return true;
 		}
@@ -243,7 +243,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 				" WHERE o.cls_id = %s "
 				, qq
 				, leftJoin
-				, typeItemData.mID.SqlVal()
+				, typeItemData.mId.SqlVal()
 				);
 			return true;
 		}

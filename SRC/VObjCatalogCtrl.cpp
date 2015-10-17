@@ -30,7 +30,8 @@ VObjCatalogCtrl::VObjCatalogCtrl(wxWindow* parent,
 		wxAUI_TB_TEXT | wxAUI_TB_OVERFLOW);
 	GetSizer()->Add(mToolBar, 0, wxALL | wxEXPAND, 0);
 
-	mPathSring = new wxStaticText(this, wxID_ANY, "/[CLS]OBJ/");
+	mPathSring = new wxTextCtrl(this, wxID_ANY, "/", wxDefaultPosition, wxDefaultSize, 
+		wxTE_READONLY);
 	GetSizer()->Add(mPathSring, 0, wxALL | wxEXPAND, 0);
 
 	mTableView = new VObjCatalogTable(this);
@@ -296,82 +297,111 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 
 	if (!mCatalogModel)
 		return;
-	auto clsIdx = std::make_pair(false, size_t(0));
-	auto objIdx = std::make_pair(false, size_t(0));
 
+	// если обновление, то выделеный элемент будет одинаковым до и после обновления
+	// иначе выделяется 0-элемент
+	struct ClsIdx
+	{
+		ClsIdx(){}
+		ClsIdx(const rec::Cls& cls, unsigned int pos)
+			:mCls(cls), mPos(pos){}
+		rec::Cls		mCls;
+		unsigned int	mPos;
+	};
+
+	struct ObjIdx
+	{
+		ObjIdx(){}
+		ObjIdx(const rec::ObjTitle& obj, unsigned int pos)
+			:mObj(obj), mPos(pos){}
+
+		rec::ObjTitle	mObj;
+		unsigned int	mPos;
+	};
+
+	std::unique_ptr< ClsIdx >	ucls;
+	std::unique_ptr< ObjIdx >	uobj;
+
+	using namespace object_catalog;
+	
 	if (selectedItem.IsOk())
 	{
 		auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
 		auto objItem = dynamic_cast<object_catalog::MObjItem*> (modelInterface);
 		if (objItem)
 		{
-			auto objArray = dynamic_cast<object_catalog::MObjArray*> (objItem->GetParent());
-				
-			auto typeItem = dynamic_cast<object_catalog::MTypeItem*> (objArray->GetParent());
-			auto typeArray=dynamic_cast<object_catalog::MTypeArray*> (typeItem->GetParent());
+			auto obj_array = objItem->GetParent();
+			unsigned int pos = 0;
+			if (obj_array->GetItemPosition(objItem, pos))
+			{
+				const rec::ObjTitle& objData = objItem->GetData();;
+				uobj.reset(new ObjIdx(objData, pos));
 
-			clsIdx.first = typeArray->GetItemPosition(typeItem, clsIdx.second);
-			objIdx.first = objArray->GetItemPosition(objItem, objIdx.second);
-
+				auto typeItem = dynamic_cast<MTypeItem*>(obj_array->GetParent());
+				auto typeArray = typeItem->GetParent();
+				if (typeArray->GetItemPosition(typeItem, pos))
+				{
+					const rec::Cls& clsData = typeItem->GetData();;
+					ucls.reset(new ClsIdx(clsData, pos));
+				}
+			}
 		}
 		else
 		{
-			auto typeItem=dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
-			auto typeArray=dynamic_cast<object_catalog::MTypeArray*> (typeItem->GetParent());
-			clsIdx.first = typeArray->GetItemPosition(typeItem, clsIdx.second);
+			unsigned int pos = 0;
+			auto typeItem = dynamic_cast<MTypeItem*> (modelInterface);
+			auto typeArray = typeItem->GetParent();
+			if (typeArray->GetItemPosition(typeItem, pos))
+			{
+				const rec::Cls& clsData = typeItem->GetData();;
+				ucls.reset(new ClsIdx(clsData, pos));
+			}
+
 		}
 	}
-		
+
 	mCatalogModel->Load();
 	mTableView->ExpandAll();
 
-	if ("OnActivated" == evt.GetString())
+	selectedItem = wxDataViewItem(nullptr);
+
+	if (ucls && "OnActivated" != evt.GetString() )
+	{
+		if (mCatalogModel->mTypeArray->GetChildQty() > ucls->mPos)
+		{
+			auto selCls = (mCatalogModel->mTypeArray->at(ucls->mPos));
+			if (uobj)
+			{
+				if (selCls)
+				{
+					auto selObj = selCls->mObjArray->at(uobj->mPos);
+					if (selObj)
+						selectedItem = wxDataViewItem(selObj.get());
+				}
+			}
+			else
+			{
+				if (selCls)
+					selectedItem = wxDataViewItem(selCls.get());
+			}
+		}
+	}
+	else
 	{
 		auto qty = mCatalogModel->mTypeArray->GetChildQty();
 		if (qty)
 		{
-			auto firstChild = mCatalogModel->mTypeArray->GetChild(0);
-			mTableView->SetCurrentItem(wxDataViewItem(firstChild.get()));
-		}
-		return;
-	}
-
-	std::shared_ptr<object_catalog::MTypeItem> selCls;
-	std::shared_ptr<object_catalog::MObjItem> selObj;
-
-
-	if (clsIdx.first)
-	{
-		while (!selCls)
-		{
-			if (mCatalogModel->mTypeArray->GetChildQty() > clsIdx.second)
-			{
-				selCls = std::dynamic_pointer_cast<object_catalog::MTypeItem>
-					(mCatalogModel->mTypeArray->GetChild(clsIdx.second));
-				break;
-			}
-			clsIdx.second--;
+			auto firstChild = mCatalogModel->mTypeArray->at(0);
+			selectedItem = wxDataViewItem(firstChild.get());
 		}
 	}
 
-	if (selCls && objIdx.first)
-	{
-		while (!selObj && !objIdx.second)
-		{
-			if (selCls->mObjArray->GetChildQty() > objIdx.second)
-			{
-				selObj = std::dynamic_pointer_cast<object_catalog::MObjItem>
-					(selCls->mObjArray->GetChild(objIdx.second));
-				break;
-			}
-			objIdx.second--;
-		}
-	}
-
-	selectedItem = (selObj) ? wxDataViewItem(selObj.get()) : wxDataViewItem(selCls.get());
-
+	
 	if (selectedItem.IsOk())
+	{
+		mTableView->Select(selectedItem);
 		mTableView->SetCurrentItem(selectedItem);
+	}
 
 	UpdateToolsStates();
 }
@@ -392,8 +422,9 @@ void VObjCatalogCtrl::OnCmdUp(wxCommandEvent& evt)
 		}
 		else
 		{
-			if (!rootObj.mCls.mParent.mId.IsNull())
-				new_root.mCls.mID = rootObj.mCls.mParent.mId;
+			pid = rootObj.mCls.mParent.mId;
+			if (0 < pid)
+				new_root.mCls.mId = rootObj.mCls.mParent.mId;
 		}
 		mCatalogModel->SetData(new_root);
 		wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, wxID_REFRESH);
@@ -424,7 +455,7 @@ void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 
 	detail::view::CtrlPnl* pnl = new detail::view::CtrlPnl(notebook);
 	main_farame->AddTab(pnl);
-	pnl->SetObject(cls_data.mID, obj_data.mId, obj_data.mParent.mId);
+	pnl->SetObject(cls_data.mId, obj_data.mId, obj_data.mParent.mId);
 	
 }
 //-----------------------------------------------------------------------------
@@ -544,18 +575,29 @@ void VObjCatalogCtrl::OnMkCls(wxCommandEvent& evt)
 		auto newItem = std::make_shared<object_catalog::MTypeItem>();
 
 		rec::Cls cls_data;
-		cls_data.mParent.mId = root.mCls.mID;
+		cls_data.mParent.mId = root.mCls.mId;
 		cls_data.mParent.mLabel = root.mCls.mLabel;
 
 		newItem->SetData(cls_data);
 
 		DClsEditor editor;
 		editor.SetModel(std::dynamic_pointer_cast<IModel>(newItem));
-		if (wxID_OK == editor.ShowModal())
+
+		int error = 0;
+		int result = 0;
+		do
 		{
-			editor.UpdateModel();
-			newItem->Save();
-		}
+			try
+			{
+				error = 0;
+				result = editor.ShowModal();
+				editor.UpdateModel();
+				if (wxID_OK == result)
+					newItem->Save();
+			}
+			catch (...){ error=1; }
+		} while (wxID_CANCEL != result && (wxID_OK == result && error) );
+
 		OnCmdReload(wxCommandEvent(wxID_REFRESH));
 	}
 }
@@ -706,7 +748,7 @@ void VObjCatalogCtrl::OnActivated(wxDataViewEvent& evt)
 					new_root.mObj.mId = objData.mId;
 					new_root.mObj.mParent.mId = objData.mParent.mId;
 					new_root.mObj.mLabel = objData.mLabel;
-					new_root.mCls.mID = typeData.mID;
+					new_root.mCls.mId = typeData.mId;
 					new_root.mCls.mLabel = typeData.mLabel;
 					mCatalogModel->SetData(new_root);
 					wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, wxID_REFRESH);
@@ -726,7 +768,7 @@ void VObjCatalogCtrl::OnActivated(wxDataViewEvent& evt)
 				const auto& typeData = typeItem->GetData();
 				if ("0" == typeData.mType)
 				{
-					new_root.mCls.mID = typeData.mID;
+					new_root.mCls.mId = typeData.mId;
 					new_root.mCls.mParent = mCatalogModel->GetData().mCls.mParent;
 					mCatalogModel->SetData(new_root);
 					wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, wxID_REFRESH);
@@ -794,6 +836,16 @@ void VObjCatalogCtrl::OnSelect(wxDataViewEvent& evt)
 void VObjCatalogCtrl::OnChangePath(const IModel& model, const std::vector<unsigned int>& vec)
 {
 	if (mCatalogModel)
-		mPathSring->SetLabel(mCatalogModel->mPath->GetPathStr());
+		mPathSring->SetValue(mCatalogModel->mPath->GetPathStr());
+}
+//-------------------------------------------------------------------------
+bool VObjCatalogCtrl::GetCurrentParent(rec::PathItem& root)const
+{
+	if (!mCatalogModel)
+		return false;
+	
+	root = mCatalogModel->GetData();
+	return true;
+
 }
 

@@ -45,7 +45,7 @@ bool ClsPropArray::GetSelectChildsQuery(wxString& query)const
 			" FROM prop_cls "
 			" LEFT JOIN prop ON prop.id = prop_cls.prop_id "
 			" WHERE prop_cls.cls_id = %s "
-			, data.mCls.mID.SqlVal());
+			, data.mCls.mId.SqlVal());
 		return true;
 	}
 	return false;

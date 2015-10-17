@@ -40,11 +40,23 @@ void ClsDlg::SetModel(std::shared_ptr<IModel> model)
 //---------------------------------------------------------------------------
 bool ClsDlg::GetSelectedCls(wh::rec::Cls& cls)
 {
+	rec::PathItem objKey;
+	if (mMainPanel->GetCurrentParent(objKey))
+	{
+		cls = objKey.mCls;
+		return true;
+	}
 	return false;
 }
 //---------------------------------------------------------------------------
 bool ClsDlg::GetSelectedObj(wh::rec::ObjTitle& obj)
 {
+	rec::PathItem objKey;
+	if (mMainPanel->GetCurrentParent(objKey))
+	{
+		obj = objKey.mObj;
+		return true;
+	}
 	return false;
 }
 

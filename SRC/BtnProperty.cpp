@@ -14,7 +14,8 @@ BtnStringEditor* gBtnStringEditor = NULL;
 
 
 BtnProperty::BtnProperty(const wxString& label, const wxString& name, const wxString& value)
-: wxStringProperty(label, name, value)
+: wxPGProperty(label, name)
+//: wxStringProperty(label, name, value)
 {
 	SetValue(WXVARIANT(value));
 

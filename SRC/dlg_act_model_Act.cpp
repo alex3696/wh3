@@ -77,7 +77,7 @@ void Act::DoAct()
 
 	wxString query = wxString::Format(
 		"SELECT do_obj_act(%s,%s,%s, '%s')"
-		, subj.mCls.mID.SqlVal()
+		, subj.mCls.mId.SqlVal()
 		, subj.mObj.mId.SqlVal()
 		, this->GetData().mID
 		, propdata
@@ -92,7 +92,7 @@ void Act::DoAct()
 
 	query = wxString::Format(
 		"SELECT lock_reset(%s,%s,%s)"
-		, subj.mCls.mID.SqlVal()
+		, subj.mCls.mId.SqlVal()
 		, subj.mObj.mId.SqlVal()
 		, subj.mObj.mParent.mId.SqlVal() );
 	whDataMgr::GetDB().Exec(query);
@@ -121,7 +121,7 @@ bool ActArray::GetSelectChildsQuery(wxString& query)const
 	query = wxString::Format(
 		" SELECT id, label, description, color, script, vid "
 		" FROM lock_for_act(%s, %s)"
-		, actObj.mCls.mID.SqlVal()
+		, actObj.mCls.mId.SqlVal()
 		, actObj.mObj.mId.SqlVal()
 		);
 	return true;

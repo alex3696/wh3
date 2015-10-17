@@ -93,13 +93,13 @@ bool FavPropItem::GetUpdateQuery(wxString& query)const
 		"  ) "
 		" INSERT INTO favorite_prop(prop_id, cls_id, act_id) "
 		"    SELECT upd.prop_id, upd.cls_id, upd.act_id  FROM upd "
-		, cls.mID.SqlVal()
+		, cls.mId.SqlVal()
 		, prop_data.mId.SqlVal());
 	else
 		query = wxString::Format(
 		"DELETE FROM favorite_prop "
 		" WHERE cls_id = %s AND prop_id = %s AND user_label = CURRENT_USER "
-		, cls.mID.SqlVal()
+		, cls.mId.SqlVal()
 		, prop_data.mId.SqlVal());
 	
 	return true;
@@ -161,8 +161,8 @@ bool FavPropArray::GetSelectChildsQuery(wxString& query)const
 		"  ) favprop "
 		"  ON favprop.prop_id = all_prop.prop_id "
 		"  LEFT JOIN prop ON prop.id = all_prop.prop_id "
-		, typeData.mID.SqlVal()
-		, typeData.mID.SqlVal() );
+		, typeData.mId.SqlVal()
+		, typeData.mId.SqlVal() );
 	return true;
 }
 //-----------------------------------------------------------------------------

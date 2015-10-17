@@ -46,13 +46,13 @@ bool MObjCatalog::GetSelectQuery(wxString& query)const
 	{
 		
 		const auto& data = this->GetData();
-		if (data.mCls.mID.IsNull())
+		if (data.mCls.mId.IsNull())
 			return false;
 		query = wxString::Format(
 			"SELECT NULL,NULL, NULL, id, title  , pid "
 			" FROM cls "
 			" WHERE id=%s "
-			, data.mCls.mID.SqlVal()
+			, data.mCls.mId.SqlVal()
 			);
 
 	}
@@ -65,7 +65,7 @@ bool MObjCatalog::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size
 	data.mObj.mId = table->GetAsString(0, row);
 	data.mObj.mLabel = table->GetAsString(1, row);
 	data.mObj.mParent.mId = table->GetAsString(2, row);
-	data.mCls.mID = table->GetAsString(3, row);
+	data.mCls.mId = table->GetAsString(3, row);
 	data.mCls.mLabel = table->GetAsString(4, row);
 	data.mCls.mParent.mId = table->GetAsLong(5, row );
 	
@@ -88,7 +88,7 @@ void MObjCatalog::SetCatalog(bool isObjCatalog, bool isSelectDlg,
 	mCfg->SetData(cfg,true);
 
 	wh::rec::PathItem root;
-	isObjCatalog ? root.mObj.mId = root_find : root.mCls.mID = root_find;
+	isObjCatalog ? root.mObj.mId = root_find : root.mCls.mId = root_find;
 
 	SetData(root);
 	Load();

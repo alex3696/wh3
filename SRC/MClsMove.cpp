@@ -246,7 +246,7 @@ bool MClsMoveArray::GetSelectChildsQuery(wxString& query)const
 		"    LEFT JOIN cls      dst_cls ON dst_cls.id = perm_move.dst_cls_id "
 		"    LEFT JOIN obj      dst_obj ON dst_obj.id = perm_move.dst_obj_id "
 		"  WHERE dst_cls_id = %s "
-		, cls.mID.SqlVal() );
+		, cls.mId.SqlVal() );
 			
 	return true;
 }

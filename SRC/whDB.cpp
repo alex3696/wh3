@@ -134,6 +134,7 @@ int whTable::Exec(const wxString& query,bool with_result)
 		{
 			wxString str = wxString::Format(("%d %s"), result, estr);
 			wxMessageBox(str);
+			throw;
 		}
 		else
 			result = 0;

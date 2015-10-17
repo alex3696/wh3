@@ -287,7 +287,7 @@ void MainFrame::CreateObjCatalog(const wxString& _objclass,const wxString& _objn
 	auto node = std::make_shared<wh::object_catalog::MObjCatalog>();
 
 	wh::rec::PathItem root;
-	root.mCls.mID = "1";
+	root.mCls.mId = "1";
 	root.mCls.mLabel = "Object";
 	root.mObj.mId = "1";
 	root.mObj.mLabel = "Object0";

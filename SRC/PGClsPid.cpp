@@ -10,12 +10,10 @@ using namespace wh;
 
 WX_PG_IMPLEMENT_VARIANT_DATA_DUMMY_EQ(wh_rec_Base)
 
-//WX_PG_IMPLEMENT_PROPERTY_CLASS(wxClsParentProperty, wxPGProperty,
-//								wh_rec_Base, const wh_rec_Base&, TextCtrl)
-WX_PG_IMPLEMENT_PROPERTY_CLASS(wxClsParentProperty, wxStringProperty,
+WX_PG_IMPLEMENT_PROPERTY_CLASS(wxClsParentProperty, wxPGProperty,
 								wh_rec_Base, const wh_rec_Base&, TextCtrl)
 
-								
+
 //-----------------------------------------------------------------------------
 wxClsParentProperty::wxClsParentProperty(const wxString& label,
 const wxString& name, const wh_rec_Base& value)
@@ -35,17 +33,24 @@ const wxString& name, const wh_rec_Base& value)
 	AddPrivateChild(pgp_title);
 	AddPrivateChild(pgp_id);
 
+}
+//-----------------------------------------------------------------------------
+wxClsParentProperty::~wxClsParentProperty() { }
+//-----------------------------------------------------------------------------
+void wxClsParentProperty::SetObjTree(bool objTree)
+{
 
-	std::function<bool(wxPGProperty*)> selecFunc = [this](wxPGProperty* prop)
+	std::function<bool(wxPGProperty*)> selecFunc = [this, objTree](wxPGProperty* prop)
 	{
 		select::ClsDlg dlg(nullptr);
 
 		auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
-		catalog->SetCatalog(false, true, false, "0");
-
+		catalog->SetCatalog(objTree, true, false, "1");
+		/*
 		wh::rec::PathItem root;
-		root.mCls.mID = 1;
+		root.mCls.mId = 1;
 		catalog->SetData(root);
+		*/
 
 		catalog->Load();
 
@@ -53,12 +58,27 @@ const wxString& name, const wh_rec_Base& value)
 
 		if (wxID_OK == dlg.ShowModal())
 		{
-			wh::rec::Cls cls;
-			if (dlg.GetSelectedCls(cls))
+			if (objTree)
 			{
-				Item(0)->SetValue(WXVARIANT(cls.mLabel.toStr()));
-				Item(1)->SetValue(WXVARIANT(cls.mID.toStr()));
-				return true;
+				wh::rec::ObjTitle obj;
+				if (dlg.GetSelectedObj(obj))
+				{
+					auto var = WXVARIANT((wh_rec_Base)obj);
+					SetValueInEvent(var);
+					//SetValue(var,0, wxPG_SETVAL_AGGREGATED);
+					return true;
+				}
+			}
+			else
+			{
+				wh::rec::Cls cls;
+				if (dlg.GetSelectedCls(cls))
+				{
+					auto var = WXVARIANT((wh_rec_Base)cls);
+					SetValueInEvent(var);
+					//SetValue(var,0, wxPG_SETVAL_AGGREGATED);
+					return true;
+				}
 			}
 		}
 
@@ -66,17 +86,14 @@ const wxString& name, const wh_rec_Base& value)
 	};
 
 	SetOnClickButonFunc(selecFunc);
-
 }
-//-----------------------------------------------------------------------------
-wxClsParentProperty::~wxClsParentProperty() { }
 //-----------------------------------------------------------------------------
 void wxClsParentProperty::RefreshChildren()
 {
 	if (!GetChildCount()) return;
 	const wh_rec_Base& parent = wh_rec_BaseRefFromVariant(m_value);
 	Item(0)->SetValue(WXVARIANT(parent.mLabel.toStr() ));
-	Item(1)->SetValue(WXVARIANT((wxString)parent.mId.toStr() ));
+	Item(1)->SetValue(WXVARIANT(parent.mId.toStr() ));
 }
 //-----------------------------------------------------------------------------
 wxVariant wxClsParentProperty::ChildChanged(wxVariant& thisValue,
@@ -97,18 +114,16 @@ wxVariant wxClsParentProperty::ChildChanged(wxVariant& thisValue,
 //-----------------------------------------------------------------------------
 wxString  wxClsParentProperty::ValueToString(wxVariant &  value, int  argFlags)  const
 {
-	const auto& obj = wh_rec_BaseRefFromVariant(m_value);
-
-	return wxString::Format("%s #%s"
-		,obj.mLabel.toStr()
-		,obj.mId.toStr()
-		);
-
-
-	return obj.mLabel.toStr();
+	if ("wh_rec_Base" == value.GetType())
+	{
+		const auto& obj = wh_rec_BaseRefFromVariant(m_value);
+		return wxString::Format("%s #%s"
+			, obj.mLabel.toStr()
+			, obj.mId.toStr()
+			);
+	}
+	return "unknown type";
 }
-
-
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -180,7 +195,7 @@ wxString  wxObjParentProperty::ValueToString(wxVariant &  value, int  argFlags) 
 WX_PG_IMPLEMENT_VARIANT_DATA_DUMMY_EQ(wh_rec_Cls)
 
 WX_PG_IMPLEMENT_PROPERTY_CLASS(wxClsProperty, wxPGProperty,
-wh_rec_Cls, const wh_rec_Cls&, TextCtrl)
+								wh_rec_Cls, const wh_rec_Cls&, TextCtrl)
 
 //-----------------------------------------------------------------------------
 wxClsProperty::wxClsProperty(const wxString& label,
@@ -217,6 +232,12 @@ const wxString& name, const wh_rec_Cls& value)
 	pgp_id->ChangeFlag(wxPG_PROP_READONLY, true);
 
 
+	pgp_parent->SetObjTree(false);
+	pgp_defobj->SetObjTree(true);
+
+	//ChangeFlag(wxPG_PROP_COMPOSED_VALUE, true);
+	//pgp_parent->ChangeFlag(wxPG_PROP_COMPOSED_VALUE, true);
+	//pgp_defobj->ChangeFlag(wxPG_PROP_COMPOSED_VALUE, true);
 }
 //-----------------------------------------------------------------------------
 wxClsProperty::~wxClsProperty() { }
@@ -225,6 +246,7 @@ void wxClsProperty::RefreshChildren()
 {
 	if (!GetChildCount()) return;
 	const wh_rec_Cls& cls = wh_rec_ClsRefFromVariant(m_value);
+	
 	Item(0)->SetValue(WXVARIANT(cls.mLabel.toStr() ));
 	
 	Item(1)->SetValue(WXVARIANT(cls.mMeasure.toStr() ));
@@ -232,17 +254,26 @@ void wxClsProperty::RefreshChildren()
 	Item(2)->SetChoiceSelection(cls.mType.IsNull() ? 0 : (long)cls.mType);
 	
 	Item(3)->SetValue(WXVARIANT(cls.mComment.toStr()));
-	Item(4)->SetValue(WXVARIANT(cls.mID.toStr() ));
+	Item(4)->SetValue(WXVARIANT(cls.mId.toStr() ));
 	Item(5)->SetValue(WXVARIANT(cls.mParent ));
 	Item(6)->SetValue(WXVARIANT(cls.mDefaultObj));
+
+	const wxColour light_red(255, 200, 200);
+	
+	Item(0)->SetBackgroundColour(cls.mLabel.IsNull() ? light_red : *wxWHITE);
+	Item(1)->SetBackgroundColour(cls.mMeasure.IsNull() ? light_red : *wxWHITE);
+	Item(5)->SetBackgroundColour(cls.mParent.mId.IsNull() ? light_red : *wxWHITE);
+	Item(6)->SetBackgroundColour(cls.mDefaultObj.mId.IsNull() ? light_red : *wxWHITE);
+
 }
 //-----------------------------------------------------------------------------
 wxVariant wxClsProperty::ChildChanged(wxVariant& thisValue,
-	int childIndex,
-	wxVariant& childValue) const
+	int childIndex, wxVariant& childValue) const
 {
 	wh_rec_Cls cls;
 	cls << thisValue;
+
+	wh_rec_Base tmp;
 	switch (childIndex)
 	{
 	default: break; 
@@ -250,10 +281,12 @@ wxVariant wxClsProperty::ChildChanged(wxVariant& thisValue,
 	case 1: cls.mMeasure = childValue.GetString(); break;
 	case 2: cls.mType = childValue.GetString(); break;
 	case 3: cls.mComment = childValue.GetString(); break;
-	case 4: cls.mID = childValue.GetString(); break;
-	case 5: cls.mParent = wh_rec_BaseRefFromVariant(childValue); break;
+	case 4: cls.mId = childValue.GetString(); break;
+	case 5: cls.mParent = wh_rec_BaseRefFromVariant(childValue);	break;
 	case 6: cls.mDefaultObj = wh_rec_BaseRefFromVariant(childValue); break;
 	}
+
+
 	wxVariant newVariant;
 	newVariant << cls;
 	return newVariant;
@@ -267,7 +300,7 @@ wxString  wxClsProperty::ValueToString(wxVariant &  value, int  argFlags)  const
 	return wxString::Format("%s (%s) #%s"
 		, cls.mLabel.toStr()
 		, cls.mMeasure.toStr()
-		, cls.mID.toStr() );
+		, cls.mId.toStr() );
 }
 
 //-----------------------------------------------------------------------------
