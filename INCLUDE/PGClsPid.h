@@ -9,15 +9,15 @@ WX_PG_DECLARE_VARIANT_DATA(wh_rec_Base)
 
 
 //-----------------------------------------------------------------------------
-class wxClsParentProperty : public BtnProperty//wxPGProperty
+class wxPGPBaseProperty : public BtnProperty//wxPGProperty
 {
-	WX_PG_DECLARE_PROPERTY_CLASS(wxClsParentProperty)
+	WX_PG_DECLARE_PROPERTY_CLASS(wxPGPBaseProperty)
 public:
 
-	wxClsParentProperty(const wxString& label = wxPG_LABEL,
+	wxPGPBaseProperty(const wxString& label = wxPG_LABEL,
 		const wxString& name = wxPG_LABEL,
 		const wh_rec_Base& value = wh_rec_Base());
-	virtual ~wxClsParentProperty();
+	virtual ~wxPGPBaseProperty();
 
 	virtual wxVariant ChildChanged(wxVariant& thisValue,
 		int childIndex, wxVariant& childValue) const;

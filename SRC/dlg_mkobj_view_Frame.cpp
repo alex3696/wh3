@@ -47,7 +47,7 @@ Frame::Frame(wxWindow* parent,
 	pg_mainInfo->AppendChild(mPGQty);
 	pg_mainInfo->AppendChild(new wxStringProperty(L"ID", wxPG_LABEL))->Enable(false);
 
-	mPGParent = new wxClsParentProperty("Местоположение");
+	mPGParent = new wxPGPBaseProperty("Местоположение");
 	mPGParent->SetObjTree(true);
 	mPropGrid->Append(mPGParent);
 	

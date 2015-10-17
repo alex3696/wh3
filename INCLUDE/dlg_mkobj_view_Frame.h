@@ -24,7 +24,7 @@ class Frame
 	wxButton*				mbtnCancel;
 
 	wxPropertyGrid*			mPropGrid;
-	wxClsParentProperty*	mPGParent;
+	wxPGPBaseProperty*	mPGParent;
 	wxFloatProperty*		mPGQty;
 
 	std::shared_ptr<MObjItem> mObj;

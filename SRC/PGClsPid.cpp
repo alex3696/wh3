@@ -10,12 +10,12 @@ using namespace wh;
 
 WX_PG_IMPLEMENT_VARIANT_DATA_DUMMY_EQ(wh_rec_Base)
 
-WX_PG_IMPLEMENT_PROPERTY_CLASS(wxClsParentProperty, wxStringProperty,
+WX_PG_IMPLEMENT_PROPERTY_CLASS(wxPGPBaseProperty, wxStringProperty,
 								wh_rec_Base, const wh_rec_Base&, TextCtrl)
 
 
 //-----------------------------------------------------------------------------
-wxClsParentProperty::wxClsParentProperty(const wxString& label,
+wxPGPBaseProperty::wxPGPBaseProperty(const wxString& label,
 const wxString& name, const wh_rec_Base& value)
 	//: wxPGProperty(label, name)
 	: BtnProperty(label, name)
@@ -35,9 +35,9 @@ const wxString& name, const wh_rec_Base& value)
 
 }
 //-----------------------------------------------------------------------------
-wxClsParentProperty::~wxClsParentProperty() { }
+wxPGPBaseProperty::~wxPGPBaseProperty() { }
 //-----------------------------------------------------------------------------
-void wxClsParentProperty::SetObjTree(bool objTree)
+void wxPGPBaseProperty::SetObjTree(bool objTree)
 {
 
 	std::function<bool(wxPGProperty*)> selecFunc = [this, objTree](wxPGProperty* prop)
@@ -88,7 +88,7 @@ void wxClsParentProperty::SetObjTree(bool objTree)
 	SetOnClickButonFunc(selecFunc);
 }
 //-----------------------------------------------------------------------------
-void wxClsParentProperty::RefreshChildren()
+void wxPGPBaseProperty::RefreshChildren()
 {
 	if (!GetChildCount()) return;
 	const wh_rec_Base& parent = wh_rec_BaseRefFromVariant(m_value);
@@ -103,7 +103,7 @@ void wxClsParentProperty::RefreshChildren()
 
 }
 //-----------------------------------------------------------------------------
-wxVariant wxClsParentProperty::ChildChanged(wxVariant& thisValue,
+wxVariant wxPGPBaseProperty::ChildChanged(wxVariant& thisValue,
 	int childIndex,
 	wxVariant& childValue) const
 {
@@ -119,7 +119,7 @@ wxVariant wxClsParentProperty::ChildChanged(wxVariant& thisValue,
 	return newVariant;
 }
 //-----------------------------------------------------------------------------
-wxString  wxClsParentProperty::ValueToString(wxVariant &  value, int  argFlags)  const
+wxString  wxPGPBaseProperty::ValueToString(wxVariant &  value, int  argFlags)  const
 {
 	if ("wh_rec_Base" == value.GetType())
 	{
@@ -147,8 +147,8 @@ const wxString& name, const wh_rec_ObjParent& value)
 : BtnProperty(label, name)
 {
 	SetValue(WXVARIANT(value));
-	AddPrivateChild(new wxClsParentProperty("Класс", wxPG_LABEL, wh_rec_Base() ));
-	AddPrivateChild(new wxClsParentProperty("Объект", wxPG_LABEL, wh_rec_Base() ));
+	AddPrivateChild(new wxPGPBaseProperty("Класс", wxPG_LABEL, wh_rec_Base() ));
+	AddPrivateChild(new wxPGPBaseProperty("Объект", wxPG_LABEL, wh_rec_Base() ));
 }
 //-----------------------------------------------------------------------------
 wxObjParentProperty::~wxObjParentProperty() { }
@@ -222,8 +222,8 @@ const wxString& name, const wh_rec_Cls& value)
 	auto pgp_kind = new wxEnumProperty(L"Тип экземпляров", wxPG_LABEL, soc, 0);
 	auto pgp_note = new wxLongStringProperty(L"Описание");
 	auto pgp_id = new wxStringProperty("#");
-	auto pgp_parent = new wxClsParentProperty(L"Родительский класс");
-	auto pgp_defobj = new wxClsParentProperty("Родитель.объект по умолч.");
+	auto pgp_parent = new wxPGPBaseProperty(L"Родительский класс");
+	auto pgp_defobj = new wxPGPBaseProperty("Родитель.объект по умолч.");
 	
 	AddPrivateChild(pgp_title);
 	AddPrivateChild(pgp_measure);
