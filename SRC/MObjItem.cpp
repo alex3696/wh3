@@ -28,6 +28,9 @@ bool MObjItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t 
 	data.mLastMoveLogId = table->GetAsString(col++, row);
 	mPath = table->GetAsString(col++, row);
 	data.mParent.mLabel = table->GetAsString(col++, row);
+
+	//data.mProp = table->GetAsString(col++, row);
+	
 	while (col < table->GetColumnCount())
 	{
 		wxString str_data;
@@ -35,7 +38,6 @@ bool MObjItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t 
 		data.mProp.emplace_back(str_data);
 		col++;
 	}
-
 
 	SetData(data);
 	return true;
@@ -197,6 +199,23 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 		const auto& typeItemData = typeItemModel->GetData();
 		const auto& catalogData = catalog->GetData();
 
+		wxString fields, leftJoin;
+		if (ctSingle == typeItemData.GetClsType())
+		{
+			
+			wxString qq;
+			for (const auto& it : catalog->GetFavProps())
+				qq += wxString::Format("\"%s\" TEXT,", it.mLabel);
+			
+			if (!qq.IsEmpty())
+			{
+				qq.replace(qq.size() - 1, 1, " ");
+				leftJoin = wxString::Format(" LEFT JOIN LATERAL jsonb_to_record(o.prop) as x(%s) ON true "
+					, qq);
+				fields = ", x.*";
+			}
+		}
+		/*
 		wxString qq;
 		for (const auto& it : catalog->GetFavProps())
 		{
@@ -206,10 +225,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 			else
 				qq += wxString::Format(",NULL AS \"%s\"", it.mLabel);
 		}
-
-
-		wxString leftJoin;
-		
+		*/
 		/*
 		if ("1" != typeItemData.mID && "1" == typeItemData.mType)
 			leftJoin =wxString::Format(
@@ -224,12 +240,12 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 				" SELECT o.id, o.pid, o.title, o.qty "
 				" , o.move_logid, NULL AS path "
 				" , parent.title "
-				" %s "
+				"   %s "
 				" FROM obj o "
-				" LEFT JOIN obj_name parent ON parent.id = o.id "
 				" %s "
+				" LEFT JOIN obj_name parent ON parent.id = o.id "
 				" WHERE o.pid = %s AND o.cls_id = %s "
-				, qq
+				, fields
 				, leftJoin
 				, catalogData.mObj.mId.toStr()
 				, typeItemData.mId.SqlVal()
@@ -242,12 +258,12 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 				"SELECT o.id, o.pid, o.title, o.qty "
 				" , o.move_logid, get_path(o.pid)  AS path "
 				" , parent.title "
-				" %s "
+				"   %s "
 				" FROM obj o "
-				" LEFT JOIN obj_name parent ON parent.id = o.id "
 				" %s "
+				" LEFT JOIN obj_name parent ON parent.id = o.id "
 				" WHERE o.cls_id = %s "
-				, qq
+				, fields
 				, leftJoin
 				, typeItemData.mId.SqlVal()
 				);

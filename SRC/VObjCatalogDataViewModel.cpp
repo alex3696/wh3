@@ -147,7 +147,7 @@ bool VObjCatalogDataViewModel::GetAttr(const wxDataViewItem &dataViewItem, unsig
 			auto catalog = dynamic_cast<object_catalog::MObjCatalog*> (typeArray->GetParent());
 			
 			if (!typeItem->GetData().mType.IsNull() 
-				&& ctSingle != !typeItem->GetData().GetClsType()
+				&& ctSingle != typeItem->GetData().GetClsType()
 				&& col > 6)
 				//attr.SetBackgroundColour(wxColour(240, 240, 240));
 				has_bg = false;

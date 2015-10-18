@@ -81,3 +81,74 @@ SELECT * FROM json_test WHERE data -> 'b' > '1';
 
 SELECT ARRAY(SELECT jsonb_object_keys(data)) FROM json_test WHERE data ?| array['a'];
 
+
+
+
+
+
+SELECT o.id, o.pid, o.title, o.qty 
+, o.move_logid --, get_path(o.pid)  AS path 
+, parent.title 
+, o.prop 
+, x.*
+FROM obj o 
+LEFT JOIN jsonb_to_record(o.prop) as x("prop_id_11" text, "Счет ГК" text, "комментарий" text) ON true
+LEFT JOIN obj_name parent ON parent.id = o.id 
+WHERE o.cls_id = 2167
+
+
+
+
+
+
+
+
+
+SELECT o.id, o.pid, o.title, o.qty 
+, o.move_logid --, get_path(o.pid)  AS path 
+--, parent.title 
+, o.prop 
+, xx.*
+FROM obj o, LATERAL (SELECT * FROM jsonb_to_record(o.prop) as x("prop_id_11" text, "Счет ГК" text, "комментарий" text))xx
+LEFT JOIN LATERAL obj_name ON obj.id = obj_name.id
+WHERE o.cls_id = 2167
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
