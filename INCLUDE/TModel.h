@@ -538,9 +538,10 @@ public:
 			item->mParent = nullptr;
 			tmpVec[i] = i;
 		}
-		DoSigRemoveChild(tmpVec);
+		DoSigBefoRemove(tmpVec);
 		mVec->clear();
 		mVec.reset(nullptr);
+		DoSigRemoveChild(tmpVec);
 	}
 	bool GetCanCommitSave()const
 	{

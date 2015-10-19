@@ -49,6 +49,7 @@ void VObjCatalogDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 	wxString val;
 	wxIcon*  ico(&wxNullIcon);
 	
+	
 	auto modelInterface = static_cast<IModel*> (dataViewItem.GetID());
 	auto typeItem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
 	auto objItem = dynamic_cast<object_catalog::MObjItem*> (modelInterface);
@@ -318,7 +319,7 @@ void VObjCatalogDataViewModel::SetModel(std::shared_ptr<IModel> model)
 
 	mConnClsAppend = mCatalogModel->mTypeArray->ConnectAppendSlot(
 		std::bind(&VObjCatalogDataViewModel::OnClsAppend, this, sph::_1, sph::_2));
-	mConnClsRemove = mCatalogModel->mTypeArray->ConnectRemoveSlot(
+	mConnClsRemove = mCatalogModel->mTypeArray->ConnectBeforeRemove(
 		std::bind(&VObjCatalogDataViewModel::OnClsRemove, this, sph::_1, sph::_2));
 	mConnClsChange = mCatalogModel->mTypeArray->ConnectChangeSlot(
 		std::bind(&VObjCatalogDataViewModel::OnClsChange, this, sph::_1, sph::_2));
@@ -407,7 +408,12 @@ void VObjCatalogDataViewModel::OnClsRemove(const IModel& newVec,
 	for (const unsigned int& i : itemVec)
 	{
 		auto item = mCatalogModel->mTypeArray->GetChild(i);
-		itemArray.Add(wxDataViewItem(item.get()));
+		wxDataViewItem dwitem(item.get());
+		itemArray.Add(dwitem);
+
+		mConnAddObj.erase(dwitem);
+		mConnDelObj.erase(dwitem);
+		mConnEditObj.erase(dwitem);
 	}
 	ItemsDeleted(wxDataViewItem(NULL), itemArray);
 
