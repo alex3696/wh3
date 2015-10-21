@@ -205,7 +205,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 			
 			wxString qq;
 			for (const auto& it : catalog->GetFavProps())
-				qq += wxString::Format("\"%s\" TEXT,", it.mLabel);
+				qq += wxString::Format("\"%s\" TEXT,", it.mID);
 			
 			if (!qq.IsEmpty())
 			{

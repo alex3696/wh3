@@ -201,117 +201,70 @@ CREATE OR REPLACE FUNCTION do_obj_act(IN _obj_id BIGINT, _act_id INTEGER, IN _pr
                   RETURNS  VOID AS 
 $BODY$
 DECLARE
-  -- название всех пользовательских полей подлежащих копированию
-    _prop_names CURSOR IS
-        SELECT t_prop.* , user_data.col2 AS val
-          FROM  t_ref_class_act
-          RIGHT JOIN t_ref_act_prop  ON t_ref_act_prop.act_id = t_ref_class_act.act_id
-          LEFT JOIN t_prop          ON t_ref_act_prop.prop_id = t_prop.id 
-          LEFT JOIN (SELECT * FROM fn_array2_to_table(_header_data))user_data ON user_data.col1=t_prop.label
-          WHERE t_ref_class_act.cls_id=_cls_id AND t_ref_class_act.act_id=_act_id;
-
-    _all_prop_names CURSOR IS
-        SELECT DISTINCT ON(t_prop.id) t_prop.*
-          FROM  t_ref_class_act
-          LEFT JOIN t_ref_act_prop  ON t_ref_act_prop.act_id = t_ref_class_act.act_id
-          LEFT JOIN t_prop          ON t_ref_act_prop.prop_id = t_prop.id 
-          WHERE t_ref_class_act.cls_id=_cls_id;
-
-    _lock_info RECORD;
-
-    _select_state TEXT;
-    _insert_state TEXT;
-    _hdr_str TEXT;
-    _val_str TEXT;
-    _update_state TEXT;
-
-    _found SMALLINT;
+    _lock_info   RECORD;
     _last_log_id BIGINT;
-    _src_path BIGINT[];
-    _dst_path BIGINT[];
-    _old_pid BIGINT;
-    _new_pid BIGINT;
+    _prop_str    TEXT;
+    _prop_item   TEXT;
+    _pathid      BIGINT[];
+    _cls_id      BIGINT;
+
+    _chk_props CURSOR IS
+      SELECT prop.* , value
+        FROM  ref_cls_act
+        RIGHT JOIN ref_act_prop  ON ref_act_prop.act_id  = ref_cls_act.act_id
+        LEFT JOIN prop           ON ref_act_prop.prop_id = prop.id 
+        LEFT JOIN (select key::BIGINT, value::TEXT from jsonb_each(_prop)) prp ON prp.key=prop.id
+        WHERE ref_cls_act.cls_id=_cls_id AND ref_cls_act.act_id=_act_id AND prp.value IS NOT NULL;
+        --LEFT JOIN (select * from json_each_text('{"a":"foo", "комментарий":"bar"}')) prp ON prp.key=prop.title
+        --WHERE ref_cls_act.cls_id=100 AND ref_cls_act.act_id=100 AND prp.value IS NOT NULL;
 
 BEGIN
-    -- проверяем - заблокирован ли объект для действия
-    SELECT * INTO _lock_info 
-        FROM lock_obj
-        LEFT JOIN lock_act USING (obj_id,obj_pid)
-        WHERE
-            obj_id = _obj_id
-            AND lock_time +'00:10:00.00' > now()
-            AND lock_session = pg_backend_pid()
-            --AND ((src_path IS NULL AND _src_path IS NULL) OR src_path=_src_path)
-            AND act_id = _act_id;
-    IF NOT FOUND THEN
-        RAISE EXCEPTION ' Object not locked obj_id=% ', _obj_id;
-    END IF;
+  -- проверяем - заблокирован ли объект для действия
+  SELECT * INTO _lock_info 
+    FROM lock_obj
+    LEFT JOIN lock_act USING (oid)
+    WHERE
+      oid = _obj_id
+      AND lock_time +'00:10:00.00' > now()
+      AND lock_session = pg_backend_pid()
+      --AND ((src_path IS NULL AND _src_path IS NULL) OR src_path=_src_path)
+      AND act_id = _act_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION ' Object not locked obj_id=% ', _obj_id;
+  END IF;
 
+  -- пытаемся найти объект и его местоположение
+  SELECT cls_id INTO _cls_id FROM obj WHERE id=_obj_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION ' Object not exists obj_id=% ', _obj_id;
+  END IF;
 
+  FOR rec IN _chk_props LOOP
+    _prop_item:= concat_ws(':',quote_ident(rec.id::TEXT), rec.value );
+    _prop_str := concat_ws(',',_prop_str, _prop_item );
+  END LOOP;
+  _prop_str:='{'||_prop_str||'}';
+  RAISE DEBUG '_prop_str: %',_prop_str;
 
+  _last_log_id := nextval('seq_log_id');
 
+  SELECT pathid INTO _pathid FROM fget_objnum_pathinfo_table(_lock_info.pid) WHERE _obj_pid=1;
 
+  UPDATE obj_num SET act_logid=_last_log_id, prop=_prop_str::JSONB WHERE id=_obj_id;
 
+  INSERT INTO log_act(id,  act_id, prop,   obj_id,  src_path)
+    VALUES (_last_log_id, _act_id, _prop_str::JSONB, _obj_id,_pathid);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    _select_state:= format('SELECT count(*) FROM t_objnum RIGHT JOIN t_state_%s ON id= obj_id WHERE cls_id=%s AND id=%s '
-                           ,_cls_id, _cls_id, _obj_id);
-    RAISE DEBUG '_select_state: %',_select_state;
-    EXECUTE _select_state INTO _found;
-    
-    --IF NOT FOUND THEN -- PERFORM/EXECUTE не меняют внутреннюю переменную FOUND :-(
-    IF _found=0 THEN
-        _hdr_str:='';
-        _val_str:='';
-        FOR rec IN _prop_names LOOP
-            _hdr_str := concat_ws(',',quote_ident(rec.label), _hdr_str );
-            _val_str := concat_ws(',',COALESCE(quote_literal(rec.val),'NULL'), _val_str );
-        END LOOP;
-
-        _insert_state:= format('INSERT INTO t_state_%s(%s obj_id)VALUES(%s %s)',
-                                   _cls_id, _hdr_str, _val_str, _obj_id);
-        RAISE DEBUG '_insert_state: %',_insert_state;
-        EXECUTE _insert_state;
-        RAISE DEBUG '_insert_ok';
-      ELSE
-        _val_str:='';
-        FOR rec IN _prop_names LOOP
-            _val_str := concat_ws(',',quote_ident(rec.label)||'='||quote_literal(rec.val), _val_str );
-        END LOOP;
-        _val_str:=TRIM(trailing ',' from _val_str);
-        _update_state:= format('UPDATE t_state_%s SET %s WHERE obj_id=%s', _cls_id, _val_str, _obj_id);
-        RAISE DEBUG '_update_state: %',_update_state;
-        EXECUTE _update_state;
-    END IF;
-
-    -- DO LOG
-    _last_log_id := nextval('seq_log_id');
-    _src_path:=_lock_info.src_path;
-    _dst_path:=_lock_info.src_path;
-    _old_pid:= _lock_info.obj_pid;
-    _new_pid:= _lock_info.obj_pid;
-    UPDATE t_objnum SET last_log_id=_last_log_id WHERE id=_obj_id;
-    PERFORM do_log_state(_cls_id, _obj_id, _act_id, _last_log_id, _src_path, _dst_path, _old_pid, _new_pid);
 
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 100;
 
-SELECT * FROM lock_for_act(105,103);
-SELECT do_obj_act(105,103,2,'{{рем1,bla-бля},{тест1_2,asd},{qwe,qwe}}'::TEXT[]);
-SELECT lock_reset(105,103,NULL);
+SELECT * FROM lock_for_act(1639);
+--SELECT do_obj_act(1639,101,'{"a":"foo", "комментарий":55}'::JSONB);
+SELECT do_obj_act(1639, 101, '{"100":"eeeee","111":0,"105":"wwww"}');
+SELECT lock_reset(1639,NULL);
+
 
 -----------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------

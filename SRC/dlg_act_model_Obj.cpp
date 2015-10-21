@@ -20,8 +20,7 @@ void Obj::Unlock()
 	const rec::PathItem& subj = GetData();
 
 	wxString query = wxString::Format(
-		"SELECT lock_reset(%s,%s,%s)"
-		, subj.mCls.mId.SqlVal()
+		"SELECT lock_reset(%s,%s)"
 		, subj.mObj.mId.SqlVal()
 		, subj.mObj.mParent.mId.SqlVal() );
 

@@ -64,9 +64,14 @@ void Act::DoAct()
 		if (prop)
 		{
 			auto propData = prop->GetData();
+			wxString propval;
+			if (propData.mProp.GetTypeInt() == 1)
+				propval = propData.mVal.toStr();
+			else
+				propval = wxString::Format("\"%s\"",propData.mVal.toStr());
 
-			propdata += wxString::Format("{%s,%s}", 
-				propData.mProp.mLabel.toStr(), propData.mVal.SqlVal());
+			propdata += wxString::Format("\"%s\":%s", 
+				propData.mProp.mId.toStr(), propval);
 			if (propQty - 1!= i )
 				propdata += ",";
 		}
@@ -77,8 +82,7 @@ void Act::DoAct()
 
 
 	wxString query = wxString::Format(
-		"SELECT do_obj_act(%s,%s,%s, '%s')"
-		, subj.mCls.mId.SqlVal()
+		"SELECT do_obj_act(%s, %s, '%s')"
 		, subj.mObj.mId.SqlVal()
 		, this->GetData().mID
 		, propdata

@@ -33,8 +33,7 @@ void MovableObj::Unlock()
 	const rec::PathItem& movable = GetData();
 
 	wxString query = wxString::Format(
-		"SELECT lock_reset(%s,%s,%s)"
-		, movable.mCls.mId.SqlVal()
+		"SELECT lock_reset(%s,%s)"
 		, movable.mObj.mId.SqlVal()
 		, movable.mObj.mParent.mId.SqlVal() );
 	
@@ -63,8 +62,7 @@ void MovableObj::Move(std::shared_ptr<wh::dlg_move::model::DstObj> dst,
 
 
 	query = wxString::Format(
-		"SELECT lock_reset(%s,%s,%s)"
-		, movable.mCls.mId.SqlVal()
+		"SELECT lock_reset(%s,%s)"
 		, movable.mObj.mId.SqlVal()
 		, movable.mObj.mParent.mId.SqlVal() );
 	whDataMgr::GetDB().Exec(query);

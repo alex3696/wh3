@@ -472,8 +472,7 @@ CREATE TABLE log_act (
   ,timemark  TIMESTAMPTZ NOT NULL DEFAULT now()
   ,username  NAME NOT NULL DEFAULT CURRENT_USER REFERENCES wh_role(rolname) MATCH FULL ON UPDATE CASCADE ON DELETE NO ACTION
 
-  ,obj_id    BIGINT   NOT NULL REFERENCES obj_num( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
-  ,src_path  BIGINT[] NOT NULL 
+  ,src_path  BIGINT[] 
 
   ,obj_id    BIGINT   NOT NULL REFERENCES obj_num( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
   ,act_id    BIGINT   NOT NULL REFERENCES act( id )     MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE 
@@ -494,10 +493,10 @@ CREATE TABLE log_move (
   ,username      NAME        NOT NULL DEFAULT CURRENT_USER REFERENCES wh_role(rolname) MATCH FULL ON UPDATE CASCADE ON DELETE NO ACTION
 
   ,src_objnum_id BIGINT    NOT NULL REFERENCES obj_num( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
-  ,src_path      BIGINT[]  NOT NULL 
+  ,src_path      BIGINT[]  
 
   ,dst_objnum_id BIGINT    NOT NULL REFERENCES obj_num( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
-  ,dst_path      BIGINT[]  NOT NULL 
+  ,dst_path      BIGINT[]  
 
   ,obj_id        BIGINT    NOT NULL REFERENCES obj_name( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
   ,qty           NUMERIC   NOT NULL 
@@ -600,10 +599,10 @@ DECLARE
 
 BEGIN
   IF TG_OP='INSERT' OR TG_OP='UPDATE' THEN
-        PERFORM * FROM ref_cls_act WHERE cls_id = NEW.src_cls_id AND act_id = NEW.act_id;
+        PERFORM * FROM ref_cls_act WHERE cls_id = NEW.cls_id AND act_id = NEW.act_id;
         -- если не нашлось, то добавляем 
         IF NOT FOUND THEN
-            INSERT INTO ref_cls_act(cls_id, act_id) VALUES (NEW.src_cls_id, NEW.act_id);
+            INSERT INTO ref_cls_act(cls_id, act_id) VALUES (NEW.cls_id, NEW.act_id);
         END IF;
   END IF;
 
@@ -621,9 +620,9 @@ CREATE OR REPLACE FUNCTION ftr_aud_perm_act()  RETURNS trigger AS
 $body$
 DECLARE
 BEGIN
-  IF TG_OP='DELETE' OR (TG_OP='UPDATE' AND (NEW.src_cls_id<>OLD.src_cls_id OR NEW.act_id<>OLD.act_id)) THEN
+  IF TG_OP='DELETE' OR (TG_OP='UPDATE' AND (NEW.cls_id<>OLD.cls_id OR NEW.act_id<>OLD.act_id)) THEN
     DELETE FROM ref_cls_act WHERE (act_id, cls_id) NOT IN (
-                SELECT act_id, src_cls_id FROM perm_act GROUP BY act_id, src_cls_id );
+                SELECT act_id, cls_id FROM perm_act GROUP BY act_id, cls_id );
   END IF;
 RETURN OLD;
 END;
