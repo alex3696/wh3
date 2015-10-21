@@ -37,11 +37,11 @@ bool MClsAct::GetSelectQuery(wxString& query)const
 
 	query = wxString::Format(
 		"SELECT perm_act.id, access_group, access_disabled, script_restrict "
-		"     , src_cls.id, src_cls.title, src_obj.id, src_obj.title, src_path "
+		"     , cls.id, cls.title, obj.id, obj.title, src_path "
 		"     , act.id, act.title "
 		"  FROM perm_act "
-		"    LEFT JOIN cls src_cls     ON src_cls.id = perm_act.src_cls_id "
-		"    LEFT JOIN obj src_obj ON src_obj.id = perm_act.src_obj_id "
+		"    LEFT JOIN cls   ON cls.id = perm_act.cls_id "
+		"    LEFT JOIN obj   ON obj.id = perm_act.obj_id "
 		"    LEFT JOIN act ON act.id = perm_act.act_id "
 		"  WHERE perm_act.id = %s "
 		, oldPerm.mId.SqlVal());
@@ -66,21 +66,21 @@ bool MClsAct::GetInsertQuery(wxString& query)const
 	query = wxString::Format(
 		" INSERT INTO perm_act( "
 		"  access_group, access_disabled, script_restrict "
-		" ,src_cls_id, src_obj_id, src_path "
+		" ,cls_id, obj_id, src_path "
 		" ,act_id "
 		")VALUES("
 		"   %s, %s, %s "
 		"  ,%s, %s, %s "
 		"  ,%s ) "
 		" RETURNING id, access_group, access_disabled, script_restrict "
-		"          ,src_cls_id, src_obj_id, src_path "
+		"          ,cls_id, obj_id, src_path "
 		"          ,act_id "
 		, newPerm.mAcessGroup.SqlVal()
 		, newPerm.mAccessDisabled.SqlVal()
 		, newPerm.mScriptRestrict.SqlVal()
 
 		, cls.mId.SqlVal() //newPerm.mSrcCls.mId = cls.mID;
-		, newPerm.mSrcObj.mId.SqlVal()
+		, newPerm.mObj.mId.SqlVal()
 		, newPerm.mSrcPath.SqlVal()
 
 		, newPerm.mAct.mId.SqlVal()
@@ -106,7 +106,7 @@ bool MClsAct::GetUpdateQuery(wxString& query)const
 	query = wxString::Format(
 			"UPDATE perm_act SET "
 			"  access_group=%s, access_disabled=%s, script_restrict=%s  "
-			" ,src_cls_id = %s, src_obj_id = %s, src_path = %s "
+			" ,cls_id = %s, obj_id = %s, src_path = %s "
 			" ,act_id = %s "
 			" WHERE id=%s "
 			, newPerm.mAcessGroup.SqlVal()
@@ -114,7 +114,7 @@ bool MClsAct::GetUpdateQuery(wxString& query)const
 			, newPerm.mScriptRestrict.SqlVal()
 
 			, cls.mId.SqlVal() //newPerm.mSrcCls.mId = cls.mID;
-			, newPerm.mSrcObj.mId.SqlVal()
+			, newPerm.mObj.mId.SqlVal()
 			, newPerm.mSrcPath.SqlVal()
 
 			, newPerm.mAct.mId.SqlVal()
@@ -154,10 +154,10 @@ bool MClsAct::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t r
 	data.mAccessDisabled = table->GetAsString(i++, row);
 	data.mScriptRestrict = table->GetAsString(i++, row);
 
-	data.mSrcCls.mId     = table->GetAsString(i++, row);
-	data.mSrcCls.mLabel  = table->GetAsString(i++, row);
-	data.mSrcObj.mId     = table->GetAsString(i++, row);
-	data.mSrcObj.mLabel  = table->GetAsString(i++, row);
+	data.mCls.mId     = table->GetAsString(i++, row);
+	data.mCls.mLabel  = table->GetAsString(i++, row);
+	data.mObj.mId     = table->GetAsString(i++, row);
+	data.mObj.mLabel  = table->GetAsString(i++, row);
 	data.mSrcPath        = table->GetAsString(i++, row);
 
 	data.mAct.mId        = table->GetAsString(i++, row);
@@ -178,7 +178,7 @@ bool MClsAct::GetFieldValue(unsigned int col, wxVariant &variant)
 		break;
 	case 2:	variant = ("1" == data.mAccessDisabled) ? "Запретить" : "Разрешить";	break;
 	case 3:	variant = data.mAcessGroup;	break;
-	case 4: variant = data.mSrcObj.mLabel;	break;
+	case 4: variant = data.mObj.mLabel;	break;
 	case 5: variant = data.mSrcPath;	break;
 	case 6: variant = data.mId.toStr();	break;
 	}//switch(col) 
@@ -208,13 +208,13 @@ bool MClsActArray::GetSelectChildsQuery(wxString& query)const
 
 	query = wxString::Format(
 		"SELECT perm_act.id, access_group, access_disabled, script_restrict "
-		"     , src_cls.id, src_cls.title, src_obj.id, src_obj.title, src_path "
+		"     , cls.id, cls.title, obj.id, obj.title, src_path "
 		"     , act.id, act.title "
 		"  FROM perm_act "
-		"    LEFT JOIN cls src_cls     ON src_cls.id = perm_act.src_cls_id "
-		"    LEFT JOIN obj src_obj ON src_obj.id = perm_act.src_obj_id "
+		"    LEFT JOIN cls   ON cls.id = perm_act.cls_id "
+		"    LEFT JOIN obj   ON obj.id = perm_act.obj_id "
 		"    LEFT JOIN act ON act.id = perm_act.act_id "
-        "  WHERE perm_act.src_cls_id = %s "
+        "  WHERE perm_act.cls_id = %s "
 		, cls.mId.SqlVal() );
 
 	return true;

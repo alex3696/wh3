@@ -472,52 +472,35 @@ struct Obj : public ObjTitle
 };
 
 //-----------------------------------------------------------------------------
-/// Разрешение
-struct Perm
+
+/// Разрешения действий класса
+struct ClsActAccess
 {
 	SqlLong	    mId;
 	SqlString	mAcessGroup;
 	SqlLong		mAccessDisabled;
 	SqlString	mScriptRestrict;
+
+	Base		mCls;
+	Base		mObj;
+	SqlString	mSrcPath;
+
+	Base		mAct;
 	
+};
+
+//-----------------------------------------------------------------------------
+/// Разрешения действий класса
+struct ClsSlotAccess
+{
+	SqlLong	    mId;
+	SqlString	mAcessGroup;
+	SqlLong		mAccessDisabled;
+	SqlString	mScriptRestrict;
+
 	Base		mSrcCls;
 	Base		mSrcObj;
 	SqlString	mSrcPath;
-
-
-};
-//-----------------------------------------------------------------------------
-
-/// Разрешения действий класса
-struct ClsActAccess final : public Perm
-{
-	//SqlLong	    mId;
-	//SqlString	mAcessGroup;
-	//SqlLong		mAccessDisabled;
-	//SqlString	mScriptRestrict;
-
-	//Base		mCls;
-	//Base		mObj;
-
-	//Base		mSrcCls;
-	//Base		mSrcObj;
-	//SqlString	mSrcPath;
-
-	Base		mAct;
-};
-
-//-----------------------------------------------------------------------------
-/// Разрешения действий класса
-struct ClsSlotAccess final : public Perm
-{
-	//SqlLong	    mId;
-	//SqlString	mAcessGroup;
-	//SqlLong		mAccessDisabled;
-	//SqlString	mScriptRestrict;
-
-	//Base		mSrcCls;
-	//Base		mSrcObj;
-	//SqlString	mSrcPath;
 
 	Base		mCls;
 	Base		mObj;

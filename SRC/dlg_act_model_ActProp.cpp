@@ -46,9 +46,9 @@ bool PropArray::GetSelectChildsQuery(wxString& query)const
 	const rec::Act& act = actModel->GetData();
 
 	query = wxString::Format(
-		" SELECT t_prop.id, t_prop.label, t_prop.type "
-		" FROM t_ref_act_prop "
-		" LEFT JOIN t_prop ON t_ref_act_prop.prop_id = t_prop.id "
+		" SELECT prop.id, prop.title, prop.kind "
+		" FROM ref_act_prop "
+		" LEFT JOIN prop ON ref_act_prop.prop_id = prop.id "
 		" WHERE act_id = %s "
 		, act.mID
 		);

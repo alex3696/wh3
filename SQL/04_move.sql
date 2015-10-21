@@ -1,4 +1,5 @@
-﻿SET client_min_messages='debug1';
+﻿
+SET client_min_messages='debug1';
 
 -------------------------------------------------------------------------------
 -- система бизнес блокировок перемещения и действий b(block) - префикс
@@ -8,296 +9,309 @@
 -- qoid - Quantitative object identificator 
 
 
-DROP TABLE IF EXISTS bn_src CASCADE;
-DROP TABLE IF EXISTS bn_dst CASCADE;
-DROP TABLE IF EXISTS bn_act CASCADE;
-DROP FUNCTION IF EXISTS bn_start_move (IN _noid BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS bn_start_act  (IN _noid BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS bn_do_move    (IN _noid BIGINT, IN _src_noid BIGINT, IN _dst_noid BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS bn_do_act     (IN _noid BIGINT, IN _act_id INTEGER, IN _act_data TEXT[]) CASCADE;
-DROP FUNCTION IF EXISTS bn_end        (IN _noid BIGINT) CASCADE;
-
-
-DROP TABLE IF EXISTS bq_src CASCADE;
-DROP TABLE IF EXISTS bq_dst CASCADE;
-DROP FUNCTION IF EXISTS bn_start_move (IN _qoid BIGINT, IN _pid BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS bn_do_move    (IN _qoid BIGINT, IN _src_oid BIGINT, IN _dst_oid BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS bn_end        (IN _qoid BIGINT, IN _src_oid BIGINT) CASCADE;
-
-
-
+DROP TABLE IF EXISTS lock_obj CASCADE;
+DROP TABLE IF EXISTS lock_dst CASCADE;
+DROP TABLE IF EXISTS lock_act CASCADE;
 
 
 -------------------------------------------------------------------------------
---таблица блокировки номерных  объектов
-CREATE TABLE bn_src(
+--таблица блокировки объектов
+DROP TABLE IF EXISTS lock_obj CASCADE;
+CREATE TABLE lock_obj(
    lock_session INTEGER     NOT NULL DEFAULT pg_backend_pid()
   ,lock_user    NAME        NOT NULL DEFAULT CURRENT_USER
+     REFERENCES wh_role( rolname ) MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
   ,lock_time    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+     
 
-  ,src_onid      BIGINT      NOT NULL
-  ,path     BIGINT[]    NOT NULL
+  ,oid      BIGINT      NOT NULL
+    REFERENCES obj_name( id ) MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+  ,pid      BIGINT      NOT NULL
 
-  ,CONSTRAINT pk_bnsrc__oid      UNIQUE      (oid)
-  ,CONSTRAINT fk_bnsrc__oid      FOREIGN KEY (oid)
-    REFERENCES                      t_objnum ( id)
-    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-  ,CONSTRAINT fk_bnsrc__username FOREIGN KEY (lock_user)
-    REFERENCES                       wh_role (rolname)
-    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+  ,path     BIGINT[]
+
+
+  ,CONSTRAINT lock_obj__oid_pid_pkey PRIMARY KEY (oid,pid)
+
 );
+
 -------------------------------------------------------------------------------
---таблица блокировки количественных объектов
-CREATE TABLE bq_src(
-   lock_session INTEGER     NOT NULL DEFAULT pg_backend_pid()
-  ,lock_user    NAME        NOT NULL DEFAULT CURRENT_USER
-  ,lock_time    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-
-  ,oid   BIGINT      NOT NULL
-  ,pid   BIGINT      NOT NULL
-  ,path  BIGINT[]    NOT NULL
-
-  ,CONSTRAINT pk_bqsrc__oid      UNIQUE      (oid, pid)
-  ,CONSTRAINT fk_bqsrc__oidpid   FOREIGN KEY (oid, pid)
-    REFERENCES                     t_objqty  (objqty_id, pid)
-    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-  ,CONSTRAINT fk_bqsrc__username FOREIGN KEY (lock_user)
-    REFERENCES                 wh_role (rolname)                   
-    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-);
--------------------------------------------------------------------------------
---таблица блокировки при перемещении номерных объектов
-CREATE TABLE bn_dst(
-   src_oid      BIGINT      NOT NULL
-  ,dst_oid      BIGINT      NOT NULL
-  ,dst_path     BIGINT[]    NOT NULL
-  ,CONSTRAINT fk_lockdstobjnum__srcoid FOREIGN KEY (src_oid)
-    REFERENCES                     lock_src_objunm (src_oid) 
-    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-  ,CONSTRAINT fk_lockdstobjnum__dstoid FOREIGN KEY (dst_oid)
-    REFERENCES                        t_objnum (id)
-    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-);
--------------------------------------------------------------------------------
---таблица блокировки при перемещении количественных объектов
-CREATE TABLE lock_dst_objqty(
-   src_oid      BIGINT      NOT NULL
-  ,src_pid   BIGINT      NOT NULL
-  ,dst_oid      BIGINT      NOT NULL
-  ,dst_path     BIGINT[]    NOT NULL
-  ,CONSTRAINT fk_lockdstobjqty__srcoid FOREIGN KEY (src_oid, src_pid)
-    REFERENCES                     lock_src_objqty (src_oid, src_pid)
-    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-  ,CONSTRAINT fk_lockdstobjqty__dstoid FOREIGN KEY (dst_oid)
-    REFERENCES                        t_objnum (id)
-    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-);
--------------------------------------------------------------------------------
---таблица блокировки при перемещении номерных объектов
-CREATE TABLE lock_act(
-   src_oid      BIGINT      NOT NULL
-  ,act_id INTEGER
-  ,CONSTRAINT fk_lockact__srcoid FOREIGN KEY (src_oid)
-    REFERENCES               lock_src_objunm (src_oid) 
-    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-  ,CONSTRAINT fk_lockact__dstoid FOREIGN KEY (act_id)
-    REFERENCES                        t_act (id)
-    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-
-
-
-
-
-
-
-
-
-DROP TABLE IF EXISTS t_lock_dst CASCADE;
-DROP TABLE IF EXISTS t_lock_act CASCADE;
-
-DROP FUNCTION IF EXISTS    try_lock_obj( IN _cls_id  INTEGER, IN _obj_id  BIGINT, IN _old_pid BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS    lock_reset( IN _cls_id  INTEGER, IN _obj_id  BIGINT, IN _old_pid BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS    lock_for_act( IN _cls_id  INTEGER, IN _obj_id  BIGINT) CASCADE;
-
-DROP FUNCTION IF EXISTS    do_log_state( IN _cls_id   INTEGER,  IN _obj_id   BIGINT,   IN _act_id  INTEGER, IN _last_log_id BIGINT,
-                                         IN _src_path BIGINT[], IN _dst_path BIGINT[], IN _old_pid BIGINT,  IN _new_pid     BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS    do_obj_act( IN _cls_id  INTEGER, IN _obj_id BIGINT, _act_id INTEGER, IN _header_data TEXT[]) CASCADE;
-
-DROP FUNCTION IF EXISTS    lock_for_move( IN _cls_id  INTEGER, IN _obj_id  BIGINT, IN _old_pid BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS    lock_move_check( IN _cls_id  INTEGER, IN _obj_id  BIGINT, IN _old_pid BIGINT,
-                                       IN _src_path BIGINT[], IN _dst_path BIGINT[]) CASCADE;
-
-DROP FUNCTION IF EXISTS    LOG_QTY_MOVE( IN _cls_id INTEGER, IN _obj_id BIGINT, 
-                                         IN _src_path BIGINT[], IN _dst_path BIGINT[], 
-                                         IN _qty NUMERIC ) CASCADE;
-DROP FUNCTION IF EXISTS    LOG_NUM_MOVE( IN _cls_id INTEGER, IN _obj_id BIGINT, 
-                                         IN _src_path BIGINT[], IN _dst_path BIGINT[]) CASCADE;
-
-DROP FUNCTION IF EXISTS    move_object( IN _cls_id  INTEGER, IN _obj_id  BIGINT, 
-                                        IN _old_pid BIGINT,  IN _new_pid BIGINT, IN _qty NUMERIC ) CASCADE;
-
-
-
------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------
 --таблица блокировки разрешённых путей назначения
------------------------------------------------------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-DROP TABLE IF EXISTS t_lock_dst CASCADE;
-CREATE TABLE t_lock_dst
+DROP TABLE IF EXISTS lock_dst CASCADE;
+CREATE TABLE lock_dst
 (
-  cls_id  INTEGER NOT NULL,
-  obj_id  BIGINT  NOT NULL,
-  obj_pid BIGINT  NOT NULL,
+   oid BIGINT  NOT NULL
+  ,pid BIGINT  NOT NULL
 
-  dst_path BIGINT[],
+  ,dst_path BIGINT[]
 
-  CONSTRAINT t_lock_dst__dst_fkey FOREIGN KEY (cls_id,obj_id,obj_pid)
-      REFERENCES t_lock_obj (cls_id,obj_id,obj_pid) MATCH FULL
-      ON UPDATE CASCADE ON DELETE CASCADE
+  ,CONSTRAINT lock_dst_oid_pid_fkey FOREIGN KEY (oid,pid)
+      REFERENCES lock_obj (oid,pid) MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+
+
 );
-CREATE INDEX idx_lock_dst__cls_obj_pid ON t_lock_dst(cls_id,obj_id,obj_pid);
 
-
-
------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------
---таблица блокировки разрешённых действий
------------------------------------------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
-DROP TABLE IF EXISTS t_lock_act CASCADE;
-CREATE TABLE t_lock_act
+--таблица блокировки разрешённых действий
+DROP TABLE IF EXISTS lock_act CASCADE;
+CREATE TABLE lock_act
 (
-  cls_id  INTEGER NOT NULL,
-  obj_id  BIGINT  NOT NULL,
-  obj_pid BIGINT  NOT NULL,
+  oid  BIGINT  NOT NULL,
+  pid BIGINT  NOT NULL,
 
   act_id INTEGER,
 
-  CONSTRAINT t_lock_act__dst_fkey FOREIGN KEY (cls_id,obj_id,obj_pid)
-      REFERENCES t_lock_obj (cls_id,obj_id,obj_pid) MATCH FULL
-      ON UPDATE CASCADE ON DELETE CASCADE
+  CONSTRAINT lock_act_oid_pid_fkey FOREIGN KEY (oid,pid)
+      REFERENCES lock_obj (oid,pid) MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+
 );
-CREATE INDEX idx_lock_act__cls_obj_pid ON t_lock_act(cls_id,obj_id,obj_pid);
 
 
 
-
-
-
-
-
-
------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- проверка блокировки + очистка своих просроченых блокировок
 -- разрешение действия кэшировано и разрешено в таблице блокировок
------------------------------------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS    try_lock_obj( IN _cls_id  INTEGER, IN _obj_id  BIGINT, IN _old_pid BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION try_lock_obj( IN _cls_id  INTEGER, IN _obj_id  BIGINT, IN _old_pid BIGINT)
+
+DROP FUNCTION IF EXISTS    try_lock_obj(IN _oid  BIGINT, IN _pid BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION try_lock_obj(IN _oid  BIGINT, IN _pid BIGINT)
     RETURNS RECORD
     AS $BODY$
 DECLARE
     _locked_rec RECORD;
-
+    _obj_rec RECORD;
 BEGIN
-    -- удаляем просроченые и свои же блокировки на объект, если таковые имеются
-    DELETE 
-        FROM t_lock_obj
-        WHERE cls_id=_cls_id AND obj_id=_obj_id AND obj_pid=_old_pid
-        AND ( lock_time +'00:10:00.00' < now() OR session_pid = pg_backend_pid());
-     -- пытаемся вставить в табличку блокировок, если уже блокирован, то исключение откатит транзакцию
-    INSERT INTO t_lock_obj(cls_id,obj_id,obj_pid,src_path)
-            VALUES(_cls_id,_obj_id,_old_pid, (SELECT fget_get_oid_path(_old_pid)) ) RETURNING * INTO _locked_rec;
-
+  -- удаляем просроченые и свои же блокировки на объект, если таковые имеются
+  DELETE 
+    FROM lock_obj
+    WHERE oid=_oid AND pid=_pid
+    AND ( lock_time +'00:10:00.00' < now() OR lock_session = pg_backend_pid());
+-- Ищем блокируемый объект
+  SELECT id,pid,(SELECT pathid FROM fget_objnum_pathinfo_table(pid) WHERE _obj_pid=1) AS path 
+    INTO _obj_rec 
+    FROM obj 
+    WHERE id=_oid AND pid=_pid;
+  --RAISE DEBUG 'try_lock_obj: finded object %',_obj_rec;
+-- пытаемся вставить в табличку блокировок, если уже блокирован, то исключение откатит транзакцию
+  IF FOUND THEN
+    INSERT INTO lock_obj(oid,pid,path) 
+      VALUES (_obj_rec.id,_obj_rec.pid,_obj_rec.path) RETURNING * INTO _locked_rec;
+    --RAISE DEBUG 'try_lock_obj: inserted object %',_locked_rec;
     RETURN _locked_rec;
+  END IF;
+  RETURN NULL;
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 500;
 
-SELECT try_lock_obj(103,104,1);
-SELECT try_lock_obj(105,103,101);
+SELECT try_lock_obj(103,100);
+SELECT try_lock_obj(100,1);
+SELECT try_lock_obj(666,664);
 
---------------------------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
 -- разблокировка объекта
 -- в случае номерного объекта pid не учитывается
---------------------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS    lock_reset( IN _cls_id  INTEGER, IN _obj_id  BIGINT, IN _old_pid BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION lock_reset( IN _cls_id  INTEGER, IN _obj_id  BIGINT, IN _old_pid BIGINT) 
+DROP FUNCTION IF EXISTS    lock_reset(IN _oid  BIGINT, IN _pid BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION lock_reset(IN _oid  BIGINT, IN _pid BIGINT) 
     RETURNS  VOID AS 
  $BODY$
-    DELETE FROM t_lock_obj 
+    DELETE FROM lock_obj 
     WHERE 
-    cls_id=_cls_id AND obj_id=_obj_id AND session_pid=pg_backend_pid()
+    lock_session=pg_backend_pid() AND oid=_oid 
     AND (
-            ((SELECT type FROM t_cls WHERE id=_cls_id) > 1 AND obj_pid=_old_pid )
-          OR (SELECT type FROM t_cls WHERE id=_cls_id) = 1
+            ((SELECT cls_kind FROM obj WHERE id=_oid) > 1 AND pid=_pid )
+          OR (SELECT cls_kind FROM obj WHERE id=_oid) = 1
         );
 $BODY$
   LANGUAGE sql VOLATILE  COST 500;
 
-SELECT lock_reset(103,104,1);
-SELECT lock_reset(105,103,111111);
+SELECT lock_reset(100,100);
+SELECT lock_reset(666,664);
+SELECT lock_reset(103,NULL);
 
 
 -----------------------------------------------------------------------------------------------------------------------------
 -- блокировать объекты, если правило при проверке изменится или перестанет существовать, то пофиг
 -- разрешение действия кэшировано и разрешено в таблице блокировок
 -----------------------------------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS    lock_for_act( IN _cls_id  INTEGER, IN _obj_id  BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION lock_for_act( IN _cls_id  INTEGER, IN _obj_id  BIGINT)
+DROP FUNCTION IF EXISTS    lock_for_act(IN _oid  BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION lock_for_act(IN _oid  BIGINT)
     --RETURNS TABLE(_act_id INTEGER, _act_label NAME)
-    RETURNS SETOF t_act
+    RETURNS SETOF act
     AS $BODY$
 DECLARE
-    _acts CURSOR(_curr_path TEXT) IS
-    SELECT t_act.* from (
-    SELECT t_access_act.cls_id,obj_id,act_id,t_access_act.src_path, sum(access_disabled)
-        FROM t_access_act
-        LEFT JOIN wh_role _group ON t_access_act.access_group=_group.rolname-- определяем ИМЕНА разрешённых групп
+    _acts CURSOR(_curr_path TEXT, _cls_id BIGINT) IS
+    SELECT act.* from (
+    SELECT perm.cls_id,perm.obj_id,perm.act_id,perm.src_path, sum(access_disabled) 
+        FROM perm_act perm
+        LEFT JOIN wh_role _group ON perm.access_group=_group.rolname-- определяем ИМЕНА разрешённых групп
         RIGHT JOIN    wh_auth_members membership ON _group.id=membership.roleid -- определяем ИДЕНТИФИКАТОРЫ разрешённых групп
         RIGHT JOIN wh_role _user ON _user.id=membership.member -- определяем ИДЕНТИФИКАТОРЫ разрешённых пользователей
           AND _user.rolname=CURRENT_USER -- определяем ИМЕНА разрешённых пользователей ВКЛЮЧАЯ ТЕКУЩЕГО
-          
       WHERE
-            t_access_act.cls_id = _cls_id --105
-        AND (obj_id IS NULL OR obj_id = _obj_id) --101)
+        perm.cls_id = _cls_id -- 100
+        AND (obj_id IS NULL OR obj_id = _oid) -- 101)
         AND (src_path IS NULL OR _curr_path LIKE src_path::TEXT)
       GROUP BY cls_id,obj_id,act_id, src_path
       ) t 
-      LEFT JOIN t_act ON t.act_id= t_act.id;
+      LEFT JOIN act ON t.act_id= act.id 
+      WHERE t.sum=0;
 
-    _src_pid      BIGINT;
+
+    _cls_id   BIGINT;
+    _pid      BIGINT;
     _locked_rec   RECORD;
 BEGIN
-    -- пытаемся найти объект и его местоположение
-    SELECT pid INTO _src_pid FROM t_objnum WHERE cls_id=_cls_id AND id=_obj_id;
-    IF NOT FOUND THEN
-        RAISE EXCEPTION ' Object not exists cls_id=% obj_id=% ',_cls_id, _obj_id;
-    END IF;
-    -- пытаемся заблокировать объект, если блокировка не удастся транзакция откатится исключением
-    _locked_rec := try_lock_obj(_cls_id, _obj_id, _src_pid);
-    -- объект блокирован
-    -- определяем разрешенные действия и спихиваем их в выходную табличку и в табличку блокировки
-    FOR rec IN _acts( get_path(_src_pid) ) LOOP
-        --_act_id:=rec.id;
-        --_act_label:=rec.label;
-        return next rec;                        -- заполняем табличку разрешённых действий
-        -- заполняем табличку идентификаторов разрешённых действий 
-        INSERT INTO t_lock_act(cls_id, obj_id, obj_pid, act_id)VALUES (_cls_id, _obj_id, _src_pid, rec.id);
-    END LOOP;
+-- пытаемся найти объект и его местоположение
+  SELECT pid,cls_id INTO _pid,_cls_id FROM obj WHERE id=_oid;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION ' Object not exists obj_id=% ', _oid;
+  END IF;
+  -- пытаемся заблокировать объект, если блокировка не удастся транзакция откатится исключением
+  _locked_rec := try_lock_obj(_oid, _pid);
+  -- объект блокирован
+  -- определяем разрешенные действия и спихиваем их в выходную табличку и в табличку блокировки
+  FOR rec IN _acts( get_path(_pid), _cls_id) LOOP
+    return next rec;                        -- заполняем табличку разрешённых действий
+    -- заполняем табличку идентификаторов разрешённых действий 
+    INSERT INTO lock_act(oid, pid, act_id)VALUES (_oid, _pid, rec.id);
+  END LOOP;
 
-    IF NOT FOUND THEN
-        PERFORM lock_reset(_cls_id,_obj_id,_src_pid);
-        RAISE DEBUG ' There are no action, lock aborted';
-    ELSE
-        RAISE DEBUG ' Object LOCKED cls_id=% obj_id=% ',_cls_id, _obj_id;
-    END IF;
+  IF NOT FOUND THEN
+    PERFORM lock_reset(_oid,_pid);
+    RAISE DEBUG ' There are no action, lock aborted';
+  ELSE
+    RAISE DEBUG ' Object LOCKED cls_id=% obj_id=% ',_cls_id, _oid;
+  END IF;
     
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 500;
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------
+--функция выполнения действия
+-----------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS    do_obj_act(IN _obj_id BIGINT, _act_id INTEGER, IN _prop JSONB) CASCADE;
+
+CREATE OR REPLACE FUNCTION do_obj_act(IN _obj_id BIGINT, _act_id INTEGER, IN _prop JSONB)
+                  RETURNS  VOID AS 
+$BODY$
+DECLARE
+  -- название всех пользовательских полей подлежащих копированию
+    _prop_names CURSOR IS
+        SELECT t_prop.* , user_data.col2 AS val
+          FROM  t_ref_class_act
+          RIGHT JOIN t_ref_act_prop  ON t_ref_act_prop.act_id = t_ref_class_act.act_id
+          LEFT JOIN t_prop          ON t_ref_act_prop.prop_id = t_prop.id 
+          LEFT JOIN (SELECT * FROM fn_array2_to_table(_header_data))user_data ON user_data.col1=t_prop.label
+          WHERE t_ref_class_act.cls_id=_cls_id AND t_ref_class_act.act_id=_act_id;
+
+    _all_prop_names CURSOR IS
+        SELECT DISTINCT ON(t_prop.id) t_prop.*
+          FROM  t_ref_class_act
+          LEFT JOIN t_ref_act_prop  ON t_ref_act_prop.act_id = t_ref_class_act.act_id
+          LEFT JOIN t_prop          ON t_ref_act_prop.prop_id = t_prop.id 
+          WHERE t_ref_class_act.cls_id=_cls_id;
+
+    _lock_info RECORD;
+
+    _select_state TEXT;
+    _insert_state TEXT;
+    _hdr_str TEXT;
+    _val_str TEXT;
+    _update_state TEXT;
+
+    _found SMALLINT;
+    _last_log_id BIGINT;
+    _src_path BIGINT[];
+    _dst_path BIGINT[];
+    _old_pid BIGINT;
+    _new_pid BIGINT;
+
+BEGIN
+    -- проверяем - заблокирован ли объект для действия
+    SELECT * INTO _lock_info 
+        FROM lock_obj
+        LEFT JOIN lock_act USING (obj_id,obj_pid)
+        WHERE
+            obj_id = _obj_id
+            AND lock_time +'00:10:00.00' > now()
+            AND lock_session = pg_backend_pid()
+            --AND ((src_path IS NULL AND _src_path IS NULL) OR src_path=_src_path)
+            AND act_id = _act_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION ' Object not locked obj_id=% ', _obj_id;
+    END IF;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    _select_state:= format('SELECT count(*) FROM t_objnum RIGHT JOIN t_state_%s ON id= obj_id WHERE cls_id=%s AND id=%s '
+                           ,_cls_id, _cls_id, _obj_id);
+    RAISE DEBUG '_select_state: %',_select_state;
+    EXECUTE _select_state INTO _found;
+    
+    --IF NOT FOUND THEN -- PERFORM/EXECUTE не меняют внутреннюю переменную FOUND :-(
+    IF _found=0 THEN
+        _hdr_str:='';
+        _val_str:='';
+        FOR rec IN _prop_names LOOP
+            _hdr_str := concat_ws(',',quote_ident(rec.label), _hdr_str );
+            _val_str := concat_ws(',',COALESCE(quote_literal(rec.val),'NULL'), _val_str );
+        END LOOP;
+
+        _insert_state:= format('INSERT INTO t_state_%s(%s obj_id)VALUES(%s %s)',
+                                   _cls_id, _hdr_str, _val_str, _obj_id);
+        RAISE DEBUG '_insert_state: %',_insert_state;
+        EXECUTE _insert_state;
+        RAISE DEBUG '_insert_ok';
+      ELSE
+        _val_str:='';
+        FOR rec IN _prop_names LOOP
+            _val_str := concat_ws(',',quote_ident(rec.label)||'='||quote_literal(rec.val), _val_str );
+        END LOOP;
+        _val_str:=TRIM(trailing ',' from _val_str);
+        _update_state:= format('UPDATE t_state_%s SET %s WHERE obj_id=%s', _cls_id, _val_str, _obj_id);
+        RAISE DEBUG '_update_state: %',_update_state;
+        EXECUTE _update_state;
+    END IF;
+
+    -- DO LOG
+    _last_log_id := nextval('seq_log_id');
+    _src_path:=_lock_info.src_path;
+    _dst_path:=_lock_info.src_path;
+    _old_pid:= _lock_info.obj_pid;
+    _new_pid:= _lock_info.obj_pid;
+    UPDATE t_objnum SET last_log_id=_last_log_id WHERE id=_obj_id;
+    PERFORM do_log_state(_cls_id, _obj_id, _act_id, _last_log_id, _src_path, _dst_path, _old_pid, _new_pid);
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE  COST 100;
+
+SELECT * FROM lock_for_act(105,103);
+SELECT do_obj_act(105,103,2,'{{рем1,bla-бля},{тест1_2,asd},{qwe,qwe}}'::TEXT[]);
+SELECT lock_reset(105,103,NULL);
 
 -----------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------
@@ -367,113 +381,6 @@ BEGIN
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 500;
-
-
-
------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------
---функция выполнения действия
------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS    do_obj_act( IN _cls_id  INTEGER, IN _obj_id BIGINT, _act_id INTEGER, IN _header_data TEXT[]) CASCADE;
-
-CREATE OR REPLACE FUNCTION do_obj_act( IN _cls_id  INTEGER, IN _obj_id BIGINT, _act_id INTEGER, IN _header_data TEXT[])
-                  RETURNS  VOID AS 
-$BODY$
-DECLARE
-  -- название всех пользовательских полей подлежащих копированию
-    _prop_names CURSOR IS
-        SELECT t_prop.* , user_data.col2 AS val
-          FROM  t_ref_class_act
-          RIGHT JOIN t_ref_act_prop  ON t_ref_act_prop.act_id = t_ref_class_act.act_id
-          LEFT JOIN t_prop          ON t_ref_act_prop.prop_id = t_prop.id 
-          LEFT JOIN (SELECT * FROM fn_array2_to_table(_header_data))user_data ON user_data.col1=t_prop.label
-          WHERE t_ref_class_act.cls_id=_cls_id AND t_ref_class_act.act_id=_act_id;
-
-    _all_prop_names CURSOR IS
-        SELECT DISTINCT ON(t_prop.id) t_prop.*
-          FROM  t_ref_class_act
-          LEFT JOIN t_ref_act_prop  ON t_ref_act_prop.act_id = t_ref_class_act.act_id
-          LEFT JOIN t_prop          ON t_ref_act_prop.prop_id = t_prop.id 
-          WHERE t_ref_class_act.cls_id=_cls_id;
-
-    _lock_info RECORD;
-
-    _select_state TEXT;
-    _insert_state TEXT;
-    _hdr_str TEXT;
-    _val_str TEXT;
-    _update_state TEXT;
-
-    _found SMALLINT;
-    _last_log_id BIGINT;
-    _src_path BIGINT[];
-    _dst_path BIGINT[];
-    _old_pid BIGINT;
-    _new_pid BIGINT;
-
-BEGIN
-    -- проверяем - заблокирован ли объект для действия
-    SELECT * INTO _lock_info 
-        FROM t_lock_obj
-        LEFT JOIN t_lock_act USING (cls_id,obj_id,obj_pid)
-        WHERE
-            cls_id=_cls_id AND obj_id=_obj_id
-            AND lock_time +'00:10:00.00' > now()
-            AND session_pid = pg_backend_pid()
-            --AND ((src_path IS NULL AND _src_path IS NULL) OR src_path=_src_path)
-            AND act_id = _act_id;
-    IF NOT FOUND THEN
-        RAISE EXCEPTION ' Object not locked cls_id=% obj_id=% ',_cls_id, _obj_id;
-    END IF;
-
-
-    _select_state:= format('SELECT count(*) FROM t_objnum RIGHT JOIN t_state_%s ON id= obj_id WHERE cls_id=%s AND id=%s '
-                           ,_cls_id, _cls_id, _obj_id);
-    RAISE DEBUG '_select_state: %',_select_state;
-    EXECUTE _select_state INTO _found;
-    
-    --IF NOT FOUND THEN -- PERFORM/EXECUTE не меняют внутреннюю переменную FOUND :-(
-    IF _found=0 THEN
-        _hdr_str:='';
-        _val_str:='';
-        FOR rec IN _prop_names LOOP
-            _hdr_str := concat_ws(',',quote_ident(rec.label), _hdr_str );
-            _val_str := concat_ws(',',COALESCE(quote_literal(rec.val),'NULL'), _val_str );
-        END LOOP;
-
-        _insert_state:= format('INSERT INTO t_state_%s(%s obj_id)VALUES(%s %s)',
-                                   _cls_id, _hdr_str, _val_str, _obj_id);
-        RAISE DEBUG '_insert_state: %',_insert_state;
-        EXECUTE _insert_state;
-        RAISE DEBUG '_insert_ok';
-      ELSE
-        _val_str:='';
-        FOR rec IN _prop_names LOOP
-            _val_str := concat_ws(',',quote_ident(rec.label)||'='||quote_literal(rec.val), _val_str );
-        END LOOP;
-        _val_str:=TRIM(trailing ',' from _val_str);
-        _update_state:= format('UPDATE t_state_%s SET %s WHERE obj_id=%s', _cls_id, _val_str, _obj_id);
-        RAISE DEBUG '_update_state: %',_update_state;
-        EXECUTE _update_state;
-    END IF;
-
-    -- DO LOG
-    _last_log_id := nextval('seq_log_id');
-    _src_path:=_lock_info.src_path;
-    _dst_path:=_lock_info.src_path;
-    _old_pid:= _lock_info.obj_pid;
-    _new_pid:= _lock_info.obj_pid;
-    UPDATE t_objnum SET last_log_id=_last_log_id WHERE id=_obj_id;
-    PERFORM do_log_state(_cls_id, _obj_id, _act_id, _last_log_id, _src_path, _dst_path, _old_pid, _new_pid);
-
-END;
-$BODY$
-  LANGUAGE plpgsql VOLATILE  COST 100;
-
-SELECT * FROM lock_for_act(105,103);
-SELECT do_obj_act(105,103,2,'{{рем1,bla-бля},{тест1_2,asd},{qwe,qwe}}'::TEXT[]);
-SELECT lock_reset(105,103,NULL);
 
 
 /*

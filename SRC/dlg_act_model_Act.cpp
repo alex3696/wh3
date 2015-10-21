@@ -38,7 +38,8 @@ bool Act::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 	table->GetAsString(2, row, data.mComment );
 	table->GetAsString(3, row, data.mColor );
 	table->GetAsString(4, row, data.mScript);
-	table->GetAsString(4, row, data.mVID);
+	
+
 	SetData(data);
 	return true;
 };
@@ -91,8 +92,7 @@ void Act::DoAct()
 	}
 
 	query = wxString::Format(
-		"SELECT lock_reset(%s,%s,%s)"
-		, subj.mCls.mId.SqlVal()
+		"SELECT lock_reset(%s,%s)"
 		, subj.mObj.mId.SqlVal()
 		, subj.mObj.mParent.mId.SqlVal() );
 	whDataMgr::GetDB().Exec(query);
@@ -119,9 +119,8 @@ bool ActArray::GetSelectChildsQuery(wxString& query)const
 	const rec::PathItem& actObj = actObjModel->GetData();
 
 	query = wxString::Format(
-		" SELECT id, label, description, color, script, vid "
-		" FROM lock_for_act(%s, %s)"
-		, actObj.mCls.mId.SqlVal()
+		" SELECT id, title, note, color, script "
+		" FROM lock_for_act(%s)"
 		, actObj.mObj.mId.SqlVal()
 		);
 	return true;

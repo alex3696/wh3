@@ -359,8 +359,8 @@ CREATE TABLE perm_act
   ,access_disabled SMALLINT NOT NULL DEFAULT 0 CHECK (access_disabled=0 OR access_disabled=1)
   ,script_restrict TEXT              DEFAULT NULL
 
-  ,src_cls_id  BIGINT   NOT NULL 
-  ,src_obj_id  BIGINT            DEFAULT NULL
+  ,cls_id  BIGINT   NOT NULL 
+  ,obj_id  BIGINT            DEFAULT NULL
   ,src_path    TEXT              DEFAULT NULL
 
   ,act_id          INTEGER   NOT NULL 
@@ -369,17 +369,17 @@ CREATE TABLE perm_act
     REFERENCES                               wh_role (rolname)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 
-,CONSTRAINT fk_permact__srcclsid       FOREIGN KEY (src_cls_id)
+,CONSTRAINT fk_permact__clsid       FOREIGN KEY (cls_id)
     REFERENCES                               cls_num(id)
     MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE
 
 -- внешний ключ на действия
-,CONSTRAINT fk_permact_clsact FOREIGN KEY (src_cls_id, act_id) 
+,CONSTRAINT fk_permact_clsact FOREIGN KEY (cls_id, act_id) 
     REFERENCES                ref_cls_act (cls_id, act_id) 
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );--INHERITS (perm);
 CREATE INDEX idx_permact__user ON perm_act(access_group);
-CREATE INDEX idx_permact__srcclsobj ON perm_act(src_cls_id, src_obj_id);
+CREATE INDEX idx_permact__srcclsobj ON perm_act(cls_id, obj_id);
 CREATE INDEX idx_permact__actid ON perm_act(act_id);
 ---------------------------------------------------------------------------------------------------
 
@@ -463,21 +463,6 @@ CREATE INDEX idx_objqtyf_pid ON obj_qtyf("pid") ;
 
 
 
-
----------------------------------------------------------------------------------------------------
--- базовая таблица для всех логов
----------------------------------------------------------------------------------------------------
-/*
-DROP TABLE IF EXISTS log CASCADE;
-CREATE TABLE log (
-     id        BIGINT   NOT NULL DEFAULT nextval('seq_log_id')
-    ,timemark  TIMESTAMPTZ NOT NULL DEFAULT now()
-    ,username  NAME NOT NULL DEFAULT CURRENT_USER
-
-    ,src_objnum_id BIGINT    NOT NULL 
-    ,src_path      BIGINT[]  NOT NULL 
-);
-*/
 ---------------------------------------------------------------------------------------------------
 -- таблица логов действий номерных объектов
 ---------------------------------------------------------------------------------------------------
@@ -487,12 +472,12 @@ CREATE TABLE log_act (
   ,timemark  TIMESTAMPTZ NOT NULL DEFAULT now()
   ,username  NAME NOT NULL DEFAULT CURRENT_USER REFERENCES wh_role(rolname) MATCH FULL ON UPDATE CASCADE ON DELETE NO ACTION
 
-  ,src_objnum_id BIGINT   NOT NULL REFERENCES obj_num( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
-  ,src_path      BIGINT[] NOT NULL 
+  ,obj_id    BIGINT   NOT NULL REFERENCES obj_num( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
+  ,src_path  BIGINT[] NOT NULL 
 
-  ,obj_id        BIGINT   NOT NULL REFERENCES obj_num( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
-  ,act_id        BIGINT   NOT NULL REFERENCES act( id )     MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE 
-  ,prop          JSONB
+  ,obj_id    BIGINT   NOT NULL REFERENCES obj_num( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
+  ,act_id    BIGINT   NOT NULL REFERENCES act( id )     MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE 
+  ,prop      JSONB
 
 );--INHERITS (log);
 --CREATE INDEX idx_permmove__user ON perm_move(src_cls_id, src_obj_id);
@@ -666,7 +651,7 @@ CREATE OR REPLACE FUNCTION fget_objnum_pathinfo_table(IN node_id BIGINT)
     ,_cls_id      BIGINT
     ,_cls_title   WHNAME
     ,_patharray   NAME[]
-    ,pathid       NAME[]
+    ,pathid       BIGINT[]
     ,_path        TEXT
     
 ) AS $BODY$ 
@@ -676,7 +661,7 @@ RETURN QUERY
     (SELECT
         o.id, o.pid, o.title, c.id, c.title
         ,ARRAY[ ARRAY[c.title,o.title]::NAME[] ]::NAME[] AS path
-        ,ARRAY[ ARRAY[c.id,o.id]::NAME[] ]::NAME[] AS pathid
+        ,ARRAY[ ARRAY[c.id,o.id]::BIGINT[] ]::BIGINT[] AS pathid
         , '/['||c.title||']'||o.title AS _path
         FROM obj AS o
         LEFT JOIN cls c ON c.id=o.cls_id
@@ -686,7 +671,7 @@ RETURN QUERY
      SELECT
         o.id, o.pid, o.title, cls_real.id, cls_name.title
         ,p.path || ARRAY[cls_name.title,o.title]::NAME[]
-        ,p.pathid || ARRAY[cls_real.id,o.id]::NAME[]
+        ,p.pathid || ARRAY[cls_real.id,o.id]::BIGINT[]
         ,'/['||cls_name.title||']'||o.title|| p._path
         FROM 
         parents AS p, obj AS o 
@@ -703,7 +688,7 @@ $BODY$ LANGUAGE plpgsql VOLATILE  COST 100 ROWS 100;
 GRANT EXECUTE ON FUNCTION fget_objnum_pathinfo_table(BIGINT) TO "Guest";
 GRANT EXECUTE ON FUNCTION fget_objnum_pathinfo_table(BIGINT) TO "Admin" WITH GRANT OPTION;
 
-SELECT * FROM fget_objnum_pathinfo_table(100);
+SELECT * FROM fget_objnum_pathinfo_table(160);
 
 
 -----------------------------------------------------------------------------------------------------------------------------
