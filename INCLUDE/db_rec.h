@@ -30,6 +30,10 @@ public:
 	};
 	ValType()		:mType(vtNull)	{}
 	ValType(Type t)	:mType(t)		{}
+	ValType(const ValType& vt)
+	{
+		mType = vt.mType;
+	}
 	ValType(int i)	
 	{
 		FromInt(i);
@@ -132,7 +136,7 @@ public:
 	{
 		long val;
 		if (rv.ToLong(&val))
-			mVal = (new long(val));
+			mVal = new long(val);
 		else
 			mVal = nullptr;
 	} 
@@ -150,9 +154,9 @@ public:
 	}
 	operator long() const
 	{
-		if (mVal)
-			return *mVal;
-		BOOST_THROW_EXCEPTION(error() << wxstr("data is null"));
+		if (!mVal)
+			BOOST_THROW_EXCEPTION(error() << wxstr("data is null"));
+		return *mVal;
 	}
 	virtual wxString SqlVal()const override 
 	{

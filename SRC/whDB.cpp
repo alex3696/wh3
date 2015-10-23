@@ -17,10 +17,23 @@ whDB::~whDB()
 	m_Connection.Close();
 }
 //------------------------------------------------------------------------------
-//void whDB::ShowError(const DatabaseLayerException& err)const
-//{
-//	
-//}
+void whDB::BeginTransaction()	
+{ 
+	m_Connection.BeginTransaction(); 
+	wxLogMessage("BeginTransaction");
+}
+//------------------------------------------------------------------------------
+void whDB::Commit()
+{ 
+	m_Connection.Commit(); 
+	wxLogMessage("Commit");
+}
+//------------------------------------------------------------------------------
+void whDB::RollBack()
+{ 
+	m_Connection.RollBack(); 
+	wxLogMessage("RollBack");
+}
 
 //------------------------------------------------------------------------------
 bool whDB::Open(const wxString& strServer, int nPort, const wxString& strDatabase, 
@@ -116,6 +129,9 @@ void whTable::Close()
 //------------------------------------------------------------------------------
 int whTable::Exec(const wxString& query,bool with_result)
 {
+	
+	auto p1 = GetTickCount();
+
 	int result=0;
 	try
 	{
@@ -133,26 +149,38 @@ int whTable::Exec(const wxString& query,bool with_result)
 		if ((result != 2 && !with_result) || !estr.IsEmpty() )
 		{
 			wxString str = wxString::Format(("%d %s"), result, estr);
-			wxMessageBox(str);
+			wxLogError(query);
+			wxLogError(str);
+			m_DB->RollBack();
 			throw;
 		}
 		else
 			result = 0;
 
 	}
+	
+	auto p2 = GetTickCount();
+	wxLogMessage("%d\t%s", p2-p1, query);
+	
+
 
 	return result;	
 }
 //------------------------------------------------------------------------------
 int whTable::Exec(const wxString& query,std::deque<wxString>& pathes)
 {
+	auto p1 = GetTickCount();
+
 	int result=0;
 	try
 	{
 		Close();
-		PreparedStatement* pStatement = m_DB->GetConn()->PrepareStatement(query);
+		auto conn = m_DB->GetConn();
 
-		int err = m_DB->GetConn()->GetErrorCode();
+		
+		PreparedStatement* pStatement = conn->PrepareStatement(query);
+
+		int err = conn->GetErrorCode();
 
 		typedef std::deque<wxString>::size_type size_type;
 
@@ -174,7 +202,7 @@ int whTable::Exec(const wxString& query,std::deque<wxString>& pathes)
 					int nBytesRead = FileIn.Read(BufferIn.GetWriteBuf(nDataLength), nDataLength);
 					pStatement->SetParamBlob(i+1, BufferIn.GetData(), nDataLength);
 
-					err = m_DB->GetConn()->GetErrorCode();
+					err = conn->GetErrorCode();
 
 					if (nDataLength == nBytesRead)
 						err = 0x22000;
@@ -183,8 +211,8 @@ int whTable::Exec(const wxString& query,std::deque<wxString>& pathes)
 						pStatement->RunQuery();
 				}
 
-				err=m_DB->GetConn()->GetErrorCode();
-				m_DB->GetConn()->CloseStatement(pStatement);
+				err = conn->GetErrorCode();
+				conn->CloseStatement(pStatement);
 			
 			}
 			
@@ -196,9 +224,17 @@ int whTable::Exec(const wxString& query,std::deque<wxString>& pathes)
 	catch(DatabaseLayerException & e)
 	{
 		wxString str = wxString::Format(("%d %s"), e.GetErrorCode(), e.GetErrorMessage().GetData() ); 
-		wxMessageBox(str );
+		wxLogError(query);
+		wxLogError(str);
+		m_DB->RollBack();
+		throw;
+
 		result=1;
 	}
+
+	auto p2 = GetTickCount();
+	wxLogMessage("%d\t%s", p2 - p1, query);
+
 	return result;	
 }
 //------------------------------------------------------------------------------

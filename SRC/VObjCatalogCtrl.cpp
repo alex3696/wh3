@@ -446,8 +446,10 @@ void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 	if (!typeItem)
 		return;
 	wxWindow* notebook = this->GetParent();
-	auto main_farame = dynamic_cast<MainFrame*>(notebook->GetParent());
-	if (!notebook || !main_farame)
+	MainFrame* main_farame(nullptr);
+	if (notebook)
+		main_farame = dynamic_cast<MainFrame*>(notebook->GetParent());
+	if (!main_farame)
 		return;
 
 	const auto& obj_data = objItem->GetData();

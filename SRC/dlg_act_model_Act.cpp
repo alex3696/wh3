@@ -109,7 +109,7 @@ void Act::DoAct()
 // ActArray
 //-----------------------------------------------------------------------------
 ActArray::ActArray()
-	: TModelArray<ItemType>(ModelOption::EnableParentNotify | ModelOption::CascadeLoad)
+	: TModelArray<ItemType>(ModelOption::EnableParentNotify /*| ModelOption::CascadeLoad*/)
 {
 }
 

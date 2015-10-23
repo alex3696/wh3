@@ -74,8 +74,15 @@ void Frame::SetModel(std::shared_ptr<dlg_act::model::Obj>& model)
 
 void Frame::OnClose(wxCloseEvent& evt)
 {
-	mActObj->Unlock();
-	EndModal(wxID_CANCEL);
+	try
+	{
+		mActObj->Unlock();
+		EndModal(wxID_CANCEL);
+	}
+	catch (...)
+	{ 
+		wxLogError("error mActObj->Unlock() ");
+	}
 }
 //-----------------------------------------------------------------------------
 
@@ -148,8 +155,15 @@ void Frame::OnForward(wxCommandEvent& evt)
 
 		if (wxID_YES == modalResult)
 		{
-			act_model->DoAct();
-			EndModal(wxID_OK);
+			try
+			{
+				act_model->DoAct();
+				EndModal(wxID_OK);
+			}
+			catch (...)
+			{
+				wxLogError("error act_model->DoAct()");
+			}
 		}
 
 	}

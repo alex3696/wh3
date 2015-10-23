@@ -31,6 +31,7 @@ class PropArray
 {
 public:
 	PropArray();
+
 protected:
 	virtual bool GetSelectChildsQuery(wxString& query)const override;
 	

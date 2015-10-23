@@ -16,9 +16,28 @@ bool App::OnInit()
 #if wxUSE_IMAGE
 	wxInitAllImageHandlers();
 #endif	
+	wxFileName		local_cfg_file = wxFileConfig::GetLocalFile("wh3.ini");;
+
+	
+	wxStandardPathsBase& stdp = wxStandardPaths::Get();
+	wxString path = wxString::Format("%s\\wh3log.txt", stdp.GetUserConfigDir());
+	
+	
+
+	mLogFile = fopen(path.c_str(), "w");
+	if (mLogFile)
+	{
+		mLogger = new wxLogStderr(mLogFile);
+		wxLog::SetActiveTarget(mLogger);
+	}
+	else
+	{
+		mLogFile = nullptr;
+		mLogger = nullptr;
+	}
+
 	mgr = ResMgr::GetInstance();
 	gdm = whDataMgr::GetInstance();
-
 
 	// создаём вид
 	MainFrame* mainframe = new MainFrame(NULL);
@@ -28,7 +47,8 @@ bool App::OnInit()
 	gdm->m_MainFrame=mainframe;
 	
 	SetTopWindow(mainframe);
-	
+
+
 	return true;
 }
 //---------------------------------------------------------------------------
@@ -40,5 +60,14 @@ App::~App()
 //---------------------------------------------------------------------------
 int App::OnExit()
 {
+	mLogger->Flush();
+	wxLog::EnableLogging(false);
+	wxLog::SetActiveTarget(nullptr);
+	fclose(mLogFile);
+	mLogFile = nullptr;
+
+	delete mLogger;
+	mLogger = nullptr;
+
 	return 0;
 }

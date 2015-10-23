@@ -207,16 +207,27 @@ DECLARE
     _prop_item   TEXT;
     _pathid      BIGINT[];
     _cls_id      BIGINT;
+    _old_prop    JSONB;
 
-    _chk_props CURSOR IS
-      SELECT prop.* , value
-        FROM  ref_cls_act
-        RIGHT JOIN ref_act_prop  ON ref_act_prop.act_id  = ref_cls_act.act_id
-        LEFT JOIN prop           ON ref_act_prop.prop_id = prop.id 
-        LEFT JOIN (select key::BIGINT, value::TEXT from jsonb_each(_prop)) prp ON prp.key=prop.id
-        WHERE ref_cls_act.cls_id=_cls_id AND ref_cls_act.act_id=_act_id AND prp.value IS NOT NULL;
-        --LEFT JOIN (select * from json_each_text('{"a":"foo", "комментарий":"bar"}')) prp ON prp.key=prop.title
-        --WHERE ref_cls_act.cls_id=100 AND ref_cls_act.act_id=100 AND prp.value IS NOT NULL;
+  _chk_props CURSOR IS
+
+SELECT distinct( ref_act_prop.prop_id) as id, pold.value
+       ,all_new.id as new_id,all_new.value
+       ,CASE WHEN all_new.id IS NOT NULL THEN all_new.value ELSE pold.value END AS result
+       --, COALESCE( all_new.value, pold.value) as result
+  FROM  ref_cls_act
+  RIGHT JOIN ref_act_prop  ON ref_act_prop.act_id  = ref_cls_act.act_id
+  LEFT JOIN (select key::BIGINT, value::TEXT from jsonb_each(_old_prop)) pold ON pold.key=ref_act_prop.prop_id
+  LEFT JOIN(
+             SELECT ref_act_prop.prop_id as id, pnew.value
+             FROM  ref_cls_act
+             RIGHT JOIN ref_act_prop  ON ref_act_prop.act_id  = ref_cls_act.act_id
+             LEFT JOIN (select key::BIGINT, value::TEXT from jsonb_each(_prop)) pnew ON pnew.key=ref_act_prop.prop_id
+             WHERE ref_cls_act.cls_id=_cls_id AND ref_cls_act.act_id=_act_id
+             AND ref_act_prop.prop_id IS NOT NULL 
+            ) all_new ON all_new.id=ref_act_prop.prop_id
+  WHERE ref_cls_act.cls_id=_cls_id 
+  AND ( (all_new.id IS NOT NULL AND all_new.value IS NOT NULL) OR (all_new.id IS NULL  AND pold.value IS NOT NULL)) ;
 
 BEGIN
   -- проверяем - заблокирован ли объект для действия
@@ -234,13 +245,13 @@ BEGIN
   END IF;
 
   -- пытаемся найти объект и его местоположение
-  SELECT cls_id INTO _cls_id FROM obj WHERE id=_obj_id;
+  SELECT cls_id,prop INTO _cls_id,_old_prop FROM obj WHERE id=_obj_id;
   IF NOT FOUND THEN
     RAISE EXCEPTION ' Object not exists obj_id=% ', _obj_id;
   END IF;
 
   FOR rec IN _chk_props LOOP
-    _prop_item:= concat_ws(':',quote_ident(rec.id::TEXT), rec.value );
+    _prop_item:= concat_ws(':',quote_ident(rec.id::TEXT), rec.result );
     _prop_str := concat_ws(',',_prop_str, _prop_item );
   END LOOP;
   _prop_str:='{'||_prop_str||'}';
@@ -261,8 +272,11 @@ $BODY$
   LANGUAGE plpgsql VOLATILE  COST 100;
 
 SELECT * FROM lock_for_act(1639);
---SELECT do_obj_act(1639,101,'{"a":"foo", "комментарий":55}'::JSONB);
-SELECT do_obj_act(1639, 101, '{"100":"eeeee","111":0,"105":"wwww"}');
+
+SELECT do_obj_act(1639, 101, '{"100":"qwe","106":55,"105":"asd"}');
+SELECT do_obj_act(1639, 100, '{"105":"dddddddddd"}');
+
+
 SELECT lock_reset(1639,NULL);
 
 

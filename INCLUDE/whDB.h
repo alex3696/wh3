@@ -57,9 +57,9 @@ public:
 	~whDB();
 	//virtual int GetClassID()const	{	return whID_TABLE;	}
 
-	inline void BeginTransaction()	{	m_Connection.BeginTransaction();}
-	inline void Commit()			{	m_Connection.Commit();			}
-	inline void RollBack()			{	m_Connection.RollBack();		}
+	void BeginTransaction();
+	void Commit();
+	void RollBack();
 
 	whTable*			ExecWithResults(const wxString& query);
 	whTable_shared_ptr	ExecWithResultsSPtr(const wxString& query);
@@ -162,6 +162,13 @@ struct ObjKey
 	{
 		m_Name=data.m_Name;
 		m_Type=data.m_Type;
+	}
+
+	ObjKey& operator=(const ObjKey& data)
+	{
+		m_Name = data.m_Name;
+		m_Type = data.m_Type;
+		return *this;
 	}
 };
 

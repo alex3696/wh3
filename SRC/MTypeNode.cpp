@@ -224,7 +224,7 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 	else
 	{
 		query = wxString::Format(
-			" SELECT t.title, t.id, t.kind, t.measure "
+			"SELECT t.title, t.id, t.kind, t.measure "
 			" ,(SELECT COALESCE(SUM(qty), 0) "
 			"     FROM obj o WHERE t.id = o.cls_id GROUP BY o.cls_id)  AS qty "
 			" ,default_objid, o.title "

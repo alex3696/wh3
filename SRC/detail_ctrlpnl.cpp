@@ -181,8 +181,11 @@ void CtrlPnl::UpdateTab()
 	}//switch
 
 	wxWindow* notebook = this->GetParent();
-	auto main_farame = dynamic_cast<MainFrame*>(notebook->GetParent());
-	if (!notebook || !main_farame)
+	MainFrame* main_farame(nullptr);
+	if (notebook)
+		main_farame = dynamic_cast<MainFrame*>(notebook->GetParent());
+	
+	if (!main_farame)
 		return;
 
 	const wxString lbl = wxString::Format("[%s]%s (%s %s)"
