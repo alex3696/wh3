@@ -372,7 +372,7 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 			auto selCls = (mCatalogModel->mTypeArray->at(ucls->mPos));
 			if (uobj)
 			{
-				if (selCls)
+				if (selCls && selCls->mObjArray->GetChildQty())
 				{
 					auto selObj = selCls->mObjArray->at(uobj->mPos);
 					if (selObj)
@@ -587,6 +587,7 @@ void VObjCatalogCtrl::OnMkCls(wxCommandEvent& evt)
 
 		int error = 0;
 		int result = 0;
+		bool loop = true;
 		do
 		{
 			try
@@ -598,7 +599,15 @@ void VObjCatalogCtrl::OnMkCls(wxCommandEvent& evt)
 					newItem->Save();
 			}
 			catch (...){ error=1; }
-		} while (wxID_CANCEL != result && (wxID_OK == result && error) );
+			
+			switch (result)
+			{
+			case wxID_CANCEL:	loop = false;			break;
+			case wxID_OK:		loop = error?true:false;break;
+			default:			loop = true;			break;
+			}
+
+		} while (loop);
 
 		OnCmdReload(wxCommandEvent(wxID_REFRESH));
 	}
@@ -850,4 +859,3 @@ bool VObjCatalogCtrl::GetCurrentParent(rec::PathItem& root)const
 	return true;
 
 }
-

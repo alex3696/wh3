@@ -824,16 +824,24 @@ DELETE FROM prop CASCADE;
 DELETE FROM act CASCADE;
 DELETE FROM cls WHERE title='TestCls';
 
-DECLARE @cls_id_1;
+DECLARE @cls_id_1,@cls_id_2,@cls_id_3,@cls_id_4;
 SET @cls_id_1 = INSERT INTO cls(pid,title,kind,measure) VALUES (1,'TestCls',1,'coco') RETURNING id;
+SET @cls_id_2 = INSERT INTO cls(pid,title,kind) VALUES (1,'Приборы',0) RETURNING id;
+SET @cls_id_3 = INSERT INTO cls(pid,title,kind,measure) VALUES (@cls_id_2,'СРК2М',1,'coco') RETURNING id;
+SET @cls_id_4 = INSERT INTO cls(pid,title,kind,measure) VALUES (@cls_id_2,'ДИНА-К4-89',1,'coco') RETURNING id;
 
-DECLARE @prop_id_1,@prop_id_2;
-SET @prop_id_1 = INSERT INTO prop(title, kind)VALUES ('prop_id_1', 0)RETURNING id;
-SET @prop_id_2 = INSERT INTO prop(title, kind)VALUES ('prop_id_2', 0)RETURNING id;
 
-DECLARE @act_id_1,@act_id_2;
+DECLARE @prop_id_1,@prop_id_2,@prop_id_3,@prop_id_4;
+SET @prop_id_1 = INSERT INTO prop(title, kind)VALUES ('Наработка(ч.)', 1)RETURNING id;
+SET @prop_id_2 = INSERT INTO prop(title, kind)VALUES ('Счёт ГК', 1)RETURNING id;
+SET @prop_id_3 = INSERT INTO prop(title, kind)VALUES ('Комментарий', 0)RETURNING id;
+SET @prop_id_4 = INSERT INTO prop(title, kind)VALUES ('Описание', 0)RETURNING id;
+
+DECLARE @act_id_1,@act_id_2,@act_id_3,@act_id_4;
 SET @act_id_1 = INSERT INTO act (title) VALUES ('Ремонт')RETURNING id;
 SET @act_id_2 = INSERT INTO act (title) VALUES ('Проверка')RETURNING id;
+SET @act_id_3 = INSERT INTO act (title) VALUES ('Профилактика')RETURNING id;
+SET @act_id_4 = INSERT INTO act (title) VALUES ('ГИС')RETURNING id;
 
 INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_1, @prop_id_1);
 

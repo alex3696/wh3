@@ -54,8 +54,8 @@ bool MPath::GetSelectChildsQuery(wxString& query)const
 		if (catalog->IsObjTree())
 		{ 
 			query = wxString::Format(
-				"SELECT _obj_id, _obj_title, _cls_id, _cls_title "
-				" FROM fget_objnum_pathinfo_table(%s)"
+				"SELECT oid, otitle, cid, ctitle "
+				" FROM get_path_obj_info(%s)"
 				, data.mObj.mId.SqlVal()
 				);
 			return true;
@@ -63,8 +63,8 @@ bool MPath::GetSelectChildsQuery(wxString& query)const
 		else
 		{
 			query = wxString::Format(
-				"SELECT _id, _title "
-				" FROM fget_cls_pathinfo_table(%s)"
+				"SELECT id, title "
+				" FROM get_path_cls_info(%s)"
 				, data.mCls.mId.SqlVal()
 				);
 			return true;
@@ -129,8 +129,8 @@ bool ClsPath::GetSelectChildsQuery(wxString& query)const
 	{
 		const auto& cls_data = cls->GetData();
 		query = wxString::Format(
-				"SELECT _id, _title "
-				" FROM fget_cls_pathinfo_table(%s)"
+				"SELECT id, title "
+				" FROM get_path_cls_info(%s)"
 				, cls_data.mId.SqlVal()
 				);
 		return true;
@@ -185,8 +185,8 @@ bool ObjPath::GetSelectChildsQuery(wxString& query)const
 	{
 		const auto& obj_data = obj->GetData();
 		query = wxString::Format(
-				"SELECT _obj_id, _obj_title, _cls_id, _cls_title "
-				" FROM fget_objnum_pathinfo_table(%s)"
+				"SELECT oid, otitle, cid, ctitle "
+				" FROM get_path_obj_info(%s)"
 				, obj_data.mParent.mId.IsNull() ? "0" : obj_data.mParent.mId.toStr()
 				);
 		return true;

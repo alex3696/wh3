@@ -72,7 +72,7 @@ bool DstTypeArray::GetSelectChildsQuery(wxString& query)const
 	query = wxString::Format(
 		" SELECT _dst_cls_id, cls.title as dst_cls_label "
 		", _dst_obj_id, _dst_obj_label "
-		", (SELECT _patharray FROM fget_objnum_pathinfo_table(_dst_obj_pid) WHERE _obj_pid=1) AS DST_PATH "
+		", get_path_obj(_dst_obj_pid) AS DST_PATH "
 		" FROM lock_for_move(%s,%s) "
 		" LEFT JOIN cls cls ON cls.id = _dst_cls_id "
 		" ORDER BY _dst_cls_id "
