@@ -39,7 +39,7 @@ bool DstType::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t r
 	DstObj::DataType dst_obj;
 	dst_obj.mId = table->GetAsString(2, row);
 	dst_obj.mLabel = table->GetAsString(3, row);
-	dst_obj.mParent.mId = ObjArrayToPath(table->GetAsString(4, row));
+	dst_obj.mParent.mLabel = ObjArrayToPath(table->GetAsString(4, row));
 
 	auto dstObjModel = std::make_shared<DstObj>();
 	dstObjModel->SetData(dst_obj);
@@ -70,13 +70,12 @@ bool DstTypeArray::GetSelectChildsQuery(wxString& query)const
 	const rec::PathItem& movable = movableModel->GetData();
 
 	query = wxString::Format(
-		" SELECT _dst_cls_id, cls.label as dst_cls_label "
+		" SELECT _dst_cls_id, cls.title as dst_cls_label "
 		", _dst_obj_id, _dst_obj_label "
-		", (SELECT fn_oidarray_to_path(fget_get_oid_path(_dst_obj_pid))) AS DST_PATH "
-		" FROM lock_for_move(%s,%s,%s) "
-		" LEFT JOIN t_cls cls ON cls.id = _dst_cls_id "
+		", (SELECT _patharray FROM fget_objnum_pathinfo_table(_dst_obj_pid) WHERE _obj_pid=1) AS DST_PATH "
+		" FROM lock_for_move(%s,%s) "
+		" LEFT JOIN cls cls ON cls.id = _dst_cls_id "
 		" ORDER BY _dst_cls_id "
-		, movable.mCls.mId.SqlVal()
 		, movable.mObj.mId.SqlVal()
 		, movable.mObj.mParent.mId.SqlVal()
 		);
@@ -102,7 +101,7 @@ bool DstTypeArray::LoadChildDataFromDb(std::shared_ptr<IModel>& child,
 
 		dst_obj.mId = table->GetAsString(2, pos);
 		dst_obj.mLabel = table->GetAsString(3, pos);
-		dst_obj.mParent.mId = ObjArrayToPath(table->GetAsString(4, pos));
+		dst_obj.mParent.mLabel = ObjArrayToPath(table->GetAsString(4, pos));
 		
 		auto dstObjModel = std::make_shared<DstObj>();
 		dstObjModel->SetData(dst_obj,true);

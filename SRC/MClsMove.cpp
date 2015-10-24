@@ -55,7 +55,7 @@ bool MClsMove::GetInsertQuery(wxString& query)const
 {
 	auto parentArray = dynamic_cast<MClsMoveArray*>(this->mParent);
 	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
-	if (parentCls)
+	if (!parentCls)
 		return false;
 
 	const rec::Cls& cls = parentCls->GetStored();
@@ -78,7 +78,7 @@ bool MClsMove::GetInsertQuery(wxString& query)const
 		" RETURNING id, access_group, access_disabled, script_restrict "
 		"          ,cls_id, obj_id "
 		"          ,src_cls_id, src_obj_id, src_path "
-		"          ,act_id "
+		"          ,dst_cls_id, dst_obj_id, dst_path "
 		, newPerm.mAcessGroup.SqlVal()
 		, newPerm.mAccessDisabled.SqlVal()
 		, newPerm.mScriptRestrict.SqlVal()
@@ -103,7 +103,7 @@ bool MClsMove::GetUpdateQuery(wxString& query)const
 {
 	auto parentArray = dynamic_cast<MClsMoveArray*>(this->mParent);
 	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
-	if (parentCls)
+	if (!parentCls)
 		return false;
 
 	const rec::Cls& cls = parentCls->GetStored();

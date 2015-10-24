@@ -83,7 +83,7 @@ void DvModel::GetValue(wxVariant &variant, const wxDataViewItem &dataViewItem, u
 		switch (col)
 		{
 		case 1:		variant << wxDataViewIconText(obj.mLabel, wxNullIcon);	break;
-		case 2:		variant = obj.mParent.mId.toStr();	break;
+		case 2:		variant = obj.mParent.mLabel.toStr();	break;
 		case 3:		variant = obj.mId.toStr();			break;
 		//case 4:		variant = obj.mLastLogId;	break;
 		default:	break;

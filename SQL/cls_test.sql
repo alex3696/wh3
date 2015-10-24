@@ -57,59 +57,50 @@ DROP TABLE IF EXISTS cls_real CASCADE;
 DROP TABLE IF EXISTS cls_qtyi  CASCADE;
 DROP TABLE IF EXISTS cls_qtyf  CASCADE;
 DROP TABLE IF EXISTS cls_num   CASCADE;
-DROP TABLE IF EXISTS cls CASCADE;
-DROP TABLE IF EXISTS cls_abstr CASCADE;
 
 DROP VIEW IF EXISTS cls CASCADE;
 DROP FUNCTION IF EXISTS ftg_ins_cls() CASCADE;
 DROP FUNCTION IF EXISTS ftg_del_cls() CASCADE;
 DROP FUNCTION IF EXISTS ftg_upd_cls() CASCADE;
 
+-- объекты
+DROP TABLE IF EXISTS obj_name CASCADE;
+DROP TABLE IF EXISTS obj_num CASCADE;
+DROP TABLE IF EXISTS obj_qtyi  CASCADE;
+DROP TABLE IF EXISTS obj_qtyf  CASCADE;
+
+DROP VIEW IF EXISTS obj CASCADE;
+DROP FUNCTION IF EXISTS ftg_ins_obj() CASCADE;
+DROP FUNCTION IF EXISTS ftg_del_obj() CASCADE;
+DROP FUNCTION IF EXISTS ftg_upd_obj() CASCADE;
+
 
 
 
 DROP TABLE IF EXISTS log_act CASCADE;
-DROP TABLE IF EXISTS log_move_num CASCADE;
-DROP TABLE IF EXISTS log_move_qtyi CASCADE;
-DROP TABLE IF EXISTS log_move_qtyf CASCADE;
+DROP TABLE IF EXISTS log_move CASCADE;
 
-
-
-
-DROP TABLE IF EXISTS perm CASCADE;
 DROP TABLE IF EXISTS perm_act CASCADE;
 DROP TABLE IF EXISTS perm_move CASCADE;
-DROP TABLE IF EXISTS prop_kind CASCADE;
+
 DROP TABLE IF EXISTS prop CASCADE;
 DROP TABLE IF EXISTS prop_cls CASCADE;
-DROP TABLE IF EXISTS prop_num CASCADE;
-DROP TABLE IF EXISTS prop_qtyf CASCADE;
-DROP TABLE IF EXISTS prop_qtyi CASCADE;
+DROP TABLE IF EXISTS prop_kind CASCADE;
+DROP TABLE IF EXISTS favorite_prop CASCADE;
+
 DROP TABLE IF EXISTS act CASCADE;
 DROP TABLE IF EXISTS ref_cls_act CASCADE;
 DROP TABLE IF EXISTS ref_act_prop CASCADE;
-DROP TABLE IF EXISTS obj CASCADE;
-DROP TABLE IF EXISTS obj_num CASCADE;
-DROP TABLE IF EXISTS obj_names_qtyi CASCADE;
-DROP TABLE IF EXISTS obj_names_qtyf CASCADE;
-DROP TABLE IF EXISTS obj_details_qty CASCADE;
-DROP TABLE IF EXISTS obj_details_qtyi CASCADE;
-DROP TABLE IF EXISTS obj_details_qtyf CASCADE;
-DROP TABLE IF EXISTS log CASCADE;
-DROP TABLE IF EXISTS log_act_detail CASCADE;
-DROP TABLE IF EXISTS lock_src CASCADE;
-DROP TABLE IF EXISTS lock_dst CASCADE;
-DROP TABLE IF EXISTS lock_dstact CASCADE;
-DROP TABLE IF EXISTS favorite_prop CASCADE;
+
+
 
 ---------------------------------------------------------------------------------------------------
 -- функции
 ---------------------------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS fn_array1_to_table(anyarray);
-DROP FUNCTION IF EXISTS get_path_array(bigint);
-DROP FUNCTION IF EXISTS get_path(bigint);
 
-
+DROP FUNCTION IF EXISTS ftr_aud_perm_act() CASCADE;
+DROP FUNCTION IF EXISTS ftr_biu_perm_act() CASCADE;
 
 
 
@@ -426,12 +417,6 @@ CREATE TABLE obj_num (
 );-- INHERITS (obj);
 CREATE INDEX idx_objnum_pid ON obj_num ("pid") ;
 
-
-ALTER TABLE cls_real
-  ADD CONSTRAINT cls_real_default_objid_fkey FOREIGN KEY (default_objid)
-      REFERENCES obj_num (id) MATCH FULL
-      ON UPDATE RESTRICT ON DELETE SET DEFAULT;
-
 ---------------------------------------------------------------------------------------------------
 -- детальные сведения объект количественный целочисленный
 ---------------------------------------------------------------------------------------------------
@@ -632,136 +617,6 @@ CREATE TRIGGER tr_aud_perm_act AFTER DELETE OR UPDATE ON perm_act FOR EACH ROW E
 
 
 
-
-
-
-
------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------    
--- функция получения пути объектов и типов в виде путей и таблицы, по идентификация объекта (уникальность)
------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS fget_objnum_pathinfo_table(IN _id BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION fget_objnum_pathinfo_table(IN node_id BIGINT)
- RETURNS TABLE(
-     _obj_id      BIGINT
-    ,_obj_pid     BIGINT
-    ,_obj_title   WHNAME
-    ,_cls_id      BIGINT
-    ,_cls_title   WHNAME
-    ,_patharray   NAME[]
-    ,pathid       BIGINT[]
-    ,_path        TEXT
-    
-) AS $BODY$ 
-BEGIN
-RETURN QUERY 
-    WITH RECURSIVE parents AS 
-    (SELECT
-        o.id, o.pid, o.title, c.id, c.title
-        ,ARRAY[ ARRAY[c.title,o.title]::NAME[] ]::NAME[] AS path
-        ,ARRAY[ ARRAY[c.id,o.id]::BIGINT[] ]::BIGINT[] AS pathid
-        , '/['||c.title||']'||o.title AS _path
-        FROM obj AS o
-        LEFT JOIN cls c ON c.id=o.cls_id
-         WHERE o.id = node_id   --[item.pid]
-        AND o.id>1
-     UNION ALL
-     SELECT
-        o.id, o.pid, o.title, cls_real.id, cls_name.title
-        ,p.path || ARRAY[cls_name.title,o.title]::NAME[]
-        ,p.pathid || ARRAY[cls_real.id,o.id]::BIGINT[]
-        ,'/['||cls_name.title||']'||o.title|| p._path
-        FROM 
-        parents AS p, obj AS o 
-        LEFT JOIN cls_real ON cls_real.id=o.cls_id
-        LEFT JOIN cls_name ON cls_real.id=cls_name.id
-        WHERE 
-        o.id = p.pid
-        AND o.id<>1   
-        )
-   SELECT * FROM parents;
-
-END; 
-$BODY$ LANGUAGE plpgsql VOLATILE  COST 100 ROWS 100;
-GRANT EXECUTE ON FUNCTION fget_objnum_pathinfo_table(BIGINT) TO "Guest";
-GRANT EXECUTE ON FUNCTION fget_objnum_pathinfo_table(BIGINT) TO "Admin" WITH GRANT OPTION;
-
-SELECT * FROM fget_objnum_pathinfo_table(160);
-
-
------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------    
--- функция получения пути объектов и типов в виде 2мерного массива
------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS get_path_array(IN node_pid BIGINT ) CASCADE;
-CREATE OR REPLACE FUNCTION get_path_array(IN node_pid BIGINT ) RETURNS NAME[]  AS $$ 
- SELECT _patharray FROM fget_objnum_pathinfo_table($1) WHERE _obj_pid=1
-$$ LANGUAGE SQL;
-
-GRANT EXECUTE ON FUNCTION get_path_array(BIGINT) TO "Guest";
-GRANT EXECUTE ON FUNCTION get_path_array(BIGINT) TO "Admin" WITH GRANT OPTION;
-
-
---SELECT * FROM get_path_array(101);  
-
-
------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------    
--- функция получения пути объектов и типов в виде строки
------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS get_path(IN node_pid BIGINT ) CASCADE;
-CREATE OR REPLACE FUNCTION get_path(IN node_pid BIGINT ) RETURNS TEXT  AS $$ 
-    SELECT _path 
-      FROM fget_objnum_pathinfo_table($1) 
-      WHERE _obj_pid=1
-$$ LANGUAGE SQL;
-
-GRANT EXECUTE ON FUNCTION get_path(BIGINT) TO "Guest";
-GRANT EXECUTE ON FUNCTION get_path(BIGINT) TO "Admin" WITH GRANT OPTION;
-
------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------    
--- функция получения информации о наследовании класса
------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS fget_cls_pathinfo_table(IN _in_id INTEGER) CASCADE;
-CREATE OR REPLACE FUNCTION fget_cls_pathinfo_table(IN _in_id INTEGER)
- RETURNS TABLE(
-   _id       BIGINT,
-   _title   WHNAME,
-   _kind    SMALLINT,
-   _pid     BIGINT,
-   _note    TEXT,
-   _measure WHNAME,
-   _path NAME[]
-) AS $BODY$ 
-BEGIN
-RETURN QUERY(
-  WITH RECURSIVE parents AS 
-    (SELECT b.id, b.title, b.kind, b.pid, b.note, b.measure
-            ,ARRAY[b.title]::NAME[] AS path --,FALSE AS cycle
-       FROM cls AS b
-       WHERE  b.id = _in_id AND _in_id IS NOT NULL AND  b.id > 1 
-     UNION ALL
-     SELECT c.id, cls.title, 0::SMALLINT AS kind, c.pid, cls.note, NULL::WHNAME
-            ,path || cls.title::NAME --,t.classname = ANY(path) 
-       FROM parents AS p, cls_tree AS c 
-       LEFT JOIN cls ON cls.id=c.id
-       WHERE c.id = p.pid AND c.id > 1
-     )
-     SELECT  * FROM parents 
-);
-END; 
-$BODY$ LANGUAGE plpgsql VOLATILE  COST 100 ROWS 1000;
-GRANT EXECUTE ON FUNCTION fget_cls_pathinfo_table(INTEGER) TO "Guest";
-
-SELECT * FROM fget_cls_pathinfo_table(137);
-
-
-
 -----------------------------------------------------------------------------------------------------------------------------    
 -- функция преобразования одномерного массива идентификаторов класса в таблицу
 -----------------------------------------------------------------------------------------------------------------------------
@@ -955,6 +810,10 @@ INSERT INTO obj(id,pid,title,cls_id)VALUES (0,0,'nullNumRoot',2);
 INSERT INTO obj(id,pid,title,cls_id)VALUES (1,0,'ObjRoot',2);
 
 
+ALTER TABLE cls_real
+  ADD CONSTRAINT cls_real_default_objid_fkey FOREIGN KEY (default_objid)
+      REFERENCES obj_num (id) MATCH FULL
+      ON UPDATE RESTRICT ON DELETE SET DEFAULT;
 ---------------------------------------------------------------------------------------------------
 PRINT '';
 PRINT '- создаём 1 пустое и одно действие с свойствами';
@@ -1036,7 +895,7 @@ END
 DECLARE @clstitle, @qty, @pid, @cnumid, @cqtyiid, @cqtyfid , @oqtyiid, @oqtyfid, @opid ;
 SET @opid= 1;
 SET @pid= 1;
-SET @qty= 510;
+SET @qty= 10;
 --SET @qty= 10;
 
 WHILE (@qty > 0)
