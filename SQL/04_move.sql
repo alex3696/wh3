@@ -2,11 +2,14 @@
 SET client_min_messages='debug1';
 
 -------------------------------------------------------------------------------
--- система бизнес блокировок перемещения и действий b(block) - префикс
--- для номерных bn
--- для количественных bq
--- noid - Named object identificator 
--- qoid - Quantitative object identificator 
+-- система бизнес блокировок перемещения и действий 
+-- записываем в lock_obj текущее местоположение объекта,
+-- чтоб уж явно никто не начал двигать этот объект
+-- в lock_act записываем возможные варианты действий ??? чтоб блокировать изменение самих действий
+-- в lock_dst записываем возможные варианты перемещений объекта
+-- при выполнении do_act/do_move проверяем начальное положение, указанное при блокировке,
+-- если было изменение в пути - проверяем ещё раз возможность перемещения при изменении путей источника
+
 
 
 DROP TABLE IF EXISTS lock_obj CASCADE;
@@ -34,6 +37,8 @@ CREATE TABLE lock_obj(
   ,CONSTRAINT lock_obj__oid_pid_pkey PRIMARY KEY (oid,pid)
 
 );
+CREATE INDEX idx_lock_obj_lock_user ON lock_obj USING btree (lock_user);
+
 
 -------------------------------------------------------------------------------
 --таблица блокировки разрешённых путей назначения
@@ -85,9 +90,8 @@ BEGIN
     FROM lock_obj
     WHERE oid=_oid AND pid=_pid
     AND ( lock_time +'00:10:00.00' < now() OR lock_session = pg_backend_pid());
--- Ищем блокируемый объект
-  SELECT id,pid,(SELECT pathid FROM fget_objnum_pathinfo_table(pid) WHERE _obj_pid=1) AS path 
-    INTO _obj_rec 
+-- Ищем блокируемый объект в табличке объектов
+  SELECT id,pid,get_path_obj_arr_2id(pid) AS path INTO _obj_rec 
     FROM obj 
     WHERE id=_oid AND pid=_pid;
   --RAISE DEBUG 'try_lock_obj: finded object %',_obj_rec;
@@ -163,7 +167,7 @@ DECLARE
     _locked_rec   RECORD;
 BEGIN
 -- пытаемся найти объект и его местоположение
-  SELECT pid,cls_id INTO _pid,_cls_id FROM obj WHERE id=_oid;
+  SELECT pid,cls_id INTO _pid,_cls_id FROM obj WHERE id=_oid AND cls_kind=1;
   IF NOT FOUND THEN
     RAISE EXCEPTION ' Object not exists obj_id=% ', _oid;
   END IF;
@@ -171,13 +175,13 @@ BEGIN
   _locked_rec := try_lock_obj(_oid, _pid);
   -- объект блокирован
   -- определяем разрешенные действия и спихиваем их в выходную табличку и в табличку блокировки
-  FOR rec IN _acts( get_path(_pid), _cls_id) LOOP
+  FOR rec IN _acts( get_path_obj(_pid), _cls_id) LOOP
     return next rec;                        -- заполняем табличку разрешённых действий
     -- заполняем табличку идентификаторов разрешённых действий 
     INSERT INTO lock_act(oid, pid, act_id)VALUES (_oid, _pid, rec.id);
   END LOOP;
-
-  IF NOT FOUND THEN
+  -- если не нашлись действия, то отпускаем блокировку
+  IF NOT FOUND THEN 
     PERFORM lock_reset(_oid,_pid);
     RAISE DEBUG ' There are no action, lock aborted';
   ELSE
@@ -205,11 +209,12 @@ DECLARE
     _last_log_id BIGINT;
     _prop_str    TEXT;
     _prop_item   TEXT;
-    _pathid      BIGINT[];
+    _curr_pathid BIGINT[];
     _cls_id      BIGINT;
+    _perm_sum    INTEGER;
     _old_prop    JSONB;
 
-  _chk_props CURSOR IS
+    _chk_props CURSOR IS
 
 SELECT distinct( ref_act_prop.prop_id) as id, pold.value
        ,all_new.id as new_id,all_new.value
@@ -243,11 +248,32 @@ BEGIN
   IF NOT FOUND THEN
     RAISE EXCEPTION ' Object not locked obj_id=% ', _obj_id;
   END IF;
-
-  -- пытаемся найти объект и его местоположение
-  SELECT cls_id,prop INTO _cls_id,_old_prop FROM obj WHERE id=_obj_id;
+  -- находим текущее положение и состояние
+  SELECT cls_id,prop,get_path_obj_arr_2id(pid) INTO _cls_id,_old_prop,_curr_pathid 
+    FROM obj WHERE id=_obj_id;
   IF NOT FOUND THEN
     RAISE EXCEPTION ' Object not exists obj_id=% ', _obj_id;
+  END IF;
+  -- проверяем возможность выполнения выбранного действия в текущем местоположении
+    SELECT sum INTO _perm_sum FROM (
+    SELECT perm.act_id , sum(access_disabled) 
+        FROM perm_act perm
+        LEFT  JOIN wh_role _group ON perm.access_group=_group.rolname-- определяем ИМЕНА разрешённых групп
+        RIGHT JOIN wh_auth_members membership ON _group.id=membership.roleid -- определяем ИДЕНТИФИКАТОРЫ разрешённых групп
+        RIGHT JOIN wh_role _user ON _user.id=membership.member -- определяем ИДЕНТИФИКАТОРЫ разрешённых пользователей
+          AND _user.rolname=CURRENT_USER -- определяем ИМЕНА разрешённых пользователей ВКЛЮЧАЯ ТЕКУЩЕГО
+      WHERE perm.cls_id = _cls_id
+        AND perm.act_id = _act_id
+        AND  (perm.obj_id IS NULL OR perm.obj_id = 101)
+        AND  (perm.src_path IS NULL OR _curr_pathid::TEXT LIKE src_path::TEXT)
+      GROUP BY act_id
+      ) t 
+      WHERE t.sum=0;
+
+   RAISE DEBUG '_perm_sum: %',COALESCE(_perm_sum,-1);
+
+  IF _perm_sum IS NULL OR _perm_sum>0 THEN
+    RAISE EXCEPTION ' Path was changed for obj_id=% , try again ', _obj_id;
   END IF;
 
   FOR rec IN _chk_props LOOP
@@ -259,26 +285,21 @@ BEGIN
 
   _last_log_id := nextval('seq_log_id');
 
-  SELECT pathid INTO _pathid FROM fget_objnum_pathinfo_table(_lock_info.pid) WHERE _obj_pid=1;
+  
 
   UPDATE obj_num SET act_logid=_last_log_id, prop=_prop_str::JSONB WHERE id=_obj_id;
 
   INSERT INTO log_act(id,  act_id, prop,   obj_id,  src_path)
-    VALUES (_last_log_id, _act_id, _prop_str::JSONB, _obj_id,_pathid);
+    VALUES (_last_log_id, _act_id, _prop_str::JSONB, _obj_id,_curr_pathid);
 
 
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 100;
 
-SELECT * FROM lock_for_act(1639);
-
-SELECT do_obj_act(1639, 101, '{"100":"qwe","106":55,"105":"asd"}');
-SELECT do_obj_act(1639, 100, '{"105":"dddddddddd"}');
-
-
-SELECT lock_reset(1639,NULL);
-
+SELECT id, title, note, color, script  FROM lock_for_act(101);
+SELECT do_obj_act(101, 103, '{"100":66,"102":"45452ergsdfgd"}');
+SELECT lock_reset(101,1);
 
 
 
@@ -290,21 +311,24 @@ SELECT lock_reset(1639,NULL);
 -------------------------------------------------------------------------------
 -- поиск всех возможных вариантов перемещения
 -------------------------------------------------------------------------------
+DROP VIEW IF EXISTS moverule_lockup CASCADE;
 CREATE OR REPLACE VIEW moverule_lockup AS 
 SELECT 
-    obj.id          AS mov_obj_id
-    ,obj.title      AS mov_obj_label
-    ,obj.pid        AS mov_obj_pid
-    ,obj.cls_id     AS mov_cls_id
-    ,obj.cls_kind   AS mov_cls_type
-    ,obj.qty        AS mov_obj_qty 
-    ,perm.src_path  AS src_path
+    obj.id          AS oid
+    ,obj.title      AS otitle
+    ,obj.cls_id     AS cid
+    ,obj.cls_kind   AS ctype
+    ,obj.qty        AS oqty 
 
-    ,dst.id         AS dst_obj_id
-    ,dst.title      AS dst_obj_label
-    ,dstn.pid       AS dst_obj_pid
-    ,dst.cls_id     AS dst_cls_id
-    ,perm.dst_path  AS dst_path
+    ,obj.pid         AS src_oid
+    ,perm.src_cls_id AS src_cid
+    ,perm.src_path   AS src_path
+
+    ,dst.title       AS dst_otitle
+    ,dst.id          AS dst_oid
+    ,perm.dst_cls_id AS dst_cid
+    ,perm.dst_path   AS dst_path
+    ,dstn.pid        AS dst_opid
     
     ,perm.id              AS perm_id
     ,perm.access_disabled AS perm_access_disabled
@@ -313,16 +337,16 @@ SELECT
 FROM obj -- откуда + что
 
 RIGHT JOIN perm_move perm -- находим все объекты классы которых удовлетворяют правилу (которые можно перемещать)
-    ON   obj.cls_id IN (SELECT _id FROM fget_cls_childs(perm.cls_id))
+    ON   obj.cls_id IN (SELECT _id FROM get_childs_cls(perm.cls_id))
     AND perm.obj_id IS NULL OR obj.id = perm.obj_id -- отсеиваем по имени
-    AND (perm.src_path IS NULL OR get_path(obj.pid) LIKE perm.src_path ) -- отсеиваем по местоположению
+    AND (perm.src_path IS NULL OR get_path_obj_arr_2id(obj.pid)::TEXT LIKE perm.src_path ) -- отсеиваем по местоположению
 
 LEFT JOIN obj_name dst -- куда
     ON perm.dst_cls_id = dst.cls_id
     AND perm.dst_obj_id IS NULL OR  dst.id = perm.dst_obj_id -- отсеиваем по имени
 LEFT JOIN obj_num  dstn -- куда
     ON dstn.id = dst.id
-    AND (perm.dst_path IS NULL OR get_path(dstn.pid) LIKE perm.dst_path ) -- отсеиваем по местоположению
+    AND (perm.dst_path IS NULL OR get_path_obj_arr_2id(dstn.pid)::TEXT LIKE perm.dst_path ) -- отсеиваем по местоположению
 
 -- group permission
 LEFT JOIN wh_role _group 
@@ -333,7 +357,7 @@ RIGHT JOIN wh_role _user
     ON  _user.id=membership.member -- определяем ИДЕНТИФИКАТОРЫ разрешённых пользователей
     AND _user.rolname=CURRENT_USER -- определяем ИМЕНА разрешённых пользователей ВКЛЮЧАЯ ТЕКУЩЕГО
 
-WHERE obj.pid <> dst.id AND dst.id>0 ;
+WHERE obj.pid <> dst.id AND dst.id>0  ;
 -----------------------------------------------------------------------------------------------------------------------------
 -- блокировать исходные и конечные объекты, если правило при проверке перестанет существовать, то пофиг
 -- перемещение исполнится, т.к. разрешение уже получено и хранится в t_lock_obj
@@ -344,27 +368,26 @@ CREATE OR REPLACE FUNCTION lock_for_move( IN _obj_id  BIGINT, IN _old_pid BIGINT
     RETURNS TABLE(_dst_obj_id BIGINT, _dst_cls_id INTEGER, _dst_obj_label NAME,_dst_obj_pid BIGINT,_oiddstpath BIGINT[])
     AS $BODY$
 DECLARE
-   _dst_path BIGINT[];
+   _dst_path_2id BIGINT[];
    _locked_rec RECORD;
    _cls_id      BIGINT;
    
     _dst_obj CURSOR IS
-        SELECT dst_obj_id, dst_cls_id, dst_obj_label ,dst_obj_pid
+        SELECT dst_oid, dst_cid, dst_otitle,dst_opid
         FROM (
               SELECT 
-                dst_obj_id, dst_cls_id, dst_obj_label ,dst_obj_pid,sum(perm_access_disabled)
+                dst_oid, dst_cid, dst_otitle ,dst_opid, sum(perm_access_disabled)
                 FROM moverule_lockup WHERE
-                    mov_cls_id = _cls_id -- NOT NULL
-                AND (mov_obj_pid IS NULL OR mov_obj_pid = _old_pid)
-                AND (mov_obj_id  IS NULL OR mov_obj_id = _obj_id)
-                GROUP BY dst_obj_id, dst_cls_id, dst_obj_label ,dst_obj_pid
+                    cid     = _cls_id 
+                AND src_oid = _old_pid
+                AND oid     = _obj_id
+                GROUP BY dst_oid, dst_cid, dst_otitle ,dst_opid
              )t
             WHERE sum=0;
 
-
 BEGIN
   -- пытаемся найти объект и его местоположение
-  SELECT cls_id INTO _cls_id FROM obj WHERE id=_obj_id;
+  SELECT cls_id INTO _cls_id FROM obj WHERE id=_obj_id AND pid=_old_pid;
   IF NOT FOUND THEN
     RAISE EXCEPTION ' Object not exists obj_id=% ', _obj_id;
   END IF;
@@ -373,14 +396,14 @@ BEGIN
 -- объект блокирован
 -- возвращаем пользвателю объекты назначения, попутно складываем их местоположение  в табличку
   FOR rec IN _dst_obj LOOP
-    _oiddstpath := (SELECT fget_get_oid_path(rec.dst_obj_id));
+    _dst_path_2id := (SELECT get_path_obj_arr_2id(rec.dst_oid));
 
-    INSERT INTO lock_dst(oid,pid, dst_path)VALUES(_obj_id,_old_pid,_oiddstpath); 
+    INSERT INTO lock_dst(oid,pid, dst_path)VALUES(_obj_id,_old_pid,_dst_path_2id); 
 
-    _dst_obj_id:=rec.dst_obj_id;
-    _dst_cls_id:=rec.dst_cls_id;
-    _dst_obj_label:=rec.dst_obj_label;
-    _dst_obj_pid:=rec.dst_obj_pid;
+    _dst_obj_id:=rec.dst_oid;
+    _dst_cls_id:=rec.dst_cid;
+    _dst_obj_label:=rec.dst_otitle;
+    _dst_obj_pid:=rec.dst_opid;
     
     RETURN NEXT;
   END LOOP;
@@ -390,13 +413,13 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 500;
 
-SELECT * FROM lock_for_move(1639,1);
+SELECT * FROM lock_for_move(104,1);
 
 --SELECT do_obj_act(1639, 101, '{"100":"qwe","106":55,"105":"asd"}');
 --SELECT do_obj_act(1639, 100, '{"105":"dddddddddd"}');
 
 
-SELECT lock_reset(1639,NULL);
+SELECT lock_reset(104,NULL);
 
 -----------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------

@@ -816,7 +816,7 @@ ALTER TABLE cls_real
       ON UPDATE RESTRICT ON DELETE SET DEFAULT;
 ---------------------------------------------------------------------------------------------------
 PRINT '';
-PRINT '- создаём 1 пустое и одно действие с свойствами';
+PRINT '- Заполняем тестовыми данными';
 PRINT '';
 ---------------------------------------------------------------------------------------------------
 
@@ -824,18 +824,36 @@ DELETE FROM prop CASCADE;
 DELETE FROM act CASCADE;
 DELETE FROM cls WHERE title='TestCls';
 
-DECLARE @cls_id_1,@cls_id_2,@cls_id_3,@cls_id_4;
+DECLARE @cls_id_1,@cls_id_2,@cls_id_3,@cls_id_4,@cls_id_5,@cls_id_6,@cls_id_7,@cls_id_8;
 SET @cls_id_1 = INSERT INTO cls(pid,title,kind,measure) VALUES (1,'TestCls',1,'coco') RETURNING id;
 SET @cls_id_2 = INSERT INTO cls(pid,title,kind) VALUES (1,'Приборы',0) RETURNING id;
-SET @cls_id_3 = INSERT INTO cls(pid,title,kind,measure) VALUES (@cls_id_2,'СРК2М',1,'coco') RETURNING id;
-SET @cls_id_4 = INSERT INTO cls(pid,title,kind,measure) VALUES (@cls_id_2,'ДИНА-К4-89',1,'coco') RETURNING id;
+SET @cls_id_3 = INSERT INTO cls(pid,title,kind) VALUES (1,'ЗИП',0) RETURNING id;
+SET @cls_id_4 = INSERT INTO cls(pid,title,kind,measure) VALUES (@cls_id_2,'СРК2М',1,'ед.') RETURNING id;
+SET @cls_id_5 = INSERT INTO cls(pid,title,kind,measure) VALUES (@cls_id_2,'ДИНА-К4-89',1,'ед.') RETURNING id;
+SET @cls_id_6 = INSERT INTO cls(pid,title,kind,measure) VALUES (@cls_id_3,'ФЭУ-102',2,'шт.') RETURNING id;
+SET @cls_id_7 = INSERT INTO cls(pid,title,kind,measure) VALUES (@cls_id_3,'упл.кольцо 105-115-58',2,'шт.') RETURNING id;
+SET @cls_id_8 = INSERT INTO cls(pid,title,kind,measure) VALUES (@cls_id_3,'Спирт',3,'л.') RETURNING id;
+
+DECLARE @oid_1,@oid_2,@oid_3,@oid_4,@oid_5,@oid_6,@oid_7,@oid_8,@oid_9,@oid_10,@oid_11,@oid_12,@oid_13;
+SET @oid_1 = INSERT INTO obj(title,cls_id,pid) VALUES ('01',@cls_id_4, 1 )RETURNING id;
+SET @oid_2 = INSERT INTO obj(title,cls_id,pid) VALUES ('02',@cls_id_4, 1 )RETURNING id;
+SET @oid_3 = INSERT INTO obj(title,cls_id,pid) VALUES ('03',@cls_id_4, 1 )RETURNING id;
+SET @oid_4 = INSERT INTO obj(title,cls_id,pid) VALUES ('01',@cls_id_5, 1 )RETURNING id;
+
+SET @oid_5 = INSERT INTO obj(title,cls_id,pid,qty) VALUES ('партия 1',@cls_id_6, 1, 9)RETURNING id;
+SET @oid_6 = INSERT INTO obj(title,cls_id,pid,qty) VALUES ('партия 1',@cls_id_7, 1, 50)RETURNING id;
+SET @oid_7 = INSERT INTO obj(title,cls_id,pid,qty) VALUES ('партия 1',@cls_id_8, 1 , 3.3)RETURNING id;
+SET @oid_8 = INSERT INTO obj(title,cls_id,pid,qty) VALUES ('партия 1',@cls_id_8, 1 , 3.1)RETURNING id;
+
+SET @oid_9 = INSERT INTO obj(title,cls_id,pid) VALUES ('1',@cls_id_1, 1 )RETURNING id;
+SET @oid_10 = INSERT INTO obj(title,cls_id,pid) VALUES ('2',@cls_id_1, 1 )RETURNING id;
 
 
 DECLARE @prop_id_1,@prop_id_2,@prop_id_3,@prop_id_4;
 SET @prop_id_1 = INSERT INTO prop(title, kind)VALUES ('Наработка(ч.)', 1)RETURNING id;
 SET @prop_id_2 = INSERT INTO prop(title, kind)VALUES ('Счёт ГК', 1)RETURNING id;
 SET @prop_id_3 = INSERT INTO prop(title, kind)VALUES ('Комментарий', 0)RETURNING id;
-SET @prop_id_4 = INSERT INTO prop(title, kind)VALUES ('Описание', 0)RETURNING id;
+SET @prop_id_4 = INSERT INTO prop(title, kind)VALUES ('Описание ремонта', 0)RETURNING id;
 
 DECLARE @act_id_1,@act_id_2,@act_id_3,@act_id_4;
 SET @act_id_1 = INSERT INTO act (title) VALUES ('Ремонт')RETURNING id;
@@ -843,19 +861,70 @@ SET @act_id_2 = INSERT INTO act (title) VALUES ('Проверка')RETURNING id;
 SET @act_id_3 = INSERT INTO act (title) VALUES ('Профилактика')RETURNING id;
 SET @act_id_4 = INSERT INTO act (title) VALUES ('ГИС')RETURNING id;
 
+-- 'Ремонт' --Наработка+Счёт ГК+Комментарий+Описание ремонта
 INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_1, @prop_id_1);
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_1, @prop_id_2);
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_1, @prop_id_3);
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_1, @prop_id_4);
+-- 'Проверка' --Наработка+Счёт ГК+Комментарий
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_2, @prop_id_1);
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_2, @prop_id_2);
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_2, @prop_id_3);
+-- 'Профилактика' --Наработка+Счёт ГК+Комментарий
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_3, @prop_id_1);
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_3, @prop_id_2);
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_3, @prop_id_3);
+-- 'ГИС' --Наработка+Комментарий
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_4, @prop_id_1);
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_4, @prop_id_3);
 
-INSERT INTO ref_cls_act(cls_id, act_id) VALUES (@cls_id_1, @act_id_1);
-INSERT INTO ref_cls_act(cls_id, act_id) VALUES (@cls_id_1, @act_id_2);
 
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_2, @prop_id_1);    
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_2, @prop_id_2);    
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, act_id)
+    VALUES ('User', 0, @cls_id_4, NULL, NULL, @act_id_1);
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, act_id)
+    VALUES ('User', 0, @cls_id_4, NULL, NULL, @act_id_2);
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, act_id)
+    VALUES ('User', 0, @cls_id_4, NULL, NULL, @act_id_3);
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, act_id)
+    VALUES ('User', 0, @cls_id_4, NULL, NULL, @act_id_4);
 
-DELETE FROM ref_act_prop WHERE act_id=@act_id_2 AND  prop_id=@prop_id_2;    
 
-UPDATE prop SET title='prop_id_11' WHERE title='prop_id_1';
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, act_id)
+    VALUES ('User', 0, @cls_id_5, NULL, NULL, @act_id_1);
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, act_id)
+    VALUES ('User', 0, @cls_id_5, NULL, NULL, @act_id_3);
 
-DELETE FROM prop WHERE title='prop_id_2';
+
+INSERT INTO perm_move( access_group, access_disabled
+                      ,cls_id, obj_id
+                      ,src_cls_id, src_obj_id, src_path
+                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+                     ( 'User', 0
+                       ,@cls_id_6, NULL        -- whar [ФЭУ-102]%
+                       ,2, NULL, NULL          -- from [ROOT]%
+                       , @cls_id_4, NULL, NULL -- to   [СРК2М]% 
+                      );
+
+INSERT INTO perm_move( access_group, access_disabled
+                      ,cls_id, obj_id
+                      ,src_cls_id, src_obj_id, src_path
+                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+                     ( 'User', 0
+                       ,@cls_id_6, NULL        -- whar [ФЭУ-102]%
+                       ,2, NULL, NULL          -- from [ROOT]%
+                       , @cls_id_5, NULL, NULL -- to   [ДИНА-К4-89]% 
+                      );
+
+INSERT INTO perm_move( access_group, access_disabled
+                      ,cls_id, obj_id
+                      ,src_cls_id, src_obj_id, src_path
+                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+                     ( 'User', 0
+                       ,@cls_id_6, NULL       -- whar [ФЭУ-102]%
+                       ,@cls_id_5, NULL, NULL -- from [ДИНА-К4-89]% 
+                       ,2, NULL, NULL         -- to   [ROOT]%
+                       
+                      );
 
 
 
@@ -867,19 +936,6 @@ delete from cls_qtyf WHERE id>5000;
 
 delete from obj WHERE id>5000;
 
-INSERT INTO cls_num(id,title,pid)         VALUES (10000,'clsn10000',1);
-INSERT INTO cls_qtyi(id,title,pid)        VALUES (10001,'clsi10001',1);
-INSERT INTO cls_qtyf(id,title,pid)        VALUES (10000,'clsqf10000',1);
-
-
-INSERT INTO obj_num(id,title,cls_id,pid) VALUES (10000,'objnum10000',10000,1);
-INSERT INTO obj_names_qtyi(id,title,cls_id)    VALUES (10001,'objqtyi10001',10001);
-INSERT INTO obj_names_qtyi(id,title,cls_id)    VALUES (10000,'objqtyi10000',10000);
-
-
-INSERT INTO obj_num(title,cls_id,pid) VALUES ('objnum10001',10000,1);
-INSERT INTO obj_num(title,cls_id,pid) VALUES ('objnum10002',10000,1);
-INSERT INTO obj_num(title,cls_id,pid) VALUES ('objnum10003',10000,1);
 */
 
 
@@ -903,7 +959,7 @@ END
 DECLARE @clstitle, @qty, @pid, @cnumid, @cqtyiid, @cqtyfid , @oqtyiid, @oqtyfid, @opid ;
 SET @opid= 1;
 SET @pid= 1;
-SET @qty= 10;
+SET @qty= 510;
 --SET @qty= 10;
 
 WHILE (@qty > 0)

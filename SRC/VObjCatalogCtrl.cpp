@@ -501,12 +501,22 @@ void VObjCatalogCtrl::OnCmdMove(wxCommandEvent& evt)
 		using namespace dlg_move;
 		namespace view = dlg_move::view;
 
-		auto subj = std::make_shared<model::MovableObj>();
-		subj->SetData(data, true);
-		view::Frame dlg;
-		dlg.SetModel(subj);
-		dlg.ShowModal();
-		OnCmdReload(wxCommandEvent(wxID_REFRESH));
+		try
+		{
+			auto subj = std::make_shared<model::MovableObj>();
+			subj->SetData(data, true);
+			view::Frame dlg;
+			dlg.SetModel(subj);
+			dlg.ShowModal();
+			OnCmdReload(wxCommandEvent(wxID_REFRESH));
+		}
+		catch (...)
+		{ 
+			// Transaction already rollbacked
+			// dialog was destroyed
+			// so nothinh to do
+		}
+
 	}
 }
 //-----------------------------------------------------------------------------
