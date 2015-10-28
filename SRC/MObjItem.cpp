@@ -200,7 +200,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 		const auto& catalogData = catalog->GetData();
 
 		wxString fields, leftJoin;
-		if (ctSingle == typeItemData.GetClsType())
+		//if (ctSingle == typeItemData.GetClsType())
 		{
 			
 			wxString qq;

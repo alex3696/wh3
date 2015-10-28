@@ -277,7 +277,7 @@ CREATE TABLE ref_cls_act (
 ,CONSTRAINT pk_refclsact__id    PRIMARY KEY ( id )
 ,CONSTRAINT uk_refclsact_clsid_actid UNIQUE (cls_id, act_id)
 ,CONSTRAINT fk_refclsact__clsid FOREIGN KEY (cls_id )
-    REFERENCES                      cls_num (    id )
+    REFERENCES                      cls_name (    id )
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 ,CONSTRAINT fk_refclsact__actid FOREIGN KEY ( act_id )
     REFERENCES                           act( id )
@@ -360,10 +360,6 @@ CREATE TABLE perm_act
     REFERENCES                               wh_role (rolname)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 
-,CONSTRAINT fk_permact__clsid       FOREIGN KEY (cls_id)
-    REFERENCES                               cls_num(id)
-    MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE
-
 -- внешний ключ на действия
 ,CONSTRAINT fk_permact_clsact FOREIGN KEY (cls_id, act_id) 
     REFERENCES                ref_cls_act (cls_id, act_id) 
@@ -387,6 +383,8 @@ CREATE TABLE obj_name (
 ,title      WHNAME  NOT NULL
 ,cls_id     INTEGER NOT NULL 
 ,move_logid BIGINT
+,act_logid  BIGINT   UNIQUE
+,prop       JSONB
 
 ,CONSTRAINT pk_obj__id           PRIMARY KEY(id)
 ,CONSTRAINT uk_obj__title_clsid  UNIQUE (title, cls_id)
@@ -398,7 +396,7 @@ CREATE TABLE obj_name (
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX idx_objname_clsid ON obj_name ("cls_id") ;
-
+CREATE INDEX idx_objname_prop ON obj_name USING gin ("prop") ;
 ---------------------------------------------------------------------------------------------------
 -- детальные сведения объект номерной
 ---------------------------------------------------------------------------------------------------
@@ -410,9 +408,7 @@ CREATE TABLE obj_num (
  ,pid        BIGINT  NOT NULL DEFAULT 1 
      REFERENCES obj_num( id )       MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
 
- ,act_logid  BIGINT   UNIQUE
- ,prop       JSONB
-
+ 
 
 );-- INHERITS (obj);
 CREATE INDEX idx_objnum_pid ON obj_num ("pid") ;
@@ -459,7 +455,7 @@ CREATE TABLE log_act (
 
   ,src_path  BIGINT[] 
 
-  ,obj_id    BIGINT   NOT NULL REFERENCES obj_num( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
+  ,obj_id    BIGINT   NOT NULL REFERENCES obj_name( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
   ,act_id    BIGINT   NOT NULL REFERENCES act( id )     MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE 
   ,prop      JSONB
 
@@ -562,11 +558,11 @@ DROP VIEW IF EXISTS obj CASCADE;
 CREATE VIEW obj AS
 SELECT id, pid, title, cls_id, prop, qty, move_logid, act_logid,cls_kind FROM
 (
-SELECT id, pid, act_logid, prop, 1::SMALLINT AS cls_kind,1::NUMERIC AS qty FROM obj_num L
+SELECT id, pid, 1::SMALLINT AS cls_kind,1::NUMERIC AS qty FROM obj_num
 UNION ALL
-SELECT id, pid, NULL::BIGINT AS act_logid, NULL::JSONB AS prop,2::SMALLINT AS cls_kind, qty FROM obj_qtyi
+SELECT id, pid, 2::SMALLINT AS cls_kind, qty FROM obj_qtyi
 UNION ALL
-SELECT id, pid, NULL::BIGINT AS act_logid, NULL::JSONB AS prop,3::SMALLINT AS cls_kind, qty FROM obj_qtyf
+SELECT id, pid, 3::SMALLINT AS cls_kind, qty FROM obj_qtyf
 ) cdif
 LEFT JOIN obj_name USING (id);
 
@@ -745,12 +741,17 @@ BEGIN
   END IF;
 
   IF _kind>0 AND _kind<4 THEN
-    UPDATE obj_name SET title=NEW.title, move_logid=NEW.move_logid WHERE id =  NEW.id;
+    UPDATE obj_name SET 
+      title=NEW.title
+      ,move_logid=NEW.move_logid 
+      ,act_logid=NEW.act_logid
+      ,prop=NEW.prop
+      WHERE id =  NEW.id;
   END IF;
 
   CASE _kind
     WHEN 1 THEN 
-      UPDATE obj_num  SET pid=NEW.pid, act_logid=NEW.act_logid, prop=NEW.prop WHERE id =  NEW.id;
+      UPDATE obj_num  SET pid=NEW.pid WHERE id =  NEW.id;
     WHEN 2 THEN 
       UPDATE obj_qtyi SET pid=NEW.pid, qty=NEW.qty WHERE id = NEW.id;
     WHEN 3 THEN 
@@ -888,6 +889,9 @@ INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, ac
 INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, act_id)
     VALUES ('User', 0, @cls_id_4, NULL, NULL, @act_id_4);
 
+
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, act_id)
+    VALUES ('User', 0, @cls_id_6, NULL, NULL, @act_id_2);
 
 INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, act_id)
     VALUES ('User', 0, @cls_id_5, NULL, NULL, @act_id_1);

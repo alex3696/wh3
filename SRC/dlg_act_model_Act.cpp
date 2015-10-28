@@ -124,8 +124,9 @@ bool ActArray::GetSelectChildsQuery(wxString& query)const
 
 	query = wxString::Format(
 		" SELECT id, title, note, color, script "
-		" FROM lock_for_act(%s)"
+		" FROM lock_for_act(%s, %s)"
 		, actObj.mObj.mId.SqlVal()
+		, actObj.mObj.mParent.mId.SqlVal()
 		);
 	return true;
 

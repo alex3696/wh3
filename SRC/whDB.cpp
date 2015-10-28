@@ -54,14 +54,24 @@ bool whDB::Open(const wxString& strServer, int nPort, const wxString& strDatabas
 //------------------------------------------------------------------------------
 whTable*	whDB::ExecWithResults(const wxString& query)
 {
-	whTable* table=new whTable(this);
-	if(table->Exec(query))
+	whTable* table = nullptr;
+	try
+	{
+		table = new whTable(this);
+		if (table->Exec(query))
+		{
+			delete table;
+			table = NULL;
+		}
+	}
+	catch (...)
 	{
 		delete table;
-		table = NULL;
+		table = nullptr;
+		throw;
 	}
-	return table;
 
+	return table;
 }
 //------------------------------------------------------------------------------
 whTable_shared_ptr	whDB::ExecWithResultsSPtr(const wxString& query)

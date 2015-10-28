@@ -205,7 +205,6 @@ void VObjCatalogCtrl::UpdateToolsStates()
 			case ctQtyByOne:
 			case ctQtyByFloat:
 				mToolDisable[wxID_EXECUTE] += 1;
-				mToolDisable[wxID_PROPERTIES] += 1;
 			default://ctAbstract
 				mToolDisable[wxID_REPLACE] += 1;
 				mToolDisable[wxID_EXECUTE] += 1;
@@ -227,8 +226,6 @@ void VObjCatalogCtrl::UpdateToolsStates()
 					break;
 				case ctQtyByOne:
 				case ctQtyByFloat:
-					mToolDisable[wxID_EXECUTE] += 1;
-					mToolDisable[wxID_PROPERTIES] += 1;
 					break;
 				default://ctAbstract
 					mToolDisable[wxID_EXECUTE] += 1;
@@ -515,6 +512,7 @@ void VObjCatalogCtrl::OnCmdMove(wxCommandEvent& evt)
 			// Transaction already rollbacked
 			// dialog was destroyed
 			// so nothinh to do
+			wxLogError("Бла, бла - вобщем кто-то уже юзает этот объект");
 		}
 
 	}
@@ -527,15 +525,23 @@ void VObjCatalogCtrl::OnCmdAct(wxCommandEvent& evt)
 	{
 		using namespace dlg_act;
 		namespace view = dlg_act::view;
+		try
+		{
+			auto subj = std::make_shared<model::Obj >();
+			subj->SetData(data, true);
 
-		auto subj = std::make_shared<model::Obj >();
-		subj->SetData(data, true);
-
-		view::Frame dlg;
-		dlg.SetModel(subj);
-		dlg.ShowModal();
-		OnCmdReload(wxCommandEvent(wxID_REFRESH));
-
+			view::Frame dlg;
+			dlg.SetModel(subj);
+			dlg.ShowModal();
+			OnCmdReload(wxCommandEvent(wxID_REFRESH));
+		}
+		catch (...)
+		{
+			// Transaction already rollbacked
+			// dialog was destroyed
+			// so nothinh to do
+			wxLogError("Бла, бла - вобщем кто-то уже юзает этот объект");
+		}
 	}
 }
 //-----------------------------------------------------------------------------

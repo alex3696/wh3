@@ -121,11 +121,11 @@ CREATE OR REPLACE FUNCTION lock_reset(IN _oid  BIGINT, IN _pid BIGINT)
  $BODY$
     DELETE FROM lock_obj 
     WHERE 
-    lock_session=pg_backend_pid() AND oid=_oid 
-    AND (
-            ((SELECT cls_kind FROM obj WHERE id=_oid) > 1 AND pid=_pid )
-          OR (SELECT cls_kind FROM obj WHERE id=_oid) = 1
-        );
+    lock_session=pg_backend_pid() AND oid=_oid AND pid=_pid ;
+    --AND (
+    --        ((SELECT cls_kind FROM obj WHERE id=_oid) > 1 AND pid=_pid )
+    --      OR (SELECT cls_kind FROM obj WHERE id=_oid) = 1
+    --    );
 $BODY$
   LANGUAGE sql VOLATILE  COST 500;
 
@@ -138,8 +138,8 @@ SELECT lock_reset(103,NULL);
 -- блокировать объекты, если правило при проверке изменится или перестанет существовать, то пофиг
 -- разрешение действия кэшировано и разрешено в таблице блокировок
 -----------------------------------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS    lock_for_act(IN _oid  BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION lock_for_act(IN _oid  BIGINT)
+DROP FUNCTION IF EXISTS    lock_for_act(IN _oid  BIGINT, IN _opid  BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION lock_for_act(IN _oid  BIGINT, IN _opid  BIGINT)
     --RETURNS TABLE(_act_id INTEGER, _act_label NAME)
     RETURNS SETOF act
     AS $BODY$
@@ -163,26 +163,29 @@ DECLARE
 
 
     _cls_id   BIGINT;
-    _pid      BIGINT;
+    _txt_curr_path_2id TEXT;
+
     _locked_rec   RECORD;
 BEGIN
 -- пытаемся найти объект и его местоположение
-  SELECT pid,cls_id INTO _pid,_cls_id FROM obj WHERE id=_oid AND cls_kind=1;
+  SELECT cls_id INTO _cls_id FROM obj WHERE id=_oid AND pid = _opid;
   IF NOT FOUND THEN
     RAISE EXCEPTION ' Object not exists obj_id=% ', _oid;
   END IF;
   -- пытаемся заблокировать объект, если блокировка не удастся транзакция откатится исключением
-  _locked_rec := try_lock_obj(_oid, _pid);
+  _locked_rec := try_lock_obj(_oid, _opid);
   -- объект блокирован
   -- определяем разрешенные действия и спихиваем их в выходную табличку и в табличку блокировки
-  FOR rec IN _acts( get_path_obj(_pid), _cls_id) LOOP
+  _txt_curr_path_2id := COALESCE(get_path_obj_arr_2id(_opid), '{}');
+  -- RAISE DEBUG ' _curr_path=%    _cls_id=%', _txt_curr_path_2id,_cls_id ;
+  FOR rec IN _acts( _txt_curr_path_2id, _cls_id) LOOP
     return next rec;                        -- заполняем табличку разрешённых действий
     -- заполняем табличку идентификаторов разрешённых действий 
-    INSERT INTO lock_act(oid, pid, act_id)VALUES (_oid, _pid, rec.id);
+    INSERT INTO lock_act(oid, pid, act_id)VALUES (_oid, _opid, rec.id);
   END LOOP;
   -- если не нашлись действия, то отпускаем блокировку
   IF NOT FOUND THEN 
-    PERFORM lock_reset(_oid,_pid);
+    PERFORM lock_reset(_oid,_opid);
     RAISE DEBUG ' There are no action, lock aborted';
   ELSE
     RAISE DEBUG ' Object LOCKED cls_id=% obj_id=% ',_cls_id, _oid;
@@ -193,7 +196,8 @@ $BODY$
   LANGUAGE plpgsql VOLATILE  COST 500;
 
 
-
+SELECT id, title, note, color, script  FROM lock_for_act(103, 1);
+SELECT lock_reset(103,1);
 -----------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------
 --функция выполнения действия
@@ -287,7 +291,7 @@ BEGIN
 
   
 
-  UPDATE obj_num SET act_logid=_last_log_id, prop=_prop_str::JSONB WHERE id=_obj_id;
+  UPDATE obj_name SET act_logid=_last_log_id, prop=_prop_str::JSONB WHERE id=_obj_id;
 
   INSERT INTO log_act(id,  act_id, prop,   obj_id,  src_path)
     VALUES (_last_log_id, _act_id, _prop_str::JSONB, _obj_id,_curr_pathid);
@@ -297,12 +301,10 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 100;
 
-SELECT id, title, note, color, script  FROM lock_for_act(101);
-SELECT do_obj_act(101, 103, '{"100":66,"102":"45452ergsdfgd"}');
-SELECT lock_reset(101,1);
+SELECT id, title, note, color, script  FROM lock_for_act(103, 1);
 
-
-
+SELECT do_obj_act(103, 100, '{"100":66,"102":"45452ergsdfgd"}');
+SELECT lock_reset(103,1);
 
 
 
