@@ -16,11 +16,20 @@ DROP TABLE IF EXISTS lock_obj CASCADE;
 DROP TABLE IF EXISTS lock_dst CASCADE;
 DROP TABLE IF EXISTS lock_act CASCADE;
 
+DROP VIEW IF EXISTS moverule_lockup CASCADE;
+
+DROP FUNCTION IF EXISTS    try_lock_obj(IN _oid  BIGINT, IN _pid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS    lock_reset(IN _oid  BIGINT, IN _pid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS    lock_for_act(IN _oid  BIGINT, IN _opid  BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS    do_act(IN _obj_id BIGINT, _act_id INTEGER, IN _prop JSONB) CASCADE;
+DROP FUNCTION IF EXISTS    lock_for_move( IN _obj_id  BIGINT, IN _old_pid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS    do_move( _oid  BIGINT, IN _old_opid BIGINT,  IN _new_opid BIGINT
+                                   , IN _qty NUMERIC ) CASCADE;
 
 -------------------------------------------------------------------------------
 --таблица блокировки объектов
 DROP TABLE IF EXISTS lock_obj CASCADE;
-CREATE TABLE lock_obj(
+CREATE UNLOGGED TABLE lock_obj(
    lock_session INTEGER     NOT NULL DEFAULT pg_backend_pid()
   ,lock_user    NAME        NOT NULL DEFAULT CURRENT_USER
      REFERENCES wh_role( rolname ) MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
@@ -43,7 +52,7 @@ CREATE INDEX idx_lock_obj_lock_user ON lock_obj USING btree (lock_user);
 -------------------------------------------------------------------------------
 --таблица блокировки разрешённых путей назначения
 DROP TABLE IF EXISTS lock_dst CASCADE;
-CREATE TABLE lock_dst
+CREATE UNLOGGED TABLE lock_dst
 (
    oid BIGINT  NOT NULL
   ,pid BIGINT  NOT NULL
@@ -59,7 +68,7 @@ CREATE TABLE lock_dst
 -------------------------------------------------------------------------------
 --таблица блокировки разрешённых действий
 DROP TABLE IF EXISTS lock_act CASCADE;
-CREATE TABLE lock_act
+CREATE UNLOGGED TABLE lock_act
 (
   oid  BIGINT  NOT NULL,
   pid BIGINT  NOT NULL,
@@ -203,9 +212,9 @@ SELECT lock_reset(103,1);
 --функция выполнения действия
 -----------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS    do_obj_act(IN _obj_id BIGINT, _act_id INTEGER, IN _prop JSONB) CASCADE;
+DROP FUNCTION IF EXISTS    do_act(IN _obj_id BIGINT, _act_id INTEGER, IN _prop JSONB) CASCADE;
 
-CREATE OR REPLACE FUNCTION do_obj_act(IN _obj_id BIGINT, _act_id INTEGER, IN _prop JSONB)
+CREATE OR REPLACE FUNCTION do_act(IN _obj_id BIGINT, _act_id INTEGER, IN _prop JSONB)
                   RETURNS  VOID AS 
 $BODY$
 DECLARE
@@ -303,7 +312,7 @@ $BODY$
 
 SELECT id, title, note, color, script  FROM lock_for_act(103, 1);
 
-SELECT do_obj_act(103, 100, '{"100":66,"102":"45452ergsdfgd"}');
+SELECT do_act(103, 100, '{"100":66,"102":"45452ergsdfgd"}');
 SELECT lock_reset(103,1);
 
 
@@ -423,432 +432,122 @@ SELECT * FROM lock_for_move(104,1);
 
 SELECT lock_reset(104,NULL);
 
------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------
---функция  
------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS    do_log_state( IN _cls_id   INTEGER,  IN _obj_id   BIGINT,   IN _act_id  INTEGER, IN _last_log_id BIGINT,
-                                         IN _src_path BIGINT[], IN _dst_path BIGINT[], IN _old_pid BIGINT,  IN _new_pid     BIGINT) CASCADE;
-
-CREATE OR REPLACE FUNCTION do_log_state( IN _cls_id   INTEGER,  IN _obj_id   BIGINT,   IN _act_id  INTEGER, IN _last_log_id BIGINT,
-                                         IN _src_path BIGINT[], IN _dst_path BIGINT[], IN _old_pid BIGINT,  IN _new_pid     BIGINT) 
-                  RETURNS  VOID AS 
-$BODY$
-DECLARE
-    _hdr_str TEXT;
-    _val_str TEXT;
-    _all_prop_names CURSOR IS
-        SELECT DISTINCT ON(t_prop.id) t_prop.*
-          FROM  t_ref_class_act
-          LEFT JOIN t_ref_act_prop  ON t_ref_act_prop.act_id = t_ref_class_act.act_id
-          LEFT JOIN t_prop          ON t_ref_act_prop.prop_id = t_prop.id 
-          WHERE t_ref_class_act.cls_id=_cls_id;
-
-    _insert_log_query TEXT;
-    _select_state     TEXT;
-    _prop_val_array     TEXT[];
-    
-    _hdr_qty INTEGER;
-BEGIN
-    _hdr_qty :=0;
-    _hdr_str :='';
-    _val_str :='';
-    FOR rec IN _all_prop_names LOOP
-        _hdr_str := concat_ws(',',_hdr_str,quote_ident(rec.label) );
-        _hdr_qty := _hdr_qty+1;
-    END LOOP;
-
-
-    IF _hdr_str<>'' THEN
-        _hdr_str:=TRIM(leading ',' from _hdr_str);
-        _select_state := format( 'SELECT ARRAY[%s] FROM t_state_%s WHERE obj_id=%s'
-                                     ,_hdr_str, _cls_id, _obj_id);
-        RAISE DEBUG '_select_state= %',_select_state;
-        EXECUTE _select_state INTO _prop_val_array;
-        
-        FOR i IN 1.._hdr_qty LOOP
-            _val_str := concat_ws(',',_val_str,COALESCE(quote_literal(_prop_val_array[i]),'NULL'));
-        END LOOP;
-        _val_str:=TRIM(leading ',' from _val_str);
-
-        _hdr_str:=_hdr_str||',';
-        _val_str:=_val_str||',';
-    END IF;
-
-    RAISE DEBUG '_hdr_str: %',_hdr_str;
-    RAISE DEBUG '_val_str: %',_val_str;
-
-    _insert_log_query:= format(
-        'INSERT INTO t_log_%s( %s log_id, cls_id, obj_id, act_id, src_path, dst_path, old_obj_pid, new_obj_pid)'
-        'VALUES(%s %s, %s, %s, %s, %L, %L, %L, %L)'
-        ,_cls_id
-        ,_hdr_str
-        ,_val_str, _last_log_id, _cls_id, _obj_id, _act_id, _src_path, _dst_path, _old_pid, _new_pid );
-    RAISE DEBUG 'insert_log_str: %',_insert_log_query;
-
-    EXECUTE _insert_log_query;
-END;
-$BODY$
-  LANGUAGE plpgsql VOLATILE  COST 500;
-
-
-/*
-
- insert_log_str: INSERT INTO t_log_105
- ( "рем2","тест1_2","рем1", 
- log_id, cls_id, obj_id, act_id, src_path, dst_path, old_obj_pid, new_obj_pid)
- VALUES
- ('bla-bla2','asd',NULL, 118, 105, 103, 1, '{101}', '{101}', '101', '101')
-
-SELECT TRIM(both '{}' from
-(
-SELECT ARRAY["рем1","рем2","тест1_2"]::TEXT
-FROM t_state_105 WHERE obj_id=103
-)
-)
-
-
-SELECT ARRAY["рем1","рем2","тест1_2"]
-FROM t_state_105 WHERE obj_id=103
-
-SELECT TRIM(trailing ',' from 'sdfsdf,fsdf,sfds,fds,f,g');
-
-SELECT COALESCE(NULL, 'alt')
-
-
-    SELECT * FROM t_objnum 
-    RIGHT JOIN t_state_105 ON id= obj_id
-    WHERE t_objnum.cls_id=105 AND id=103
-
-
-SELECT * --t_prop.*-- , user_data.col2 AS val
-    FROM  t_ref_class_act
-    RIGHT JOIN t_ref_act_prop  USING(act_id)
-    LEFT  JOIN t_prop          ON t_prop.id = t_ref_act_prop.prop_id
-
-    LEFT JOIN (SELECT * FROM fn_array2_to_table('{{рем1,bla-bla},{тест1_2,asd},{qwe,qwe}}'::TEXT[]))user_data ON user_data.col1=t_prop.label
-    WHERE t_ref_class_act.cls_id=105 AND t_ref_class_act.act_id=2
-
-
-
-
-        SELECT DISTINCT ON(t_prop.id) t_prop.*
-          FROM  t_ref_class_act
-          LEFT JOIN t_ref_act_prop  ON t_ref_act_prop.act_id = t_ref_class_act.act_id
-          LEFT JOIN t_prop          ON t_ref_act_prop.prop_id = t_prop.id 
-          WHERE t_ref_class_act.cls_id=105;
-
-
-
-
-
-    SELECT column_name FROM information_schema.columns 
-        WHERE table_name='t_state_105'
-        EXCEPT ALL SELECT column_name FROM information_schema.columns WHERE table_name='t_state';
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---------------------------------------------------------------------------------------------------------------
--- проверяем - есть ли разрешения на перенос в табличке блокировок  
---------------------------------------------------------------------------------------------------------------
-/*
-DROP FUNCTION IF EXISTS    lock_move_check( IN _cls_id  INTEGER, IN _obj_id  BIGINT, IN _old_pid BIGINT,
-                                       IN _src_path BIGINT[], IN _dst_path BIGINT[]) CASCADE;
-CREATE OR REPLACE FUNCTION lock_move_check( IN _cls_id  INTEGER, IN _obj_id  BIGINT, IN _old_pid BIGINT,
-                                       IN _src_path BIGINT[], IN _dst_path BIGINT[]) 
-    RETURNS  BIGINT AS 
-$BODY$
-DECLARE
-   _result BIGINT;
-   --_old_pid BIGINT;
-BEGIN
-    --_old_pid:= ( CASE WHEN _src_path[1] IS NULL THEN 1 ELSE _src_path[1] END );
-    
-    
-    SELECT count(*) INTO _result 
-        FROM t_lock_obj
-        INNER JOIN t_lock_dst USING (cls_id,obj_id,obj_pid)
-        WHERE cls_id=_cls_id AND obj_id=_obj_id AND obj_pid=_old_pid
-        AND lock_time +'00:10:00.00' > now()
-        AND session_pid = pg_backend_pid()
-        AND ((src_path IS NULL AND _src_path IS NULL) OR src_path=_src_path)
-        AND ((dst_path IS NULL AND _dst_path IS NULL) OR dst_path=_dst_path);
-
-    RETURN _result;
-END;
-$BODY$
-  LANGUAGE plpgsql STABLE COST 500;
-
-
---------------------------------------------------------------------------------------------------------------
-
-
-SELECT * FROM lock_for_move(104,102,1);
-SELECT * FROM lock_move_check(104,102,1,NULL,'{103}');
-SELECT lock_reset(104,102,1);
-
-*/
-
------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------
---функция перемещения объекта
------------------------------------------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS    LOG_QTY_MOVE( IN _cls_id INTEGER, IN _obj_id BIGINT, 
-                                         IN _src_path BIGINT[], IN _dst_path BIGINT[], 
-                                         IN _qty NUMERIC ) CASCADE;
+-- перемещение
+-------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS    do_move( IN _oid  BIGINT, 
+                                    IN _old_opid BIGINT,  IN _new_opid BIGINT, IN _qty NUMERIC ) CASCADE;
 
-CREATE OR REPLACE FUNCTION LOG_QTY_MOVE( IN _cls_id INTEGER, IN _obj_id BIGINT, 
-                                         IN _src_path BIGINT[], IN _dst_path BIGINT[], 
-                                         IN _qty NUMERIC )
+CREATE OR REPLACE FUNCTION do_move( IN _oid  BIGINT, 
+                                    IN _old_opid BIGINT,  IN _new_opid BIGINT, IN _qty NUMERIC ) 
                   RETURNS  VOID AS $BODY$
 DECLARE
-    _old_pid BIGINT;
-    _new_pid BIGINT;
+  _lock_info   RECORD;
+  _curr_path BIGINT[];
+  _dst_path BIGINT[];
+  _ckind SMALLINT;
+  _act_logid BIGINT;
+  
+  _src_qty NUMERIC;
+  _dst_qty NUMERIC;
 
-    _src_qty NUMERIC;
-    _dst_qty NUMERIC;
-
-    _move_logid BIGINT;
+  _move_logid BIGINT;
 BEGIN
--- если пути пустые, то считаем что объекты в корне
-  _old_pid:= ( CASE WHEN _src_path[1] IS NULL THEN 1 ELSE _src_path[1] END );
-  _new_pid:= ( CASE WHEN _dst_path[1] IS NULL THEN 1 ELSE _dst_path[1] END );
-  RAISE DEBUG '_old_pid = %', _old_pid;
-  RAISE DEBUG '_new_pid = %', _new_pid;
+--  определяем заблокирован ли объект для действия
+  SELECT * INTO _lock_info 
+    FROM lock_obj
+    WHERE
+      oid = _oid
+      AND pid = _old_opid
+      AND lock_time +'00:10:00.00' > now()
+      AND lock_session = pg_backend_pid();
+  IF NOT FOUND THEN
+    RAISE EXCEPTION ' Object not locked obj_id=% ', _oid;
+  END IF;
+-- проверяем изменился ли текущий путь объекта
+  _curr_path:=(SELECT get_path_obj_arr_2id(_old_opid));
+  if(_curr_path<>_lock_info.path) THEN
+    RAISE EXCEPTION ' Object src_path was changed obj_id=%, old_path=% curr_path=% '
+                                             , _oid, _lock_info.path,_curr_path;
+  END IF;
+-- проверяем есть ли среди заблокированных пунктов назначений выбранный 
+  _dst_path:=get_path_obj_arr_2id(_new_opid);
+  PERFORM FROM lock_dst WHERE oid=_oid AND pid=_old_opid AND dst_path = _dst_path 
+                              OR (dst_path IS NULL AND _dst_path IS NULL);
+  IF NOT FOUND THEN
+    RAISE EXCEPTION ' Object dst_path was changed obj_id=%, _dst_path=%'
+                                             , _oid, _dst_path;
+  END IF;
+-- проверяем существование объекта и берём его класс
+  SELECT cls_kind,act_logid,qty INTO _ckind, _act_logid,_src_qty FROM obj WHERE id=_oid AND pid=_old_opid;
+  IF NOT FOUND OR _ckind IS NULL OR _ckind<1 OR _ckind>3 THEN
+    RAISE EXCEPTION ' Object not exist obj_id=%', _oid;
+  END IF;
 -- находим исходное количество и количество в месте назначения
-  SELECT qty INTO _src_qty FROM t_objqty WHERE pid = _old_pid AND objqty_id=_obj_id;
-  SELECT qty INTO _dst_qty FROM t_objqty WHERE pid = _new_pid AND objqty_id=_obj_id;
-
+  SELECT qty INTO _dst_qty FROM obj WHERE pid=_new_opid AND id=_oid;
+  RAISE DEBUG ' _dst_qty=% ',_dst_qty;
   CASE
     WHEN _qty < _src_qty  THEN -- div разделяем исходное количество
-      UPDATE t_objqty SET qty= (_src_qty - _qty)
-                      WHERE pid = _old_pid AND objqty_id=_obj_id;      -- уменьшаем исходное количество
+      UPDATE obj SET qty= (_src_qty - _qty)
+                      WHERE pid = _old_opid AND id=_oid;      -- уменьшаем исходное количество
       IF _dst_qty IS NOT NULL THEN                                     -- если в месте назначения есть уже такой объёкт
-           UPDATE t_objqty SET qty= (_dst_qty + _qty)
-                           WHERE pid = _new_pid AND objqty_id=_obj_id; -- добавляем (обновляем имеющееся количество)
+           UPDATE obj SET qty= (_dst_qty + _qty)
+                           WHERE pid = _new_opid AND id=_oid; -- добавляем (обновляем имеющееся количество)
        ELSE                                                            -- если в месте назначения объекта нет
-           INSERT INTO t_objqty(objqty_id, pid, qty)                   -- вставляем 
-                        VALUES (_obj_id, _new_pid, _qty);
+         INSERT INTO obj(id, title, cls_id, move_logid, act_logid, prop,pid, qty)
+           SELECT id, title, cls_id, move_logid, act_logid, prop, _new_opid AS pid, _qty AS qty  
+             FROM obj_name WHERE id=_oid;
        END IF;
     WHEN _qty = _src_qty THEN -- move перемещение
         IF _dst_qty IS NOT NULL THEN
-           UPDATE t_objqty SET qty= (_dst_qty + _qty)
-                           WHERE pid = _new_pid AND objqty_id=_obj_id;
-           DELETE FROM t_objqty 
-                           WHERE pid = _old_pid AND objqty_id=_obj_id;
+           UPDATE obj SET qty= (_dst_qty + _qty)
+                           WHERE pid = _new_opid AND id=_oid;
+           DELETE FROM obj 
+                           WHERE pid = _old_opid AND id=_oid;
         ELSE
-           UPDATE t_objqty SET pid = _new_pid
-                           WHERE pid = _old_pid AND objqty_id=_obj_id;
+           UPDATE obj SET pid = _new_opid
+                           WHERE pid = _old_opid AND id=_oid;
         END IF;
     ELSE
         RAISE EXCEPTION 'Wrong qty or unknown error'; 
   END CASE;
-
   _move_logid := nextval('seq_log_id');
 -- обновляем ссылку на последнее действие в исходном и конечном объектах
-  UPDATE t_objqty SET last_log_id=_last_log_id
-    WHERE objqty_id=_obj_id AND ( pid=_old_pid OR pid=_new_pid);
+  UPDATE obj_name SET move_logid=_move_logid  WHERE id=_oid;
 
-  INSERT INTO log_move_objqty( id
-                              ,src_objnum_id
-                              ,src_path
-                              ,dst_objnum_id
-                              ,dst_path
-                              ,objqty_id
-                              , qty)
-                              VALUES
-                             (_move_logid
-                              ,_old_pid
-                              ,_src_path
-                              ,_new_pid
-                              ,_dst_path
-                              ,_obj_id
-                              ,_qty);
-
-RETURN;
-END;
-$BODY$
-  LANGUAGE plpgsql VOLATILE  COST 500;
-
-
-
-
------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS    LOG_NUM_MOVE( IN _cls_id INTEGER, IN _obj_id BIGINT, 
-                                         IN _src_path BIGINT[], IN _dst_path BIGINT[]) CASCADE;
-
-CREATE OR REPLACE FUNCTION LOG_NUM_MOVE( IN _cls_id INTEGER, IN _obj_id BIGINT, 
-                                         IN _src_path BIGINT[], IN _dst_path BIGINT[])
-                  RETURNS  VOID AS $BODY$
-DECLARE
-    _old_pid BIGINT;
-    _new_pid BIGINT;
-    _move_logid BIGINT;
-BEGIN
-    _old_pid:= ( CASE WHEN _src_path[1] IS NULL THEN 1 ELSE _src_path[1] END );
-    _new_pid:= ( CASE WHEN _dst_path[1] IS NULL THEN 1 ELSE _dst_path[1] END );
-
-    IF _old_pid=_new_pid THEN
-        RAISE EXCEPTION 'Object already here'; 
-    END IF;
-
-    _move_logid := nextval('seq_log_id');
-
-    UPDATE t_objnum SET pid = _new_pid, move_logid=_move_logid WHERE id=_obj_id;
-
-
-    INSERT INTO log_move_objnum( id
-                                ,src_objnum_id
-                                ,src_path
-                                ,dst_objnum_id
-                                ,dst_path
-                                ,objnum_id)
-                                VALUES
-                               (_move_logid
-                                ,_old_pid
-                                ,_src_path
-                                ,_new_pid
-                                ,_dst_path
-                                ,_obj_id);
+  INSERT INTO log_move( id,act_logid
+                       ,src_objnum_id, src_path
+                       ,dst_objnum_id, dst_path
+                       ,obj_id, qty )
+               VALUES (_move_logid, _act_logid
+                       ,_old_opid, _curr_path
+                       ,_new_opid, _dst_path
+                       ,_oid, _qty );
     
-    --PERFORM do_log_state(_cls_id, _obj_id, 0, _last_log_id, _src_path, _dst_path, _old_pid, _new_pid);
-
-RETURN;
-END;
-$BODY$
-  LANGUAGE plpgsql VOLATILE  COST 500;
-
-
-
------------------------------------------------------------------------------------------------
--- функция перемещения номерных объектов
------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS    move_object( IN _obj_id  BIGINT, IN _old_pid BIGINT,  IN _new_pid BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION move_object( IN _obj_id  BIGINT, IN _old_pid BIGINT,  IN _new_pid BIGINT) 
-  RETURNS  VOID AS 
-$BODY$ 
-DECLARE
-  _cls_id INTEGER;
-
-BEGIN
--- проверяем что объект блокирован
-  SELECT count(*) INTO _access_granted 
-   FROM t_lock_obj
-   INNER JOIN t_lock_dst USING (cls_id,obj_id,obj_pid)
-     WHERE lock_time +'00:10:00.00' > now()
-       AND session_pid = pg_backend_pid()
-       AND ((src_path IS NULL AND _src_path IS NULL) OR src_path=_src_path)
-       AND ((dst_path IS NULL AND _dst_path IS NULL) OR dst_path=_dst_path)
-       AND 
-
-cls_id=_cls_id AND obj_id=_obj_id AND obj_pid=_old_pid
-     
-  RAISE DEBUG '_access_granted = %', _access_granted;
-
-
-
-
-
-
-
-
-
-
-  SELECT FROM t_objnum
-    INNER JOIN t_clsnum USING (cls_id)
-    WHERE t_objnum.id = 105;
-  
-      IF NOT FOUND THEN
-        RAISE EXCEPTION ' Object not exists cls_id=% obj_id=% ',_cls_id, _obj_id;
-    END IF;
-
-
-END;
-$BODY$ LANGUAGE plpgsql VOLATILE  COST 500;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-DROP FUNCTION IF EXISTS    move_object( IN _cls_id  INTEGER, IN _obj_id  BIGINT, 
-                                        IN _old_pid BIGINT,  IN _new_pid BIGINT, IN _qty NUMERIC ) CASCADE;
-
-CREATE OR REPLACE FUNCTION move_object( IN _cls_id  INTEGER, IN _obj_id  BIGINT, 
-                                        IN _old_pid BIGINT,  IN _new_pid BIGINT, IN _qty NUMERIC ) 
-                  RETURNS  VOID AS $BODY$
-DECLARE
-    _src_cls_type SMALLINT;
-    _src_path BIGINT[];
-    _dst_path BIGINT[];
-    _access_granted INTEGER; -- запрещение перемещения по результатам суммы правил
-BEGIN
---  определяем 
-    SELECT type INTO _src_cls_type FROM w_obj 
-        WHERE cls_id=_cls_id AND obj_id=_obj_id AND obj_pid=_old_pid ;
-
-    _src_path := (SELECT fget_get_oid_path(_old_pid));
-    _dst_path := (SELECT fget_get_oid_path(_new_pid));
-    RAISE DEBUG '_src_path = %', _src_path;
-    RAISE DEBUG '_dst_path = %', _dst_path;
-
-    SELECT count(*) INTO _access_granted 
-        FROM t_lock_obj
-        INNER JOIN t_lock_dst USING (cls_id,obj_id,obj_pid)
-        WHERE cls_id=_cls_id AND obj_id=_obj_id AND obj_pid=_old_pid
-        AND lock_time +'00:10:00.00' > now()
-        AND session_pid = pg_backend_pid()
-        AND ((src_path IS NULL AND _src_path IS NULL) OR src_path=_src_path)
-        AND ((dst_path IS NULL AND _dst_path IS NULL) OR dst_path=_dst_path);
-    RAISE DEBUG '_access_granted = %', _access_granted;
-    
-    IF _access_granted IS NULL OR _access_granted<1  THEN
-            RAISE EXCEPTION 'No permission or permission denied for move';
-    END IF;
-
-    CASE
-    WHEN _src_cls_type=1 THEN
-        PERFORM LOG_NUM_MOVE(_cls_id, _obj_id, _src_path, _dst_path);
-    WHEN _src_cls_type=2 OR _src_cls_type=3 THEN
-        PERFORM LOG_QTY_MOVE(_cls_id, _obj_id, _src_path, _dst_path, _qty);
-    ELSE
-        RAISE EXCEPTION 'Wrong _src_cls_type %', _src_cls_type; 
-    END CASE;
 
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 500;
 
-  SELECT fget_get_oid_path(103)
+/*
+
+SELECT _dst_cls_id, cls.title as dst_cls_label , _dst_obj_id, _dst_obj_label , 
+        get_path_obj(_dst_obj_pid) AS DST_PATH  
+  FROM lock_for_move(104,1)  LEFT JOIN cls cls ON cls.id = _dst_cls_id  ORDER BY _dst_cls_id ;
+
+SELECT do_move(104::BIGINT,1::BIGINT,100::BIGINT,2::NUMERIC);
+
+SELECT lock_reset(104,1);
+*/
+
+
+SELECT * FROM lock_dst WHERE oid=104 AND pid=100 AND dst_path = _dst_path ;
+
+
+
+
+
+
 
 ------------------------------------------------------------------------------------------------------------
 PRINT '';

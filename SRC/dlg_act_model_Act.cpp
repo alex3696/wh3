@@ -82,7 +82,7 @@ void Act::DoAct()
 
 
 	wxString query = wxString::Format(
-		"SELECT do_obj_act(%s, %s, '%s')"
+		"SELECT do_act(%s, %s, '%s')"
 		, subj.mObj.mId.SqlVal()
 		, this->GetData().mID
 		, propdata

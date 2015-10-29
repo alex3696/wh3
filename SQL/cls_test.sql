@@ -423,6 +423,7 @@ CREATE TABLE obj_qtyi (
  ,pid        BIGINT        NOT NULL CHECK(pid>0) DEFAULT 1 
       REFERENCES obj_num( id )       MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
  ,qty        NUMERIC(20,0) NOT NULL CHECK (qty>=0)
+ ,CONSTRAINT uk_obj_qtyi__id_pid UNIQUE ( id, pid )   
 );
 CREATE INDEX idx_objqtyi_id ON obj_qtyi("id") ;
 CREATE INDEX idx_objqtyi_pid ON obj_qtyi("pid") ;
@@ -438,6 +439,7 @@ CREATE TABLE obj_qtyf (
  ,pid        BIGINT        NOT NULL CHECK(pid>0) DEFAULT 1 
       REFERENCES obj_num( id )       MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
  ,qty        NUMERIC NOT NULL CHECK (qty>=0)
+ ,CONSTRAINT uk_obj_qtyf__id_pid UNIQUE ( id, pid )   
 );
 CREATE INDEX idx_objqtyf_id ON obj_qtyf("id") ;
 CREATE INDEX idx_objqtyf_pid ON obj_qtyf("pid") ;
@@ -702,7 +704,6 @@ DROP FUNCTION IF EXISTS ftg_ins_obj() CASCADE;
 CREATE FUNCTION ftg_ins_obj() RETURNS TRIGGER AS $body$
 DECLARE
   _kind SMALLINT;
-  NEW_obj_id BIGINT;
 BEGIN
   SELECT kind INTO _kind FROM cls WHERE id=NEW.cls_id;-- _kind находим сами не пользуя NEW.kind
   IF NOT FOUND THEN
@@ -711,12 +712,19 @@ BEGIN
 
   NEW.id := COALESCE(NEW.id,nextval('seq_obj_id'));
 
-  INSERT INTO obj_name(id, title, cls_id)VALUES(NEW.id, NEW.title, NEW.cls_id) RETURNING id INTO NEW_obj_id;
-
+  PERFORM FROM obj WHERE id=NEW.id;-- проверяем существование количественного объета
+  IF NOT FOUND THEN
+    INSERT INTO obj_name(id, title, cls_id)VALUES(NEW.id, NEW.title, NEW.cls_id);
+  END IF;
+  
   CASE _kind
-    WHEN 1 THEN INSERT INTO obj_num(id, pid)VALUES (NEW_obj_id,NEW.pid);NEW.qty:=1;
-    WHEN 2 THEN INSERT INTO obj_qtyi(id, pid, qty) VALUES (NEW_obj_id,NEW.pid,NEW.qty);
-    WHEN 3 THEN INSERT INTO obj_qtyi(id, pid, qty) VALUES (NEW_obj_id,NEW.pid,NEW.qty);
+    WHEN 1 THEN INSERT INTO obj_num(id, pid)VALUES (NEW.id,NEW.pid);NEW.qty:=1;
+    WHEN 2 THEN 
+      IF (ceil(NEW.qty)<>NEW.qty)THEN
+        RAISE EXCEPTION ' qty is not integer NEW.qty', NEW.qty;
+      END IF;
+      INSERT INTO obj_qtyi(id, pid, qty) VALUES (NEW.id,NEW.pid,NEW.qty);
+    WHEN 3 THEN INSERT INTO obj_qtyi(id, pid, qty) VALUES (NEW.id,NEW.pid,NEW.qty);
     ELSE RAISE EXCEPTION ' %: wrong kind %',TG_NAME,NEW_kind ;
   END CASE;
   RETURN NEW;
@@ -753,9 +761,12 @@ BEGIN
     WHEN 1 THEN 
       UPDATE obj_num  SET pid=NEW.pid WHERE id =  NEW.id;
     WHEN 2 THEN 
-      UPDATE obj_qtyi SET pid=NEW.pid, qty=NEW.qty WHERE id = NEW.id;
+      IF (ceil(NEW.qty)<>NEW.qty)THEN
+        RAISE EXCEPTION ' qty is not integer NEW.qty', NEW.qty;
+      END IF;
+      UPDATE obj_qtyi SET pid=NEW.pid, qty=NEW.qty WHERE id = NEW.id AND pid=OLD.pid;
     WHEN 3 THEN 
-      UPDATE obj_qtyf SET pid=NEW.pid, qty=NEW.qty WHERE id = NEW.id;
+      UPDATE obj_qtyf SET pid=NEW.pid, qty=NEW.qty WHERE id = NEW.id AND pid=OLD.pid;
     ELSE RAISE EXCEPTION ' %: wrong kind %',TG_NAME,NEW_kind ;
   END CASE;
 RETURN NEW;
@@ -776,14 +787,14 @@ BEGIN
   END IF;
 
   CASE _kind
-    WHEN 1 THEN DELETE FROM obj_name WHERE id = OLD.id;
-    WHEN 2 THEN DELETE  FROM obj_qtyi WHERE objqty_id = OLD.id AND pid=OLD.pid;
-                PERFORM FROM obj_name WHERE id = OLD.id AND pid=OLD.pid ;
+    WHEN 1 THEN DELETE FROM obj_name  WHERE id = OLD.id;
+    WHEN 2 THEN DELETE  FROM obj_qtyi WHERE id = OLD.id AND pid=OLD.pid;
+                PERFORM FROM obj_qtyi WHERE id = OLD.id;
                 IF NOT FOUND THEN
                   DELETE FROM obj_name WHERE id=OLD.id;
                 END IF;
-    WHEN 3 THEN DELETE  FROM obj_qtyf WHERE objqty_id = OLD.id AND pid=OLD.pid;
-                PERFORM FROM obj_name WHERE id = OLD.id AND pid=OLD.pid ;
+    WHEN 3 THEN DELETE  FROM obj_qtyf WHERE id = OLD.id AND pid=OLD.pid;
+                PERFORM FROM obj_qtyf WHERE id = OLD.id;
                 IF NOT FOUND THEN
                   DELETE FROM obj_name WHERE id=OLD.id;
                 END IF;
@@ -963,7 +974,7 @@ END
 DECLARE @clstitle, @qty, @pid, @cnumid, @cqtyiid, @cqtyfid , @oqtyiid, @oqtyfid, @opid ;
 SET @opid= 1;
 SET @pid= 1;
-SET @qty= 510;
+SET @qty= 10;
 --SET @qty= 10;
 
 WHILE (@qty > 0)

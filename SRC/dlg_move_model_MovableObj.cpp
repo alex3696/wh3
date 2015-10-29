@@ -51,8 +51,7 @@ void MovableObj::Move(std::shared_ptr<wh::dlg_move::model::DstObj> dst,
 	const rec::ObjTitle& destination = dst->GetData();
 
 	wxString query = wxString::Format(
-		"SELECT move_object(%s,%s,%s,%s,%s)"
-		, movable.mCls.mId.SqlVal()
+		"SELECT do_move(%s,%s,%s,%s)"
 		, movable.mObj.mId.SqlVal()
 		, movable.mObj.mParent.mId.SqlVal()
 		, destination.mId.SqlVal()
