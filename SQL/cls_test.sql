@@ -4,6 +4,10 @@ SET default_transaction_isolation =serializable;
 SET client_min_messages='debug1';
 SHOW client_min_messages;
 
+ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON SEQUENCES FROM public;
+ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON TABLES FROM public;
+ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON FUNCTIONS FROM public;
+
 SELECT whgrant_grouptouser('Admin','postgres');
 ---------------------------------------------------------------------------------------------------
 -- домены
@@ -25,6 +29,7 @@ DROP SEQUENCE IF EXISTS seq_ref_act_prop_id CASCADE;
 DROP SEQUENCE IF EXISTS seq_obj_id CASCADE;
 DROP SEQUENCE IF EXISTS seq_log_id CASCADE;
 DROP SEQUENCE IF EXISTS seq_perm_id CASCADE;
+DROP SEQUENCE IF EXISTS favorite_prop_id_seq CASCADE;
 
 CREATE SEQUENCE seq_cls_id  INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
 CREATE SEQUENCE seq_act_id  INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
@@ -35,16 +40,18 @@ CREATE SEQUENCE seq_ref_act_prop_id  INCREMENT 1 MINVALUE 0 NO MAXVALUE START 10
 CREATE SEQUENCE seq_obj_id  INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
 CREATE SEQUENCE seq_log_id  INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
 CREATE SEQUENCE seq_perm_id INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
+CREATE SEQUENCE favorite_prop_id_seq INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
 
-GRANT USAGE ON TABLE seq_cls_id  TO "User";
-GRANT USAGE ON TABLE seq_act_id  TO "User";
-GRANT USAGE ON TABLE seq_prop_id TO "User";
-GRANT USAGE ON TABLE seq_prop_cls_id     TO "User";
-GRANT USAGE ON TABLE seq_ref_cls_act_id  TO "User";
-GRANT USAGE ON TABLE seq_ref_act_prop_id TO "User";
-GRANT USAGE ON TABLE seq_obj_id  TO "User";
+GRANT USAGE ON TABLE seq_cls_id  TO "TypeDesigner";
+GRANT USAGE ON TABLE seq_act_id  TO "TypeDesigner";
+GRANT USAGE ON TABLE seq_prop_id TO "TypeDesigner";
+GRANT USAGE ON TABLE seq_prop_cls_id     TO "TypeDesigner";
+GRANT USAGE ON TABLE seq_ref_cls_act_id  TO "TypeDesigner";
+GRANT USAGE ON TABLE seq_ref_act_prop_id TO "TypeDesigner";
+GRANT USAGE ON TABLE seq_obj_id  TO "ObjDesigner";
 GRANT USAGE ON TABLE seq_log_id  TO "User";
-GRANT USAGE ON TABLE seq_perm_id TO "User";
+GRANT USAGE ON TABLE seq_perm_id TO "TypeDesigner";
+GRANT USAGE ON TABLE favorite_prop_id_seq  TO "User";
 
 
 ---------------------------------------------------------------------------------------------------
@@ -118,6 +125,11 @@ CREATE TABLE cls_name (
   ,kind           SMALLINT NOT NULL CHECK ( kind BETWEEN 0 AND 3 )
   ,CONSTRAINT uk_cls_name_id_kind UNIQUE (id,kind)
 );
+
+GRANT SELECT        ON TABLE cls_name  TO "Guest";
+GRANT INSERT        ON TABLE cls_name  TO "TypeDesigner";
+GRANT DELETE        ON TABLE cls_name  TO "Admin";
+GRANT UPDATE(title,note,kind) ON TABLE cls_name  TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 -- дерево абстрактных классов
 ---------------------------------------------------------------------------------------------------
@@ -137,6 +149,10 @@ CREATE TABLE cls_tree (
 );
 CREATE INDEX idx_cls_tree_pid ON cls_tree(pid);
 
+GRANT SELECT        ON TABLE cls_tree  TO "Guest";
+GRANT INSERT        ON TABLE cls_tree  TO "TypeDesigner";
+GRANT DELETE        ON TABLE cls_tree  TO "Admin";
+GRANT UPDATE(pid)   ON TABLE cls_tree  TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 -- классы имеющие объекты
 ---------------------------------------------------------------------------------------------------
@@ -158,6 +174,11 @@ CREATE TABLE cls_real (
  
 );
 CREATE INDEX idx_clsreal_pid ON cls_real(pid);
+
+GRANT SELECT        ON TABLE cls_real  TO "Guest";
+GRANT INSERT        ON TABLE cls_real  TO "TypeDesigner";
+GRANT DELETE        ON TABLE cls_real  TO "Admin";
+GRANT UPDATE(pid,default_objid,measure)   ON TABLE cls_real  TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 -- классы нумерные
 ---------------------------------------------------------------------------------------------------
@@ -172,6 +193,10 @@ CREATE TABLE cls_num (
       REFERENCES cls_name (id,kind) MATCH FULL
       ON UPDATE RESTRICT ON DELETE CASCADE
 );
+
+GRANT SELECT        ON TABLE cls_num  TO "Guest";
+GRANT INSERT        ON TABLE cls_num  TO "TypeDesigner";
+GRANT DELETE        ON TABLE cls_num  TO "Admin";
 ---------------------------------------------------------------------------------------------------
 -- классы количественные
 ---------------------------------------------------------------------------------------------------
@@ -186,6 +211,9 @@ CREATE TABLE cls_qtyi (
       REFERENCES cls_name (id,kind) MATCH FULL
       ON UPDATE RESTRICT ON DELETE CASCADE
 );
+GRANT SELECT        ON TABLE cls_qtyi  TO "Guest";
+GRANT INSERT        ON TABLE cls_qtyi  TO "TypeDesigner";
+GRANT DELETE        ON TABLE cls_qtyi  TO "Admin";
 ---------------------------------------------------------------------------------------------------
 -- классы количественные дробные
 ---------------------------------------------------------------------------------------------------
@@ -200,8 +228,9 @@ CREATE TABLE cls_qtyf (
       REFERENCES cls_name (id,kind) MATCH FULL
       ON UPDATE RESTRICT ON DELETE CASCADE
 );
-
-
+GRANT SELECT        ON TABLE cls_qtyf  TO "Guest";
+GRANT INSERT        ON TABLE cls_qtyf  TO "TypeDesigner";
+GRANT DELETE        ON TABLE cls_qtyf  TO "Admin";
 ---------------------------------------------------------------------------------------------------
 -- основная типов свойств
 ---------------------------------------------------------------------------------------------------
@@ -211,6 +240,11 @@ CREATE TABLE prop_kind(
 ,title WHNAME NOT NULL
 ,CONSTRAINT pk_propkind__id    PRIMARY KEY ( id )
 );
+GRANT SELECT        ON TABLE prop_kind  TO "Guest";
+GRANT INSERT        ON TABLE prop_kind  TO "Admin";
+GRANT DELETE        ON TABLE prop_kind  TO "Admin";
+GRANT UPDATE        ON TABLE prop_kind  TO "Admin";
+
 INSERT INTO prop_kind (id, title) VALUES (0, 'text')
                                         ,(1, 'numberic')
                                         ,(2, 'date')
@@ -231,6 +265,11 @@ CREATE TABLE prop (
     REFERENCES                 prop_kind( id )
     MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
 );
+GRANT SELECT        ON TABLE prop  TO "Guest";
+GRANT INSERT        ON TABLE prop  TO "TypeDesigner";
+GRANT DELETE        ON TABLE prop  TO "TypeDesigner";
+GRANT UPDATE(title,kind)
+                    ON TABLE prop  TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 -- таблица свойств классов
 ---------------------------------------------------------------------------------------------------
@@ -249,7 +288,11 @@ CREATE TABLE prop_cls (
     REFERENCES                           cls_real( id )
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
-
+GRANT SELECT        ON TABLE prop_cls  TO "Guest";
+GRANT INSERT        ON TABLE prop_cls  TO "TypeDesigner";
+GRANT DELETE        ON TABLE prop_cls  TO "TypeDesigner";
+GRANT UPDATE(cls_id,prop_id,val)
+                    ON TABLE prop_cls  TO "TypeDesigner";
 
 ---------------------------------------------------------------------------------------------------
 -- основная таблица действий 
@@ -264,7 +307,11 @@ CREATE TABLE act (
 ,CONSTRAINT pk_act__id    PRIMARY KEY ( id  )
 ,CONSTRAINT uk_act__title UNIQUE ( title )
 );
-
+GRANT SELECT        ON TABLE act  TO "Guest";
+GRANT INSERT        ON TABLE act  TO "TypeDesigner";
+GRANT DELETE        ON TABLE act  TO "TypeDesigner";
+GRANT UPDATE(title,note,color,script)
+                    ON TABLE act  TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 -- табличка связи классов с действиями
 ---------------------------------------------------------------------------------------------------
@@ -282,9 +329,12 @@ CREATE TABLE ref_cls_act (
 ,CONSTRAINT fk_refclsact__actid FOREIGN KEY ( act_id )
     REFERENCES                           act( id )
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-
-
 );
+GRANT SELECT        ON TABLE ref_cls_act  TO "Guest";
+GRANT INSERT        ON TABLE ref_cls_act  TO "TypeDesigner";
+GRANT DELETE        ON TABLE ref_cls_act  TO "TypeDesigner";
+GRANT UPDATE(cls_id,act_id)
+                    ON TABLE ref_cls_act  TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 -- линки М:М , для действий и свойств
 ---------------------------------------------------------------------------------------------------
@@ -302,7 +352,11 @@ CREATE TABLE ref_act_prop (
     REFERENCES                            prop(      id)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
-
+GRANT SELECT        ON TABLE ref_act_prop  TO "Guest";
+GRANT INSERT        ON TABLE ref_act_prop  TO "TypeDesigner";
+GRANT DELETE        ON TABLE ref_act_prop  TO "TypeDesigner";
+GRANT UPDATE(act_id,prop_id)
+                    ON TABLE ref_act_prop  TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 -- разрешения перемещений
 ---------------------------------------------------------------------------------------------------
@@ -341,6 +395,14 @@ CREATE INDEX idx_permmove__srcclsob ON perm_move(src_cls_id, src_obj_id);
 CREATE INDEX idx_permmove__clsobj ON perm_move(cls_id,     obj_id);
 CREATE INDEX idx_permmove__dstclsobj ON perm_move(dst_cls_id, dst_obj_id);
 
+GRANT SELECT        ON TABLE perm_move  TO "Guest";
+GRANT INSERT        ON TABLE perm_move  TO "TypeDesigner";
+GRANT DELETE        ON TABLE perm_move  TO "TypeDesigner";
+GRANT UPDATE (  access_group, access_disabled, script_restrict
+              , src_cls_id, src_obj_id, src_path
+              , cls_id, obj_id
+              , dst_cls_id, dst_obj_id, dst_path)
+                    ON TABLE perm_move  TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS perm_act CASCADE;
 CREATE TABLE perm_act
@@ -368,6 +430,15 @@ CREATE TABLE perm_act
 CREATE INDEX idx_permact__user ON perm_act(access_group);
 CREATE INDEX idx_permact__srcclsobj ON perm_act(cls_id, obj_id);
 CREATE INDEX idx_permact__actid ON perm_act(act_id);
+
+GRANT SELECT        ON TABLE perm_act  TO "Guest";
+GRANT INSERT        ON TABLE perm_act  TO "TypeDesigner";
+GRANT DELETE        ON TABLE perm_act  TO "TypeDesigner";
+GRANT UPDATE (  access_group, access_disabled, script_restrict
+              , cls_id, obj_id
+              , src_path
+              , act_id)
+                    ON TABLE perm_act  TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 
 
@@ -397,6 +468,12 @@ CREATE TABLE obj_name (
 );
 CREATE INDEX idx_objname_clsid ON obj_name ("cls_id") ;
 CREATE INDEX idx_objname_prop ON obj_name USING gin ("prop") ;
+
+GRANT SELECT        ON TABLE obj_name  TO "Guest";
+GRANT INSERT        ON TABLE obj_name  TO "ObjDesigner";
+GRANT DELETE        ON TABLE obj_name  TO "ObjDesigner";
+GRANT UPDATE (  title, cls_id, move_logid, act_logid, prop)
+                    ON TABLE obj_name  TO "User";
 ---------------------------------------------------------------------------------------------------
 -- детальные сведения объект номерной
 ---------------------------------------------------------------------------------------------------
@@ -413,6 +490,11 @@ CREATE TABLE obj_num (
 );-- INHERITS (obj);
 CREATE INDEX idx_objnum_pid ON obj_num ("pid") ;
 
+GRANT SELECT        ON TABLE obj_num  TO "Guest";
+GRANT INSERT        ON TABLE obj_num  TO "ObjDesigner";
+GRANT DELETE        ON TABLE obj_num  TO "ObjDesigner";
+GRANT UPDATE (pid)  ON TABLE obj_num  TO "User";
+
 ---------------------------------------------------------------------------------------------------
 -- детальные сведения объект количественный целочисленный
 ---------------------------------------------------------------------------------------------------
@@ -428,6 +510,11 @@ CREATE TABLE obj_qtyi (
 CREATE INDEX idx_objqtyi_id ON obj_qtyi("id") ;
 CREATE INDEX idx_objqtyi_pid ON obj_qtyi("pid") ;
 
+GRANT SELECT        ON TABLE obj_qtyi  TO "Guest";
+GRANT INSERT        ON TABLE obj_qtyi  TO "User";
+GRANT DELETE        ON TABLE obj_qtyi  TO "User";
+GRANT UPDATE (pid, qty)
+                    ON TABLE obj_qtyi  TO "User";
 
 ---------------------------------------------------------------------------------------------------
 -- детальные сведения объект количественный дробных
@@ -444,6 +531,11 @@ CREATE TABLE obj_qtyf (
 CREATE INDEX idx_objqtyf_id ON obj_qtyf("id") ;
 CREATE INDEX idx_objqtyf_pid ON obj_qtyf("pid") ;
 
+GRANT SELECT        ON TABLE obj_qtyf  TO "Guest";
+GRANT INSERT        ON TABLE obj_qtyf  TO "User";
+GRANT DELETE        ON TABLE obj_qtyf  TO "User";
+GRANT UPDATE (pid, qty)
+                    ON TABLE obj_qtyf  TO "User";
 
 
 ---------------------------------------------------------------------------------------------------
@@ -466,6 +558,10 @@ CREATE TABLE log_act (
 --CREATE INDEX idx_permmove__user ON perm_move(cls_id,     obj_id);
 --CREATE INDEX idx_permmove__user ON perm_move(dst_cls_id, dst_obj_id);
 
+GRANT SELECT        ON TABLE log_act  TO "Guest";
+GRANT INSERT        ON TABLE log_act  TO "User";
+GRANT DELETE        ON TABLE log_act  TO "User";
+                    
 ---------------------------------------------------------------------------------------------------
 -- таблица логов перемещения номерных объектов
 ---------------------------------------------------------------------------------------------------
@@ -487,14 +583,16 @@ CREATE TABLE log_move (
   ,act_logid     BIGINT    NOT NULL REFERENCES log_act( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE RESTRICT 
 );
 
-
+GRANT SELECT        ON TABLE log_move  TO "Guest";
+GRANT INSERT        ON TABLE log_move  TO "User";
+GRANT DELETE        ON TABLE log_move  TO "User";
 
 -----------------------------------------------------------------------------------------------------------------------------
 -- таблица избранных свойст объектов отображаемых при просмотре пользователем каталога объектов по типу или по местоположению
 -----------------------------------------------------------------------------------------------------------------------------
 --DROP TABLE IF EXISTS favorite_prop CASCADE;
 CREATE TABLE favorite_prop(
-    id           BIGSERIAL NOT NULL UNIQUE
+    id           BIGINT NOT NULL DEFAULT nextval('favorite_prop_id_seq') UNIQUE
     ,user_label  NAME      NOT NULL DEFAULT CURRENT_USER 
     ,cls_id      INTEGER       NOT NULL
     ,act_id      INTEGER   NOT NULL
@@ -515,6 +613,11 @@ CREATE TABLE favorite_prop(
 
 );
 
+GRANT SELECT        ON TABLE favorite_prop  TO "Guest";
+GRANT INSERT        ON TABLE favorite_prop  TO "User";
+GRANT DELETE        ON TABLE favorite_prop  TO "User";
+GRANT UPDATE (user_label, cls_id, act_id, prop_id )
+                    ON TABLE favorite_prop  TO "User";
 
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
@@ -542,7 +645,10 @@ SELECT id, pid, measure,3::SMALLINT AS kind,default_objid FROM cls_qtyf LEFT JOI
 ) cdif
 LEFT JOIN cls_name USING (id);
 */
-
+GRANT SELECT        ON cls  TO "Guest";
+GRANT INSERT        ON cls  TO "TypeDesigner";
+GRANT DELETE        ON cls  TO "Admin";
+GRANT UPDATE        ON cls  TO "TypeDesigner";
 
 
 
@@ -568,6 +674,10 @@ SELECT id, pid, 3::SMALLINT AS cls_kind, qty FROM obj_qtyf
 ) cdif
 LEFT JOIN obj_name USING (id);
 
+GRANT SELECT        ON obj  TO "Guest";
+GRANT INSERT        ON obj  TO "User";
+GRANT DELETE        ON obj  TO "User";
+GRANT UPDATE        ON obj  TO "User";
 
 
 
@@ -595,6 +705,7 @@ $body$
 LANGUAGE 'plpgsql';
 CREATE TRIGGER tr_biu_perm_act BEFORE INSERT OR UPDATE ON perm_act FOR EACH ROW EXECUTE PROCEDURE ftr_biu_perm_act();
 
+GRANT EXECUTE ON FUNCTION ftr_biu_perm_act() TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 -- тригер очищающий ненужные ссылки КЛАСС-ДЕЙСТВИЕ
 ---------------------------------------------------------------------------------------------------
@@ -614,6 +725,7 @@ LANGUAGE 'plpgsql';
 CREATE TRIGGER tr_aud_perm_act AFTER DELETE OR UPDATE ON perm_act FOR EACH ROW EXECUTE PROCEDURE ftr_aud_perm_act();
 
 
+GRANT EXECUTE ON FUNCTION ftr_aud_perm_act() TO "TypeDesigner";
 
 -----------------------------------------------------------------------------------------------------------------------------    
 -- функция преобразования одномерного массива идентификаторов класса в таблицу
@@ -627,6 +739,7 @@ $BODY$ LANGUAGE sql IMMUTABLE;
 --SELECT * FROM fn_array1_to_table('{101,102,103,104}'::int[]);
 
 
+GRANT EXECUTE ON FUNCTION fn_array1_to_table(IN anyarray) TO "Guest";
 ---------------------------------------------------------------------------------------------------
 -- тригер создания класса
 ---------------------------------------------------------------------------------------------------
@@ -655,6 +768,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER tr_ii_cls INSTEAD OF INSERT ON cls FOR EACH ROW EXECUTE PROCEDURE ftg_ins_cls();
+
+GRANT EXECUTE ON FUNCTION ftg_ins_cls() TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 -- тригер редактирования класса
 ---------------------------------------------------------------------------------------------------
@@ -675,6 +790,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER tr_iu_cls INSTEAD OF UPDATE ON cls FOR EACH ROW EXECUTE PROCEDURE ftg_upd_cls();
+
+GRANT EXECUTE ON FUNCTION ftg_upd_cls() TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 -- тригер удаления класса
 ---------------------------------------------------------------------------------------------------
@@ -687,6 +804,7 @@ END;
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER tr_id_cls INSTEAD OF DELETE ON cls FOR EACH ROW EXECUTE PROCEDURE ftg_del_cls();
 
+GRANT EXECUTE ON FUNCTION ftg_upd_cls() TO "Admin";
 /*
 DROP RULE rl_id_cls_tree ON cls_tree;
 CREATE RULE rl_id_cls_tree AS 
@@ -731,6 +849,8 @@ BEGIN
 END;
 $body$ LANGUAGE plpgsql;
 CREATE TRIGGER tr_ii_obj INSTEAD OF INSERT ON obj FOR EACH ROW EXECUTE PROCEDURE ftg_ins_obj();
+
+GRANT EXECUTE ON FUNCTION ftg_ins_obj() TO "User";
 ---------------------------------------------------------------------------------------------------
 -- тригер редактирования объекта
 ---------------------------------------------------------------------------------------------------
@@ -773,6 +893,8 @@ RETURN NEW;
 END;
 $body$ LANGUAGE plpgsql;
 CREATE TRIGGER tr_iu_obj INSTEAD OF UPDATE ON obj FOR EACH ROW EXECUTE PROCEDURE ftg_upd_obj();
+
+GRANT EXECUTE ON FUNCTION ftg_upd_obj() TO "User";
 ---------------------------------------------------------------------------------------------------
 -- тригер удаления объекта
 ---------------------------------------------------------------------------------------------------
@@ -805,7 +927,7 @@ END;
 $body$ LANGUAGE plpgsql;
 CREATE TRIGGER tr_id_obj INSTEAD OF DELETE ON obj FOR EACH ROW EXECUTE PROCEDURE ftg_del_obj();
 
-
+GRANT EXECUTE ON FUNCTION ftg_del_obj() TO "User";
 
 
 ---------------------------------------------------------------------------------------------------

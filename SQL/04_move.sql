@@ -48,6 +48,10 @@ CREATE UNLOGGED TABLE lock_obj(
 );
 CREATE INDEX idx_lock_obj_lock_user ON lock_obj USING btree (lock_user);
 
+GRANT SELECT        ON TABLE lock_obj  TO "Guest";
+GRANT INSERT        ON TABLE lock_obj  TO "User";
+GRANT DELETE        ON TABLE lock_obj  TO "User";
+
 
 -------------------------------------------------------------------------------
 --таблица блокировки разрешённых путей назначения
@@ -65,6 +69,10 @@ CREATE UNLOGGED TABLE lock_dst
 
 );
 
+GRANT SELECT        ON TABLE lock_dst  TO "Guest";
+GRANT INSERT        ON TABLE lock_dst  TO "User";
+GRANT DELETE        ON TABLE lock_dst  TO "User";
+
 -------------------------------------------------------------------------------
 --таблица блокировки разрешённых действий
 DROP TABLE IF EXISTS lock_act CASCADE;
@@ -80,7 +88,9 @@ CREATE UNLOGGED TABLE lock_act
 
 );
 
-
+GRANT SELECT        ON TABLE lock_act  TO "Guest";
+GRANT INSERT        ON TABLE lock_act  TO "User";
+GRANT DELETE        ON TABLE lock_act  TO "User";
 
 -------------------------------------------------------------------------------
 -- проверка блокировки + очистка своих просроченых блокировок
@@ -120,7 +130,7 @@ SELECT try_lock_obj(103,100);
 SELECT try_lock_obj(100,1);
 SELECT try_lock_obj(666,664);
 
-
+GRANT EXECUTE ON FUNCTION try_lock_obj(IN _oid  BIGINT, IN _pid BIGINT) TO "User";
 -------------------------------------------------------------------------------
 -- разблокировка объекта
 -- в случае номерного объекта pid не учитывается
@@ -142,7 +152,7 @@ SELECT lock_reset(100,100);
 SELECT lock_reset(666,664);
 SELECT lock_reset(103,NULL);
 
-
+GRANT EXECUTE ON FUNCTION lock_reset(IN _oid  BIGINT, IN _pid BIGINT) TO "User";
 -----------------------------------------------------------------------------------------------------------------------------
 -- блокировать объекты, если правило при проверке изменится или перестанет существовать, то пофиг
 -- разрешение действия кэшировано и разрешено в таблице блокировок
@@ -204,6 +214,7 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 500;
 
+GRANT EXECUTE ON FUNCTION lock_for_act(IN _oid  BIGINT, IN _opid  BIGINT) TO "User";
 
 SELECT id, title, note, color, script  FROM lock_for_act(103, 1);
 SELECT lock_reset(103,1);
@@ -310,6 +321,9 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 100;
 
+GRANT EXECUTE ON FUNCTION do_act(IN _obj_id BIGINT, _act_id INTEGER, IN _prop JSONB) TO "User";
+
+
 SELECT id, title, note, color, script  FROM lock_for_act(103, 1);
 
 SELECT do_act(103, 100, '{"100":66,"102":"45452ergsdfgd"}');
@@ -369,6 +383,8 @@ RIGHT JOIN wh_role _user
     AND _user.rolname=CURRENT_USER -- определяем ИМЕНА разрешённых пользователей ВКЛЮЧАЯ ТЕКУЩЕГО
 
 WHERE obj.pid <> dst.id AND dst.id>0  ;
+
+GRANT SELECT        ON "moverule_lockup" TO "Guest";
 -----------------------------------------------------------------------------------------------------------------------------
 -- блокировать исходные и конечные объекты, если правило при проверке перестанет существовать, то пофиг
 -- перемещение исполнится, т.к. разрешение уже получено и хранится в t_lock_obj
@@ -423,6 +439,8 @@ BEGIN
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 500;
+
+GRANT EXECUTE ON FUNCTION lock_for_move( IN _obj_id  BIGINT, IN _old_pid BIGINT) TO "User";
 
 SELECT * FROM lock_for_move(104,1);
 
@@ -529,6 +547,9 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 500;
 
+GRANT EXECUTE ON FUNCTION do_move( IN _oid  BIGINT, 
+                                    IN _old_opid BIGINT,  IN _new_opid BIGINT, IN _qty NUMERIC )  TO "User";
+
 /*
 
 SELECT _dst_cls_id, cls.title as dst_cls_label , _dst_obj_id, _dst_obj_label , 
@@ -554,22 +575,22 @@ PRINT '';
 PRINT '- Тесты перемещения количественных объектов';
 PRINT '';
 ------------------------------------------------------------------------------------------------------------
-SELECT * FROM lock_for_move(103,104,1); SELECT move_object(103,104,1,100,10); /*div to NULL*/ SELECT lock_reset(103,104,1);
-SELECT * FROM lock_for_move(103,104,1); SELECT move_object(103,104,1,100,5); /*div to 10*/ SELECT lock_reset(103,104,1);
-SELECT * FROM lock_for_move(103,104,1); SELECT move_object(103,104,1,100,5); /*mov to 15*/ SELECT lock_reset(103,104,1);
-SELECT * FROM lock_for_move(103,104,100); SELECT move_object(103,104,100,1,20); /*mov to NULL*/ SELECT lock_reset(103,104,100);
+--SELECT * FROM lock_for_move(103,104,1); SELECT move_object(103,104,1,100,10); /*div to NULL*/ SELECT lock_reset(103,104,1);
+--SELECT * FROM lock_for_move(103,104,1); SELECT move_object(103,104,1,100,5); /*div to 10*/ SELECT lock_reset(103,104,1);
+--SELECT * FROM lock_for_move(103,104,1); SELECT move_object(103,104,1,100,5); /*mov to 15*/ SELECT lock_reset(103,104,1);
+--SELECT * FROM lock_for_move(103,104,100); SELECT move_object(103,104,100,1,20); /*mov to NULL*/ SELECT lock_reset(103,104,100);
 ------------------------------------------------------------------------------------------------------------
 PRINT '';
 PRINT '- Тесты перемещения номерных объектов';
 PRINT '';
 ------------------------------------------------------------------------------------------------------------
-SELECT * FROM lock_for_move(104,102,1);
-SELECT move_object(104,102,1,103,1); -- mov objnum
-SELECT lock_reset(104,102,1);
+--SELECT * FROM lock_for_move(104,102,1);
+--SELECT move_object(104,102,1,103,1); -- mov objnum
+--SELECT lock_reset(104,102,1);
 
-SELECT * FROM lock_for_move(104,102,103);
-SELECT move_object(104,102,103,1,1); -- mov objnum
-SELECT lock_reset(104,102,103);
+--SELECT * FROM lock_for_move(104,102,103);
+--SELECT move_object(104,102,103,1,1); -- mov objnum
+--SELECT lock_reset(104,102,103);
 
 
 

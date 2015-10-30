@@ -317,3 +317,19 @@ SELECT * FROM obj_arr_id_to_obj_info('{101,102,103,104}'::BIGINT[]);
 
 
 
+
+
+GRANT EXECUTE ON FUNCTION get_childs_cls(IN _cid BIGINT) TO "User";
+
+GRANT EXECUTE ON FUNCTION get_path_cls_info(IN _cid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_cls_arr_id(IN _cid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_cls_arr_title(IN _cid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_cls(IN _cid BIGINT) TO "User";
+
+GRANT EXECUTE ON FUNCTION get_path_obj_info(IN _oid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_obj_arr_id(IN _oid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_obj_arr_2id(IN _oid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_obj_arr_2title(IN _oid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_obj(IN _oid BIGINT) TO "User";
+
+GRANT EXECUTE ON FUNCTION obj_arr_id_to_obj_info(IN anyarray) TO "User";
