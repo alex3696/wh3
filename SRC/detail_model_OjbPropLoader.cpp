@@ -61,24 +61,37 @@ bool ObjPropValLoader::GetSelectQuery(wxString& query)const
 
 	auto propArray = obj->GetObjPropArray();
 
-	wxString prop_fields;
+	wxString fields, leftJoin;
 	auto prop_qty = propArray->GetChildQty();
+
+	wxString qq;
 	for (size_t i = 0; i < prop_qty; ++i)
 	{
 		auto prop = std::dynamic_pointer_cast<ObjProp>(propArray->GetChild(i));
 		if (prop)
 		{
 			const auto& prop_data = prop->GetData();
-			prop_fields += wxString::Format(", \"%s\"", prop_data.mProp.mLabel.toStr());
+			qq += wxString::Format("\"%s\" TEXT,", prop_data.mProp.mId.toStr() );
 		}
 	}
 
+	if (!qq.IsEmpty())
+	{
+		qq.replace(qq.size() - 1, 1, " ");
+		leftJoin = wxString::Format(
+			" LEFT JOIN LATERAL jsonb_to_record(prop) as x(%s) ON true "
+			, qq);
+		fields = ", x.*";
+	}
+
+
 	query = wxString::Format(
-		"SELECT obj_id %s "
-		" FROM t_state_%s "
-		" WHERE obj_id = %s "
-		, prop_fields
-		, obj_data.mCls.mId.SqlVal()
+		"SELECT id %s "
+		" FROM obj "
+		" %s "
+		" WHERE id = %s "
+		, fields
+		, leftJoin
 		, obj_data.mObj.mId.SqlVal() 
 		);
 

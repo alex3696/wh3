@@ -326,10 +326,19 @@ const wxString& name, const wh_rec_ObjTitle& value)
 {
 	SetValue(WXVARIANT(value));
 
-	AddPrivateChild(new wxStringProperty("Имя"));
-	AddPrivateChild(new wxStringProperty(L"Количество"));
-	AddPrivateChild(new wxStringProperty("#"));
-	AddPrivateChild(new wxObjParentProperty("Местоположение"));
+	auto pgp_title = new wxStringProperty("Имя");
+	auto pgp_qty = new wxFloatProperty("Количество");
+	auto pgp_id = new wxStringProperty("#");
+	auto pgp_parentobj = new wxPGPBaseProperty("Родитель.объект");
+	AddPrivateChild(pgp_title);
+	AddPrivateChild(pgp_qty);
+	AddPrivateChild(pgp_id);
+	AddPrivateChild(pgp_parentobj);
+	
+	pgp_title->SetValidator(wxRegExpValidator(titleValidator));
+	pgp_id->ChangeFlag(wxPG_PROP_READONLY, true);
+	
+	pgp_parentobj->SetObjTree(true);
 }
 //-----------------------------------------------------------------------------
 wxObjTitleProperty::~wxObjTitleProperty() { }
@@ -338,11 +347,14 @@ void wxObjTitleProperty::RefreshChildren()
 {
 	if (!GetChildCount()) return;
 	const wh_rec_ObjTitle& obj = wh_rec_ObjTitleRefFromVariant(m_value);
-	Item(0)->SetValue(WXVARIANT(obj.mLabel));
-	Item(1)->SetValue(WXVARIANT(obj.mQty));
-	Item(2)->SetValue(WXVARIANT(obj.mId));
-	Item(3)->SetValue(WXVARIANT(wh_rec_ObjParent(wxEmptyString, wxEmptyString, 
-		obj.mParent.mId, wxEmptyString)));
+	Item(0)->SetValue(WXVARIANT(obj.mLabel.toStr()));
+	Item(1)->SetValue(WXVARIANT(obj.mQty.toStr()));
+	Item(2)->SetValue(WXVARIANT(obj.mId.toStr()));
+	Item(3)->SetValue(WXVARIANT(obj.mParent ));
+
+	const wxColour light_red(255, 200, 200);
+	Item(0)->SetBackgroundColour(obj.mLabel.IsNull() ? light_red : *wxWHITE);
+
 }
 //-----------------------------------------------------------------------------
 wxVariant wxObjTitleProperty::ChildChanged(wxVariant& thisValue,
@@ -357,7 +369,7 @@ wxVariant wxObjTitleProperty::ChildChanged(wxVariant& thisValue,
 	case 0: obj.mLabel = childValue.GetString(); break;
 	case 1: obj.mQty = childValue.GetString(); break;
 	case 2: obj.mId = childValue.GetString(); break;
-	case 3: obj.mParent.mId = wh_rec_ObjParentRefFromVariant(m_value).mObj.mId; break;
+	case 3: obj.mParent = wh_rec_BaseRefFromVariant(childValue); break;
 	}
 	wxVariant newVariant;
 	newVariant << obj;

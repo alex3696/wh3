@@ -33,7 +33,7 @@ bool MClsProp::GetSelectQuery(wxString& query)const
 		" , prop_cls.id AS id "
 		" FROM prop_cls "
 		" LEFT JOIN prop ON prop.id = prop_cls.prop_id "
-		" WHERE t_prop_cls.id = %s "
+		" WHERE prop_cls.id = %s "
 		, clsProp.mId.SqlVal());
 	return true;
 }

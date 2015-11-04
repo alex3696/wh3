@@ -39,7 +39,7 @@ bool ClsPropArray::GetSelectChildsQuery(wxString& query)const
 		query = wxString::Format(
 			"SELECT prop.id AS prop_id "
 			" , prop.title AS prop_label "
-			" , t_prop.kind AS prop_type "
+			" , prop.kind AS prop_type "
 			" , val "
 			" , prop_cls.id AS id "
 			" FROM prop_cls "

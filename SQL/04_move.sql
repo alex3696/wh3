@@ -115,6 +115,8 @@ BEGIN
     WHERE id=_oid AND pid=_pid;
   --RAISE DEBUG 'try_lock_obj: finded object %',_obj_rec;
 -- пытаемся вставить в табличку блокировок, если уже блокирован, то исключение откатит транзакцию
+  _obj_rec.path := COALESCE(_obj_rec.path, '{}');
+
   IF FOUND THEN
     INSERT INTO lock_obj(oid,pid,path) 
       VALUES (_obj_rec.id,_obj_rec.pid,_obj_rec.path) RETURNING * INTO _locked_rec;
@@ -279,6 +281,8 @@ BEGIN
   IF NOT FOUND THEN
     RAISE EXCEPTION ' Object not exists obj_id=% ', _obj_id;
   END IF;
+  _curr_pathid:=COALESCE(_curr_pathid::TEXT,'{}');
+  RAISE DEBUG '_curr_pathid: %',_curr_pathid;
   -- проверяем возможность выполнения выбранного действия в текущем местоположении
     SELECT sum INTO _perm_sum FROM (
     SELECT perm.act_id , sum(access_disabled) 
@@ -289,7 +293,7 @@ BEGIN
           AND _user.rolname=CURRENT_USER -- определяем ИМЕНА разрешённых пользователей ВКЛЮЧАЯ ТЕКУЩЕГО
       WHERE perm.cls_id = _cls_id
         AND perm.act_id = _act_id
-        AND  (perm.obj_id IS NULL OR perm.obj_id = 101)
+        AND  (perm.obj_id IS NULL OR perm.obj_id = _obj_id)
         --AND  (perm.src_path IS NULL OR _curr_pathid::TEXT LIKE src_path::TEXT)
         AND  _curr_pathid::TEXT LIKE perm.src_path
       GROUP BY act_id
@@ -426,6 +430,7 @@ BEGIN
 -- возвращаем пользвателю объекты назначения, попутно складываем их местоположение  в табличку
   FOR rec IN _dst_obj LOOP
     _dst_path_2id := (SELECT get_path_obj_arr_2id(rec.dst_oid));
+    _dst_path_2id:=COALESCE(_dst_path_2id::TEXT,'{}');
 
     INSERT INTO lock_dst(oid,pid, dst_path)VALUES(_obj_id,_old_pid,_dst_path_2id); 
 
@@ -486,6 +491,8 @@ BEGIN
   END IF;
 -- проверяем изменился ли текущий путь объекта
   _curr_path:=(SELECT get_path_obj_arr_2id(_old_opid));
+  _curr_path:=COALESCE(_curr_path::TEXT,'{}');
+  RAISE DEBUG '_curr_pathid: %',_curr_path;
   if(_curr_path<>_lock_info.path) THEN
     RAISE EXCEPTION ' Object src_path was changed obj_id=%, old_path=% curr_path=% '
                                              , _oid, _lock_info.path,_curr_path;

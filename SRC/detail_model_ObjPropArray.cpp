@@ -39,11 +39,11 @@ bool ObjPropArray::GetSelectChildsQuery(wxString& query)const
 		return false;
 	
 	query = wxString::Format(
-		" SELECT distinct(t_ref_act_prop.prop_id), t_prop.label, t_prop.type "
-		" FROM t_ref_class_act "
-		" INNER JOIN t_ref_act_prop ON t_ref_act_prop.act_id = t_ref_class_act.act_id "
-		" LEFT JOIN t_prop ON t_prop.id = t_ref_act_prop.prop_id "
-		" WHERE t_ref_class_act.cls_id = %s "
+		"SELECT distinct(ref_act_prop.prop_id) , prop.title , prop.kind "
+		"  FROM ref_cls_act "
+		"  INNER JOIN ref_act_prop ON ref_act_prop.act_id = ref_cls_act.act_id "
+		"  LEFT JOIN prop ON prop.id = ref_act_prop.prop_id "
+		"  WHERE ref_cls_act.cls_id = %s " 
 		, data.mCls.mId.SqlVal() );
 	return true;
 }
