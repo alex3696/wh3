@@ -221,6 +221,7 @@ GRANT EXECUTE ON FUNCTION lock_for_act(IN _oid  BIGINT, IN _opid  BIGINT) TO "Us
 
 SELECT id, title, note, color, script  FROM lock_for_act(103, 1);
 SELECT lock_reset(103,1);
+
 -----------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------
 --функция выполнения действия
@@ -334,9 +335,6 @@ SELECT id, title, note, color, script  FROM lock_for_act(103, 1);
 
 SELECT do_act(103, 100, '{"100":66,"102":"45452ergsdfgd"}');
 SELECT lock_reset(103,1);
-
-
-
 
 
 -------------------------------------------------------------------------------
@@ -499,6 +497,7 @@ BEGIN
   END IF;
 -- проверяем есть ли среди заблокированных пунктов назначений выбранный 
   _dst_path:=get_path_obj_arr_2id(_new_opid);
+  _dst_path:=COALESCE(_dst_path::TEXT,'{}');
   PERFORM FROM lock_dst WHERE oid=_oid AND pid=_old_opid AND dst_path = _dst_path 
                               OR (dst_path IS NULL AND _dst_path IS NULL);
   IF NOT FOUND THEN
