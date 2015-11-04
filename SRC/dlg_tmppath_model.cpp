@@ -54,17 +54,19 @@ void Array::SetTmpPath(const wxString& arrId, const wxString& arrTitle)
 //-----------------------------------------------------------------------------
 wxString Array::GetTmpPathArr2IdSql()const
 {
-	wxString str="{";
+	wxString str="'{";
 	for (size_t i = 0; i < this->GetChildQty(); ++i)
 	{
 		const auto& nd = at(i)->GetData();
 		str += wxString::Format("{%d,%d}", (long)nd.mCls.mId, (long)nd.mObj.mId);
 	}
 
-	if (str.size() > 1)
+	if (str.size() > 2)
 		str[str.size() - 1] = '}';
 	else
 		str += "}";
+
+	str += "'";
 
 	return str;
 }

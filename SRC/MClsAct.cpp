@@ -77,8 +77,9 @@ bool MClsAct::GetInsertQuery(wxString& query)const
 		"  ,%s, %s, %s "
 		"  ,%s ) "
 		" RETURNING id, access_group, access_disabled, script_restrict "
-		"          ,cls_id, obj_id, src_path "
-		"          ,act_id "
+		"          ,cls_id, obj_id, act_id "
+        "    	   , (SELECT arr_2title FROM  tmppath_to_2id_info(src_path)) "
+		"           , (SELECT arr_2id FROM  tmppath_to_2id_info(src_path)) "
 		, newPerm.mAcessGroup.SqlVal()
 		, newPerm.mAccessDisabled.SqlVal()
 		, newPerm.mScriptRestrict.SqlVal()
