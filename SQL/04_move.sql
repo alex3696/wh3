@@ -174,7 +174,8 @@ DECLARE
       WHERE
         perm.cls_id = _cls_id -- 100
         AND (obj_id IS NULL OR obj_id = _oid) -- 101)
-        AND (src_path IS NULL OR _curr_path LIKE src_path::TEXT)
+        --AND (src_path IS NULL OR _curr_path LIKE src_path::TEXT)
+        AND _curr_path LIKE src_path
       GROUP BY cls_id,obj_id,act_id, src_path
       ) t 
       LEFT JOIN act ON t.act_id= act.id 
@@ -289,7 +290,8 @@ BEGIN
       WHERE perm.cls_id = _cls_id
         AND perm.act_id = _act_id
         AND  (perm.obj_id IS NULL OR perm.obj_id = 101)
-        AND  (perm.src_path IS NULL OR _curr_pathid::TEXT LIKE src_path::TEXT)
+        --AND  (perm.src_path IS NULL OR _curr_pathid::TEXT LIKE src_path::TEXT)
+        AND  _curr_pathid::TEXT LIKE perm.src_path
       GROUP BY act_id
       ) t 
       WHERE t.sum=0;
@@ -364,14 +366,14 @@ FROM obj -- откуда + что
 RIGHT JOIN perm_move perm -- находим все объекты классы которых удовлетворяют правилу (которые можно перемещать)
     ON   obj.cls_id IN (SELECT _id FROM get_childs_cls(perm.cls_id))
     AND perm.obj_id IS NULL OR obj.id = perm.obj_id -- отсеиваем по имени
-    AND (perm.src_path IS NULL OR get_path_obj_arr_2id(obj.pid)::TEXT LIKE perm.src_path ) -- отсеиваем по местоположению
+    AND get_path_obj_arr_2id(obj.pid)::TEXT LIKE perm.src_path  -- отсеиваем по местоположению
 
 LEFT JOIN obj_name dst -- куда
     ON perm.dst_cls_id = dst.cls_id
     AND perm.dst_obj_id IS NULL OR  dst.id = perm.dst_obj_id -- отсеиваем по имени
 LEFT JOIN obj_num  dstn -- куда
     ON dstn.id = dst.id
-    AND (perm.dst_path IS NULL OR get_path_obj_arr_2id(dstn.pid)::TEXT LIKE perm.dst_path ) -- отсеиваем по местоположению
+    AND get_path_obj_arr_2id(dstn.pid)::TEXT LIKE perm.dst_path  -- отсеиваем по местоположению
 
 -- group permission
 LEFT JOIN wh_role _group 
@@ -562,7 +564,7 @@ SELECT lock_reset(104,1);
 */
 
 
-SELECT * FROM lock_dst WHERE oid=104 AND pid=100 AND dst_path = _dst_path ;
+--SELECT * FROM lock_dst WHERE oid=104 AND pid=100 AND dst_path = _dst_path ;
 
 
 

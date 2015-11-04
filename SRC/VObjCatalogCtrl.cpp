@@ -369,7 +369,7 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 			auto selCls = (mCatalogModel->mTypeArray->at(ucls->mPos));
 			if (uobj)
 			{
-				if (selCls && selCls->mObjArray->GetChildQty())
+				if (selCls && selCls->mObjArray->GetChildQty()>uobj->mPos)
 				{
 					auto selObj = selCls->mObjArray->at(uobj->mPos);
 					if (selObj)
@@ -397,7 +397,7 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 	if (selectedItem.IsOk())
 	{
 		mTableView->Select(selectedItem);
-		mTableView->SetCurrentItem(selectedItem);
+		//mTableView->SetCurrentItem(selectedItem);
 	}
 
 	UpdateToolsStates();

@@ -117,6 +117,7 @@ void DClsMoveEditor::GetData(rec::ClsSlotAccess& rec) const
 	rec.mCls.mLabel = mPropGrid->GetPropertyByLabel("Класс")->GetValueAsString();
 	rec.mObj.mLabel = mPropGrid->GetPropertyByLabel("Объект")->GetValueAsString();
 
+	/*
 	wh::ObjKeyPath path;
 	wxString generated_path;
 
@@ -127,7 +128,7 @@ void DClsMoveEditor::GetData(rec::ClsSlotAccess& rec) const
 	path.ParsePath(mPropGrid->GetPropertyByLabel("Приемник")->GetValueAsString());
 	path.GenerateArray(generated_path, true);
 	rec.mDstPath = generated_path;
-
+	*/
 
 
 	rec.mId = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
@@ -144,6 +145,7 @@ void DClsMoveEditor::SetData(const rec::ClsSlotAccess& rec)
 	mPropGrid->GetPropertyByLabel(L"Класс")->SetValueFromString(rec.mCls.mLabel);
 	mPropGrid->GetPropertyByLabel(L"Объект")->SetValueFromString(rec.mObj.mLabel);
 
+	/*
 	wh::ObjKeyPath path;
 	wxString pathStr;
 
@@ -154,7 +156,7 @@ void DClsMoveEditor::SetData(const rec::ClsSlotAccess& rec)
 	path.ParseArray(rec.mDstPath);
 	path.GeneratePath(pathStr);
 	mPropGrid->GetPropertyByLabel("Приемник")->SetValueFromString(pathStr);
-
+*/
 	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(rec.mId);
 }
 //---------------------------------------------------------------------------

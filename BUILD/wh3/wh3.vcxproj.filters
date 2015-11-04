@@ -145,6 +145,9 @@
     <Filter Include="SIG_MODEL\DlgSelectCls\View">
       <UniqueIdentifier>{bf9c4fd1-eb44-4a13-a8d8-b25c352d0e2a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GUI\Диалог шаблона пути">
+      <UniqueIdentifier>{e8360862-bd18-4129-bc5c-51b283f2679f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -380,6 +383,9 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\dlgselectcls_ctrlpnl.cpp">
       <Filter>SIG_MODEL\DlgSelectCls\View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\dlg_tmppath_model.cpp">
+      <Filter>GUI\Диалог шаблона пути</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -655,6 +661,9 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dlgselectcls_ctrlpnl.h">
       <Filter>SIG_MODEL\DlgSelectCls\View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dlg_tmppath_model.h">
+      <Filter>GUI\Диалог шаблона пути</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

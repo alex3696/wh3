@@ -1,8 +1,9 @@
 #ifndef __MCLSMOVE_H
 #define __MCLSMOVE_H
 
-#include "TModelArray.h"
-#include "db_rec.h"
+#include "dlg_tmppath_model.h"
+//#include "TModelArray.h"
+//#include "db_rec.h"
 
 namespace wh{
 
@@ -18,6 +19,9 @@ public:
 	virtual const std::vector<Field>& GetFieldVector()const override;
 
 	virtual bool LoadThisDataFromDb(std::shared_ptr<whTable>&, const size_t)override;
+
+	std::shared_ptr<temppath::model::Array>	mSrcPathArr;
+	std::shared_ptr<temppath::model::Array>	mDstPathArr;
 protected:
 	virtual bool GetSelectQuery(wxString&)const override;
 	virtual bool GetInsertQuery(wxString&)const override;

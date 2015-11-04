@@ -168,6 +168,7 @@
     <ClCompile Include="..\..\SRC\dlg_move_view_CtrlPanel.cpp" />
     <ClCompile Include="..\..\SRC\dlg_move_view_DvModel.cpp" />
     <ClCompile Include="..\..\SRC\dlg_move_view_Frame.cpp" />
+    <ClCompile Include="..\..\SRC\dlg_tmppath_model.cpp" />
     <ClCompile Include="..\..\SRC\DUserEditor.cpp" />
     <ClCompile Include="..\..\SRC\DUserGroupEditor.cpp" />
     <ClCompile Include="..\..\SRC\MAct.cpp" />
@@ -288,6 +289,7 @@
     <ClInclude Include="..\..\INCLUDE\dlg_move_view_Frame.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_move_view_Tree.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_favprop_SelectFrame.h" />
+    <ClInclude Include="..\..\INCLUDE\dlg_tmppath_model.h" />
     <ClInclude Include="..\..\INCLUDE\DUserEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DUserGroupEditor.h" />
     <ClInclude Include="..\..\INCLUDE\MFavProp.h" />

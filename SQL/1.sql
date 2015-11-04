@@ -129,6 +129,120 @@ WHERE o.cls_id = 2167
 
 
 
+SELECT 'retert' LIKE '%'
+
+
+
+
+SELECT 'fdgdfgdsfg sfdg  '~ '^([[:alnum:][:space:]!()*+,-.:;<=>^_|№])+$'
+
+
+SELECT '567' ~ '^(%|[[:digit:]]+)$' -- number or %
+
+SELECT '6%78,%,66,' ~ '^((%|[[:digit:]]+),)+$' -- number or % by ,
+SELECT '678,%,66' ~ '^((%|[[:digit:]]+),)+(%|[[:digit:]]+)$' -- number or % by ,
+
+
+SELECT res[1],res[2],res[3],res[4],res[5],res[6]
+FROM regexp_matches (
+'{%,{%,%},%%{%,106},{108,%}%{111,122}%}' 
+,'^{((((%+)|({(%|[[:digit:]]+),(%|[[:digit:]]+)})),?)+)}$'
+, 'g' ) res;
+
+
+SELECT res[1],res[2],res[3],res[4],res[5],res[6]
+FROM regexp_matches (
+'{%,{%,%},%%{%,106},{108,%}%{111,122}%}' 
+,'(((%+)|({(%|[[:digit:]]+),(%|[[:digit:]]+)})),?)'
+, 'g' ) res;
+
+
+SELECT res[1],res[2],res[3],res[4],res[5],res[6],res[7],res[8]
+FROM regexp_matches (
+'{%,{%,%},%%{%,106},{108,%}%{111,122}%}' 
+,'((%+|({(%|[[:digit:]]+),(%|[[:digit:]]+)})),?)'
+, 'g' ) res;
+
+
+
+
+
+SELECT  
+'{%,{%,%},%%{%,106},{108,%}%{111,122}%}'  ~
+'^{((((%+)|({(%|[[:digit:]]+),(%|[[:digit:]]+)})),?)+)}$'
+
+
+
+
+
+SELECT ORDINALITY as ord,res[1] as id1,res[2] as id2
+                FROM 
+                     regexp_matches('{%,{%,%},%%{%,106},{108,%}{111,122}%}' , 
+                     '%+|{(%|[[:digit:]]+),(%|[[:digit:]]+)}','g') WITH ORDINALITY res
+
+
+
+
+
+
+
+    SELECT cls.id AS cls_id
+        , cls.title::NAME AS cls_title
+        , obj.id AS obj_id
+        , obj.title::NAME AS obj_title
+        ,  arr.id1 ,  arr.id2
+        FROM (
+                SELECT ORDINALITY as ord,res[1] as id1,res[2] as id2
+                FROM 
+                     regexp_matches('{%,{%,%},%%{%,106},{108,%}{111,122}%}' , 
+                     '%+|{(%|[[:digit:]]+),(%|[[:digit:]]+)}','g') WITH ORDINALITY res
+
+             ) arr
+        LEFT JOIN obj_name obj ON obj.id= CASE WHEN arr.id2='%' THEN NULL ELSE arr.id2::BIGINT END
+        LEFT JOIN cls_name cls ON cls.id= CASE 
+                                            WHEN arr.id1 IS NULL OR arr.id1='%'
+                                            THEN obj.cls_id
+                                            ELSE arr.id1::BIGINT END
+        ORDER BY arr.ord
+
+
+
+		SELECT perm_act.id, access_group, access_disabled, script_restrict 
+		     , cls.id, cls.title, obj.id, obj.title--, src_path 
+		     , act.id, act.title 
+		     , arr_2title, arr_2id
+		  FROM perm_act --, LATERAL ( SELECT  tmppath_to_2id_info(src_path) ) x
+		    LEFT JOIN LATERAL tmppath_to_2id_info(src_path) x ON true 
+		    LEFT JOIN cls   ON cls.id = perm_act.cls_id 
+		    LEFT JOIN obj   ON obj.id = perm_act.obj_id 
+		    LEFT JOIN act ON act.id = perm_act.act_id 
+          WHERE perm_act.cls_id = 103
+
+
+
+
+		SELECT perm_move.id, access_group, access_disabled, script_restrict 
+		     , mov_cls.id, mov_cls.title, mov_obj.id, mov_obj.title 
+		     , src_cls.id, src_cls.title, src_obj.id, src_obj.title
+		     , dst_cls.id, dst_cls.title, dst_obj.id, dst_obj.title
+		     , src.arr_2title, src.arr_2id
+		     , dst.arr_2title, dst.arr_2id
+		  FROM perm_move 
+		  LEFT JOIN LATERAL tmppath_to_2id_info(src_path) src ON true 
+		  LEFT JOIN LATERAL tmppath_to_2id_info(dst_path) dst ON true 
+		  
+		    LEFT JOIN cls      mov_cls ON mov_cls.id = perm_move.cls_id 
+		    LEFT JOIN obj      mov_obj ON mov_obj.id = perm_move.obj_id 
+		    LEFT JOIN cls      src_cls ON src_cls.id = perm_move.src_cls_id 
+		    LEFT JOIN obj      src_obj ON src_obj.id = perm_move.src_obj_id 
+		    LEFT JOIN cls      dst_cls ON dst_cls.id = perm_move.dst_cls_id 
+		    LEFT JOIN obj      dst_obj ON dst_obj.id = perm_move.dst_obj_id 
+		  WHERE dst_cls_id = 103
+
+
+
+
+
 
 
 

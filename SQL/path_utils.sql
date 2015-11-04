@@ -16,7 +16,11 @@ DROP FUNCTION IF EXISTS get_path_obj_arr_2id(IN _oid BIGINT) CASCADE;
 DROP FUNCTION IF EXISTS get_path_obj_arr_2title(IN _oid BIGINT) CASCADE;
 DROP FUNCTION IF EXISTS get_path_obj(IN _oid BIGINT) CASCADE;
 
+DROP FUNCTION IF EXISTS fn_array1_to_table(anyarray);
 DROP FUNCTION IF EXISTS obj_arr_id_to_obj_info(IN anyarray);
+
+DROP FUNCTION IF EXISTS fn_array2_to_table(IN anyarray);
+DROP FUNCTION IF EXISTS tmparr_to_2id_info(IN TEXT);
 -------------------------------------------------------------------------------
 -- поиск всех дочерних классов
 -------------------------------------------------------------------------------
@@ -263,6 +267,16 @@ SELECT * FROM get_path_obj(2167);
 
 
 
+-----------------------------------------------------------------------------------------------------------------------------    
+-- функция преобразования одномерного массива идентификаторов класса в таблицу
+-----------------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS fn_array1_to_table(IN anyarray);
+CREATE OR REPLACE FUNCTION fn_array1_to_table(IN anyarray)
+  RETURNS TABLE(idx integer, id anyelement) 
+  AS $BODY$ 
+  SELECT row, $1[row] from generate_subscripts($1, 1) as row
+$BODY$ LANGUAGE sql IMMUTABLE;
+--SELECT * FROM fn_array1_to_table('{101,102,103,104}'::int[]);
 
 
 -----------------------------------------------------------------------------------------------------------------------------    
@@ -304,9 +318,67 @@ SELECT * FROM obj_arr_id_to_obj_info('{101,102,103,104}'::BIGINT[]);
 
 
 
+-----------------------------------------------------------------------------------------------------------------------------    
+-- функция преобразования одномерного массива идентификаторов класса в таблицу
+-----------------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS fn_array2_to_table(IN anyarray);
+CREATE OR REPLACE FUNCTION fn_array2_to_table(IN anyarray)
+  RETURNS TABLE(idx integer, id1 anyelement, id2 anyelement) 
+  AS $BODY$ 
+  SELECT row, $1[row][1],$1[row][2] from generate_subscripts($1, 1) as row
+$BODY$ LANGUAGE sql IMMUTABLE;
+--SELECT * FROM fn_array2_to_table('{{101,1011},{102,1022},{103,1033},{104,1044}}'::int[]);
+--SELECT * FROM fn_array2_to_table('{{%,%},{%,1022},{103,%},{104,1044}}'::NAME[]);
 
 
 
+-----------------------------------------------------------------------------------------------------------------------------    
+-- функция преобразования шаблона пути массива 
+-----------------------------------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS tmppath_to_2id_info(IN TEXT);
+CREATE OR REPLACE FUNCTION tmppath_to_2id_info(IN tpath TEXT)
+  RETURNS TABLE(
+     arr_2title NAME[]
+    ,arr_2id    BIGINT[]
+    ,path       TEXT
+    
+    ) AS $BODY$
+DECLARE
+    _unpackpath CURSOR IS 
+    SELECT cls.id AS cls_id
+        , cls.title::NAME AS cls_title
+        , obj.id AS obj_id
+        , obj.title::NAME AS obj_title
+        --,  arr.id1 ,  arr.id2
+        FROM (
+                SELECT ORDINALITY as ord,res[1] as id1,res[2] as id2
+                FROM 
+                     regexp_matches($1 , 
+                     '%+|{(%|[[:digit:]]+),(%|[[:digit:]]+)}','g') WITH ORDINALITY res
+
+             ) arr
+        LEFT JOIN obj_name obj ON obj.id= CASE WHEN arr.id2='%' THEN NULL ELSE arr.id2::BIGINT END
+        LEFT JOIN cls_name cls ON cls.id= CASE 
+                                            WHEN arr.id1 IS NULL OR arr.id1='%'
+                                            THEN obj.cls_id
+                                            ELSE arr.id1::BIGINT END
+        ORDER BY arr.ord;
+
+BEGIN
+    path:='';
+    FOR rec IN _unpackpath LOOP
+        arr_2title := arr_2title || ARRAY[ ARRAY[rec.cls_title,rec.obj_title] ];
+        arr_2id := arr_2id || ARRAY[ ARRAY[rec.cls_id,rec.obj_id]::BIGINT[] ]::BIGINT[];
+        path:=  '/['||COALESCE(rec.cls_title,'')||']'||COALESCE(rec.obj_title,'') || path;
+    END LOOP;
+    RETURN next;
+    RETURN;
+END;
+$BODY$
+  LANGUAGE plpgsql STABLE ;
+
+
+SELECT * FROM tmppath_to_2id_info('{%,{%,%},%%{%,106},{108,%}{111,122}}%');
 
 
 
@@ -332,4 +404,9 @@ GRANT EXECUTE ON FUNCTION get_path_obj_arr_2id(IN _oid BIGINT) TO "User";
 GRANT EXECUTE ON FUNCTION get_path_obj_arr_2title(IN _oid BIGINT) TO "User";
 GRANT EXECUTE ON FUNCTION get_path_obj(IN _oid BIGINT) TO "User";
 
+GRANT EXECUTE ON FUNCTION fn_array1_to_table(IN anyarray) TO "Guest";
 GRANT EXECUTE ON FUNCTION obj_arr_id_to_obj_info(IN anyarray) TO "User";
+GRANT EXECUTE ON FUNCTION fn_array2_to_table(IN anyarray) TO "Guest";
+GRANT EXECUTE ON FUNCTION tmppath_to_2id_info(IN TEXT) TO "Guest";
+
+

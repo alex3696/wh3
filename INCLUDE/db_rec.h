@@ -319,7 +319,7 @@ struct ObjParent
 	Base mCls;
 	Base mObj;
 };
-
+typedef ObjParent PathNode;
 
 //-----------------------------------------------------------------------------
 /// Класс - основные метаданные - запись в таблицце классов 
@@ -462,7 +462,7 @@ public:
 class ActProp final
 {
 public:
-	Prop		mProp;
+	Prop	mProp;
 	SqlLong	mId;
 
 };
@@ -487,7 +487,7 @@ struct ClsActAccess
 
 	Base		mCls;
 	Base		mObj;
-	SqlString	mSrcPath;
+	//SqlString	mSrcPath;
 
 	Base		mAct;
 	
@@ -504,14 +504,14 @@ struct ClsSlotAccess
 
 	Base		mSrcCls;
 	Base		mSrcObj;
-	SqlString	mSrcPath;
+	//SqlString	mSrcPath;
 
 	Base		mCls;
 	Base		mObj;
 
 	Base		mDstCls;
 	Base		mDstObj;
-	SqlString	mDstPath;
+	//SqlString	mDstPath;
 };
 
 //-----------------------------------------------------------------------------
@@ -557,11 +557,8 @@ struct PathItem
 	ObjTitle	mObj;
 };
 //-----------------------------------------------------------------------------
-struct ObjInfo
-{
-	Cls			mCls;
-	ObjTitle	mObj;
-};
+typedef PathItem ObjInfo;
+
 //-----------------------------------------------------------------------------
 struct FavProp
 {

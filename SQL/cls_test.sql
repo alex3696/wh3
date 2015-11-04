@@ -13,9 +13,13 @@ SELECT whgrant_grouptouser('Admin','postgres');
 -- домены
 ---------------------------------------------------------------------------------------------------
 DROP DOMAIN IF EXISTS WHNAME CASCADE; 
+DROP DOMAIN IF EXISTS TMPPATH CASCADE; 
 
 CREATE DOMAIN WHNAME AS NAME
    CHECK (VALUE ~ '^([[:alnum:][:space:]!()*+,-.:;<=>^_|№])+$') ;
+
+CREATE DOMAIN TMPPATH AS TEXT
+   CHECK (VALUE ~ '^{((((%+)|({(%|[[:digit:]]+),(%|[[:digit:]]+)})),?)+)}$') ;
 
 ---------------------------------------------------------------------------------------------------
 -- идентификаторы
@@ -104,7 +108,7 @@ DROP TABLE IF EXISTS ref_act_prop CASCADE;
 ---------------------------------------------------------------------------------------------------
 -- функции
 ---------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS fn_array1_to_table(anyarray);
+
 
 DROP FUNCTION IF EXISTS ftr_aud_perm_act() CASCADE;
 DROP FUNCTION IF EXISTS ftr_biu_perm_act() CASCADE;
@@ -370,14 +374,14 @@ CREATE TABLE perm_move
 
   ,src_cls_id  BIGINT   NOT NULL 
   ,src_obj_id  BIGINT            DEFAULT NULL
-  ,src_path    TEXT              DEFAULT NULL
+  ,src_path    TMPPATH  NOT NULL DEFAULT '{%}'
 
   ,cls_id      BIGINT   NOT NULL 
   ,obj_id      BIGINT            DEFAULT NULL
   
   ,dst_cls_id  BIGINT   NOT NULL 
   ,dst_obj_id  BIGINT            DEFAULT NULL
-  ,dst_path    TEXT              DEFAULT NULL
+  ,dst_path    TMPPATH  NOT NULL DEFAULT '{%}'
 
 ,CONSTRAINT pk_permmove__id PRIMARY KEY ( id )   
 ,CONSTRAINT fk_permmove__acess_group FOREIGN KEY (access_group) 
@@ -389,6 +393,11 @@ CREATE TABLE perm_move
 ,CONSTRAINT fk_permmove__dstclsid       FOREIGN KEY (dst_cls_id)
     REFERENCES                               cls_num(id)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+
+--CONSTRAINT ck_perm_act_src_path
+--    CHECK (src_path ~ '^{((((%+)|({(%|[[:digit:]]+),(%|[[:digit:]]+)})),?)+)}$') 
+-- CONSTRAINT ck_perm_act_dst_path
+--    CHECK (dst_path ~ '^{((((%+)|({(%|[[:digit:]]+),(%|[[:digit:]]+)})),?)+)}$') 
 );--INHERITS (perm);
 CREATE INDEX idx_permmove__user ON perm_move(access_group);
 CREATE INDEX idx_permmove__srcclsob ON perm_move(src_cls_id, src_obj_id);
@@ -414,7 +423,7 @@ CREATE TABLE perm_act
 
   ,cls_id  BIGINT   NOT NULL 
   ,obj_id  BIGINT            DEFAULT NULL
-  ,src_path    TEXT              DEFAULT NULL
+  ,src_path TMPPATH  NOT NULL DEFAULT '{%}'
 
   ,act_id          INTEGER   NOT NULL 
 ,CONSTRAINT pk_permact__id PRIMARY KEY ( id )   
@@ -426,10 +435,14 @@ CREATE TABLE perm_act
 ,CONSTRAINT fk_permact_clsact FOREIGN KEY (cls_id, act_id) 
     REFERENCES                ref_cls_act (cls_id, act_id) 
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+
+--CONSTRAINT ck_perm_act_src_path
+--    CHECK (src_path ~ '^{((((%+)|({(%|[[:digit:]]+),(%|[[:digit:]]+)})),?)+)}$') 
 );--INHERITS (perm);
 CREATE INDEX idx_permact__user ON perm_act(access_group);
 CREATE INDEX idx_permact__srcclsobj ON perm_act(cls_id, obj_id);
 CREATE INDEX idx_permact__actid ON perm_act(act_id);
+CREATE INDEX perm_act_src_path_idx ON perm_act (src_path text_pattern_ops);
 
 GRANT SELECT        ON TABLE perm_act  TO "Guest";
 GRANT INSERT        ON TABLE perm_act  TO "TypeDesigner";
@@ -580,7 +593,7 @@ CREATE TABLE log_move (
   ,obj_id        BIGINT    NOT NULL REFERENCES obj_name( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
   ,qty           NUMERIC   NOT NULL 
   -- state
-  ,act_logid     BIGINT    NOT NULL REFERENCES log_act( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE RESTRICT 
+  ,act_logid     BIGINT             REFERENCES log_act( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE RESTRICT 
 );
 
 GRANT SELECT        ON TABLE log_move  TO "Guest";
@@ -727,19 +740,7 @@ CREATE TRIGGER tr_aud_perm_act AFTER DELETE OR UPDATE ON perm_act FOR EACH ROW E
 
 GRANT EXECUTE ON FUNCTION ftr_aud_perm_act() TO "TypeDesigner";
 
------------------------------------------------------------------------------------------------------------------------------    
--- функция преобразования одномерного массива идентификаторов класса в таблицу
------------------------------------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS fn_array1_to_table(IN anyarray);
-CREATE OR REPLACE FUNCTION fn_array1_to_table(IN anyarray)
-  RETURNS TABLE(idx integer, id anyelement) 
-  AS $BODY$ 
-  SELECT row, $1[row] from generate_subscripts($1, 1) as row
-$BODY$ LANGUAGE sql IMMUTABLE;
---SELECT * FROM fn_array1_to_table('{101,102,103,104}'::int[]);
 
-
-GRANT EXECUTE ON FUNCTION fn_array1_to_table(IN anyarray) TO "Guest";
 ---------------------------------------------------------------------------------------------------
 -- тригер создания класса
 ---------------------------------------------------------------------------------------------------
@@ -1013,23 +1014,23 @@ INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_4, @prop_id_1);
 INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_4, @prop_id_3);
 
 
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, act_id)
-    VALUES ('User', 0, @cls_id_4, NULL, NULL, @act_id_1);
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, act_id)
-    VALUES ('User', 0, @cls_id_4, NULL, NULL, @act_id_2);
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, act_id)
-    VALUES ('User', 0, @cls_id_4, NULL, NULL, @act_id_3);
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, act_id)
-    VALUES ('User', 0, @cls_id_4, NULL, NULL, @act_id_4);
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+    VALUES ('User', 0, @cls_id_4, NULL, @act_id_1);
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+    VALUES ('User', 0, @cls_id_4, NULL, @act_id_2);
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+    VALUES ('User', 0, @cls_id_4, NULL, @act_id_3);
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+    VALUES ('User', 0, @cls_id_4, NULL, @act_id_4);
 
 
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, act_id)
-    VALUES ('User', 0, @cls_id_6, NULL, NULL, @act_id_2);
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+    VALUES ('User', 0, @cls_id_6, NULL, @act_id_2);
 
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, act_id)
-    VALUES ('User', 0, @cls_id_5, NULL, NULL, @act_id_1);
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, src_path, act_id)
-    VALUES ('User', 0, @cls_id_5, NULL, NULL, @act_id_3);
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+    VALUES ('User', 0, @cls_id_5, NULL, @act_id_1);
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+    VALUES ('User', 0, @cls_id_5, NULL, @act_id_3);
 
 
 INSERT INTO perm_move( access_group, access_disabled
@@ -1038,28 +1039,28 @@ INSERT INTO perm_move( access_group, access_disabled
                       ,dst_cls_id, dst_obj_id, dst_path)VALUES 
                      ( 'User', 0
                        ,@cls_id_6, NULL        -- whar [ФЭУ-102]%
-                       ,2, NULL, NULL          -- from [ROOT]%
-                       , @cls_id_4, NULL, NULL -- to   [СРК2М]% 
+                       ,2, NULL, '{%}'          -- from [ROOT]%
+                       , @cls_id_4, NULL, '{%}' -- to   [СРК2М]% 
                       );
 
 INSERT INTO perm_move( access_group, access_disabled
                       ,cls_id, obj_id
-                      ,src_cls_id, src_obj_id, src_path
-                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+                      ,src_cls_id, src_obj_id
+                      ,dst_cls_id, dst_obj_id)VALUES 
                      ( 'User', 0
                        ,@cls_id_6, NULL        -- whar [ФЭУ-102]%
-                       ,2, NULL, NULL          -- from [ROOT]%
-                       , @cls_id_5, NULL, NULL -- to   [ДИНА-К4-89]% 
+                       ,2, NULL                -- from [ROOT]%
+                       , @cls_id_5, NULL       -- to   [ДИНА-К4-89]% 
                       );
 
 INSERT INTO perm_move( access_group, access_disabled
                       ,cls_id, obj_id
-                      ,src_cls_id, src_obj_id, src_path
-                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+                      ,src_cls_id, src_obj_id
+                      ,dst_cls_id, dst_obj_id)VALUES 
                      ( 'User', 0
                        ,@cls_id_6, NULL       -- whar [ФЭУ-102]%
-                       ,@cls_id_5, NULL, NULL -- from [ДИНА-К4-89]% 
-                       ,2, NULL, NULL         -- to   [ROOT]%
+                       ,@cls_id_5, NULL       -- from [ДИНА-К4-89]% 
+                       ,2, NULL             -- to   [ROOT]%
                        
                       );
 

@@ -19,6 +19,8 @@ const std::vector<Field> gClsActFieldVec = {
 MClsAct::MClsAct(const char option)
 :TModelData<rec::ClsActAccess>(option)
 {
+	mSrcPathArr = std::make_shared<temppath::model::Array>();
+	this->AddChild(mSrcPathArr);
 }
 
 //-------------------------------------------------------------------------
@@ -37,9 +39,11 @@ bool MClsAct::GetSelectQuery(wxString& query)const
 
 	query = wxString::Format(
 		"SELECT perm_act.id, access_group, access_disabled, script_restrict "
-		"     , cls.id, cls.title, obj.id, obj.title, src_path "
+		"     , cls.id, cls.title, obj.id, obj.title "
 		"     , act.id, act.title "
+		"     , arr_2title, arr_2id "
 		"  FROM perm_act "
+		"	 LEFT JOIN LATERAL tmppath_to_2id_info(src_path) x ON true "
 		"    LEFT JOIN cls   ON cls.id = perm_act.cls_id "
 		"    LEFT JOIN obj   ON obj.id = perm_act.obj_id "
 		"    LEFT JOIN act ON act.id = perm_act.act_id "
@@ -81,7 +85,7 @@ bool MClsAct::GetInsertQuery(wxString& query)const
 
 		, cls.mId.SqlVal() //newPerm.mSrcCls.mId = cls.mID;
 		, newPerm.mObj.mId.SqlVal()
-		, newPerm.mSrcPath.SqlVal()
+		, mSrcPathArr->GetTmpPathArr2IdSql()
 
 		, newPerm.mAct.mId.SqlVal()
 		);
@@ -115,8 +119,8 @@ bool MClsAct::GetUpdateQuery(wxString& query)const
 
 			, cls.mId.SqlVal() //newPerm.mSrcCls.mId = cls.mID;
 			, newPerm.mObj.mId.SqlVal()
-			, newPerm.mSrcPath.SqlVal()
-
+			, mSrcPathArr->GetTmpPathArr2IdSql()
+			
 			, newPerm.mAct.mId.SqlVal()
 
 			, oldPerm.mId.SqlVal()
@@ -158,11 +162,17 @@ bool MClsAct::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t r
 	data.mCls.mLabel  = table->GetAsString(i++, row);
 	data.mObj.mId     = table->GetAsString(i++, row);
 	data.mObj.mLabel  = table->GetAsString(i++, row);
-	data.mSrcPath        = table->GetAsString(i++, row);
-
+	
 	data.mAct.mId        = table->GetAsString(i++, row);
 	data.mAct.mLabel     = table->GetAsString(i++, row);
 	
+	auto arr2title = table->GetAsString(i++, row);
+	auto arr2id    = table->GetAsString(i++, row);
+
+	mSrcPathArr->SetTmpPath(arr2id, arr2title);
+
+	
+
 	SetData(data);
 	return true;
 };
@@ -179,7 +189,7 @@ bool MClsAct::GetFieldValue(unsigned int col, wxVariant &variant)
 	case 2:	variant = ("1" == data.mAccessDisabled) ? "Запретить" : "Разрешить";	break;
 	case 3:	variant = data.mAcessGroup;	break;
 	case 4: variant = data.mObj.mLabel;	break;
-	case 5: variant = data.mSrcPath;	break;
+	case 5: variant = mSrcPathArr->GetTmpPath();	break;
 	case 6: variant = data.mId.toStr();	break;
 	}//switch(col) 
 	return true;
@@ -208,9 +218,11 @@ bool MClsActArray::GetSelectChildsQuery(wxString& query)const
 
 	query = wxString::Format(
 		"SELECT perm_act.id, access_group, access_disabled, script_restrict "
-		"     , cls.id, cls.title, obj.id, obj.title, src_path "
+		"     , cls.id, cls.title, obj.id, obj.title "
 		"     , act.id, act.title "
+		"     , arr_2title, arr_2id "
 		"  FROM perm_act "
+		"	 LEFT JOIN LATERAL tmppath_to_2id_info(src_path) x ON true "
 		"    LEFT JOIN cls   ON cls.id = perm_act.cls_id "
 		"    LEFT JOIN obj   ON obj.id = perm_act.obj_id "
 		"    LEFT JOIN act ON act.id = perm_act.act_id "
@@ -218,7 +230,6 @@ bool MClsActArray::GetSelectChildsQuery(wxString& query)const
 		, cls.mId.SqlVal() );
 
 	return true;
-
 }
 //-------------------------------------------------------------------------
 std::shared_ptr<IModel> MClsActArray::CreateChild()

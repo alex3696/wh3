@@ -154,6 +154,7 @@ void DClsActEditor::GetData(rec::ClsActAccess& rec) const
 	rec.mScriptRestrict = mPropGrid->GetPropertyByLabel(L"Ñêðèïò")->GetValueAsString();
 	rec.mObj.mLabel = mPropGrid->GetPropertyByLabel("Îáúåêò")->GetValueAsString();
 
+	/*
 	wh::ObjKeyPath path;
 	path.ParsePath(mPropGrid->GetPropertyByLabel("Ïóòü")->GetValueAsString());
 
@@ -165,7 +166,7 @@ void DClsActEditor::GetData(rec::ClsActAccess& rec) const
 	}
 	else
 		rec.mSrcPath.SetNull();
-
+		*/
 	rec.mId = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
 }
 //---------------------------------------------------------------------------
@@ -179,13 +180,13 @@ void DClsActEditor::SetData(const rec::ClsActAccess& rec)
 	mPropGrid->GetPropertyByLabel(L"Ãðóïïà")->SetValueFromString(rec.mAcessGroup);
 	mPropGrid->GetPropertyByLabel(L"Ñêðèïò")->SetValueFromString(rec.mScriptRestrict);
 	mPropGrid->GetPropertyByLabel(L"Îáúåêò")->SetValueFromString(rec.mObj.mLabel.toStr());
-	
+	/*
 	wh::ObjKeyPath path;
 	path.ParseArray(rec.mSrcPath);
 	wxString pathStr;
 	path.GeneratePath(pathStr);
 	mPropGrid->GetPropertyByLabel("Ïóòü")->SetValueFromString(pathStr);
-	
+	*/
 	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(rec.mId.toStr());
 }
 //---------------------------------------------------------------------------

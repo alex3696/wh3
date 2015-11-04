@@ -19,6 +19,10 @@ const std::vector<Field> gClsMoveFieldVec = {
 MClsMove::MClsMove(const char option)
 :TModelData<rec::ClsSlotAccess>(option)
 {
+	mSrcPathArr = std::make_shared<temppath::model::Array>();
+	this->AddChild(mSrcPathArr);
+	mDstPathArr = std::make_shared<temppath::model::Array>();
+	this->AddChild(mDstPathArr);
 }
 
 //-------------------------------------------------------------------------
@@ -37,9 +41,13 @@ bool MClsMove::GetSelectQuery(wxString& query)const
 	query = wxString::Format(
 		"SELECT perm_move.id, access_group, access_disabled, script_restrict "
 		"     , mov_cls.id, mov_cls.title, mov_obj.id, mov_obj.title "
-		"     , src_cls.id, src_cls.title, src_obj.id, src_obj.title, src_path "
-		"     , dst_cls.id, dst_cls.title, dst_obj.id, dst_obj.title, dst_path "
+		"     , src_cls.id, src_cls.title, src_obj.id, src_obj.title "
+		"     , dst_cls.id, dst_cls.title, dst_obj.id, dst_obj.title "
+		"     , src.arr_2title, src.arr_2id "
+		"     , dst.arr_2title, dst.arr_2id "
 		"  FROM perm_move "
+		"    LEFT JOIN LATERAL tmppath_to_2id_info(src_path) src ON true "
+		"	 LEFT JOIN LATERAL tmppath_to_2id_info(dst_path) dst ON true "
 		"    LEFT JOIN cls      mov_cls ON mov_cls.id = perm_move.cls_id "
 		"    LEFT JOIN obj      mov_obj ON mov_obj.id = perm_move.obj_id "
 		"    LEFT JOIN cls      src_cls ON src_cls.id = perm_move.src_cls_id "
@@ -88,11 +96,11 @@ bool MClsMove::GetInsertQuery(wxString& query)const
 
 		, newPerm.mSrcCls.mId.SqlVal()
 		, newPerm.mSrcObj.mId.SqlVal()
-		, newPerm.mSrcPath.SqlVal()
+		, mSrcPathArr->GetTmpPathArr2IdSql()
 
 		, newPerm.mDstCls.mId.SqlVal()
 		, newPerm.mDstObj.mId.SqlVal()
-		, newPerm.mDstPath.SqlVal()
+		, mDstPathArr->GetTmpPathArr2IdSql()
 
 		);
 	return true;
@@ -129,11 +137,11 @@ bool MClsMove::GetUpdateQuery(wxString& query)const
 
 		, newPerm.mSrcCls.mId.SqlVal()
 		, newPerm.mSrcObj.mId.SqlVal()
-		, newPerm.mSrcPath.SqlVal()
+		, mSrcPathArr->GetTmpPathArr2IdSql()
 
 		, newPerm.mDstCls.mId.SqlVal()
 		, newPerm.mDstObj.mId.SqlVal()
-		, newPerm.mDstPath.SqlVal()
+		, mDstPathArr->GetTmpPathArr2IdSql()
 
 		, oldPerm.mId.SqlVal()
 		);
@@ -177,13 +185,21 @@ bool MClsMove::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t 
 	data.mSrcCls.mLabel = table->GetAsString(i++, row);
 	data.mSrcObj.mId = table->GetAsLong(i++, row);
 	data.mSrcObj.mLabel = table->GetAsString(i++, row);
-	data.mSrcPath = table->GetAsString(i++, row);
+	
 
 	data.mDstCls.mId = table->GetAsLong(i++, row);
 	data.mDstCls.mLabel = table->GetAsString(i++, row);
 	data.mDstObj.mId = table->GetAsLong(i++, row);
 	data.mDstObj.mLabel = table->GetAsString(i++, row);
-	data.mDstPath = table->GetAsString(i++, row);
+	
+	auto arr2title = table->GetAsString(i++, row);
+	auto arr2id = table->GetAsString(i++, row);
+	mSrcPathArr->SetTmpPath(arr2id, arr2title);
+
+	arr2title = table->GetAsString(i++, row);
+	arr2id = table->GetAsString(i++, row);
+	mDstPathArr->SetTmpPath(arr2id, arr2title);
+
 
 	SetData(data);
 	return true;
@@ -191,6 +207,14 @@ bool MClsMove::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t 
 //-------------------------------------------------------------------------
 bool MClsMove::GetFieldValue(unsigned int col, wxVariant &variant)
 {
+	auto parentArray = dynamic_cast<MClsMoveArray*>(this->mParent);
+	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
+
+	if (!parentCls)
+		return false;
+
+	
+
 	const auto& data = this->GetData();
 	auto mgr = ResMgr::GetInstance();
 	switch (col)
@@ -205,9 +229,12 @@ bool MClsMove::GetFieldValue(unsigned int col, wxVariant &variant)
 						, data.mCls.mLabel.toStr() 
 						, data.mObj.mLabel.toStr() );
 		break;
-	case 4: variant = data.mSrcPath.toStr();				
+	case 4: variant = mSrcPathArr->GetTmpPath();
 		break;
-	case 5: variant = data.mDstPath.toStr() + "/[THIS]" + data.mDstObj.mLabel.toStr();	
+	case 5: variant = wxString::Format("%s/[%s]%s"
+						,mSrcPathArr->GetTmpPath()
+						,parentCls->GetData().mLabel.toStr()
+						,data.mDstObj.mLabel.toStr()	);
 		break;
 	}//switch(col) 
 	return true;
@@ -236,9 +263,13 @@ bool MClsMoveArray::GetSelectChildsQuery(wxString& query)const
 	query = wxString::Format(
 		"SELECT perm_move.id, access_group, access_disabled, script_restrict "
 		"     , mov_cls.id, mov_cls.title, mov_obj.id, mov_obj.title "
-		"     , src_cls.id, src_cls.title, src_obj.id, src_obj.title, src_path "
-		"     , dst_cls.id, dst_cls.title, dst_obj.id, dst_obj.title, dst_path "
+		"     , src_cls.id, src_cls.title, src_obj.id, src_obj.title "
+		"     , dst_cls.id, dst_cls.title, dst_obj.id, dst_obj.title "
+		"     , src.arr_2title, src.arr_2id "
+		"     , dst.arr_2title, dst.arr_2id "
 		"  FROM perm_move "
+		"    LEFT JOIN LATERAL tmppath_to_2id_info(src_path) src ON true "
+		"	 LEFT JOIN LATERAL tmppath_to_2id_info(dst_path) dst ON true "
 		"    LEFT JOIN cls      mov_cls ON mov_cls.id = perm_move.cls_id "
 		"    LEFT JOIN obj      mov_obj ON mov_obj.id = perm_move.obj_id "
 		"    LEFT JOIN cls      src_cls ON src_cls.id = perm_move.src_cls_id "
