@@ -226,15 +226,15 @@ bool MClsMove::GetFieldValue(unsigned int col, wxVariant &variant)
 		break;
 	case 2:	variant = data.mAcessGroup;						break;
 	case 3: variant = wxString::Format("[%s]%s"
-						, data.mCls.mLabel.toStr() 
-						, data.mObj.mLabel.toStr() );
+						, data.mCls.mLabel.toStr()
+						, data.mObj.mLabel.IsNull() ? "%" : data.mObj.mLabel.toStr() );
 		break;
 	case 4: variant = mSrcPathArr->GetTmpPath();
 		break;
 	case 5: variant = wxString::Format("%s/[%s]%s"
 						,mSrcPathArr->GetTmpPath()
 						,parentCls->GetData().mLabel.toStr()
-						,data.mDstObj.mLabel.toStr()	);
+						, data.mDstObj.mLabel.IsNull() ? "%" : data.mDstObj.mLabel.toStr());
 		break;
 	}//switch(col) 
 	return true;
