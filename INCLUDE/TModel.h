@@ -87,6 +87,13 @@ class IModel;
 
 //-----------------------------------------------------------------------------
 /// Сигналы для элемента
+//enum SigDataOp
+//{
+//	sdoBeforeUpdate = 0,
+//	sdoAfterUpdate
+//};
+
+
 template < class DATA >
 class SigData
 	//: public boost::noncopyable
@@ -98,45 +105,53 @@ public:
 		AfterChange
 	};
 
+	//using Signal = sig::signal<void(const IModel*, DATA* const)>;
 	using Signal = sig::signal<void(const IModel*, const DATA*)>;
 	//using Slot = std::function< void(const IModel*, const DATA*) >;
 	using Slot = typename Signal::slot_type;
 
 	sig::connection DoConnect(Op op, const Slot &slot)
 	{
-		CheckSignalOp(op);
-		return mSignal->at((size_t)op)->connect(slot);
-
+		return GetSignal(op)->connect(slot);
 	}
 	void DoDisconnect(Op op, const Slot &slot)
 	{
-		CheckSignalOp(op);
-		return mSignal->at((size_t)op)->disconnect(&slot);
+		return GetSignal(op)->disconnect(&slot);
 	}
 protected:
+	//void DoSignal(Op op, const IModel* model, DATA* const data)
 	void DoSignal(Op op, const IModel* model, const DATA* data)
 	{
-		CheckSignalOp(op);
-		mSignal->at((size_t)op)->operator()(model, data);
+		return GetSignal(op)->operator()(model, data);
 	}
 private:
 	struct sig_error : virtual exception_base {};
-
-	inline void CheckSignalOp(Op op)
-	{
-		if ((size_t)Op::AfterChange < (size_t)op)
-			BOOST_THROW_EXCEPTION(sig_error() << wxstr("Out of range SigOp"));
-		if (!mSignal)
-			mSignal.reset(new SignalArray);
-		if (!(*mSignal)[(unsigned int)op])
-			(*mSignal)[(unsigned int)op].reset(new Signal);
-	}
 
 	using UnqSignal = std::unique_ptr<Signal>;
 	using SignalArray = std::array<UnqSignal, 2 >;
 	using UnqSignalArray = std::unique_ptr<SignalArray>;
 
 	UnqSignalArray mSignal;
+
+	inline UnqSignal& GetSignal(Op op)
+	{
+		unsigned int pos = MAXSIZE_T;
+		switch (op)
+		{
+		case Op::BeforeChange: pos = 0; break;
+		case Op::AfterChange: pos = 1; break;
+		default:BOOST_THROW_EXCEPTION(sig_error() << wxstr("Out of range SigOp"));break;
+		}
+		if (!mSignal)
+			mSignal.reset(new SignalArray);
+		if (!(*mSignal)[pos])
+			(*mSignal)[pos].reset(new Signal);
+		return (*mSignal)[pos];
+	}
+
+
+
+	
 };
 //-------------------------------------------------------------------------
 

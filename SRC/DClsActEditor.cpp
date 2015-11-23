@@ -5,7 +5,102 @@
 using namespace wh;
 using namespace view;
 
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// TmpPathEditor
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+TmpPathEditor::TmpPathEditor(wxWindow *parent,
+									wxWindowID winid,
+									const wxPoint& pos,
+									const wxSize& size,
+									long style,
+									const wxString& name)
+	: wxScrolledWindow(parent, winid, pos, size, style, name)
+{
+	this->SetScrollRate(5, 5);
+	wxBoxSizer* szrPath = new wxBoxSizer(wxHORIZONTAL);
+	this->SetMinSize(wxSize(-1, 50));
 
+	this->SetSizer(szrPath);
+	this->Layout();
+	szrPath->Fit(this);
+}
+//---------------------------------------------------------------------------
+void TmpPathEditor::SetModel(std::shared_ptr<temppath::model::Array>& newModel)
+{
+	if (newModel == mModel)
+		return;
+	mModel = newModel;
+	if (!mModel)
+		return;
+
+	namespace ph = std::placeholders;
+	namespace cat = wh::object_catalog;
+
+	auto onAddNode = std::bind(&TmpPathEditor::OnAddNode, this, ph::_1, ph::_2);
+	auto onDelNode = std::bind(&TmpPathEditor::OnDelNode, this, ph::_1, ph::_2);
+	auto onEditNode = std::bind(&TmpPathEditor::OnEditNode, this, ph::_1, ph::_2);
+
+	mModel->ConnectAppendSlot(onAddNode);
+	mModel->ConnectRemoveSlot(onDelNode);
+	mModel->ConnectChangeSlot(onEditNode);
+
+	mModel->DoSigAppendAll();
+
+
+
+}
+//---------------------------------------------------------------------------
+void TmpPathEditor::OnAddNode(const IModel& model, const std::vector<unsigned int>& vec)
+{
+	auto szrPath = this->GetSizer();
+
+	auto qty = model.GetChildQty();
+	for (size_t i = 0; i < qty; i++)
+	{
+		auto ch = new wxChoice(this, wxID_ANY);
+		mPathChoice.emplace_back(ch);
+		szrPath->Add(ch, 0, wxALL, 0);
+		
+		const auto& data = mModel->at(i)->GetData();
+
+		wxString chStr("*");
+		if (!data.mCls.mId.IsNull() || !data.mObj.mId.IsNull())
+		{
+			const wxString clsStr = data.mCls.mId.IsNull() ? "*" : data.mCls.mLabel.toStr();
+			const wxString objStr = data.mObj.mId.IsNull() ? "*" : data.mObj.mLabel.toStr();
+			chStr = wxString::Format("\\[%s]%s", clsStr, objStr);
+		}
+
+		ch->AppendString(chStr);
+		ch->Select(0);
+
+		ch->AppendString("удалить");
+		ch->AppendString("+ добавить слева");
+		ch->AppendString("добавить справа +");
+		
+		ch->AppendString("\\*");
+		ch->AppendString("\\[класс]объект");
+		ch->AppendString("\\[класс]*");
+	
+	}
+
+	this->Layout();
+	szrPath->Fit(this);
+
+}
+//---------------------------------------------------------------------------
+void TmpPathEditor::OnDelNode(const IModel&, const std::vector<unsigned int>&)
+{
+
+}
+//---------------------------------------------------------------------------
+void TmpPathEditor::OnEditNode(const IModel&, const std::vector<unsigned int>&)
+{
+
+}
+//---------------------------------------------------------------------------
 
 
 
@@ -22,13 +117,39 @@ DClsActEditor::DClsActEditor(wxWindow*		parent,
 	const wxSize&	size,
 	long style,
 	const wxString& name)
-	:DlgBaseOkCancel(parent, id, title, pos, size, style, name), mModel(nullptr)
+	:wxDialog(parent, id, title, pos, size, style, name), mModel(nullptr)
 {
+	this->SetSize(500, 300);
+	this->SetMinSize(wxSize(500, 300));
 	SetTitle("Редактирование информации о разрешении действия");
-	wxSizer*	szrMain = GetSizer();
+	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
+
+	auto mTextPath = new wxStaticText(this, wxID_ANY, "Место(путь) объекта во время выполнения действия");
+	mTextPath->Wrap(-1);
+	szrMain->Add(mTextPath, 0, wxALL, 5);
+
+
+	mPathEditor = new TmpPathEditor(this);
+	szrMain->Add(mPathEditor, 0, wxALL | wxEXPAND, 1);
+	
+	auto mTextProp = new wxStaticText(this, wxID_ANY, "Атрибуты");
+	mTextProp->Wrap(-1);
+	szrMain->Add(mTextProp, 0, wxALL, 5);
+
 
 	mPropGrid = new wxPropertyGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxPG_DEFAULT_STYLE | wxPG_SPLITTER_AUTO_CENTER);
-	szrMain->Insert(0, mPropGrid, 1, wxALL | wxEXPAND, 0);
+	szrMain->Add(mPropGrid, 1, wxALL | wxEXPAND, 0);
+
+	
+	m_sdbSizer = new wxStdDialogButtonSizer();
+	m_btnOK = new wxButton(this, wxID_OK);//,"Сохранить и закрыть" );
+	m_sdbSizer->AddButton(m_btnOK);
+	m_btnCancel = new wxButton(this, wxID_CANCEL);//," Закрыть" );
+	m_sdbSizer->AddButton(m_btnCancel);
+	m_sdbSizer->Realize();
+	szrMain->Add(m_sdbSizer, 0, wxALL | wxEXPAND, 10);
+	this->SetSizer(szrMain);
+
 
 
 	mActArray.reset(new MActArray);
@@ -113,8 +234,8 @@ DClsActEditor::DClsActEditor(wxWindow*		parent,
 	
 	mPropGrid->Append(new wxLongStringProperty(L"Скрипт"));
 
-	mPropGrid->Append(new wxStringProperty(L"Объект"));
-	mPropGrid->Append(new wxStringProperty(L"Путь"));
+	//mPropGrid->Append(new wxStringProperty(L"Объект"));
+	//mPropGrid->Append(new wxStringProperty(L"Путь"));
 
 	mPropGrid->Append(new wxStringProperty(L"ID"))->Enable(false);
 
@@ -125,18 +246,54 @@ DClsActEditor::DClsActEditor(wxWindow*		parent,
 //---------------------------------------------------------------------------
 void DClsActEditor::SetModel(std::shared_ptr<IModel>& newModel)
 {
-	if (newModel != mModel)
-	{
-		mChangeConnection.disconnect();
-		mModel = std::dynamic_pointer_cast<MClsAct>(newModel);
-		if (mModel)
-		{
-			auto funcOnChange = std::bind(&DClsActEditor::OnChangeModel,
-				this, std::placeholders::_1, std::placeholders::_2);
-			mChangeConnection = mModel->DoConnect(MClsAct::Op::AfterChange, funcOnChange);
-			OnChangeModel( mModel.get(), nullptr);
-		}//if (mModel)
-	}//if
+	namespace ph = std::placeholders;
+	namespace cat = wh::object_catalog;
+
+	if (newModel == mModel)
+		return;
+	
+	mChangeConnection.disconnect();
+	mModel = std::dynamic_pointer_cast<MClsAct>(newModel);
+	
+	if (!mModel)
+		return;
+
+			
+	auto onChangePerm = std::bind(&DClsActEditor::OnChangeModel, this, ph::_1, ph::_2);
+	mChangeConnection = mModel->DoConnect(MClsAct::Op::AfterChange, onChangePerm);
+	OnChangeModel(mModel.get(), nullptr);
+
+	auto permArr = mModel->GetParent();
+	if (!permArr)
+		return;
+
+	auto clsIModel = permArr->GetParent();
+	auto clsModel = dynamic_cast<cat::MTypeItem*>(clsIModel);
+	const auto& clsData = clsModel->GetData();
+
+	auto srcPathArr = mModel->mSrcPathArr;
+
+	if ( 0 == srcPathArr->GetChildQty() )
+	{ 
+		
+		auto anyItem = std::make_shared<temppath::model::Item>();
+		auto linkedCls = std::make_shared<temppath::model::Item>();
+		
+		rec::PathNode pn;
+		anyItem->SetData(pn);
+		
+		pn.mCls.mId = clsData.mId;
+		pn.mCls.mLabel = clsData.mLabel;
+		linkedCls->SetData(pn);
+
+		srcPathArr->AddChild(anyItem);
+		srcPathArr->AddChild(linkedCls);
+	}
+	mPathEditor->SetModel(srcPathArr);
+
+
+	
+
 }//SetModel
 
 //---------------------------------------------------------------------------
@@ -152,9 +309,10 @@ void DClsActEditor::GetData(rec::ClsActAccess& rec) const
 
 	rec.mAcessGroup = mPropGrid->GetPropertyByLabel(L"Группа")->GetValueAsString();
 	rec.mScriptRestrict = mPropGrid->GetPropertyByLabel(L"Скрипт")->GetValueAsString();
-	rec.mObj.mLabel = mPropGrid->GetPropertyByLabel("Объект")->GetValueAsString();
+	
 
 	/*
+	rec.mObj.mLabel = mPropGrid->GetPropertyByLabel("Объект")->GetValueAsString();
 	wh::ObjKeyPath path;
 	path.ParsePath(mPropGrid->GetPropertyByLabel("Путь")->GetValueAsString());
 
@@ -179,8 +337,9 @@ void DClsActEditor::SetData(const rec::ClsActAccess& rec)
 		SetValueFromString(("1" == rec.mAccessDisabled) ? "true" : "false");
 	mPropGrid->GetPropertyByLabel(L"Группа")->SetValueFromString(rec.mAcessGroup);
 	mPropGrid->GetPropertyByLabel(L"Скрипт")->SetValueFromString(rec.mScriptRestrict);
-	mPropGrid->GetPropertyByLabel(L"Объект")->SetValueFromString(rec.mObj.mLabel.toStr());
+	
 	/*
+	mPropGrid->GetPropertyByLabel(L"Объект")->SetValueFromString(rec.mObj.mLabel.toStr());
 	wh::ObjKeyPath path;
 	path.ParseArray(rec.mSrcPath);
 	wxString pathStr;
@@ -199,6 +358,7 @@ void DClsActEditor::OnChangeModel(const IModel* model, const MClsAct::T_Data* da
 		const auto& rec = mModel->GetData();
 		SetData(rec);
 	}
+	//(*data).mId = "ghgfhf";
 }
 //---------------------------------------------------------------------------
 void DClsActEditor::UpdateModel()const
@@ -213,6 +373,5 @@ void DClsActEditor::UpdateModel()const
 //---------------------------------------------------------------------------
 int DClsActEditor::ShowModal()
 {
-	return DlgBaseOkCancel::ShowModal();
+	return wxDialog::ShowModal();
 }
-

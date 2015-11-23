@@ -9,11 +9,35 @@
 #include "TViewCtrlPanel.h"
 
 namespace wh{
+
+class TmpPathEditor
+	:public wxScrolledWindow
+{
+	std::deque<wxChoice*>	mPathChoice;
+	std::shared_ptr<temppath::model::Array> mModel;
+
+	void OnAddNode(const IModel&, const std::vector<unsigned int>&);
+	void OnDelNode(const IModel&, const std::vector<unsigned int>&);
+	void OnEditNode(const IModel&, const std::vector<unsigned int>&);
+
+public:
+	TmpPathEditor(wxWindow *parent,
+		wxWindowID winid = wxID_ANY,
+		const wxPoint& pos = wxDefaultPosition,
+		const wxSize& size = wxDefaultSize,
+		long style = wxHSCROLL,
+		const wxString& name = wxPanelNameStr);
+
+	void SetModel(std::shared_ptr<temppath::model::Array>& newModel);
+
+};
+
+
 namespace view{
 //-----------------------------------------------------------------------------
 /// –едактор дл€ свойства действи€
 class DClsActEditor
-	: public view::DlgBaseOkCancel
+	: public wxDialog
 	, public T_View
 {
 public:
@@ -34,7 +58,14 @@ private:
 
 	void OnChangeModel(const IModel* model, const MClsAct::T_Data* data);
 
-	wxPropertyGrid*					mPropGrid;
+
+	wxButton*				m_btnOK;
+	wxButton*				m_btnCancel;
+	wxStdDialogButtonSizer*	m_sdbSizer;
+
+	wxPropertyGrid*				mPropGrid;
+	TmpPathEditor*				mPathEditor;
+	
 
 	// каталог действий
 	std::shared_ptr<MActArray>		mActArray;
