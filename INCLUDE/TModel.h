@@ -86,12 +86,13 @@ class IModel;
 
 
 //-----------------------------------------------------------------------------
-/// Сигналы для элемента
-//enum SigDataOp
-//{
-//	sdoBeforeUpdate = 0,
-//	sdoAfterUpdate
-//};
+enum ModelOperation
+{
+	// Сигналы для элемента
+	moBeforeUpdate = 0,
+	moAfterUpdate
+	// Сигналы для массива
+};
 
 
 template < class DATA >
@@ -99,28 +100,22 @@ class SigData
 	//: public boost::noncopyable
 {
 public:
-	enum class Op
-	{
-		BeforeChange = 0,
-		AfterChange
-	};
-
 	//using Signal = sig::signal<void(const IModel*, DATA* const)>;
 	using Signal = sig::signal<void(const IModel*, const DATA*)>;
 	//using Slot = std::function< void(const IModel*, const DATA*) >;
 	using Slot = typename Signal::slot_type;
 
-	sig::connection DoConnect(Op op, const Slot &slot)
+	sig::connection DoConnect(ModelOperation op, const Slot &slot)
 	{
 		return GetSignal(op)->connect(slot);
 	}
-	void DoDisconnect(Op op, const Slot &slot)
+	void DoDisconnect(ModelOperation op, const Slot &slot)
 	{
 		return GetSignal(op)->disconnect(&slot);
 	}
 protected:
 	//void DoSignal(Op op, const IModel* model, DATA* const data)
-	void DoSignal(Op op, const IModel* model, const DATA* data)
+	void DoSignal(ModelOperation op, const IModel* model, const DATA* data)
 	{
 		return GetSignal(op)->operator()(model, data);
 	}
@@ -133,13 +128,13 @@ private:
 
 	UnqSignalArray mSignal;
 
-	inline UnqSignal& GetSignal(Op op)
+	inline UnqSignal& GetSignal(ModelOperation op)
 	{
 		unsigned int pos = MAXSIZE_T;
 		switch (op)
 		{
-		case Op::BeforeChange: pos = 0; break;
-		case Op::AfterChange: pos = 1; break;
+		case moBeforeUpdate: pos = 0; break;
+		case moAfterUpdate: pos = 1; break;
 		default:BOOST_THROW_EXCEPTION(sig_error() << wxstr("Out of range SigOp"));break;
 		}
 		if (!mSignal)
@@ -227,21 +222,68 @@ class IModelNotifier
 public:
 	virtual ~IModelNotifier(){}
 
-	using SigChange = sig::signal<void(const IModel&) >;
-	using SlotChange = std::function<void(const IModel&)>;
+	//using SigChange = sig::signal<void(const IModel&) >;
+	//using SlotChange = std::function<void(const IModel&)>;
 
 	using VecChange = std::vector<unsigned int>;
 	using SigVecChange = sig::signal<void(const IModel&, const VecChange&) >;
 	using SlotVecChange = std::function<void(const IModel&, const VecChange&)>;
 
-	/*
-	sig::connection ConnectChangeDataSlot(const SlotChange &subscriber)const
+	using SigItemInsert = sig::signal<void
+		(const IModel&, 
+		 const std::shared_ptr<IModel>&, 
+		 std::shared_ptr<IModel>&) >;
+	using SlotItemInsert = std::function<void(const IModel&,
+		const std::shared_ptr<IModel>&,
+		std::shared_ptr<IModel>&)>;
+
+	using SigReset = sig::signal<void(const IModel&) >;
+	using SlotReset = std::function<void(const IModel&)>;
+
+	sig::connection ConnAfterReset(const SlotReset &subscriber)const
 	{
-		if (!mSig)
-			mSig.reset(new SigImpl);
-		return mSig->Change.connect(subscriber);
+		if (!mSigAfterReset)
+			mSigAfterReset.reset(new SigReset);
+		return mSigAfterReset->connect(subscriber);
 	}
-	*/
+	void DisconnAfterReset(const SlotReset &subscriber)const
+	{
+		if (mSigAfterReset)
+		{
+			mSigAfterReset->disconnect(&subscriber);
+			mSigAfterReset.reset(nullptr);
+		}
+	}
+
+	sig::connection ConnBeforeInsert(const SlotItemInsert &subscriber)const
+	{
+		if (!mSigBeforeInsert)
+			mSigBeforeInsert.reset(new SigItemInsert);
+		return mSigBeforeInsert->connect(subscriber);
+	}
+	void DisconnBeforeInsert(const SlotItemInsert &subscriber)const
+	{
+		if (mSigBeforeInsert)
+		{
+			mSigBeforeInsert->disconnect(&subscriber);
+			mSigBeforeInsert.reset(nullptr);
+		}
+	}
+	
+	sig::connection ConnAfterInsert(const SlotItemInsert &subscriber)const
+	{
+		if (!mSigAfterInsert)
+			mSigAfterInsert.reset(new SigItemInsert);
+		return mSigAfterInsert->connect(subscriber);
+	}
+	void DisconnAfterInsert(const SlotItemInsert &subscriber)const
+	{
+		if (mSigAfterInsert)
+		{
+			mSigAfterInsert->disconnect(&subscriber);
+			mSigAfterInsert.reset(nullptr);
+		}
+	}
 
 	sig::connection ConnectAppendSlot(const SlotVecChange &subscriber)const
 	{
@@ -270,14 +312,6 @@ public:
 			mSig.reset(new SigImpl);
 		return mSig->ChangeChild.connect(subscriber);
 	}
-
-	/*
-	inline void DisconnectChangeDataSlot(const SlotVecChange &subscriber)const
-	{
-		if (mSig)
-			mSig->Change.disconnect(&subscriber);
-	}
-	*/
 
 	inline void DisconnectAppendSlot(const SlotVecChange &subscriber)const
 	{
@@ -309,6 +343,10 @@ protected:
 		SigVecChange	ChangeChild;
 		//SigChange		Change;
 	};
+
+	mutable std::unique_ptr<SigItemInsert>		mSigBeforeInsert;
+	mutable std::unique_ptr<SigItemInsert>		mSigAfterInsert;
+	mutable std::unique_ptr<SigReset >			mSigAfterReset;
 
 	mutable std::unique_ptr<SigImpl>	mSig;
 };
@@ -452,6 +490,41 @@ public:
 		BOOST_THROW_EXCEPTION(error() << wxstr("Index exceeds"));
 		return nullptr;
 	}
+
+	template <class CHILD>
+	void InsertChild(std::shared_ptr<CHILD>& newItem, 
+		std::shared_ptr<IModel>& itemBefore = std::shared_ptr<IModel>(nullptr))
+	{
+		if (!newItem)
+			BOOST_THROW_EXCEPTION(error() << wxstr("Can`t add nullptr"));
+		if (newItem->mParent)
+			newItem->mParent->DelChild(newItem);
+		newItem->mParent = this;
+		if (!mVec)
+			mVec.reset(new BaseStore);
+
+		DoSigBeforeInsert(*this, itemBefore, newItem);
+		
+		if (itemBefore)
+		{
+			const PtrIdx& ptrIdx = mVec->get<1>();
+			CPtrIterator ptrIt = ptrIdx.find(itemBefore.get());
+			if (ptrIdx.end() != ptrIt)
+			{
+				CRndIterator rndIt = mVec->project<0>(ptrIt);
+				CRndIterator rndBegin = mVec->cbegin();
+				auto pos = std::distance(rndBegin, rndIt);
+				mVec->insert(rndIt, newItem);
+			}
+		}
+		else
+			mVec->emplace_back(newItem);
+		
+		DoSigAfterInsert(*this, itemBefore, newItem);
+	}
+
+
+
 	void AddChild(std::shared_ptr<IModel>& newItem)
 	{
 		if (AppendChildWithoutSignal(newItem))
@@ -637,6 +710,11 @@ public:
 			child->MarkSaved();
 	}
 
+	void Reset()
+	{
+		if (mSigAfterReset)
+			mSigAfterReset->operator()(*this);
+	}
 
 protected:
 	virtual void LoadData(){}
@@ -783,6 +861,21 @@ protected:
 		DoNotifyParent();
 	}
 
+	void DoSigBeforeInsert(const IModel& vec
+		, const std::shared_ptr<IModel>& itemBefore
+		, std::shared_ptr<IModel>& item)
+	{
+		if (mSigBeforeInsert)
+			mSigBeforeInsert->operator()(vec, itemBefore, item);
+	}
+	void DoSigAfterInsert(const IModel& vec
+		, const std::shared_ptr<IModel>& itemBefore
+		, std::shared_ptr<IModel>& item)
+	{
+		if (mSigAfterInsert)
+			mSigAfterInsert->operator()(vec, itemBefore, item);
+	}
+
 	void SaveRange(ModelState state)
 	{
 		StateIdx& stateIdx = mVec->get<2>();
@@ -854,7 +947,7 @@ public:
 			if (stored)
 				mStored = mCurrent;
 			//DoSigChangeData();
-			DoSignal(Op::AfterChange, this, &current);
+			DoSignal(moAfterUpdate, this, &current);
 			DoNotifyParent();
 			break;
 		}
@@ -869,7 +962,7 @@ public:
 	{
 		mCurrent = nullptr;
 		//DoSigChangeData();
-		DoSignal(Op::AfterChange, this, nullptr);
+		DoSignal(moAfterUpdate, this, nullptr);
 		DoNotifyParent();
 	}
 	virtual void MarkSavedData()override
@@ -878,7 +971,7 @@ public:
 		{
 			mStored = mCurrent;
 			//DoSigChangeData();
-			DoSignal(Op::AfterChange, this, mCurrent.get() );
+			DoSignal(moAfterUpdate, this, mCurrent.get());
 			DoNotifyParent();
 		}
 	}

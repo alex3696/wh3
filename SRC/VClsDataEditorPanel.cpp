@@ -72,7 +72,7 @@ void VClsDataEditorPanel::SetModel(std::shared_ptr<IModel>& newModel)
 		{
 			auto funcOnChange = std::bind(&VClsDataEditorPanel::OnChangeModel,
 				this, std::placeholders::_1, std::placeholders::_2);
-			mChangeConnection = mModel->DoConnect(T_Model::Op::AfterChange, funcOnChange);
+			mChangeConnection = mModel->DoConnect(moAfterUpdate, funcOnChange);
 			OnChangeModel(mModel.get(), nullptr);
 		}//if (mModel)
 	}//if

@@ -63,7 +63,7 @@ void Frame::SetModel(std::shared_ptr<object_catalog::MObjItem>& newModel)
 		{
 			auto funcOnChange = std::bind(&Frame::OnChangeModel,
 				this, std::placeholders::_1, std::placeholders::_2);
-			mChangeConnection = mObj->DoConnect(MObjItem::Op::AfterChange, funcOnChange);
+			mChangeConnection = mObj->DoConnect(moAfterUpdate, funcOnChange);
 			OnChangeModel(mObj.get(), nullptr);
 		}//if (mModel)
 	}//if

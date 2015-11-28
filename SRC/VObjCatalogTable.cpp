@@ -66,8 +66,8 @@ void VObjCatalogTable::SetModel(std::shared_ptr<IModel> model)
 			this, std::placeholders::_1, std::placeholders::_2);
 
 
-		mCatalogUpdate = mCatalogModel->mFavProps->
-			DoConnect(object_catalog::MFavProp::Op::AfterChange, funcOnChange);
+		mCatalogUpdate 
+			= mCatalogModel->mFavProps->DoConnect(moAfterUpdate, funcOnChange);
 
 		/*
 		mConnAppend = mCatalogModel->mTypeArray->ConnectAppendSlot(

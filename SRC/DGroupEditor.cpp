@@ -63,7 +63,7 @@ void DGroupEditor::SetModel(std::shared_ptr<IModel>& newModel)
 		{
 			auto funcOnChange = std::bind(&DGroupEditor::OnChangeModel,
 				this, std::placeholders::_1, std::placeholders::_2);
-			mChangeConnection = mModel->DoConnect(T_Model::Op::AfterChange, funcOnChange);
+			mChangeConnection = mModel->DoConnect(moAfterUpdate, funcOnChange);
 			OnChangeModel(mModel.get(), nullptr);
 
 			BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;

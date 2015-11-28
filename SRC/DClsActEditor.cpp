@@ -7,6 +7,70 @@ using namespace view;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+// TmpPathItem
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+TmpPathItem::TmpPathItem(wxWindow *parent,
+	wxWindowID id,
+	const wxPoint& pos,
+	const wxSize& size,
+	int n, const wxString choices[],
+	long style,
+	const wxValidator& validator,
+	const wxString& name)
+	: wxChoice(parent, id, pos, size, n, choices, style, validator, name)
+{
+	AppendString("CurrentValue");
+
+	AppendString("удалить");
+	AppendString("+ добавить слева");
+	AppendString("добавить справа +");
+
+	AppendString("\\*");
+	AppendString("\\[класс]объект");
+	AppendString("\\[класс]*");
+}
+//---------------------------------------------------------------------------
+void TmpPathItem::SetModel(std::shared_ptr<temppath::model::Item>& newModel)
+{
+	if (newModel == mModel)
+		return;
+	mModel = newModel;
+	if (!mModel)
+		return;
+
+	namespace ph = std::placeholders;
+	namespace cat = wh::object_catalog;
+
+	auto onChange = std::bind(&TmpPathItem::OnChange, this, ph::_1, ph::_2);
+
+	connChange = mModel->DoConnect(moAfterUpdate, onChange);
+	OnChange(mModel.get(), &mModel->GetData());
+
+}
+
+//---------------------------------------------------------------------------
+void TmpPathItem::OnChange(const IModel*, const temppath::model::Item::DataType* data)
+{
+	if (!data)
+		return;
+	wxString chStr("*");
+	if (!data->mCls.mId.IsNull() || !data->mObj.mId.IsNull())
+	{
+		const wxString clsStr = data->mCls.mId.IsNull() ? "*" : data->mCls.mLabel.toStr();
+		const wxString objStr = data->mObj.mId.IsNull() ? "*" : data->mObj.mLabel.toStr();
+		chStr = wxString::Format("\\[%s]%s", clsStr, objStr);
+	}
+	SetString(0, chStr);
+	Select(0);
+
+}
+
+
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // TmpPathEditor
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -27,6 +91,19 @@ TmpPathEditor::TmpPathEditor(wxWindow *parent,
 	szrPath->Fit(this);
 }
 //---------------------------------------------------------------------------
+
+void TmpPathEditor::DoNotDeleteFirst(bool val)
+{
+	mDoNotDeleteFirst = val;
+}
+
+//---------------------------------------------------------------------------
+void TmpPathEditor::DoNotDeleteLast(bool val)
+{
+	mDoNotDeleteLast = val;
+}
+
+//---------------------------------------------------------------------------
 void TmpPathEditor::SetModel(std::shared_ptr<temppath::model::Array>& newModel)
 {
 	if (newModel == mModel)
@@ -38,71 +115,126 @@ void TmpPathEditor::SetModel(std::shared_ptr<temppath::model::Array>& newModel)
 	namespace ph = std::placeholders;
 	namespace cat = wh::object_catalog;
 
-	auto onAddNode = std::bind(&TmpPathEditor::OnAddNode, this, ph::_1, ph::_2);
 	auto onDelNode = std::bind(&TmpPathEditor::OnDelNode, this, ph::_1, ph::_2);
-	auto onEditNode = std::bind(&TmpPathEditor::OnEditNode, this, ph::_1, ph::_2);
+	auto onAfterReset = std::bind(&TmpPathEditor::OnAfterReset, this, ph::_1);
+	auto onAfterIns = std::bind(&TmpPathEditor::OnAfterInsert, this, ph::_1, ph::_2, ph::_3);
+	
+	connDel = mModel->ConnectBeforeRemove(onDelNode);
+	connAfterReset = mModel->ConnAfterReset(onAfterReset);
+	connAfterInsert = mModel->ConnAfterInsert(onAfterIns);
 
-	mModel->ConnectAppendSlot(onAddNode);
-	mModel->ConnectRemoveSlot(onDelNode);
-	mModel->ConnectChangeSlot(onEditNode);
-
-	mModel->DoSigAppendAll();
+	mModel->Reset();
 
 
 
 }
 //---------------------------------------------------------------------------
-void TmpPathEditor::OnAddNode(const IModel& model, const std::vector<unsigned int>& vec)
+void TmpPathEditor::MakeGuiItem(unsigned int pos)
+{
+	auto szrPath = this->GetSizer();
+	auto itPos = mPathChoice.begin() + pos;
+	
+	auto ch = new TmpPathItem(this, wxID_ANY);
+	ch->SetModel(mModel->at(pos));
+
+	szrPath->Insert(pos, ch, 0, wxALL, 0);
+	mPathChoice.insert(itPos, ch);
+
+	ch->Bind(wxEVT_COMMAND_CHOICE_SELECTED,
+		&TmpPathEditor::OnSelectChoice, this);
+
+	this->Layout();
+	szrPath->Fit(this);
+
+
+}
+
+
+//---------------------------------------------------------------------------
+void TmpPathEditor::OnDelNode(const IModel& model, const std::vector<unsigned int>& vec)
+{
+	std::vector<wxChoice*> to_del;
+	
+	for (const auto idx : vec)
+	{
+		auto it = mPathChoice.begin() + idx;
+		to_del.emplace_back(*it);
+		mPathChoice.erase(it);
+	}
+
+	for (const auto ch : to_del)
+		delete ch;
+
+	auto szrPath = this->GetSizer();
+	this->Layout();
+	szrPath->Fit(this);
+}
+
+//---------------------------------------------------------------------------
+void TmpPathEditor::OnAfterInsert(const IModel& vec
+	, const std::shared_ptr<IModel>& itemBefore
+	, std::shared_ptr<IModel>& newItem)
+{
+	size_t pos;
+	auto item = std::dynamic_pointer_cast<temppath::model::Item>(newItem);
+
+	if (!item || !vec.GetItemPosition(newItem, pos))
+		return;
+
+	MakeGuiItem(pos);
+
+}
+//---------------------------------------------------------------------------
+void TmpPathEditor::OnAfterReset(const IModel& model)
 {
 	auto szrPath = this->GetSizer();
 
 	auto qty = model.GetChildQty();
 	for (size_t i = 0; i < qty; i++)
+		MakeGuiItem(i);
+
+}
+//-----------------------------------------------------------------------------
+void TmpPathEditor::OnSelectChoice(wxCommandEvent& evt)
+{
+	auto сh = dynamic_cast<TmpPathItem*>(evt.GetEventObject());
+
+	size_t model_idx(0);
+
+	const PtrIdx& ptrIdx = mPathChoice.get<1>();
+	CPtrIterator ptrIt = ptrIdx.find(сh);
+	if (ptrIdx.end() != ptrIt)
 	{
-		auto ch = new wxChoice(this, wxID_ANY);
-		mPathChoice.emplace_back(ch);
-		szrPath->Add(ch, 0, wxALL, 0);
-		
-		const auto& data = mModel->at(i)->GetData();
+		CRndIterator rndIt = mPathChoice.project<0>(ptrIt);
+		CRndIterator rndBegin = mPathChoice.cbegin();
+		model_idx = std::distance(rndBegin, rndIt);
+	}
+	else
+		return;
 
-		wxString chStr("*");
-		if (!data.mCls.mId.IsNull() || !data.mObj.mId.IsNull())
-		{
-			const wxString clsStr = data.mCls.mId.IsNull() ? "*" : data.mCls.mLabel.toStr();
-			const wxString objStr = data.mObj.mId.IsNull() ? "*" : data.mObj.mLabel.toStr();
-			chStr = wxString::Format("\\[%s]%s", clsStr, objStr);
-		}
-
-		ch->AppendString(chStr);
-		ch->Select(0);
-
-		ch->AppendString("удалить");
-		ch->AppendString("+ добавить слева");
-		ch->AppendString("добавить справа +");
-		
-		ch->AppendString("\\*");
-		ch->AppendString("\\[класс]объект");
-		ch->AppendString("\\[класс]*");
 	
+	
+	switch (evt.GetSelection())
+	{
+	default:break;
+	case 0: break;
+	case 1:  // удалить
+		mModel->DelChild(model_idx);
+		break;
+	case 2: //+ добавить слева
+		if (0 != model_idx)
+			mModel->InsertChild(mModel->CreateChild(), mModel->GetChild(model_idx));
+		break;
+	case 3: //добавить справа +
+		if (mPathChoice.size() - 1 != model_idx)
+			mModel->InsertChild(mModel->CreateChild(), mModel->GetChild(model_idx+1));
+		break;
 	}
 
-	this->Layout();
-	szrPath->Fit(this);
-
+	(*ptrIt)->Select(0);
+	
 }
-//---------------------------------------------------------------------------
-void TmpPathEditor::OnDelNode(const IModel&, const std::vector<unsigned int>&)
-{
-
-}
-//---------------------------------------------------------------------------
-void TmpPathEditor::OnEditNode(const IModel&, const std::vector<unsigned int>&)
-{
-
-}
-//---------------------------------------------------------------------------
-
-
+//-----------------------------------------------------------------------------
 
 
 //-----------------------------------------------------------------------------
@@ -260,7 +392,7 @@ void DClsActEditor::SetModel(std::shared_ptr<IModel>& newModel)
 
 			
 	auto onChangePerm = std::bind(&DClsActEditor::OnChangeModel, this, ph::_1, ph::_2);
-	mChangeConnection = mModel->DoConnect(MClsAct::Op::AfterChange, onChangePerm);
+	mChangeConnection = mModel->DoConnect(moAfterUpdate, onChangePerm);
 	OnChangeModel(mModel.get(), nullptr);
 
 	auto permArr = mModel->GetParent();
@@ -290,8 +422,7 @@ void DClsActEditor::SetModel(std::shared_ptr<IModel>& newModel)
 		srcPathArr->AddChild(linkedCls);
 	}
 	mPathEditor->SetModel(srcPathArr);
-
-
+	mPathEditor->DoNotDeleteLast(true);
 	
 
 }//SetModel

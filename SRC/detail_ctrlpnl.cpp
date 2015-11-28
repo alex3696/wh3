@@ -75,8 +75,7 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 
 	auto funcOnChange = std::bind(&CtrlPnl::OnChangeMainDetail,
 		this, sph::_1, sph::_2);
-	mChangeMainDetail = mObj->DoConnect(
-		model::Obj::Op::AfterChange, funcOnChange);
+	mChangeMainDetail = mObj->DoConnect(moAfterUpdate, funcOnChange);
 
 	mConnClsPropAppend = mObj->GetClsPropArray()->ConnectAppendSlot(
 		std::bind(&CtrlPnl::OnClsPropAppend, this, sph::_1, sph::_2));

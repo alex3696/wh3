@@ -97,7 +97,7 @@ void DClsMoveEditor::SetModel(std::shared_ptr<IModel>& newModel)
 		{
 			auto funcOnChange = std::bind(&DClsMoveEditor::OnChangeModel,
 				this, std::placeholders::_1, std::placeholders::_2);
-			mChangeConnection = mModel->DoConnect(MClsMove::Op::AfterChange, funcOnChange);
+			mChangeConnection = mModel->DoConnect(moAfterUpdate, funcOnChange);
 			OnChangeModel(mModel.get(), nullptr);
 		}//if (mModel)
 	}//if

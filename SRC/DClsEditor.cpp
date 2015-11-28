@@ -131,8 +131,7 @@ void DClsEditor::SetModel(std::shared_ptr<IModel>& newModel)
 			
 			auto funcOnChange = std::bind(&DClsEditor::OnChangeModel,
 				this, std::placeholders::_1, std::placeholders::_2);
-			mChangeConnection = mClsNode->DoConnect(
-				object_catalog::MTypeItem::Op::AfterChange, funcOnChange);
+			mChangeConnection = mClsNode->DoConnect(moAfterUpdate, funcOnChange);
 			OnChangeModel(mClsNode.get(), nullptr);
 
 		}//if (mModel)

@@ -42,24 +42,6 @@ public:
 		return tmpChild->GetFieldVector();
 	}
 
-	void DoSigClear()
-	{
-
-	}
-
-	void DoSigAppendAll()
-	{
-		void DoSigClear();
-
-		if (!mVec || mVec->empty())
-			return;
-		
-		std::vector<unsigned int> sigVec;
-		for (unsigned int i = 0; i < mVec->size(); ++i)
-			sigVec.emplace_back(i);
-
-		DoSigAppendChild(sigVec);
-	}
 protected:
 	
 	virtual bool LoadChildDataFromDb(std::shared_ptr<IModel>& child,
