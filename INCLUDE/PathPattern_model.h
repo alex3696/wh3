@@ -1,5 +1,5 @@
-#ifndef __DLG_TMPPATH_MODEL_H
-#define __DLG_TMPPATH_MODEL_H
+#ifndef __PATHPATTERNMODEL_H
+#define __PATHPATTERNMODEL_H
 
 #include "db_rec.h"
 #include "TModelArray.h"

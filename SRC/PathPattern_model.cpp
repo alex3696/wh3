@@ -1,5 +1,5 @@
 #include "_pch.h"
-#include "dlg_tmppath_model.h"
+#include "PathPattern_model.h"
 
 using namespace wh;
 using namespace wh::temppath::model;

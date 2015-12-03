@@ -1,7 +1,7 @@
 #ifndef __MCLSACT_H
 #define __MCLSACT_H
 
-#include "dlg_tmppath_model.h"
+#include "PathPattern_model.h"
 //#include "TModelArray.h"
 //#include "db_rec.h"
 

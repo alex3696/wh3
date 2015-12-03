@@ -1,7 +1,7 @@
 #ifndef __MCLSMOVE_H
 #define __MCLSMOVE_H
 
-#include "dlg_tmppath_model.h"
+#include "PathPattern_model.h"
 //#include "TModelArray.h"
 //#include "db_rec.h"
 
