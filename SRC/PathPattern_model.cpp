@@ -52,21 +52,38 @@ void Array::SetTmpPath(const wxString& arrId, const wxString& arrTitle)
 
 }
 //-----------------------------------------------------------------------------
-wxString Array::GetTmpPathArr2IdSql()const
+wxString Array::GetTmpPathArr2IdSql(bool includeLast)const
 {
-	wxString str="'{";
-	for (size_t i = 0; i < this->GetChildQty(); ++i)
+	// поскольку в базе требуется только путь, без учёта объекта и его класса
+	// последний элемент массива не берём в учёт и не отсылаем в SQL
+
+	auto qty = includeLast && 1<GetChildQty() ? 
+		 this->GetChildQty() : this->GetChildQty() - 1;
+	
+	wxString str;
+	for (size_t i = 0; i < qty; ++i)
 	{
 		const auto& nd = at(i)->GetData();
-		str += wxString::Format("{%d,%d}", (long)nd.mCls.mId, (long)nd.mObj.mId);
+		if (nd.mCls.mId.IsNull() && nd.mObj.mId.IsNull())
+		{
+			str += "%,";
+		}
+		else
+		{
+			const wxString cls = nd.mCls.mId.IsNull() ? "%" : nd.mCls.mId.toStr();
+			const wxString obj = nd.mObj.mId.IsNull() ? "%" : nd.mObj.mId.toStr();
+			str += wxString::Format("{%s,%s},", cls, obj);
+
+		}
 	}
 
-	if (str.size() > 2)
-		str[str.size() - 1] = '}';
+	if (!str.IsEmpty())
+	{
+		str.RemoveLast();
+		str = wxString::Format("'{%s}'", str);;
+	}
 	else
-		str += "}";
-
-	str += "'";
+		str = "'{%}'";
 
 	return str;
 }

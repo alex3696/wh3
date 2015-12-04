@@ -83,6 +83,9 @@ class PathPatternEditor
 	wxMenuItem* mMnuAddToLeft;
 	wxMenuItem* mMnuAddToRight;
 	wxMenuItem* mMnuRemove;
+	wxMenuItem* mMnuSetAny;
+	wxMenuItem* mMnuSetCls;
+	wxMenuItem* mMnuSetClsObj;
 
 	enum MenuID
 	{

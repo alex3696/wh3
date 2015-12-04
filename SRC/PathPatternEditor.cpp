@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "PathPatternEditor.h"
+#include "dlgselectcls_ctrlpnl.h"
 
 using namespace wh;
 
@@ -65,6 +66,15 @@ void TmpStrPathItem::OnChange(const IModel*, const temppath::model::Item::DataTy
 		chStr = wxString::Format(L" \\[%s]%s ", clsStr, objStr);//\u02C5 |v
 	}
 	SetLabel(chStr);
+	
+	
+	// 
+	auto parent = GetParent();
+	while (parent)
+	{
+		parent->Layout();
+		parent = parent == GetParent() ? nullptr : GetParent();
+	}
 }
 
 
@@ -97,9 +107,9 @@ PathPatternEditor::PathPatternEditor(wxWindow *parent,
 	mMnuAddToRight = AppendBitmapMenu(&mMenu, miAddToRight, L"добавить справа +", rc->m_ico_plus16);
 	mMnuRemove = AppendBitmapMenu(&mMenu, miRemove, L"удалить", rc->m_ico_delete16);
 	mMenu.AppendSeparator();
-	mMenu.Append(miSetAny, L"* любой");
-	mMenu.Append(miSetCls, L"[?]* выбрать только класс,объект любой");
-	mMenu.Append(miSetClsObj, L"[?]? выбрать объект и соответственно его класс");
+	mMnuSetAny = mMenu.Append(miSetAny, L"* любой");
+	mMnuSetCls = mMenu.Append(miSetCls, L"[?]* выбрать только класс,объект любой");
+	mMnuSetClsObj= mMenu.Append(miSetClsObj, L"[?]? выбрать объект и соответственно его класс");
 
 	//Bind(wxEVT_COMMAND_MENU_SELECTED, [](wxCommandEvent& evt){}, miAddToLeft);
 	//Bind(wxEVT_COMMAND_MENU_SELECTED, &PathPatternEditor::PnlShowAct, this, miAddToLeft);
@@ -181,11 +191,60 @@ void PathPatternEditor::OnCmdSetAny(wxCommandEvent& evt)
 //---------------------------------------------------------------------------
 void PathPatternEditor::OnCmdSetCls(wxCommandEvent& evt)
 {
+	size_t model_idx(0);
+	if (!GetGiuItemIndex(mSelectedItem, model_idx))
+		return;
+
+	bool objTree = false;
+	select::ClsDlg dlg(nullptr);
+
+	auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
+	catalog->SetCatalog(objTree, true, false, "1");
+	catalog->Load();
+
+	dlg.SetModel(catalog);
+	if (wxID_OK == dlg.ShowModal())
+	{
+		wh::rec::Cls cls;
+		if (dlg.GetSelectedCls(cls))
+		{
+			temppath::model::Item::DataType data;
+			data.mCls = cls;
+			mModel->at(model_idx)->SetData(data);
+		}
+	}
 
 }//---------------------------------------------------------------------------
 void PathPatternEditor::OnCmdSetClsObj(wxCommandEvent& evt)
 {
+	size_t model_idx(0);
+	if (!GetGiuItemIndex(mSelectedItem, model_idx))
+		return;
 
+	bool objTree = true;
+	select::ClsDlg dlg(nullptr);
+
+	auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
+	catalog->SetCatalog(objTree, true, false, "1");
+	catalog->Load();
+
+	dlg.SetModel(catalog);
+	if (wxID_OK == dlg.ShowModal())
+	{
+		wh::rec::ObjTitle obj;
+		if (dlg.GetSelectedObj(obj))
+		{
+			wh::rec::Cls cls;
+			if (dlg.GetSelectedCls(cls))
+			{
+				temppath::model::Item::DataType data;
+
+				data.mCls = cls;
+				data.mObj = obj;
+				mModel->at(model_idx)->SetData(data);
+			}
+		}
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -233,7 +292,7 @@ void PathPatternEditor::MakeGuiItem(unsigned int pos)
 	auto ch = new TmpPathItem(this, wxID_ANY);
 	ch->SetModel(mModel->at(pos));
 
-	szrPath->Insert(pos, ch, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+	szrPath->Insert(pos, ch, 0, wxALL | wxALIGN_CENTER_VERTICAL, 1);
 	mPathChoice.insert(itPos, ch);
 
 	szrPath->Fit(this);
@@ -258,6 +317,9 @@ void PathPatternEditor::MakeGuiItem(unsigned int pos)
 			mMnuAddToRight->Enable(!isLast);
 			mMnuRemove->Enable(!(mDoNotDeleteFirst && isFirst));
 			mMnuRemove->Enable(!(mDoNotDeleteLast && isLast));
+			mMnuSetAny->Enable(!isLast);
+			mMnuSetCls->Enable(!isLast);
+
 		}
 		mSelectedItem = ch;
 		wxRect rect = ch->GetRect();

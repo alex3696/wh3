@@ -26,7 +26,7 @@ public:
 	Array(const char option = ModelOption::EnableNotifyFromChild);
 
 	void SetTmpPath(const wxString& arrId, const wxString& arrTitle);
-	wxString GetTmpPathArr2IdSql()const;
+	wxString GetTmpPathArr2IdSql(bool includeLast=false)const;
 	wxString GetTmpPath()const;
 
 };
