@@ -15,10 +15,12 @@ SELECT whgrant_grouptouser('Admin','postgres');
 DROP DOMAIN IF EXISTS WHNAME CASCADE; 
 DROP DOMAIN IF EXISTS TMPPATH CASCADE; 
 
-CREATE DOMAIN WHNAME AS NAME
+CREATE DOMAIN WHNAME AS VARCHAR
    CHECK (VALUE ~ '^([[:alnum:][:space:]!()*+,-.:;<=>^_|№])+$') ;
 
-CREATE DOMAIN TMPPATH AS TEXT
+   
+CREATE DOMAIN TMPPATH AS VARCHAR
+   COLLATE pg_catalog."C"
    CHECK (VALUE ~ '^{((((%*)|({(%|[[:digit:]]+),(%|[[:digit:]]+)})),?)+)}$') ;
 
 ---------------------------------------------------------------------------------------------------
@@ -129,6 +131,7 @@ CREATE TABLE cls_name (
   ,kind           SMALLINT NOT NULL CHECK ( kind BETWEEN 0 AND 3 )
   ,CONSTRAINT uk_cls_name_id_kind UNIQUE (id,kind)
 );
+CREATE INDEX idx_cls_name_title ON cls_name(title varchar_pattern_ops);
 
 GRANT SELECT        ON TABLE cls_name  TO "Guest";
 GRANT INSERT        ON TABLE cls_name  TO "TypeDesigner";
@@ -269,6 +272,7 @@ CREATE TABLE prop (
     REFERENCES                 prop_kind( id )
     MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
 );
+CREATE INDEX idx_prop_title ON prop(title varchar_pattern_ops);
 GRANT SELECT        ON TABLE prop  TO "Guest";
 GRANT INSERT        ON TABLE prop  TO "TypeDesigner";
 GRANT DELETE        ON TABLE prop  TO "TypeDesigner";
@@ -306,11 +310,12 @@ CREATE TABLE act (
  id     BIGINT NOT NULL DEFAULT nextval('seq_act_id')
 ,title  WHNAME NOT NULL
 ,note   TEXT            DEFAULT NULL
-,color  NAME            DEFAULT NULL
+,color  VARCHAR(64)     DEFAULT NULL
 ,script TEXT            DEFAULT NULL
 ,CONSTRAINT pk_act__id    PRIMARY KEY ( id  )
 ,CONSTRAINT uk_act__title UNIQUE ( title )
 );
+CREATE INDEX idx_act_title ON act(title varchar_pattern_ops);
 GRANT SELECT        ON TABLE act  TO "Guest";
 GRANT INSERT        ON TABLE act  TO "TypeDesigner";
 GRANT DELETE        ON TABLE act  TO "TypeDesigner";
@@ -399,10 +404,12 @@ CREATE TABLE perm_move
 -- CONSTRAINT ck_perm_act_dst_path
 --    CHECK (dst_path ~ '^{((((%+)|({(%|[[:digit:]]+),(%|[[:digit:]]+)})),?)+)}$') 
 );--INHERITS (perm);
-CREATE INDEX idx_permmove__user ON perm_move(access_group);
-CREATE INDEX idx_permmove__srcclsob ON perm_move(src_cls_id, src_obj_id);
-CREATE INDEX idx_permmove__clsobj ON perm_move(cls_id,     obj_id);
+CREATE INDEX idx_permmove__user      ON perm_move(access_group);
+CREATE INDEX idx_permmove__srcclsob  ON perm_move(src_cls_id, src_obj_id);
+CREATE INDEX idx_permmove__clsobj    ON perm_move(cls_id,     obj_id);
 CREATE INDEX idx_permmove__dstclsobj ON perm_move(dst_cls_id, dst_obj_id);
+CREATE INDEX idx_permmove__src_path  ON perm_move(src_path);
+CREATE INDEX idx_permmove__dst_path  ON perm_move(dst_path);
 
 GRANT SELECT        ON TABLE perm_move  TO "Guest";
 GRANT INSERT        ON TABLE perm_move  TO "TypeDesigner";
@@ -423,7 +430,7 @@ CREATE TABLE perm_act
 
   ,cls_id  BIGINT   NOT NULL 
   ,obj_id  BIGINT            DEFAULT NULL
-  ,src_path TMPPATH  NOT NULL DEFAULT '{%}'
+  ,src_path TMPPATH  NOT NULL DEFAULT '{%}' 
 
   ,act_id          INTEGER   NOT NULL 
 ,CONSTRAINT pk_permact__id PRIMARY KEY ( id )   
@@ -442,7 +449,10 @@ CREATE TABLE perm_act
 CREATE INDEX idx_permact__user ON perm_act(access_group);
 CREATE INDEX idx_permact__srcclsobj ON perm_act(cls_id, obj_id);
 CREATE INDEX idx_permact__actid ON perm_act(act_id);
-CREATE INDEX perm_act_src_path_idx ON perm_act (src_path text_pattern_ops);
+--CREATE INDEX perm_act_src_path_idx ON perm_act (src_path text_pattern_ops);
+-- для кодировки "C" не надо отдельно делать индекс для текстовых операций
+-- а для полей шаблонов путей в домене указана кодировка С
+CREATE INDEX perm_act_src_path_idx ON perm_act (src_path);
 
 GRANT SELECT        ON TABLE perm_act  TO "Guest";
 GRANT INSERT        ON TABLE perm_act  TO "TypeDesigner";
@@ -480,7 +490,8 @@ CREATE TABLE obj_name (
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX idx_objname_clsid ON obj_name ("cls_id") ;
-CREATE INDEX idx_objname_prop ON obj_name USING gin ("prop") ;
+CREATE INDEX idx_objname_prop  ON obj_name USING gin ("prop") ;
+CREATE INDEX idx_objname_title ON obj_name (title varchar_pattern_ops) ;
 
 GRANT SELECT        ON TABLE obj_name  TO "Guest";
 GRANT INSERT        ON TABLE obj_name  TO "ObjDesigner";
