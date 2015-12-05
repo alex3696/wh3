@@ -96,11 +96,11 @@ bool MClsMove::GetInsertQuery(wxString& query)const
 
 		, newPerm.mSrcCls.mId.SqlVal()
 		, newPerm.mSrcObj.mId.SqlVal()
-		, mSrcPathArr->GetTmpPathArr2IdSql()
+		, mSrcPathArr->GetArr2Id()
 
 		, newPerm.mDstCls.mId.SqlVal()
 		, newPerm.mDstObj.mId.SqlVal()
-		, mDstPathArr->GetTmpPathArr2IdSql()
+		, mDstPathArr->GetArr2Id()
 
 		);
 	return true;
@@ -137,11 +137,11 @@ bool MClsMove::GetUpdateQuery(wxString& query)const
 
 		, newPerm.mSrcCls.mId.SqlVal()
 		, newPerm.mSrcObj.mId.SqlVal()
-		, mSrcPathArr->GetTmpPathArr2IdSql()
+		, mSrcPathArr->GetArr2Id()
 
 		, newPerm.mDstCls.mId.SqlVal()
 		, newPerm.mDstObj.mId.SqlVal()
-		, mDstPathArr->GetTmpPathArr2IdSql()
+		, mDstPathArr->GetArr2Id()
 
 		, oldPerm.mId.SqlVal()
 		);
@@ -194,11 +194,11 @@ bool MClsMove::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t 
 	
 	auto arr2title = table->GetAsString(i++, row);
 	auto arr2id = table->GetAsString(i++, row);
-	mSrcPathArr->SetTmpPath(arr2id, arr2title);
+	mSrcPathArr->SetArr2Id2Title(arr2id, arr2title);
 
 	arr2title = table->GetAsString(i++, row);
 	arr2id = table->GetAsString(i++, row);
-	mDstPathArr->SetTmpPath(arr2id, arr2title);
+	mDstPathArr->SetArr2Id2Title(arr2id, arr2title);
 
 
 	SetData(data);
@@ -229,12 +229,14 @@ bool MClsMove::GetFieldValue(unsigned int col, wxVariant &variant)
 						, data.mCls.mLabel.toStr()
 						, data.mObj.mLabel.IsNull() ? "%" : data.mObj.mLabel.toStr() );
 		break;
-	case 4: variant = mSrcPathArr->GetTmpPath();
+	case 4: //variant = mSrcPathArr->GetTmpPath();
 		break;
-	case 5: variant = wxString::Format("%s/[%s]%s"
+	case 5: /*
+		variant = wxString::Format("%s/[%s]%s"
 						,mSrcPathArr->GetTmpPath()
 						,parentCls->GetData().mLabel.toStr()
 						, data.mDstObj.mLabel.IsNull() ? "%" : data.mDstObj.mLabel.toStr());
+						*/
 		break;
 	}//switch(col) 
 	return true;

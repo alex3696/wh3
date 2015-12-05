@@ -25,9 +25,10 @@ class Array
 public:
 	Array(const char option = ModelOption::EnableNotifyFromChild);
 
-	void SetTmpPath(const wxString& arrId, const wxString& arrTitle);
-	wxString GetTmpPathArr2IdSql(bool includeLast=false)const;
-	wxString GetTmpPath()const;
+	void SetArr2Id2Title(const wxString& arr2Id, const wxString& arr2Title);
+	
+	wxString GetArr2Id(bool includeLast = false)const;
+	wxString GetArr2Title(bool includeLast = false)const;
 
 };
 

@@ -58,12 +58,12 @@ void TmpStrPathItem::OnChange(const IModel*, const temppath::model::Item::DataTy
 {
 	if (!data)
 		return;
-	wxString chStr("\\ * ");
+	wxString chStr(" /* ");
 	if (!data->mCls.mId.IsNull() || !data->mObj.mId.IsNull())
 	{
 		const wxString clsStr = data->mCls.mId.IsNull() ? "*" : data->mCls.mLabel.toStr();
 		const wxString objStr = data->mObj.mId.IsNull() ? "*" : data->mObj.mLabel.toStr();
-		chStr = wxString::Format(L" \\[%s]%s ", clsStr, objStr);//\u02C5 |v
+		chStr = wxString::Format(L" /[%s]%s ", clsStr, objStr);//\u02C5 |v
 	}
 	SetLabel(chStr);
 	
@@ -270,10 +270,12 @@ void PathPatternEditor::SetModel(std::shared_ptr<temppath::model::Array>& newMod
 
 	namespace ph = std::placeholders;
 
+	auto onAddNode = std::bind(&PathPatternEditor::OnAddNode, this, ph::_1, ph::_2);
 	auto onDelNode = std::bind(&PathPatternEditor::OnDelNode, this, ph::_1, ph::_2);
 	auto onAfterReset = std::bind(&PathPatternEditor::OnAfterReset, this, ph::_1);
 	auto onAfterIns = std::bind(&PathPatternEditor::OnAfterInsert, this, ph::_1, ph::_2, ph::_3);
 
+	connAdd = mModel->ConnectAppendSlot(onAddNode);
 	connDel = mModel->ConnectBeforeRemove(onDelNode);
 	connAfterReset = mModel->ConnAfterReset(onAfterReset);
 	connAfterInsert = mModel->ConnAfterInsert(onAfterIns);
@@ -339,21 +341,35 @@ void PathPatternEditor::MakeGuiItem(unsigned int pos)
 void PathPatternEditor::OnDelNode(const IModel& model, const std::vector<unsigned int>& vec)
 {
 	std::vector<TmpPathItem*> to_del;
-
 	for (const auto idx : vec)
 	{
 		auto it = mPathChoice.begin() + idx;
 		to_del.emplace_back(*it);
-		mPathChoice.erase(it);
 	}
 
 	for (const auto ch : to_del)
+	{
 		delete ch;
-
+		PtrIdx& ptrIdx = mPathChoice.get<1>();
+		PtrIterator ptrIt = ptrIdx.find(ch);
+		if (ptrIdx.end() != ptrIt)
+			ptrIdx.erase(ptrIt);
+	}
+		
 	auto szrPath = this->GetSizer();
 	szrPath->Fit(this);
 	this->GetParent()->Layout();
 
+}
+//---------------------------------------------------------------------------
+void PathPatternEditor
+::OnAddNode(const IModel& model, const std::vector<unsigned int>& vec)
+{
+	for (size_t i = 0; i < vec.size(); i++)
+	{
+		size_t pos = vec[i];
+		MakeGuiItem(pos);
+	}
 }
 
 //---------------------------------------------------------------------------

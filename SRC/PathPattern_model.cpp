@@ -23,8 +23,9 @@ Array::Array(const char option)
 {
 }
 //-----------------------------------------------------------------------------
-void Array::SetTmpPath(const wxString& arrId, const wxString& arrTitle)
+void Array::SetArr2Id2Title(const wxString& arrId, const wxString& arrTitle)
 {
+	Clear();
 	wh::ObjKeyPath pathId;
 	wh::ObjKeyPath pathTitle;
 
@@ -52,66 +53,60 @@ void Array::SetTmpPath(const wxString& arrId, const wxString& arrTitle)
 
 }
 //-----------------------------------------------------------------------------
-wxString Array::GetTmpPathArr2IdSql(bool includeLast)const
+wxString Array::GetArr2Id(bool includeLast)const
 {
 	// поскольку в базе требуется только путь, без учёта объекта и его класса
 	// последний элемент массива не берём в учёт и не отсылаем в SQL
 
-	auto qty = includeLast && 1<GetChildQty() ? 
-		 this->GetChildQty() : this->GetChildQty() - 1;
-	
+	auto qty = includeLast && 1<GetChildQty() ?
+		this->GetChildQty() : this->GetChildQty() - 1;
+
 	wxString str;
 	for (size_t i = 0; i < qty; ++i)
 	{
 		const auto& nd = at(i)->GetData();
-		if (nd.mCls.mId.IsNull() && nd.mObj.mId.IsNull())
-		{
-			str += "%,";
-		}
-		else
-		{
-			const wxString cls = nd.mCls.mId.IsNull() ? "%" : nd.mCls.mId.toStr();
-			const wxString obj = nd.mObj.mId.IsNull() ? "%" : nd.mObj.mId.toStr();
-			str += wxString::Format("{%s,%s},", cls, obj);
 
-		}
+		const wxString cls = nd.mCls.mId.IsNull() ? "NULL" : nd.mCls.mId.toStr();
+		const wxString obj = nd.mObj.mId.IsNull() ? "NULL" : nd.mObj.mId.toStr();
+		str += wxString::Format("{%s,%s},", cls, obj);
 	}
 
 	if (!str.IsEmpty())
 	{
 		str.RemoveLast();
-		str = wxString::Format("'{%s}'", str);;
+		str = wxString::Format("{%s}", str);;
 	}
 	else
-		str = "'{%}'";
+		str = "{%}";
 
 	return str;
 }
 //-----------------------------------------------------------------------------
-wxString Array::GetTmpPath()const
+wxString Array::GetArr2Title(bool includeLast)const
 {
+	// поскольку в базе требуется только путь, без учёта объекта и его класса
+	// последний элемент массива не берём в учёт и не отсылаем в SQL
+
+	auto qty = includeLast && 1<GetChildQty() ?
+		this->GetChildQty() : this->GetChildQty() - 1;
+
 	wxString str;
-	
-	if (this->GetChildQty())
+	for (size_t i = 0; i < qty; ++i)
 	{
-		str.clear();
-		for (size_t i = 0; i < this->GetChildQty(); ++i)
-		{
-			const auto& nd = at(i)->GetData();
-			if (nd.mCls.mLabel.IsNull() && nd.mObj.mLabel.IsNull())
-				str += "/%";
-			else
-				str += wxString::Format("/[%s]%s"
-					, nd.mCls.mLabel.toStr()
-					, nd.mObj.mLabel.toStr() );
-		}
-			
+		const auto& nd = at(i)->GetData();
+		const wxString cls = nd.mCls.mLabel.IsNull() ? "NULL" : nd.mCls.mLabel.toStr();
+		const wxString obj = nd.mObj.mLabel.IsNull() ? "NULL" : nd.mObj.mLabel.toStr();
+		str += wxString::Format("{%s,%s},", cls, obj);
+	}
+
+	if (!str.IsEmpty())
+	{
+		str.RemoveLast();
+		str = wxString::Format("{%s}", str);;
 	}
 	else
-		str = "/";
-	
+		str = "{%}";
+
 	return str;
-
 }
-
 

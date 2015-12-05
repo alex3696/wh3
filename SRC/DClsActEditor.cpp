@@ -20,6 +20,8 @@ DClsActEditor::DClsActEditor(wxWindow*		parent,
 	const wxString& name)
 	:wxDialog(parent, id, title, pos, size, style, name), mModel(nullptr)
 {
+	mPatternPath.reset(new temppath::model::Array());
+	
 	this->SetSize(500, 300);
 	this->SetMinSize(wxSize(500, 300));
 	SetTitle("Редактирование информации о разрешении действия");
@@ -78,7 +80,9 @@ DClsActEditor::DClsActEditor(wxWindow*		parent,
 
 				mPropGrid->CommitChangesFromEditor();
 				
-				auto clsAct = mModel->GetData();
+				//auto clsAct = mModel->GetData();
+				rec::ClsActAccess clsAct;
+				this->GetData(clsAct);
 				
 				clsAct.mAct.mId = actData.mID;
 				clsAct.mAct.mLabel = actData.mLabel;
@@ -109,12 +113,8 @@ DClsActEditor::DClsActEditor(wxWindow*		parent,
 				const auto& groupData = groupModel->GetData();
 
 				mPropGrid->CommitChangesFromEditor();
-
-				auto clsAct = mModel->GetData();
-
-				clsAct.mAcessGroup = groupData.mLabel;
-
-				mModel->SetData(clsAct);
+				auto pgpGroup = mPropGrid->GetPropertyByLabel(L"Группа");
+				pgpGroup->SetValueFromString(groupData.mLabel);
 				return true;
 			}
 
@@ -163,35 +163,6 @@ void DClsActEditor::SetModel(std::shared_ptr<IModel>& newModel)
 	auto onChangePerm = std::bind(&DClsActEditor::OnChangeModel, this, ph::_1, ph::_2);
 	mChangeConnection = mModel->DoConnect(moAfterUpdate, onChangePerm);
 	OnChangeModel(mModel.get(), nullptr);
-
-	auto permArr = mModel->GetParent();
-	if (!permArr)
-		return;
-
-	auto clsIModel = permArr->GetParent();
-	auto clsModel = dynamic_cast<cat::MTypeItem*>(clsIModel);
-	const auto& clsData = clsModel->GetData();
-
-	auto srcPathArr = mModel->mSrcPathArr;
-
-	if ( 0 == srcPathArr->GetChildQty() )
-	{ 
-		
-		auto anyItem = std::make_shared<temppath::model::Item>();
-		auto linkedCls = std::make_shared<temppath::model::Item>();
-		
-		rec::PathNode pn;
-		anyItem->SetData(pn);
-		
-		pn.mCls.mId = clsData.mId;
-		pn.mCls.mLabel = clsData.mLabel;
-		linkedCls->SetData(pn);
-
-		srcPathArr->AddChild(anyItem);
-		srcPathArr->AddChild(linkedCls);
-	}
-	mPathEditor->SetModel(srcPathArr);
-	mPathEditor->DoNotDeleteLast(true);
 	
 
 }//SetModel
@@ -210,21 +181,16 @@ void DClsActEditor::GetData(rec::ClsActAccess& rec) const
 	rec.mAcessGroup = mPropGrid->GetPropertyByLabel(L"Группа")->GetValueAsString();
 	rec.mScriptRestrict = mPropGrid->GetPropertyByLabel(L"Скрипт")->GetValueAsString();
 	
-
-	/*
-	rec.mObj.mLabel = mPropGrid->GetPropertyByLabel("Объект")->GetValueAsString();
-	wh::ObjKeyPath path;
-	path.ParsePath(mPropGrid->GetPropertyByLabel("Путь")->GetValueAsString());
-
-	if (path.size())
+	auto qty = mPatternPath->GetChildQty();
+	if (qty > 1)
 	{
-		wxString generated_path;
-		path.GenerateArray(generated_path, true);
-		rec.mSrcPath = generated_path;
+		rec.mCls = mPatternPath->at(qty - 1)->GetData().mCls;
+		rec.mObj = mPatternPath->at(qty - 1)->GetData().mObj;
 	}
-	else
-		rec.mSrcPath.SetNull();
-		*/
+
+	rec.mArrId = mPatternPath->GetArr2Id(false);
+	rec.mArrTitle = mPatternPath->GetArr2Title(false);
+
 	rec.mId = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
 }
 //---------------------------------------------------------------------------
@@ -237,16 +203,52 @@ void DClsActEditor::SetData(const rec::ClsActAccess& rec)
 		SetValueFromString(("1" == rec.mAccessDisabled) ? "true" : "false");
 	mPropGrid->GetPropertyByLabel(L"Группа")->SetValueFromString(rec.mAcessGroup);
 	mPropGrid->GetPropertyByLabel(L"Скрипт")->SetValueFromString(rec.mScriptRestrict);
-	
-	/*
-	mPropGrid->GetPropertyByLabel(L"Объект")->SetValueFromString(rec.mObj.mLabel.toStr());
-	wh::ObjKeyPath path;
-	path.ParseArray(rec.mSrcPath);
-	wxString pathStr;
-	path.GeneratePath(pathStr);
-	mPropGrid->GetPropertyByLabel("Путь")->SetValueFromString(pathStr);
-	*/
 	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(rec.mId.toStr());
+
+	// инициализируем mPatternPath который привязан только к GUI
+	namespace cat = wh::object_catalog;
+
+	auto permArr = mModel->GetParent();
+	if (!permArr)
+		return;
+
+	auto clsIModel = permArr->GetParent();
+	auto clsModel = dynamic_cast<cat::MTypeItem*>(clsIModel);
+	const auto& clsData = clsModel->GetData();
+
+
+	const auto& dataClsAct = mModel->GetData();
+
+	mPatternPath->SetArr2Id2Title(dataClsAct.mArrId, dataClsAct.mArrTitle);
+	// если новый элемент добавляем дефолтный путь + текущий [класс]объект
+	if (0 == mPatternPath->GetChildQty())
+	{
+		auto anyItem = std::make_shared<temppath::model::Item>();
+		auto linkedCls = std::make_shared<temppath::model::Item>();
+
+		rec::PathNode pn;
+		anyItem->SetData(pn);
+
+		pn.mCls.mId = clsData.mId;
+		pn.mCls.mLabel = clsData.mLabel;
+		linkedCls->SetData(pn);
+
+		mPatternPath->AddChild(anyItem);
+		mPatternPath->AddChild(linkedCls);
+	}
+	else // если планируется редактирование то к пути добавляем текущий [класс]объект
+	{
+		rec::PathNode lastItemData;
+		lastItemData.mCls = dataClsAct.mCls;
+		lastItemData.mObj = dataClsAct.mObj;
+		auto lastItem = std::make_shared<temppath::model::Item>();
+		lastItem->SetData(lastItemData);
+		mPatternPath->AddChild(lastItem);
+	}
+
+	mPathEditor->SetModel(mPatternPath);
+	mPathEditor->DoNotDeleteLast(true);
+
 }
 //---------------------------------------------------------------------------
 

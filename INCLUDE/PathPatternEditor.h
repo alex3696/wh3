@@ -73,6 +73,7 @@ class PathPatternEditor
 	void OnAfterReset(const IModel&);
 	void OnAfterInsert(const IModel&, const std::shared_ptr<IModel>&,
 		std::shared_ptr<IModel>&);
+	void OnAddNode(const IModel&, const std::vector<unsigned int>&);
 	void OnDelNode(const IModel&, const std::vector<unsigned int>&);
 
 	void MakeGuiItem(unsigned int pos);

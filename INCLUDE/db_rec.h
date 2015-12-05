@@ -487,7 +487,9 @@ struct ClsActAccess
 
 	Base		mCls;
 	Base		mObj;
-	//SqlString	mSrcPath;
+
+	SqlString	mArrId;
+	SqlString	mArrTitle;
 
 	Base		mAct;
 	

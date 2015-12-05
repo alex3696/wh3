@@ -19,8 +19,81 @@ const std::vector<Field> gClsActFieldVec = {
 MClsAct::MClsAct(const char option)
 :TModelData<rec::ClsActAccess>(option)
 {
-	mSrcPathArr = std::make_shared<temppath::model::Array>();
-	this->AddChild(mSrcPathArr);
+
+	namespace ph = std::placeholders;
+
+	auto onChange = std::bind(&MClsAct::OnChange, this, ph::_1, ph::_2);
+
+	connChange = DoConnect(moAfterUpdate, onChange);
+
+	//OnChange(this, &GetData());
+}
+//-------------------------------------------------------------------------
+wxString MClsAct::GetSrcPathPattern()const
+{
+	wxString pathPattern;
+	const wxString& arrId = GetData().mArrId;
+	wh::ObjKeyPath pathId;
+	if (!pathId.ParseArray(arrId))
+		return "'{%}'";
+	for (size_t i = 0; i < pathId.size(); ++i)
+	{
+		const auto& item = pathId[i];
+
+		if ("NULL" == item.m_Name && "NULL" == item.m_Type)
+			pathPattern += "%,";
+		else
+		{
+			const wxString cls = "NULL" == item.m_Type ? "%" : item.m_Type;
+			const wxString obj = "NULL" == item.m_Name ? "%" : item.m_Name;
+			pathPattern += wxString::Format("{%s,%s},", cls, obj);
+
+		}
+	}
+	if (!pathPattern.IsEmpty())
+	{
+		pathPattern.RemoveLast();
+		pathPattern = wxString::Format("'{%s}'", pathPattern);;
+	}
+	else
+		pathPattern = "'{%}'";
+	return pathPattern;
+}
+//-------------------------------------------------------------------------
+void MClsAct::OnChange(const IModel* model, const DataType* dt)
+{
+	mPathGui.clear();
+	
+
+	if (!model || !dt)
+		return;
+
+	const wxString& arrTitle = dt->mArrTitle;
+	wh::ObjKeyPath pathTitle;
+	if (!pathTitle.ParseArray(arrTitle))
+		return;
+	for (size_t i = 0; i < pathTitle.size(); ++i)
+	{
+		const auto& item = pathTitle[i];
+
+		if ("NULL" == item.m_Name && "NULL" == item.m_Type)
+			mPathGui += "/*";
+		else
+		{
+			const wxString cls = "NULL" == item.m_Type ? "*" : item.m_Type;
+			const wxString obj = "NULL" == item.m_Name ? "*" : item.m_Name;
+			mPathGui += wxString::Format("/[%s]%s", cls, obj);
+
+		}
+	}
+
+
+
+}
+//-------------------------------------------------------------------------
+wxString MClsAct::GetSrcPathGui()const
+{
+	return mPathGui;
 }
 
 //-------------------------------------------------------------------------
@@ -88,7 +161,7 @@ bool MClsAct::GetInsertQuery(wxString& query)const
 
 		, cls.mId.SqlVal() //newPerm.mSrcCls.mId = cls.mID;
 		, newPerm.mObj.mId.SqlVal()
-		, mSrcPathArr->GetTmpPathArr2IdSql()
+		, GetSrcPathPattern()//newPerm.mArrId.SqlVal()
 
 		, newPerm.mAct.mId.SqlVal()
 		);
@@ -122,7 +195,7 @@ bool MClsAct::GetUpdateQuery(wxString& query)const
 
 			, cls.mId.SqlVal() //newPerm.mSrcCls.mId = cls.mID;
 			, newPerm.mObj.mId.SqlVal()
-			, mSrcPathArr->GetTmpPathArr2IdSql()
+			, GetSrcPathPattern() //newPerm.mArrId.SqlVal()
 			
 			, newPerm.mAct.mId.SqlVal()
 
@@ -169,12 +242,8 @@ bool MClsAct::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t r
 	data.mAct.mId        = table->GetAsString(i++, row);
 	data.mAct.mLabel     = table->GetAsString(i++, row);
 	
-	auto arr2title = table->GetAsString(i++, row);
-	auto arr2id    = table->GetAsString(i++, row);
-
-	mSrcPathArr->SetTmpPath(arr2id, arr2title);
-
-	
+	data.mArrTitle = table->GetAsString(i++, row);
+	data.mArrId = table->GetAsString(i++, row);
 
 	SetData(data);
 	return true;
@@ -191,8 +260,14 @@ bool MClsAct::GetFieldValue(unsigned int col, wxVariant &variant)
 		break;
 	case 2:	variant = ("1" == data.mAccessDisabled) ? "Запретить" : "Разрешить";	break;
 	case 3:	variant = data.mAcessGroup;	break;
-	case 4: variant = data.mObj.mLabel;	break;
-	case 5: variant = mSrcPathArr->GetTmpPath();	break;
+	case 4: //variant = data.mObj.mLabel;	
+		break;
+	case 5: 
+		variant = wxString::Format("%s/[%s]%s",
+		mPathGui,
+		data.mCls.mLabel.toStr(),
+		data.mObj.mLabel.IsNull() ? "*" : data.mObj.mLabel.toStr()); 
+		break;
 	case 6: variant = data.mId.toStr();	break;
 	}//switch(col) 
 	return true;

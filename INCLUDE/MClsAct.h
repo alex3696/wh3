@@ -1,9 +1,8 @@
 #ifndef __MCLSACT_H
 #define __MCLSACT_H
 
-#include "PathPattern_model.h"
-//#include "TModelArray.h"
-//#include "db_rec.h"
+#include "TModelArray.h"
+#include "db_rec.h"
 
 namespace wh{
 
@@ -20,8 +19,14 @@ public:
 
 	virtual bool LoadThisDataFromDb(std::shared_ptr<whTable>&, const size_t)override;
 
-	std::shared_ptr<temppath::model::Array>	mSrcPathArr;
+	wxString GetSrcPathGui()const;
 protected:
+	wxString GetSrcPathPattern()const;
+
+	void OnChange(const IModel*, const DataType*);
+	wxString mPathGui;
+	sig::scoped_connection connChange;
+
 	virtual bool GetSelectQuery(wxString&)const override;
 	virtual bool GetInsertQuery(wxString&)const override;
 	virtual bool GetUpdateQuery(wxString&)const override;

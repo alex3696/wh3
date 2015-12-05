@@ -52,6 +52,10 @@ private:
 
 	/// Модель свойства класса
 	std::shared_ptr<MClsAct>		mModel; 
+	///
+	std::shared_ptr<temppath::model::Array>	mPatternPath;
+
+
 	sig::scoped_connection			mChangeConnection;
 };
 //-----------------------------------------------------------------------------	
