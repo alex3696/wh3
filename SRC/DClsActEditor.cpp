@@ -220,31 +220,13 @@ void DClsActEditor::SetData(const rec::ClsActAccess& rec)
 	const auto& dataClsAct = mModel->GetData();
 
 	mPatternPath->SetArr2Id2Title(dataClsAct.mArrId, dataClsAct.mArrTitle);
-	// если новый элемент добавляем дефолтный путь + текущий [класс]объект
-	if (0 == mPatternPath->GetChildQty())
-	{
-		auto anyItem = std::make_shared<temppath::model::Item>();
-		auto linkedCls = std::make_shared<temppath::model::Item>();
-
-		rec::PathNode pn;
-		anyItem->SetData(pn);
-
-		pn.mCls.mId = clsData.mId;
-		pn.mCls.mLabel = clsData.mLabel;
-		linkedCls->SetData(pn);
-
-		mPatternPath->AddChild(anyItem);
-		mPatternPath->AddChild(linkedCls);
-	}
-	else // если планируется редактирование то к пути добавляем текущий [класс]объект
-	{
-		rec::PathNode lastItemData;
-		lastItemData.mCls = dataClsAct.mCls;
-		lastItemData.mObj = dataClsAct.mObj;
-		auto lastItem = std::make_shared<temppath::model::Item>();
-		lastItem->SetData(lastItemData);
-		mPatternPath->AddChild(lastItem);
-	}
+	//редактирование : к пути добавляем текущий [класс]объект
+	rec::PathNode lastItemData;
+	lastItemData.mCls = dataClsAct.mCls;
+	lastItemData.mObj = dataClsAct.mObj;
+	auto lastItem = std::make_shared<temppath::model::Item>();
+	lastItem->SetData(lastItemData);
+	mPatternPath->AddChild(lastItem);
 
 	mPathEditor->SetModel(mPatternPath);
 	mPathEditor->DoNotDeleteLast(true);

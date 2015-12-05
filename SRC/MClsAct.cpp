@@ -35,7 +35,7 @@ wxString MClsAct::GetSrcPathPattern()const
 	const wxString& arrId = GetData().mArrId;
 	wh::ObjKeyPath pathId;
 	if (!pathId.ParseArray(arrId))
-		return "'{%}'";
+		return "'{}'";
 	for (size_t i = 0; i < pathId.size(); ++i)
 	{
 		const auto& item = pathId[i];
