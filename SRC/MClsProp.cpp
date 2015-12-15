@@ -47,13 +47,14 @@ bool MClsProp::GetInsertQuery(wxString& query)const
 	{
 		const rec::ClsProp& prop = this->GetData();
 		const rec::Cls& cls = parentCls->GetData();
-
+		
 		query = wxString::Format(
-			"INSERT INTO prop_cls (val, cls_id, prop_id) "
-			" VALUES(%s, '%s', '%s') "
+			"INSERT INTO prop_cls (val, cls_id, cls_kind, prop_id) "
+			" VALUES(%s, %s, %d, %s) "
 			" RETURNING id "
 			, prop.mVal.SqlVal()
 			, cls.mId.SqlVal()
+			, (int)cls.GetClsType()
 			, prop.mProp.mId.SqlVal() );
 		return true;
 	}
@@ -72,7 +73,7 @@ bool MClsProp::GetUpdateQuery(wxString& query)const
 
 		query = wxString::Format(
 			"UPDATE	prop_cls "
-			" SET val=%s, cls_id='%s', prop_id='%s' "
+			" SET val=%s, cls_id=%s, prop_id=%s "
 			" WHERE id=%s "
 			, prop.mVal.SqlVal()
 			, cls.mId.SqlVal()

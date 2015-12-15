@@ -159,6 +159,33 @@ void DClsActEditor::SetModel(std::shared_ptr<IModel>& newModel)
 	if (!mModel)
 		return;
 
+	const auto state = mModel->GetState();
+	if (msCreated == state)
+	{
+		// инициализируем mPatternPath который привязан только к GUI
+		namespace cat = wh::object_catalog;
+
+		auto permArr = mModel->GetParent();
+		if (!permArr)
+			return;
+		auto clsIModel = permArr->GetParent();
+		auto clsModel = dynamic_cast<cat::MTypeItem*>(clsIModel);
+		if (!clsModel)
+			return;
+
+		const auto& clsData = clsModel->GetData();
+
+		auto clsActPerm = mModel->GetData();
+
+		clsActPerm.mArrId = "{{NULL,NULL}}";
+		clsActPerm.mArrTitle = "{{NULL,NULL}}";
+
+		clsActPerm.mCls.mId = clsData.mId;
+		clsActPerm.mCls.mLabel = clsData.mLabel;
+
+		mModel->SetData(clsActPerm);
+	}
+
 			
 	auto onChangePerm = std::bind(&DClsActEditor::OnChangeModel, this, ph::_1, ph::_2);
 	mChangeConnection = mModel->DoConnect(moAfterUpdate, onChangePerm);
@@ -206,28 +233,18 @@ void DClsActEditor::SetData(const rec::ClsActAccess& rec)
 	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(rec.mId.toStr());
 
 	// инициализируем mPatternPath который привязан только к GUI
-	namespace cat = wh::object_catalog;
-
-	auto permArr = mModel->GetParent();
-	if (!permArr)
-		return;
-
-	auto clsIModel = permArr->GetParent();
-	auto clsModel = dynamic_cast<cat::MTypeItem*>(clsIModel);
-	const auto& clsData = clsModel->GetData();
-
-
-	const auto& dataClsAct = mModel->GetData();
-
-	mPatternPath->SetArr2Id2Title(dataClsAct.mArrId, dataClsAct.mArrTitle);
+	// шаблон пути состоит из пути + текущий класс с объектом
+	// если новая запись то надо сделать иначе просто загрузить
+	
+	mPatternPath->SetArr2Id2Title(rec.mArrId, rec.mArrTitle);
 	//редактирование : к пути добавляем текущий [класс]объект
 	rec::PathNode lastItemData;
-	lastItemData.mCls = dataClsAct.mCls;
-	lastItemData.mObj = dataClsAct.mObj;
+	lastItemData.mCls = rec.mCls;
+	lastItemData.mObj = rec.mObj;
 	auto lastItem = std::make_shared<temppath::model::Item>();
 	lastItem->SetData(lastItemData);
 	mPatternPath->AddChild(lastItem);
-
+	
 	mPathEditor->SetModel(mPatternPath);
 	mPathEditor->DoNotDeleteLast(true);
 

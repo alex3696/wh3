@@ -59,11 +59,13 @@ struct obj_array_parser : qi::grammar<Iterator,  std::deque<wh::ObjKey>(), unico
 
 		n_type	%= lexeme[ +(char_ -'{' -'}' -',') ];					// some_type
 		q_type	%=  omit['"'] >>lexeme[ +(char_ -'"' ) ] >> omit['"'];	// "some_type"
-		type	%=  q_type | n_type ;  									// TYPE
+		oq_type %= omit['\''] >> lexeme[+(char_ - '\'')] >> omit['\''];	//'some_type'
+		type %= oq_type | q_type | n_type;  							// TYPE
 		
 		n_name %= lexeme[ *(char_ -'{' -'}' ) ];						// some_name	- может быть и пустым
 		q_name %=  omit['"'] >>lexeme[ *(char_ -'"' ) ] >> omit['"'];	// "some_name"	- может быть и пустым ""
-		name %=  q_name | n_name ;  									// NAME
+		oq_name %= omit['\''] >> lexeme[*(char_ - '\'')] >> omit['\''];	// 'some_name'	- может быть и пустым ""
+		name %= oq_name | q_name | n_name;  							// NAME
 
 		obj %=	'{' >> type >> ',' >> name >> '}';					//{TYPE,NAME}
 		
@@ -71,7 +73,9 @@ struct obj_array_parser : qi::grammar<Iterator,  std::deque<wh::ObjKey>(), unico
 
 	}
 
-	qi::rule<Iterator, std::wstring(), unicode::space_type>		type,q_type,n_type, name,q_name,n_name;
+	qi::rule<Iterator, std::wstring(), unicode::space_type>		
+		type, q_type, oq_type, n_type
+		, name, q_name, oq_name, n_name;
 	qi::rule<Iterator, wh::ObjKey(), unicode::space_type>		obj;
 	qi::rule<Iterator, std::deque<wh::ObjKey>(), unicode::space_type> obj_vec;
 

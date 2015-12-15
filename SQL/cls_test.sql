@@ -4,6 +4,8 @@ SET default_transaction_isolation =serializable;
 SET client_min_messages='debug1';
 SHOW client_min_messages;
 
+CREATE IF NOT EXISTS EXTENSION pg_trgm;
+
 ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON SEQUENCES FROM public;
 ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON TABLES FROM public;
 ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON FUNCTIONS FROM public;
@@ -121,123 +123,45 @@ DROP FUNCTION IF EXISTS ftr_biu_perm_act() CASCADE;
 ---------------------------------------------------------------------------------------------------
 -- перечень всех классов
 ---------------------------------------------------------------------------------------------------
-DROP TABLE IF EXISTS cls_name CASCADE;
-CREATE TABLE cls_name ( 
-  id     BIGINT NOT NULL DEFAULT nextval('seq_cls_id')
-    PRIMARY KEY
-  ,title WHNAME NOT NULL
-    UNIQUE 
-  ,note  TEXT            DEFAULT NULL
-  ,kind           SMALLINT NOT NULL CHECK ( kind BETWEEN 0 AND 3 )
-  ,CONSTRAINT uk_cls_name_id_kind UNIQUE (id,kind)
+DROP TABLE IF EXISTS acls CASCADE;
+CREATE TABLE acls ( 
+  id       BIGINT   NOT NULL DEFAULT nextval('seq_cls_id') CHECK ( id>=0 )
+  ,pid     BIGINT   NOT NULL DEFAULT 1
+  ,title   WHNAME   NOT NULL
+  ,note    TEXT              DEFAULT NULL
+  ,kind    SMALLINT NOT NULL  CHECK ( kind BETWEEN 0 AND 3 )
+  ,pkind   SMALLINT NOT NULL DEFAULT 0 CHECK ( pkind=0 )
+  
+  ,dobj    BIGINT   NOT NULL DEFAULT 1
+  ,measure WHNAME            DEFAULT NULL
+  --,path    ltree    NOT NULL 
+  --,guipath VARCHAR  --NOT NULL
+
+,CONSTRAINT pk_acls__id      PRIMARY KEY(id)
+,CONSTRAINT pk_acls__id_kind UNIQUE(id,kind)
+,CONSTRAINT fk_acls__id_pid  FOREIGN KEY (pid,pkind)
+      REFERENCES acls (id,kind) MATCH FULL
+      ON UPDATE RESTRICT ON DELETE RESTRICT
+
+,CONSTRAINT ck_acls_root CHECK(  (id=0 AND pid=0)                 -- main root
+                               OR(id=1 AND pid=0)                 -- Cls0 - class root 
+                               OR(id>1 AND pid>0 AND id<>pid)   ) -- other
+,CONSTRAINT ck_acls_mess CHECK(  (kind=0 AND measure IS NULL)
+                               OR(kind>0 AND measure IS NOT NULL) ) --если нет единиц измерения класс должен быть абстрактным
 );
-CREATE INDEX idx_cls_name_title ON cls_name(title varchar_pattern_ops);
-
-GRANT SELECT        ON TABLE cls_name  TO "Guest";
-GRANT INSERT        ON TABLE cls_name  TO "TypeDesigner";
-GRANT DELETE        ON TABLE cls_name  TO "Admin";
-GRANT UPDATE(title,note,kind) ON TABLE cls_name  TO "TypeDesigner";
----------------------------------------------------------------------------------------------------
--- дерево абстрактных классов
----------------------------------------------------------------------------------------------------
-DROP TABLE IF EXISTS cls_tree CASCADE;
-CREATE TABLE cls_tree ( 
-  id  BIGINT NOT NULL CHECK (  (id=0 AND pid=0) OR(id>0 AND id<>pid)   )  -- один корень 
-    PRIMARY KEY
-    REFERENCES cls_name( id )       MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE
- ,pid BIGINT NOT NULL DEFAULT 1
-    REFERENCES cls_tree( id )       MATCH FULL ON UPDATE RESTRICT ON DELETE SET DEFAULT
-
- ,kind           SMALLINT NOT NULL DEFAULT 0 CHECK ( kind=0 )
-
- ,CONSTRAINT cls_tree_id_kind_fkey FOREIGN KEY (id,kind)
-      REFERENCES cls_name (id,kind) MATCH FULL
-      ON UPDATE RESTRICT ON DELETE CASCADE
-);
-CREATE INDEX idx_cls_tree_pid ON cls_tree(pid);
-
-GRANT SELECT        ON TABLE cls_tree  TO "Guest";
-GRANT INSERT        ON TABLE cls_tree  TO "TypeDesigner";
-GRANT DELETE        ON TABLE cls_tree  TO "Admin";
-GRANT UPDATE(pid)   ON TABLE cls_tree  TO "TypeDesigner";
----------------------------------------------------------------------------------------------------
--- классы имеющие объекты
----------------------------------------------------------------------------------------------------
-DROP TABLE IF EXISTS cls_real CASCADE;
-CREATE TABLE cls_real ( 
-  id             BIGINT NOT NULL CHECK ( id>0 AND id<>pid )
-    PRIMARY KEY
-    REFERENCES cls_name( id ) MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE
- ,pid            BIGINT NOT NULL DEFAULT 1
-    REFERENCES cls_tree( id ) MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE
- ,default_objid BIGINT NOT NULL DEFAULT 1
- ,measure        WHNAME NOT NULL
-
- ,kind           SMALLINT NOT NULL CHECK ( kind BETWEEN 1 AND 3 )
-
- ,CONSTRAINT cls_real_id_kind_fkey FOREIGN KEY (id,kind)
-      REFERENCES cls_name (id,kind) MATCH FULL
-      ON UPDATE RESTRICT ON DELETE CASCADE
- 
-);
-CREATE INDEX idx_clsreal_pid ON cls_real(pid);
-
-GRANT SELECT        ON TABLE cls_real  TO "Guest";
-GRANT INSERT        ON TABLE cls_real  TO "TypeDesigner";
-GRANT DELETE        ON TABLE cls_real  TO "Admin";
-GRANT UPDATE(pid,default_objid,measure)   ON TABLE cls_real  TO "TypeDesigner";
----------------------------------------------------------------------------------------------------
--- классы нумерные
----------------------------------------------------------------------------------------------------
-DROP TABLE IF EXISTS cls_num   CASCADE;
-CREATE TABLE cls_num ( 
-  id  BIGINT NOT NULL 
-    PRIMARY KEY
-    REFERENCES cls_real( id ) MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE
- ,kind           SMALLINT NOT NULL DEFAULT 1 CHECK ( kind=1 )
-
- ,CONSTRAINT cls_num_id_kind_fkey FOREIGN KEY (id,kind)
-      REFERENCES cls_name (id,kind) MATCH FULL
-      ON UPDATE RESTRICT ON DELETE CASCADE
-);
-
-GRANT SELECT        ON TABLE cls_num  TO "Guest";
-GRANT INSERT        ON TABLE cls_num  TO "TypeDesigner";
-GRANT DELETE        ON TABLE cls_num  TO "Admin";
----------------------------------------------------------------------------------------------------
--- классы количественные
----------------------------------------------------------------------------------------------------
-DROP TABLE IF EXISTS cls_qtyi  CASCADE;
-CREATE TABLE cls_qtyi ( 
-  id  BIGINT NOT NULL 
-    PRIMARY KEY
-    REFERENCES cls_real( id ) MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE
- ,kind           SMALLINT NOT NULL DEFAULT 2 CHECK ( kind=2 )
-
- ,CONSTRAINT cls_qtyi_id_kind_fkey FOREIGN KEY (id,kind)
-      REFERENCES cls_name (id,kind) MATCH FULL
-      ON UPDATE RESTRICT ON DELETE CASCADE
-);
-GRANT SELECT        ON TABLE cls_qtyi  TO "Guest";
-GRANT INSERT        ON TABLE cls_qtyi  TO "TypeDesigner";
-GRANT DELETE        ON TABLE cls_qtyi  TO "Admin";
----------------------------------------------------------------------------------------------------
--- классы количественные дробные
----------------------------------------------------------------------------------------------------
-DROP TABLE IF EXISTS cls_qtyf  CASCADE;
-CREATE TABLE cls_qtyf ( 
-  id  BIGINT NOT NULL 
-    PRIMARY KEY
-    REFERENCES cls_real( id ) MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE
- ,kind           SMALLINT NOT NULL DEFAULT 3 CHECK ( kind=3 )
-
- ,CONSTRAINT cls_qtyf_id_kind_fkey FOREIGN KEY (id,kind)
-      REFERENCES cls_name (id,kind) MATCH FULL
-      ON UPDATE RESTRICT ON DELETE CASCADE
-);
-GRANT SELECT        ON TABLE cls_qtyf  TO "Guest";
-GRANT INSERT        ON TABLE cls_qtyf  TO "TypeDesigner";
-GRANT DELETE        ON TABLE cls_qtyf  TO "Admin";
+CREATE INDEX idx_acls__pid   ON acls(pid);
+CREATE UNIQUE INDEX uidx_acls__title_vcharops ON acls(title varchar_pattern_ops);
+CREATE INDEX uidx_acls__title_tgm ON acls USING gin (title gin_trgm_ops);
+--CREATE UNIQUE INDEX uidx_acls__title_bitmap ON acls(title);
+--CREATE INDEX idx_acls__path  ON acls USING GIST(path);
+--CREATE INDEX idx_acls__abstract_id ON acls(id) WHERE (kind>0);
+--CREATE INDEX idx_acls__num_id      ON acls(id) WHERE (kind=1);
+--CREATE INDEX idx_acls__qtyn_id     ON acls(id) WHERE (kind=2);
+--CREATE INDEX idx_acls__qtyf_id     ON acls(id) WHERE (kind=3);
+GRANT SELECT        ON TABLE acls  TO "Guest";
+GRANT INSERT        ON TABLE acls  TO "TypeDesigner";
+GRANT DELETE        ON TABLE acls  TO "Admin";
+GRANT UPDATE(pid,title,note,dobj,measure) ON TABLE acls  TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 -- основная типов свойств
 ---------------------------------------------------------------------------------------------------
@@ -272,7 +196,9 @@ CREATE TABLE prop (
     REFERENCES                 prop_kind( id )
     MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
 );
-CREATE INDEX idx_prop_title ON prop(title varchar_pattern_ops);
+CREATE INDEX idx_prop__title_vpo ON prop(title varchar_pattern_ops);
+CREATE INDEX idx_prop__title_tgm ON acls USING gin (title gin_trgm_ops);
+
 GRANT SELECT        ON TABLE prop  TO "Guest";
 GRANT INSERT        ON TABLE prop  TO "TypeDesigner";
 GRANT DELETE        ON TABLE prop  TO "TypeDesigner";
@@ -284,7 +210,8 @@ GRANT UPDATE(title,kind)
 DROP TABLE IF EXISTS prop_cls CASCADE;
 CREATE TABLE prop_cls ( 
  id      BIGINT  NOT NULL DEFAULT nextval('seq_prop_cls_id')
-,cls_id  INTEGER NOT NULL
+,cls_id   INTEGER  NOT NULL
+,cls_kind SMALLINT NOT NULL CHECK (cls_kind BETWEEN 1 AND 3)
 ,prop_id INTEGER NOT NULL
 ,val     TEXT
 ,CONSTRAINT pk_propcls               PRIMARY KEY ( id )
@@ -292,8 +219,8 @@ CREATE TABLE prop_cls (
 ,CONSTRAINT fk_propcls__propid       FOREIGN KEY ( prop_id )
     REFERENCES                              prop ( id )
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-,CONSTRAINT fk_propcls__clsid        FOREIGN KEY ( cls_id )
-    REFERENCES                           cls_real( id )
+,CONSTRAINT fk_propcls__clsid        FOREIGN KEY ( cls_id,cls_kind )
+    REFERENCES                           acls( id,kind )
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
 GRANT SELECT        ON TABLE prop_cls  TO "Guest";
@@ -315,7 +242,9 @@ CREATE TABLE act (
 ,CONSTRAINT pk_act__id    PRIMARY KEY ( id  )
 ,CONSTRAINT uk_act__title UNIQUE ( title )
 );
-CREATE INDEX idx_act_title ON act(title varchar_pattern_ops);
+CREATE INDEX idx_act__title_vpo ON act(title varchar_pattern_ops);
+CREATE INDEX idx_act__title_tgm ON acls USING gin (title gin_trgm_ops);
+
 GRANT SELECT        ON TABLE act  TO "Guest";
 GRANT INSERT        ON TABLE act  TO "TypeDesigner";
 GRANT DELETE        ON TABLE act  TO "TypeDesigner";
@@ -328,12 +257,13 @@ DROP TABLE IF EXISTS ref_cls_act CASCADE;
 CREATE TABLE ref_cls_act ( 
     id        BIGINT   NOT NULL DEFAULT nextval('seq_ref_cls_act_id')
     ,cls_id   INTEGER  NOT NULL
+    ,cls_kind SMALLINT NOT NULL DEFAULT 1 CHECK (cls_kind=1)
     ,act_id   INTEGER  NOT NULL
 
 ,CONSTRAINT pk_refclsact__id    PRIMARY KEY ( id )
 ,CONSTRAINT uk_refclsact_clsid_actid UNIQUE (cls_id, act_id)
-,CONSTRAINT fk_refclsact__clsid FOREIGN KEY (cls_id )
-    REFERENCES                      cls_name (    id )
+,CONSTRAINT fk_refclsact__clsid FOREIGN KEY (cls_id, cls_kind )
+    REFERENCES                      acls ( id, kind )
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 ,CONSTRAINT fk_refclsact__actid FOREIGN KEY ( act_id )
     REFERENCES                           act( id )
@@ -377,7 +307,8 @@ CREATE TABLE perm_move
   ,access_disabled SMALLINT NOT NULL DEFAULT 0 CHECK (access_disabled=0 OR access_disabled=1)
   ,script_restrict TEXT              DEFAULT NULL
 
-  ,src_cls_id  BIGINT   NOT NULL 
+  ,src_cls_id   BIGINT   NOT NULL 
+  ,src_cls_kind SMALLINT NOT NULL DEFAULT 1 CHECK (src_cls_kind=1)
   ,src_obj_id  BIGINT            DEFAULT NULL
   ,src_path    TMPPATH  NOT NULL DEFAULT '{%}'
 
@@ -385,6 +316,7 @@ CREATE TABLE perm_move
   ,obj_id      BIGINT            DEFAULT NULL
   
   ,dst_cls_id  BIGINT   NOT NULL 
+  ,dst_cls_kind SMALLINT NOT NULL DEFAULT 1 CHECK (dst_cls_kind=1)
   ,dst_obj_id  BIGINT            DEFAULT NULL
   ,dst_path    TMPPATH  NOT NULL DEFAULT '{%}'
 
@@ -392,11 +324,11 @@ CREATE TABLE perm_move
 ,CONSTRAINT fk_permmove__acess_group FOREIGN KEY (access_group) 
     REFERENCES                               wh_role (rolname)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-,CONSTRAINT fk_permmove__srcclsid       FOREIGN KEY (src_cls_id)
-    REFERENCES                               cls_num(id)
+,CONSTRAINT fk_permmove__srcclsid       FOREIGN KEY (src_cls_id,src_cls_kind)
+    REFERENCES                               acls(id,kind)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
-,CONSTRAINT fk_permmove__dstclsid       FOREIGN KEY (dst_cls_id)
-    REFERENCES                               cls_num(id)
+,CONSTRAINT fk_permmove__dstclsid       FOREIGN KEY (dst_cls_id,dst_cls_kind)
+    REFERENCES                               acls(id,kind)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 
 --CONSTRAINT ck_perm_act_src_path
@@ -408,8 +340,6 @@ CREATE INDEX idx_permmove__user      ON perm_move(access_group);
 CREATE INDEX idx_permmove__srcclsob  ON perm_move(src_cls_id, src_obj_id);
 CREATE INDEX idx_permmove__clsobj    ON perm_move(cls_id,     obj_id);
 CREATE INDEX idx_permmove__dstclsobj ON perm_move(dst_cls_id, dst_obj_id);
-CREATE INDEX idx_permmove__src_path  ON perm_move(src_path);
-CREATE INDEX idx_permmove__dst_path  ON perm_move(dst_path);
 
 GRANT SELECT        ON TABLE perm_move  TO "Guest";
 GRANT INSERT        ON TABLE perm_move  TO "TypeDesigner";
@@ -446,9 +376,9 @@ CREATE TABLE perm_act
 --CONSTRAINT ck_perm_act_src_path
 --    CHECK (src_path ~ '^{((((%+)|({(%|[[:digit:]]+),(%|[[:digit:]]+)})),?)+)}$') 
 );--INHERITS (perm);
-CREATE INDEX idx_permact__user ON perm_act(access_group);
+CREATE INDEX idx_permact__user      ON perm_act(access_group);
 CREATE INDEX idx_permact__srcclsobj ON perm_act(cls_id, obj_id);
-CREATE INDEX idx_permact__actid ON perm_act(act_id);
+CREATE INDEX idx_permact__actid     ON perm_act(act_id);
 --CREATE INDEX perm_act_src_path_idx ON perm_act (src_path text_pattern_ops);
 -- для кодировки "C" не надо отдельно делать индекс для текстовых операций
 -- а для полей шаблонов путей в домене указана кодировка С
@@ -475,23 +405,25 @@ DROP TABLE IF EXISTS obj_name CASCADE;
 CREATE TABLE obj_name (
  id         BIGINT  NOT NULL DEFAULT nextval('seq_obj_id') 
 ,title      WHNAME  NOT NULL
-,cls_id     INTEGER NOT NULL 
+,cls_id     BIGINT  NOT NULL 
+,cls_kind   SMALLINT NOT NULL CHECK (cls_kind BETWEEN 1 AND 3 )
 ,move_logid BIGINT
 ,act_logid  BIGINT   UNIQUE
 ,prop       JSONB
 
-,CONSTRAINT pk_obj__id           PRIMARY KEY(id)
-,CONSTRAINT uk_obj__title_clsid  UNIQUE (title, cls_id)
---,CONSTRAINT uk_obj__id_clsid     UNIQUE (id,    cls_id) 
-,CONSTRAINT uk_objnum__movelogid UNIQUE (move_logid) 
+,CONSTRAINT pk_obj__id               PRIMARY KEY(id)
+,CONSTRAINT uk_obj__idclsid          UNIQUE (id, cls_id)
+,CONSTRAINT uk_obj__title_clsid      UNIQUE (title, cls_id)
+,CONSTRAINT uk_obj__movelogid     UNIQUE (move_logid) 
 
-,CONSTRAINT fk_obj__cls         FOREIGN KEY (cls_id)
-    REFERENCES                  cls_real    ( id)
+,CONSTRAINT fk_obj__cls         FOREIGN KEY (cls_id,cls_kind)
+    REFERENCES                  acls    ( id, kind )
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX idx_objname_clsid ON obj_name ("cls_id") ;
-CREATE INDEX idx_objname_prop  ON obj_name USING gin ("prop") ;
-CREATE INDEX idx_objname_title ON obj_name (title varchar_pattern_ops) ;
+--CREATE INDEX idx_objname__clsid ON obj_name ("cls_id") ;
+CREATE INDEX idx_objname__prop  ON obj_name USING gin ("prop") ;
+CREATE INDEX idx_objname__title_vpo ON obj_name (title varchar_pattern_ops) ;
+CREATE INDEX idx_objname__title_tgm ON obj_name USING gin (title gin_trgm_ops);
 
 GRANT SELECT        ON TABLE obj_name  TO "Guest";
 GRANT INSERT        ON TABLE obj_name  TO "ObjDesigner";
@@ -504,12 +436,15 @@ GRANT UPDATE (  title, cls_id, move_logid, act_logid, prop)
 DROP TABLE IF EXISTS obj_num CASCADE;
 CREATE TABLE obj_num (
   id         BIGINT  NOT NULL  CHECK (  (id=0 AND pid=0) OR( id>0 AND id<>pid ))
-    PRIMARY KEY
-    REFERENCES obj_name( id )       MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+ ,cls_id     BIGINT  NOT NULL 
  ,pid        BIGINT  NOT NULL DEFAULT 1 
      REFERENCES obj_num( id )       MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
 
- 
+ ,CONSTRAINT pk_objnum__id          PRIMARY KEY(id)
+ ,CONSTRAINT fk_objnum__idclsid     FOREIGN KEY (id,cls_id)
+    REFERENCES                          obj_name(id,cls_id)
+    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+
 
 );-- INHERITS (obj);
 CREATE INDEX idx_objnum_pid ON obj_num ("pid") ;
@@ -525,11 +460,15 @@ GRANT UPDATE (pid)  ON TABLE obj_num  TO "User";
 DROP TABLE IF EXISTS obj_qtyi CASCADE;
 CREATE TABLE obj_qtyi (
   id         BIGINT  NOT NULL 
-    REFERENCES obj_name( id )       MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+ ,cls_id     BIGINT  NOT NULL 
  ,pid        BIGINT        NOT NULL CHECK(pid>0) DEFAULT 1 
       REFERENCES obj_num( id )       MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
  ,qty        NUMERIC(20,0) NOT NULL CHECK (qty>=0)
  ,CONSTRAINT uk_obj_qtyi__id_pid UNIQUE ( id, pid )   
+
+ ,CONSTRAINT fk_objqtyi__idclsid     FOREIGN KEY (id,cls_id)
+   REFERENCES                          obj_name(id,cls_id)
+   MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX idx_objqtyi_id ON obj_qtyi("id") ;
 CREATE INDEX idx_objqtyi_pid ON obj_qtyi("pid") ;
@@ -546,11 +485,15 @@ GRANT UPDATE (pid, qty)
 DROP TABLE IF EXISTS obj_qtyf CASCADE;
 CREATE TABLE obj_qtyf (
   id         BIGINT  NOT NULL 
-    REFERENCES obj_name( id )       MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+ ,cls_id     BIGINT  NOT NULL 
  ,pid        BIGINT        NOT NULL CHECK(pid>0) DEFAULT 1 
       REFERENCES obj_num( id )       MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
  ,qty        NUMERIC NOT NULL CHECK (qty>=0)
  ,CONSTRAINT uk_obj_qtyf__id_pid UNIQUE ( id, pid )   
+
+  ,CONSTRAINT fk_objqtyf__idclsid     FOREIGN KEY (id,cls_id)
+   REFERENCES                          obj_name(id,cls_id)
+   MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX idx_objqtyf_id ON obj_qtyf("id") ;
 CREATE INDEX idx_objqtyf_pid ON obj_qtyf("pid") ;
@@ -647,13 +590,7 @@ GRANT UPDATE (user_label, cls_id, act_id, prop_id )
 ---------------------------------------------------------------------------------------------------
 DROP VIEW IF EXISTS cls CASCADE;
 CREATE VIEW cls AS
-SELECT id, pid, measure, kind, title, note,default_objid FROM
-(
-SELECT id, pid, NULL::WHNAME AS measure,NULL::BIGINT AS default_objid  FROM cls_tree
-UNION ALL
-SELECT id, pid, measure, default_objid FROM cls_real
-) cdif
-LEFT JOIN cls_name USING (id);
+SELECT id, pid, measure, kind, title, note,dobj FROM acls;
 /*
 DROP VIEW IF EXISTS cls CASCADE;
 CREATE VIEW cls AS
@@ -690,11 +627,11 @@ DROP VIEW IF EXISTS obj CASCADE;
 CREATE VIEW obj AS
 SELECT id, pid, title, cls_id, prop, qty, move_logid, act_logid,cls_kind FROM
 (
-SELECT id, pid, 1::SMALLINT AS cls_kind,1::NUMERIC AS qty FROM obj_num
+SELECT id, pid,1::NUMERIC AS qty FROM obj_num
 UNION ALL
-SELECT id, pid, 2::SMALLINT AS cls_kind, qty FROM obj_qtyi
+SELECT id, pid, qty FROM obj_qtyi
 UNION ALL
-SELECT id, pid, 3::SMALLINT AS cls_kind, qty FROM obj_qtyf
+SELECT id, pid, qty FROM obj_qtyf
 ) cdif
 LEFT JOIN obj_name USING (id);
 
@@ -759,23 +696,10 @@ DROP FUNCTION IF EXISTS ftg_ins_cls() CASCADE;
 CREATE FUNCTION ftg_ins_cls() RETURNS TRIGGER AS $$
 BEGIN
   NEW.id := COALESCE(NEW.id,nextval('seq_cls_id'));
-  NEW.default_objid := COALESCE(NEW.default_objid,1);
+  NEW.dobj := COALESCE(NEW.dobj,1);
     
-  INSERT INTO cls_name (id, title, note, kind) VALUES ( NEW.id, NEW.title, NEW.note,NEW.kind);
-  
-  CASE NEW.kind 
-   WHEN 0 THEN INSERT INTO cls_tree (id, pid)VALUES (NEW.id, NEW.pid); NEW.measure:=NULL;
-   WHEN 1 THEN
-     INSERT INTO cls_real(id, pid, default_objid, measure,kind)  VALUES (NEW.id, NEW.pid, NEW.default_objid, NEW.measure,NEW.kind);
-     INSERT INTO cls_num  (id)VALUES (NEW.id);
-   WHEN 2 THEN 
-     INSERT INTO cls_real(id, pid, default_objid, measure,kind)  VALUES (NEW.id, NEW.pid, NEW.default_objid, NEW.measure,NEW.kind);
-     INSERT INTO cls_qtyi  (id)VALUES (NEW.id);
-   WHEN 3 THEN 
-     INSERT INTO cls_real(id, pid, default_objid, measure,kind)  VALUES (NEW.id, NEW.pid, NEW.default_objid, NEW.measure,NEW.kind);
-     INSERT INTO cls_qtyf  (id)VALUES (NEW.id);
-   ELSE RAISE EXCEPTION ' %: wrong kind %',TG_NAME,NEW.kind ;
-  END CASE;
+  INSERT INTO acls (id, title, note, kind, pid, dobj,measure) 
+            VALUES ( NEW.id, NEW.title, NEW.note,NEW.kind,NEW.pid, NEW.dobj, NEW.measure);
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -791,13 +715,9 @@ BEGIN
   IF NEW.id<>OLD.id OR NEW.kind<>OLD.kind THEN
     RAISE EXCEPTION ' %: can`t change id and kind',TG_NAME;
   END IF;
-  UPDATE cls_name SET title=NEW.title, note=NEW.note WHERE id=NEW.id;
-  CASE 
-   WHEN NEW.kind=0 THEN UPDATE cls_tree SET pid=NEW.pid WHERE id=NEW.id; 
-   WHEN (NEW.kind=1 OR NEW.kind=2 OR NEW.kind=3) THEN 
-     UPDATE cls_real SET pid=NEW.pid, default_objid=NEW.default_objid, measure=NEW.measure WHERE id=NEW.id;
-   ELSE RAISE EXCEPTION ' %: wrong kind %',TG_NAME,NEW.kind ;
-  END CASE;
+  UPDATE acls SET title=NEW.title, note=NEW.note
+       , pid=NEW.pid, dobj=NEW.dobj, measure=NEW.measure
+   WHERE id=NEW.id;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -837,24 +757,24 @@ DECLARE
 BEGIN
   SELECT kind INTO _kind FROM cls WHERE id=NEW.cls_id;-- _kind находим сами не пользуя NEW.kind
   IF NOT FOUND THEN
-    RAISE EXCEPTION ' %: cls.id=% not present in cls_real',TG_NAME, NEW.cls_id ;
+    RAISE EXCEPTION ' %: cls.id=% not present in cls table',TG_NAME, NEW.cls_id ;
   END IF;
 
   NEW.id := COALESCE(NEW.id,nextval('seq_obj_id'));
 
   PERFORM FROM obj WHERE id=NEW.id;-- проверяем существование количественного объета
   IF NOT FOUND THEN
-    INSERT INTO obj_name(id, title, cls_id)VALUES(NEW.id, NEW.title, NEW.cls_id);
+    INSERT INTO obj_name(id, title, cls_id,cls_kind)VALUES(NEW.id, NEW.title, NEW.cls_id,_kind);
   END IF;
   
   CASE _kind
-    WHEN 1 THEN INSERT INTO obj_num(id, pid)VALUES (NEW.id,NEW.pid);NEW.qty:=1;
+    WHEN 1 THEN INSERT INTO obj_num(id,cls_id, pid)VALUES (NEW.id,NEW.cls_id,NEW.pid);NEW.qty:=1;
     WHEN 2 THEN 
       IF (ceil(NEW.qty)<>NEW.qty)THEN
         RAISE EXCEPTION ' qty is not integer NEW.qty', NEW.qty;
       END IF;
-      INSERT INTO obj_qtyi(id, pid, qty) VALUES (NEW.id,NEW.pid,NEW.qty);
-    WHEN 3 THEN INSERT INTO obj_qtyi(id, pid, qty) VALUES (NEW.id,NEW.pid,NEW.qty);
+      INSERT INTO obj_qtyi(id,cls_id, pid, qty) VALUES (NEW.id,NEW.cls_id,NEW.pid,NEW.qty);
+    WHEN 3 THEN INSERT INTO obj_qtyi(id,cls_id, pid, qty) VALUES (NEW.id,NEW.cls_id,NEW.pid,NEW.qty);
     ELSE RAISE EXCEPTION ' %: wrong kind %',TG_NAME,NEW_kind ;
   END CASE;
   RETURN NEW;
@@ -956,8 +876,8 @@ INSERT INTO obj(id,pid,title,cls_id)VALUES (0,0,'nullNumRoot',2);
 INSERT INTO obj(id,pid,title,cls_id)VALUES (1,0,'ObjRoot',2);
 
 
-ALTER TABLE cls_real
-  ADD CONSTRAINT cls_real_default_objid_fkey FOREIGN KEY (default_objid)
+ALTER TABLE acls
+  ADD CONSTRAINT cls_default_objid_fkey FOREIGN KEY (dobj)
       REFERENCES obj_num (id) MATCH FULL
       ON UPDATE RESTRICT ON DELETE SET DEFAULT;
 ---------------------------------------------------------------------------------------------------

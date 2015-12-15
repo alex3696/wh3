@@ -139,7 +139,7 @@ bool MTypeItem::GetInsertQuery(wxString& query)const
 
 	query = wxString::Format(
 		"INSERT INTO cls "
-		" (title, note, kind, measure, pid, default_objid) VALUES "
+		" (title, note, kind, measure, pid, dobj) VALUES "
 		" (%s, %s, %s, %s, %s, %s) "
 		" RETURNING title, id, kind, measure, 0"
 		, cls.mLabel.SqlVal()
@@ -160,7 +160,7 @@ bool MTypeItem::GetUpdateQuery(wxString& query)const
 
 	query = wxString::Format(
 		"UPDATE cls SET "
-		" title=%s, note=%s, kind=%s, measure=%s, pid=%s, default_objid=%s "
+		" title=%s, note=%s, kind=%s, measure=%s, pid=%s, dobj=%s "
 		" WHERE id = %s "
 		, cls.mLabel.SqlVal()
 		, cls.mComment.SqlVal()
@@ -212,12 +212,11 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 	if (catalog->IsObjTree())
 	{
 		query = wxString::Format(
-			"SELECT r.title, r.id, r.kind, cr.measure, osum.qty, cr.default_objid, ob.title "
+			"SELECT cr.title, cr.id, cr.kind, cr.measure, osum.qty, cr.dobj, ob.title "
 			"FROM(SELECT COALESCE(SUM(qty), 0) AS qty, cls_id FROM obj o "
 			"WHERE o.pid = %s  AND o.id>99 GROUP BY o.cls_id) osum "
-			"LEFT JOIN cls_real cr ON osum.cls_id = cr.id "
-			"LEFT JOIN cls_name r USING(id)" 
-			" LEFT JOIN obj_name ob ON ob.id = cr.default_objid "
+			"LEFT JOIN acls cr ON osum.cls_id = cr.id "
+			" LEFT JOIN obj_name ob ON ob.id = cr.dobj "
 			, root.mObj.mId.SqlVal() );
 		return true;
 	}
@@ -227,9 +226,9 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 			"SELECT t.title, t.id, t.kind, t.measure "
 			" ,(SELECT COALESCE(SUM(qty), 0) "
 			"     FROM obj o WHERE t.id = o.cls_id GROUP BY o.cls_id)  AS qty "
-			" ,default_objid, o.title "
+			" ,dobj, o.title "
 			" FROM cls t "
-			" LEFT JOIN obj_name o ON o.id = t.default_objid "
+			" LEFT JOIN obj_name o ON o.id = t.dobj "
 			" WHERE t.pid = %s"
 			" AND t.id > 99 "
 			/*

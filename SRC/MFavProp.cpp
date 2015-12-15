@@ -76,7 +76,7 @@ bool MFavProp::GetSelectQuery(wxString& query)const
 			" FROM favorite_prop "
 			" LEFT JOIN prop  ON prop.id = favorite_prop.prop_id "
 			" WHERE favorite_prop.user_label = CURRENT_USER "
-			" AND favorite_prop.cls_id IN(SELECT id FROM cls_real WHERE pid = %s)"
+			" AND favorite_prop.cls_id IN(SELECT id FROM cls WHERE pid = %s)"
 			, root.mCls.mId.SqlVal() );
 		return true;
 	}

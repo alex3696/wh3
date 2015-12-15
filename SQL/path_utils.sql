@@ -33,18 +33,18 @@ CREATE OR REPLACE FUNCTION get_childs_cls(IN _obj_id BIGINT)
   ,_pid   BIGINT
   ,_note  TEXT
   ,_measure WHNAME
-  ,_default_objid BIGINT
+  ,_dobj  BIGINT
 ) AS $BODY$ 
 BEGIN
 RETURN QUERY(
     WITH RECURSIVE children AS (
-    SELECT id,  title, kind, pid,  note, measure,default_objid
+    SELECT id,  title, kind, pid,  note, measure,dobj
            ,ARRAY[id]                            AS exist
            ,FALSE                                AS cycle
     FROM cls
     WHERE id = _obj_id
     UNION ALL
-        SELECT t.id, t.title, t.kind, t.pid, t.note, t.measure, t.default_objid
+        SELECT t.id, t.title, t.kind, t.pid, t.note, t.measure, t.dobj
                ,exist || t.id 
                ,t.id = ANY(exist)
         FROM children AS c, 
@@ -53,14 +53,14 @@ RETURN QUERY(
               NOT cycle AND
               array_length(exist, 1) < 1000
 )
-SELECT id,  title, kind, pid,  note, measure,default_objid
+SELECT id,  title, kind, pid,  note, measure,dobj
     FROM children WHERE NOT cycle --ORDER BY ord LIMIT 100;
     );
 END; 
 $BODY$ LANGUAGE plpgsql STABLE  COST 1000 ROWS 1000;
 GRANT EXECUTE ON FUNCTION get_childs_cls(BIGINT) TO "Guest";
 
-SELECT * FROM get_childs_cls(2165);
+SELECT * FROM get_childs_cls(105);
 
 
 
@@ -76,7 +76,7 @@ CREATE OR REPLACE FUNCTION get_path_cls_info(IN _cid BIGINT)
    , kind SMALLINT
    , title WHNAME
    , note TEXT
-   , default_objid BIGINT
+   , dobj BIGINT
    , arr_id     BIGINT[]
    , arr_title  NAME[]
    , path       TEXT
@@ -85,7 +85,7 @@ CREATE OR REPLACE FUNCTION get_path_cls_info(IN _cid BIGINT)
 BEGIN
 RETURN QUERY 
   WITH RECURSIVE parents AS 
-    (SELECT c.id, c.pid, c.measure, c.kind, c.title, c.note, c.default_objid
+    (SELECT c.id, c.pid, c.measure, c.kind, c.title, c.note, c.dobj
           , ARRAY[c.id] AS arr_id
           , ARRAY[c.title]::NAME[] AS arr_title
           , '/'||c.title AS path
@@ -94,16 +94,15 @@ RETURN QUERY
        WHERE --c.id=333 
         _cid IS NOT NULL AND c.id = _cid AND _cid>1
        UNION ALL
-       SELECT t.id, t.pid, NULL::WHNAME , n.kind, n.title, n.note, NULL
-            , p.arr_id     || ARRAY[t.id]::BIGINT[]
+       SELECT n.id, n.pid, NULL::WHNAME , n.kind, n.title, n.note, NULL
+            , p.arr_id     || ARRAY[n.id]::BIGINT[]
             , p.arr_title  || ARRAY[n.title]::NAME[]
             , '/'||n.title|| p.path
-            , t.id = any (p.arr_id) AS CYCLE
+            , n.id = any (p.arr_id) AS CYCLE
          FROM parents AS p 
-         LEFT JOIN cls_tree t ON t.id=p.pid
-         LEFT JOIN cls_name n ON t.id=n.id
+         LEFT JOIN acls n ON p.pid=n.id
          WHERE NOT p.cycle 
-               AND t.id > 1
+               AND n.id > 1
      )
      SELECT  * FROM parents WHERE NOT parents.CYCLE;
 
@@ -111,7 +110,7 @@ END;
 $BODY$ LANGUAGE plpgsql STABLE  COST 100 ROWS 1000;
 GRANT EXECUTE ON FUNCTION get_path_cls_info(BIGINT) TO "Guest";
 SELECT * FROM get_path_cls_info(150);
-SELECT * FROM get_path_cls_info(2167);
+SELECT * FROM get_path_cls_info(105);
 -------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS get_path_cls_arr_id(IN _cid BIGINT) CASCADE;
 CREATE OR REPLACE FUNCTION get_path_cls_arr_id(_cid bigint)
@@ -201,8 +200,7 @@ RETURN QUERY
         parents AS p
         LEFT JOIN obj_num AS o ON o.id = p.pid
         LEFT JOIN obj_name AS onm ON onm.id = o.id
-        LEFT JOIN cls_real   ON cls_real.id=onm.cls_id
-        LEFT JOIN cls_name c ON cls_real.id=c.id
+        LEFT JOIN acls c ON onm.cls_id=c.id AND c.kind BETWEEN 1 AND 3
         WHERE o.id>1 AND NOT p.CYCLE
         )
    SELECT * FROM parents WHERE NOT parents.CYCLE;
@@ -212,7 +210,7 @@ $BODY$ LANGUAGE plpgsql VOLATILE  COST 1000 ROWS 1000;
 GRANT EXECUTE ON FUNCTION get_path_obj_info(BIGINT) TO "Guest";
 GRANT EXECUTE ON FUNCTION get_path_obj_info(BIGINT) TO "Admin" WITH GRANT OPTION;
 
-SELECT * FROM get_path_obj_info(660);
+SELECT * FROM get_path_obj_info(105);
 
 
 -------------------------------------------------------------------------------
@@ -300,7 +298,7 @@ DECLARE
         ,  arr.id
         FROM fn_array1_to_table(idpath) arr
         LEFT JOIN obj_name obj ON obj.id=arr.id
-        LEFT JOIN cls_name cls ON cls.id=obj.cls_id 
+        LEFT JOIN acls cls ON cls.id=obj.cls_id 
         ORDER BY idx;
 BEGIN
     path:='';
@@ -358,7 +356,7 @@ DECLARE
 
              ) arr
         LEFT JOIN obj_name obj ON obj.id= CASE WHEN arr.id2='%' THEN NULL ELSE arr.id2::BIGINT END
-        LEFT JOIN cls_name cls ON cls.id= CASE 
+        LEFT JOIN acls cls ON cls.id= CASE 
                                             WHEN arr.id1 IS NULL OR arr.id1='%'
                                             THEN obj.cls_id
                                             ELSE arr.id1::BIGINT END
