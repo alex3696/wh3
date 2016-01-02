@@ -8,7 +8,6 @@ const std::vector<Field> gClsActFieldVec = {
 		{ "Действие", FieldType::ftName, true },
 		{ "Доступ", FieldType::ftName, true },
 		{ "Группа", FieldType::ftName, true },
-		{ "Объект", FieldType::ftName, true },
 		{ "Путь", FieldType::ftText, true },
 		{ "ID", FieldType::ftInt, true }
 };
@@ -260,15 +259,13 @@ bool MClsAct::GetFieldValue(unsigned int col, wxVariant &variant)
 		break;
 	case 2:	variant = ("1" == data.mAccessDisabled) ? "Запретить" : "Разрешить";	break;
 	case 3:	variant = data.mAcessGroup;	break;
-	case 4: //variant = data.mObj.mLabel;	
-		break;
-	case 5: 
+	case 4: 
 		variant = wxString::Format("%s/[%s]%s",
 		mPathGui,
 		data.mCls.mLabel.toStr(),
 		data.mObj.mLabel.IsNull() ? "*" : data.mObj.mLabel.toStr()); 
 		break;
-	case 6: variant = data.mId.toStr();	break;
+	case 5: variant = data.mId.toStr();	break;
 	}//switch(col) 
 	return true;
 }

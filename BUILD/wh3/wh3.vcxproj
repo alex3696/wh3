@@ -261,6 +261,7 @@
     <ClInclude Include="..\..\INCLUDE\BaseRefControlPanel.h" />
     <ClInclude Include="..\..\INCLUDE\BtnProperty.h" />
     <ClInclude Include="..\..\INCLUDE\DActEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\db_data.h" />
     <ClInclude Include="..\..\INCLUDE\DclsActEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DClsEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DClsMoveEditor.h" />
@@ -290,6 +291,8 @@
     <ClInclude Include="..\..\INCLUDE\dlg_move_view_Frame.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_move_view_Tree.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_favprop_SelectFrame.h" />
+    <ClInclude Include="..\..\INCLUDE\db_filter.h" />
+    <ClInclude Include="..\..\INCLUDE\MCatObj.h" />
     <ClInclude Include="..\..\INCLUDE\PathPattern_model.h" />
     <ClInclude Include="..\..\INCLUDE\DUserEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DUserGroupEditor.h" />

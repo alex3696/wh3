@@ -37,33 +37,29 @@ const wxString& name, const wh_rec_Base& value)
 //-----------------------------------------------------------------------------
 wxPGPBaseProperty::~wxPGPBaseProperty() { }
 //-----------------------------------------------------------------------------
-void wxPGPBaseProperty::SetObjTree(bool objTree)
+void wxPGPBaseProperty::SetCatalog(std::shared_ptr<MCat> cat, bool isTargetObj)
 {
 
-	std::function<bool(wxPGProperty*)> selecFunc = [this, objTree](wxPGProperty* prop)
+	std::function<bool(wxPGProperty*)> selecFunc = [this, cat, isTargetObj](wxPGProperty* prop)
 	{
-		select::ClsDlg dlg(nullptr);
+		CatDlg dlg(nullptr);
+		dlg.SetTargetObj(isTargetObj);
 
-		auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
-		catalog->SetCatalog(objTree, true, false, "1");
-		/*
-		wh::rec::PathItem root;
-		root.mCls.mId = 1;
-		catalog->SetData(root);
-		*/
-
-		catalog->Load();
-
-		dlg.SetModel(catalog);
+		
+		dlg.SetModel(cat);
+		cat->Load();
+		
 
 		if (wxID_OK == dlg.ShowModal())
 		{
-			if (objTree)
+			if (cat->IsObjTree())
 			{
-				wh::rec::ObjTitle obj;
+				wh::rec::ObjInfo obj;
 				if (dlg.GetSelectedObj(obj))
 				{
-					auto var = WXVARIANT((wh_rec_Base)obj);
+					wh::rec::ObjTitle objTitle;
+					objTitle = obj.mObj;
+					auto var = WXVARIANT((wh_rec_Base)objTitle);
 					SetValueInEvent(var);
 					//SetValue(var,0, wxPG_SETVAL_AGGREGATED);
 					return true;
@@ -238,9 +234,21 @@ const wxString& name, const wh_rec_Cls& value)
 
 	pgp_id->ChangeFlag(wxPG_PROP_READONLY, true);
 
+	// setup for parent object
+	auto parent_obj_cat = std::make_shared<MCat>();
+	parent_obj_cat->SetCatalog(true);
+	parent_obj_cat->PropEnable(false);
+	parent_obj_cat->ObjEnable(true);
+	parent_obj_cat->SetFilterClsKind(ctQtyByOne, foLess, true);
+	pgp_defobj->SetCatalog(parent_obj_cat,true);
 
-	pgp_parent->SetObjTree(false);
-	pgp_defobj->SetObjTree(true);
+	// setup for parent cls
+	auto parent_cls_cat = std::make_shared<MCat>();
+	parent_cls_cat->SetCatalog(false);
+	parent_cls_cat->PropEnable(false);
+	parent_cls_cat->ObjEnable(false);
+	parent_cls_cat->SetFilterClsKind(ctAbstract, foEq, true);
+	pgp_parent->SetCatalog(parent_cls_cat,false);
 
 	//ChangeFlag(wxPG_PROP_COMPOSED_VALUE, true);
 	//pgp_parent->ChangeFlag(wxPG_PROP_COMPOSED_VALUE, true);
@@ -338,7 +346,11 @@ const wxString& name, const wh_rec_ObjTitle& value)
 	pgp_title->SetValidator(wxRegExpValidator(titleValidator));
 	pgp_id->ChangeFlag(wxPG_PROP_READONLY, true);
 	
-	pgp_parentobj->SetObjTree(true);
+	auto parent_obj_cat = std::make_shared<MCat>();
+	parent_obj_cat->SetCatalog(true);
+	parent_obj_cat->PropEnable(false);
+	pgp_parentobj->SetCatalog(parent_obj_cat,true);
+
 }
 //-----------------------------------------------------------------------------
 wxObjTitleProperty::~wxObjTitleProperty() { }

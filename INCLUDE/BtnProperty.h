@@ -3,6 +3,30 @@
 
 #include "BaseOkCancelDialog.h"
 
+
+
+
+//-------------------------------------------------------------------------------------------------
+/// Свойство с кнопкой "..."
+class BtnProperty 
+	//: public wxPGProperty 
+	: public wxStringProperty
+	
+{
+	//WX_PG_DECLARE_PROPERTY_CLASS(BtnProperty)
+	
+public:
+	std::function<bool(wxPGProperty*)> mFunc;
+
+	BtnProperty(const wxString& label = wxPG_LABEL,
+		const wxString& name = wxPG_LABEL,
+		const wxString& value = wxEmptyString);
+	~BtnProperty();
+
+	void SetOnClickButonFunc(std::function<bool(wxPGProperty*)>& func);
+};
+
+
 //-------------------------------------------------------------------------------------------------
 /// BtnStringEditor 
 class BtnStringEditor : public wxPGTextCtrlEditor
@@ -12,11 +36,10 @@ public:
 
 	typedef std::function<bool(wxPGProperty*)>	OnBtnFunc;
 
-	std::map<wxPGProperty*, OnBtnFunc>			mBtnPropMap;
+	//std::map<wxPGProperty*, OnBtnFunc>			mBtnPropMap;
 
+	//std::function<bool(wxPGProperty*)> mFuncOnBtn;
 
-
-	std::function<bool(wxPGProperty*)> mFuncOnBtn;
 	BtnStringEditor(){}
 	virtual ~BtnStringEditor() {}
 	virtual wxPGWindowList CreateControls(wxPropertyGrid* propGrid,
@@ -46,9 +69,19 @@ public:
 
 			if (evt.GetId() == buttons->GetButtonId(0))
 			{
-				auto it = mBtnPropMap.find(prop);
-				if (mBtnPropMap.end() != it)
-					return (it->second) ? it->second(prop) : false;
+				auto bprop = dynamic_cast<BtnProperty*>(prop);
+				if (bprop && bprop->mFunc)
+				{
+					OnBtnFunc& f = bprop->mFunc;
+					return f(prop);
+				}
+				return false;
+
+					//auto it = mBtnPropMap.find(prop);
+					//if (mBtnPropMap.end() != it)
+					//	return (it->second) ? it->second(prop) : false;
+
+
 			}//if (evt.GetId() == buttons->GetButtonId(0))
 		}//if (evt.GetEventType() == wxEVT_COMMAND_BUTTON_CLICKED)
 		return false;
@@ -56,28 +89,6 @@ public:
 	}
 
 };
-
-
-//-------------------------------------------------------------------------------------------------
-/// Свойство с кнопкой "..."
-class BtnProperty 
-	//: public wxPGProperty 
-	: public wxStringProperty
-	
-{
-	//WX_PG_DECLARE_PROPERTY_CLASS(BtnProperty)
-public:
-
-	BtnProperty(const wxString& label = wxPG_LABEL,
-		const wxString& name = wxPG_LABEL,
-		const wxString& value = wxEmptyString);
-	~BtnProperty();
-
-	void SetOnClickButonFunc(std::function<bool(wxPGProperty*)>& func);
-};
-
-
-
 
 
 

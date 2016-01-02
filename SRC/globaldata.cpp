@@ -297,7 +297,9 @@ void Ftp::Download(const wxFileName& localfile,const wxFileName& ftpfile)
 
 void Ftp::DoCopyFile(wxInputStream* src,wxOutputStream* dst,const size_t src_size,const wxString& msg)
 {
-	if(!src || !dst && src_size<=MAXINT )
+	if (MAXINT == src_size )
+		BOOST_THROW_EXCEPTION(ftp_error_io() << wxstr(wxString::Format("Error src_size=%d", MAXINT)));
+	if (!src || !dst )
 		BOOST_THROW_EXCEPTION( ftp_error_io()<<wxstr(wxString::Format("Error while copying stream src=%d dst=%d",src,dst)) );
 
 	#define CHUNK_SIZE	4096

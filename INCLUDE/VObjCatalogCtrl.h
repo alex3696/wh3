@@ -73,10 +73,14 @@ public:
 		const wxString& name = wxPanelNameStr);
 	~VObjCatalogCtrl();
 
+
+	void BuildToolbar(bool is_dlg = false);
+
 	void OnActivated(wxDataViewEvent &evt);
 
 	void SetModel(std::shared_ptr<IModel> model);
 	void GetSelected(std::vector<unsigned int>& selected);
+	const IModel* GetSelectedItem()const;
 
 	bool GetSelectedObjKey(rec::PathItem& objKey)const; 
 	bool GetCurrentParent(rec::PathItem& root)const;

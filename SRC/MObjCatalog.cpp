@@ -13,16 +13,20 @@ MObjCatalog::MObjCatalog(const char option)
 	, mTypeArray(new MTypeArray)
 	, mFavProps(new MFavProp)
 	, mCfg(new MCatalogCfg)
-	//, mUniquePropStore(new MTypeNodePropArray)
+	, mFilter(new MFilterArray)
+	
 {
-	this->AddChild(std::dynamic_pointer_cast<IModel>(mPath));
-	this->AddChild(std::dynamic_pointer_cast<IModel>(mTypeArray));
-	//this->AddChild(std::dynamic_pointer_cast<IModel>(mUniquePropStore));
-	this->AddChild(std::dynamic_pointer_cast<IModel>(mFavProps));
-	this->AddChild(std::dynamic_pointer_cast<IModel>(mCfg));
-
-	rec::CatalogCfg cfg(false);
+	this->AddChild(mPath);
+	this->AddChild(mTypeArray);
+	this->AddChild(mFavProps);
+	this->AddChild(mCfg);
+	this->AddChild(mFilter);
+	
+	rec::CatalogCfg cfg(false,true);
 	mCfg->SetData(cfg);
+
+	SetFilterClsKind(ctAbstract, foEq, false);
+	SetFilterClsId(1, foEq, false);
 }
 
 //-------------------------------------------------------------------------
@@ -75,23 +79,31 @@ bool MObjCatalog::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size
 //-------------------------------------------------------------------------
 void MObjCatalog::LoadChilds()
 {
-	mFavProps->Load();
+	if(IsPropEnabled())
+		mFavProps->Load();
 	mTypeArray->Load();
 	mPath->Load();
 }
 //-------------------------------------------------------------------------
 
-void MObjCatalog::SetCatalog(bool isObjCatalog, bool isSelectDlg,
-	bool isFindResult, const wxString& root_find)
+void MObjCatalog::SetCatalog(bool isObjCatalog)
 {
-	rec::CatalogCfg cfg(isObjCatalog, isSelectDlg, isFindResult);
+	auto cfg = mCfg->GetData();
+	cfg.mIsOjbTree = isObjCatalog;
 	mCfg->SetData(cfg,true);
+	
+	rec::PathItem root;
+	if (isObjCatalog)
+		root.mObj.mId = 1;
+	else
+		root.mCls.mId = 1;
 
-	wh::rec::PathItem root;
-	isObjCatalog ? root.mObj.mId = root_find : root.mCls.mId = root_find;
-
-	SetData(root);
-	Load();
+	SetRoot(root);
+}
+//-------------------------------------------------------------------------
+void MObjCatalog::SetRoot(const rec::PathItem&	new_root)
+{
+	SetData(new_root);
 }
 //-------------------------------------------------------------------------
 bool MObjCatalog::IsObjTree()const
@@ -99,21 +111,134 @@ bool MObjCatalog::IsObjTree()const
 	const auto& cfg = mCfg->GetData();
 	return cfg.mIsOjbTree;
 }
-//-------------------------------------------------------------------------
-bool MObjCatalog::IsSelectDlg()const
-{
-	const auto& cfg = mCfg->GetData();
-	return cfg.mIsSelectDlg;
-}
-//-------------------------------------------------------------------------
-bool MObjCatalog::IsFindResult()const
-{
-	const auto& cfg = mCfg->GetData();
-	return cfg.mIsFindResult;
-}
+
 //-------------------------------------------------------------------------
 bool MObjCatalog::IsShowDebug()const
 {
 	const auto& cfg = mCfg->GetData();
 	return cfg.mShowDebugColumns;
+}
+//-------------------------------------------------------------------------
+bool MObjCatalog::IsPropEnabled()const
+{
+	if (IsAbstractTree())
+		return false;
+
+	const auto& cfg = mCfg->GetData();
+	return cfg.mEnableProp && cfg.mEnableObj;
+}
+//-------------------------------------------------------------------------
+void MObjCatalog::PropEnable(bool enable)
+{
+	auto cfg = mCfg->GetData();
+	cfg.mEnableProp = enable;
+	mCfg->SetData(cfg);
+	//Load();
+}
+
+//-------------------------------------------------------------------------
+bool MObjCatalog::IsObjEnabled()const
+{
+	if (IsAbstractTree())
+		return false;
+
+	const auto& cfg = mCfg->GetData();
+	return cfg.mEnableObj;
+}
+//-------------------------------------------------------------------------
+void MObjCatalog::ObjEnable(bool enable)
+{
+	auto cfg = mCfg->GetData();
+	cfg.mEnableObj = enable;
+	mCfg->SetData(cfg);
+	//Load();
+}
+//-------------------------------------------------------------------------
+rec::PathItem MObjCatalog::GetRoot()
+{
+	const auto& root = this->GetData();
+	return root;
+}
+//-------------------------------------------------------------------------
+void MObjCatalog::DoUp()
+{
+	const auto old_root = GetRoot();
+
+	unsigned long pid(0);
+	rec::PathItem new_root = old_root;
+
+	if (IsObjTree())
+	{
+		pid = old_root.mObj.mParent.mId;
+		if (0 < pid)
+			new_root.mObj.mId = old_root.mObj.mParent.mId;
+	}
+	else
+	{
+		pid = old_root.mCls.mParent.mId;
+		if (0 < pid)
+			new_root.mCls.mId = old_root.mCls.mParent.mId;
+	}
+	SetData(new_root);
+}
+
+//-------------------------------------------------------------------------
+void MObjCatalog::SetFilterClsKind(ClsType ct, FilterOp fo, bool enable)
+{
+	FilterData fd(wxString::Format("%d", (int)ct)
+		, "cls.kind", dbLong, fo, fcAND, enable);
+
+	if (!mFilter->GetChildQty())
+	{
+		auto item = mFilter->CreateItem();
+		mFilter->AddChild(item);
+	}
+		
+	mFilter->at(0)->SetData(fd, true);
+		
+}
+//-------------------------------------------------------------------------
+const FilterData& MObjCatalog::GetFilterClsKind()const
+{
+	return mFilter->at(0)->GetData();
+};
+
+//-------------------------------------------------------------------------
+void MObjCatalog::SetFilterClsId(long id, FilterOp fo, bool enable)
+{
+	FilterData fd(wxString::Format("%d", id)
+		, "cls.id", dbLong, fo, fcAND, enable);
+
+	if (mFilter->GetChildQty() < 2)
+	{
+		auto item = mFilter->CreateItem();
+		mFilter->AddChild(item);
+	}
+
+	mFilter->at(1)->SetData(fd, true);
+
+}
+//-------------------------------------------------------------------------
+const FilterData& MObjCatalog::GetFilterClsId()const
+{
+	return mFilter->at(1)->GetData();
+};
+
+//-------------------------------------------------------------------------
+bool MObjCatalog::IsAbstractTree()const
+{
+	const auto& filter = mFilter->at(0)->GetData();
+	if (filter.mIsEnabled)
+	{
+		unsigned long val;
+		if (
+			filter.mVal.ToCULong(&val))
+			return ctAbstract == (ClsType)val;
+	}
+	return false;
+}
+//-------------------------------------------------------------------------
+wxString MObjCatalog::GetFilterSqlString()const
+{
+	return mFilter->GetSqlString();
 }

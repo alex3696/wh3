@@ -35,10 +35,25 @@ bool VObjCatalogDataViewModel::IsContainer(const wxDataViewItem &dataViewItem)co
 
 	auto modelInterface = static_cast<IModel*> (dataViewItem.GetID());
 	auto typeItem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
+
 	if (typeItem)
 	{ 
-		const auto& cls_data = typeItem->GetData();
-		return !cls_data.IsAbstract();
+		auto typeArray = typeItem->GetParent();
+		if (typeArray)
+		{ 
+			auto catalog = dynamic_cast<object_catalog::MObjCatalog*>(typeArray->GetParent());
+			if (catalog)
+			{
+				if (catalog->IsObjEnabled())
+				{
+					const auto& cls_data = typeItem->GetData();
+					return !cls_data.IsAbstract();
+				}
+				else
+					return false;
+			}
+				
+		}
 	}
 	return typeItem ? true : false;
 }
@@ -115,7 +130,9 @@ void VObjCatalogDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 	{
 	case 1:		variant << wxDataViewIconText(val, *ico);
 		break;
-	default:	variant = val;
+	default:	
+		if (objItem)
+			variant = val;
 		break;
 	}
 }
@@ -154,17 +171,20 @@ bool VObjCatalogDataViewModel::GetAttr(const wxDataViewItem &dataViewItem, unsig
 				has_bg = false;
 			else
 			{
-				const rec::FavProps& favProp = catalog->GetFavProps();
-				if (col > 6 && favProp.size())
+				if (catalog->IsPropEnabled())
 				{
-					const auto& field = favProp[col - 7];
-					const auto& typeId = typeItem->GetData().mId;
+					const rec::FavProps& favProp = catalog->GetFavProps();
+					if (col > 6 && favProp.size())
+					{
+						const auto& field = favProp[col - 7];
+						const auto& typeId = typeItem->GetData().mId;
 
-					auto it = field.mCls->find(typeId);
-					if (field.mCls->end()==it)
-						//attr.SetBackgroundColour(wxColour(240, 240, 240));
-						has_bg = false;
-				}
+						auto it = field.mCls->find(typeId);
+						if (field.mCls->end() == it)
+							//attr.SetBackgroundColour(wxColour(240, 240, 240));
+							has_bg = false;
+					}
+				}//if (catalog->IsPropEnabled())
 			}
 			
 			
@@ -197,7 +217,6 @@ bool VObjCatalogDataViewModel::GetAttr(const wxDataViewItem &dataViewItem, unsig
 	
 		return true;
 	}//if (dataViewItem.IsOk())
-
 	return false;
 }
 //---------------------------------------------------------------------------

@@ -2,10 +2,9 @@
 #include "dlgselectcls_ctrlpnl.h"
 
 using namespace wh;
-using namespace wh::select;
 
 //---------------------------------------------------------------------------
-ClsDlg::ClsDlg(wxWindow* parent,
+CatDlg::CatDlg(wxWindow* parent,
 	wxWindowID id,
 	const wxString& title,
 	const wxPoint& pos,
@@ -27,36 +26,77 @@ ClsDlg::ClsDlg(wxWindow* parent,
 	m_sdbSizer->Realize();
 
 	mMainPanel = new view::VObjCatalogCtrl(this);
+	mMainPanel->BuildToolbar(true);
+
 	szrMain->Add(mMainPanel, 1, wxALL | wxEXPAND, 0);
 	szrMain->Add(m_sdbSizer, 0, wxALL | wxEXPAND, 10);
 
 	this->SetSizer(szrMain);
+
+	mMainPanel->Bind(wxEVT_COMMAND_DATAVIEW_ITEM_ACTIVATED, &CatDlg::OnActivated, this);
+	mMainPanel->Bind(wxEVT_COMMAND_DATAVIEW_SELECTION_CHANGED, &CatDlg::OnSelect, this);
+	m_btnOK->Enable(false);
 }
 //---------------------------------------------------------------------------
-void ClsDlg::SetModel(std::shared_ptr<IModel> model)
+void CatDlg::SetModel(std::shared_ptr<IModel> model)
 {
+	mCatalog = std::dynamic_pointer_cast<object_catalog::MObjCatalog>(model);
 	mMainPanel->SetModel(model);
 }
 //---------------------------------------------------------------------------
-bool ClsDlg::GetSelectedCls(wh::rec::Cls& cls)
+bool CatDlg::GetSelectedCls(wh::rec::Cls& cls)
 {
-	rec::PathItem objKey;
-	if (mMainPanel->GetCurrentParent(objKey))
+	const auto item = mMainPanel->GetSelectedItem();
+	const auto typetem = dynamic_cast<const object_catalog::MTypeItem*> (item);
+	if (typetem)
 	{
-		cls = objKey.mCls;
+		cls = typetem->GetData();
 		return true;
 	}
 	return false;
 }
 //---------------------------------------------------------------------------
-bool ClsDlg::GetSelectedObj(wh::rec::ObjTitle& obj)
+bool CatDlg::GetSelectedObj(wh::rec::ObjInfo& obj)
 {
-	rec::PathItem objKey;
-	if (mMainPanel->GetCurrentParent(objKey))
-	{
-		obj = objKey.mObj;
-		return true;
-	}
-	return false;
-}
+	const auto item = mMainPanel->GetSelectedItem();
+	const auto objItem = dynamic_cast<const object_catalog::MObjItem*> (item);
+	
+	if (!objItem)
+		return false;
 
+	auto mcls = objItem->GetCls();
+	if (!mcls)
+		return false;
+	
+	obj.mObj = objItem->GetData();
+	obj.mCls = mcls->GetData();
+	return true;
+}
+//---------------------------------------------------------------------------
+void CatDlg::OnActivated(wxDataViewEvent& evt)
+{
+	m_btnOK->Enable(false);
+	evt.Skip();
+}
+//---------------------------------------------------------------------------
+void CatDlg::OnSelect(wxDataViewEvent& evt)
+{
+	m_btnOK->Enable(false);
+	
+	if (!mCatalog)
+		return;
+	if (!mCatalog->mTypeArray->GetChildQty())
+		return;
+	
+	auto selectedItem = evt.GetItem();
+	if (selectedItem.IsOk())
+	{
+		auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
+		auto objItem = dynamic_cast<object_catalog::MObjItem*> (modelInterface);
+		auto typeItem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
+
+		if ((mIsTargetObj && objItem) || (!mIsTargetObj && typeItem))
+			m_btnOK->Enable(true);
+	}
+	evt.Skip();
+}

@@ -312,9 +312,6 @@
     <ClCompile Include="..\..\SRC\dlg_move_view_CtrlPanel.cpp">
       <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SRC\MObjCatalog.cpp">
-      <Filter>SIG_MODEL\Каталог объектов\Основная панель</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\MFavProp.cpp">
       <Filter>SIG_MODEL\Каталог объектов\Основная панель\модель избранных свойств</Filter>
     </ClCompile>
@@ -389,6 +386,9 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\PathPattern_model.cpp">
       <Filter>GUI\Шаблон пути</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MObjCatalog.cpp">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\model</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -599,9 +599,6 @@
     <ClInclude Include="..\..\INCLUDE\dlg_move_view_Frame.h">
       <Filter>SIG_MODEL\Каталог объектов\Диалог перемещения</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MObjCatalog.h">
-      <Filter>SIG_MODEL\Каталог объектов\Основная панель</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MFavProp.h">
       <Filter>SIG_MODEL\Каталог объектов\Основная панель\модель избранных свойств</Filter>
     </ClInclude>
@@ -670,6 +667,18 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\PathPattern_model.h">
       <Filter>GUI\Шаблон пути</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MObjCatalog.h">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\db_data.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\db_filter.h">
+      <Filter>SIG_MODEL\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MCatObj.h">
+      <Filter>SIG_MODEL\Каталог объектов\Основная панель\model</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

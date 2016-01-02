@@ -47,81 +47,14 @@ VObjCatalogCtrl::VObjCatalogCtrl(wxWindow* parent,
 	Bind(wxEVT_MENU, &VObjCatalogCtrl::OnCmdUp, this, wxID_BACKWARD);
 	Bind(wxEVT_COMMAND_DATAVIEW_ITEM_ACTIVATED, &VObjCatalogCtrl::OnActivated, this);
 	
-	const auto currBaseGroup = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
-
-	// делаем тулбар
-	// ---------- Общедоступные кнопки
-	mCatalogTool = mToolBar->AddTool(whID_CATALOG_SELECT, "Группировать",
-		m_ResMgr->m_ico_folder_obj24, wxEmptyString, wxITEM_NORMAL);
-	mCatalogTool->SetHasDropDown(true);
 	AppendBitmapMenu(&mCatalogToolMenu, whID_CATALOG_TYPE, "по &типу"
 		, m_ResMgr->m_ico_folder_type24);
 	AppendBitmapMenu(&mCatalogToolMenu, whID_CATALOG_PATH, "по &месту+типу"
 		, m_ResMgr->m_ico_folder_obj24);
-	Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, [this](wxAuiToolBarEvent& evt)
-	{
-		mCatalogTool->SetSticky(true);
-		wxRect rect = mToolBar->GetToolRect(whID_CATALOG_SELECT);
-		wxPoint pt = mToolBar->ClientToScreen(rect.GetBottomLeft());
-		pt = ScreenToClient(pt);
-		PopupMenu(&mCatalogToolMenu, pt);
-		mCatalogTool->SetSticky(false);
-	}
-	, whID_CATALOG_SELECT);
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdSetPathDir, this, whID_CATALOG_PATH);
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdSetTypeDir, this, whID_CATALOG_TYPE);
+
+	BuildToolbar();
 	
-	mReloadTool = mToolBar->AddTool(wxID_REFRESH, "Обновить", m_ResMgr->m_ico_refresh24);
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdReload, this, wxID_REFRESH);
-	
-	mUpTool = mToolBar->AddTool(wxID_BACKWARD, "Назад", m_ResMgr->m_ico_back24);
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdUp, this, wxID_BACKWARD);
-
-	mUpTool = mToolBar->AddTool(wxID_VIEW_DETAILS, "Подробно", m_ResMgr->m_ico_views24);
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdDetail, this, wxID_VIEW_DETAILS);
-
-	mUpTool = mToolBar->AddTool(wxID_PROPERTIES, "Выбрать свойства", 
-		m_ResMgr->m_ico_favprop_select24);
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdFavProp, this, wxID_PROPERTIES);
-
-	// ---------- User кнопки ---------- 
-	mToolBar->AddSeparator();
-
-	if ((int)currBaseGroup >= (int)bgUser)
-	{
-		mMoveTool = mToolBar->AddTool(wxID_REPLACE, "Переместить", m_ResMgr->m_ico_move24);
-		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdMove, this, wxID_REPLACE);
-
-		mActTool = mToolBar->AddTool(wxID_EXECUTE, "Выполнить", m_ResMgr->m_ico_act24);
-		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdAct, this, wxID_EXECUTE);
-	}
-
-	// ---------- TypeDesigner кнопки ---------- 
-	mToolBar->AddSeparator();
-	if ((int)currBaseGroup >= (int)bgTypeDesigner)
-	{
-		mMkClsTool = mToolBar->AddTool(wxID_MKCLS, "Создать класс",	m_ResMgr->m_ico_add_type24);
-		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnMkCls, this, wxID_MKCLS);
-	}
-
-	// ---------- Type|ObjDesigner кнопки ---------- 
-	if ((int)currBaseGroup >= (int)bgObjDesigner)
-	{
-		mMkObjTool = mToolBar->AddTool(wxID_MKOBJ, "Создать объект", m_ResMgr->m_ico_add_obj24);
-		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnMkObj, this, wxID_MKOBJ);
-
-		mEditTool = mToolBar->AddTool(wxID_EDIT, "Редактировать", m_ResMgr->m_ico_edit24);
-		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnEdit, this, wxID_EDIT);
-
-		mDeleteTool = mToolBar->AddTool(wxID_DELETE, "Удалить",	m_ResMgr->m_ico_delete24);
-		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnDelete, this, wxID_DELETE);
-	}
-
-	mToolBar->Realize();
 	Layout();
-
-	UpdateToolsStates();
-
 
 }//
 //-----------------------------------------------------------------------------
@@ -129,6 +62,91 @@ VObjCatalogCtrl::~VObjCatalogCtrl()
 {
 
 }
+//-----------------------------------------------------------------------------
+void VObjCatalogCtrl::BuildToolbar(bool is_dlg)
+{
+	wxWindowUpdateLocker	wndLockUpdater(mToolBar);
+	mToolBar->ClearTools();
+
+	const auto currBaseGroup = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+
+	// делаем тулбар
+	// ---------- Общедоступные кнопки
+	if (!is_dlg)
+	{
+		mCatalogTool = mToolBar->AddTool(whID_CATALOG_SELECT, "Группировать",
+			m_ResMgr->m_ico_folder_obj24, wxEmptyString, wxITEM_NORMAL);
+		mCatalogTool->SetHasDropDown(true);
+		Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, [this](wxAuiToolBarEvent& evt)
+		{
+			mCatalogTool->SetSticky(true);
+			wxRect rect = mToolBar->GetToolRect(whID_CATALOG_SELECT);
+			wxPoint pt = mToolBar->ClientToScreen(rect.GetBottomLeft());
+			pt = ScreenToClient(pt);
+			PopupMenu(&mCatalogToolMenu, pt);
+			mCatalogTool->SetSticky(false);
+		}
+		, whID_CATALOG_SELECT);
+		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdSetPathDir, this, whID_CATALOG_PATH);
+		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdSetTypeDir, this, whID_CATALOG_TYPE);
+	}
+
+	mReloadTool = mToolBar->AddTool(wxID_REFRESH, "Обновить", m_ResMgr->m_ico_refresh24);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdReload, this, wxID_REFRESH);
+
+	if (mCatalogModel && mCatalogModel->GetFilterClsId().mIsEnabled)
+	{
+		mUpTool = mToolBar->AddTool(wxID_BACKWARD, "Назад", m_ResMgr->m_ico_back24);
+		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdUp, this, wxID_BACKWARD);
+	}
+
+	if (!is_dlg)
+	{
+		mUpTool = mToolBar->AddTool(wxID_VIEW_DETAILS, "Подробно", m_ResMgr->m_ico_views24);
+		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdDetail, this, wxID_VIEW_DETAILS);
+
+		mUpTool = mToolBar->AddTool(wxID_PROPERTIES, "Выбрать свойства",
+			m_ResMgr->m_ico_favprop_select24);
+		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdFavProp, this, wxID_PROPERTIES);
+
+		// ---------- User кнопки ---------- 
+		mToolBar->AddSeparator();
+
+		if ((int)currBaseGroup >= (int)bgUser)
+		{
+			mMoveTool = mToolBar->AddTool(wxID_REPLACE, "Переместить", m_ResMgr->m_ico_move24);
+			Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdMove, this, wxID_REPLACE);
+
+			mActTool = mToolBar->AddTool(wxID_EXECUTE, "Выполнить", m_ResMgr->m_ico_act24);
+			Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdAct, this, wxID_EXECUTE);
+		}
+
+		// ---------- TypeDesigner кнопки ---------- 
+		mToolBar->AddSeparator();
+		if ((int)currBaseGroup >= (int)bgTypeDesigner)
+		{
+			mMkClsTool = mToolBar->AddTool(wxID_MKCLS, "Создать класс", m_ResMgr->m_ico_add_type24);
+			Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnMkCls, this, wxID_MKCLS);
+		}
+
+		// ---------- Type|ObjDesigner кнопки ---------- 
+		if ((int)currBaseGroup >= (int)bgObjDesigner)
+		{
+			mMkObjTool = mToolBar->AddTool(wxID_MKOBJ, "Создать объект", m_ResMgr->m_ico_add_obj24);
+			Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnMkObj, this, wxID_MKOBJ);
+
+			mEditTool = mToolBar->AddTool(wxID_EDIT, "Редактировать", m_ResMgr->m_ico_edit24);
+			Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnEdit, this, wxID_EDIT);
+
+			mDeleteTool = mToolBar->AddTool(wxID_DELETE, "Удалить", m_ResMgr->m_ico_delete24);
+			Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnDelete, this, wxID_DELETE);
+		}
+	}
+
+	mToolBar->Realize();
+	UpdateToolsStates();
+}
+
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::UpdateToolsStates()
 {
@@ -261,7 +279,8 @@ void VObjCatalogCtrl::OnCmdSetTypeDir(wxCommandEvent& evt)
 	//mToolBar->Refresh();
 	if (mCatalogModel)
 	{
-		mCatalogModel->SetCatalog(false, false, false, "1");
+		mCatalogModel->SetCatalog(false);
+		mCatalogModel->Load();
 		mTableView->ExpandAll();
 	}
 
@@ -277,7 +296,8 @@ void VObjCatalogCtrl::OnCmdSetPathDir(wxCommandEvent& evt)
 	//mToolBar->Refresh();
 	if (mCatalogModel)
 	{
-		mCatalogModel->SetCatalog(true, false, false, "1");
+		mCatalogModel->SetCatalog(true);
+		mCatalogModel->Load();
 		mTableView->ExpandAll();
 	}
 
@@ -407,23 +427,7 @@ void VObjCatalogCtrl::OnCmdUp(wxCommandEvent& evt)
 {
 	if (mCatalogModel)
 	{
-		const auto& rootObj = mCatalogModel->GetData();
-		unsigned long pid(0);
-		rec::PathItem new_root = rootObj;
-
-		if (mCatalogModel->IsObjTree())
-		{
-			pid = rootObj.mObj.mParent.mId;
-			if (0 < pid)
-				new_root.mObj.mId = rootObj.mObj.mParent.mId;
-		}
-		else
-		{
-			pid = rootObj.mCls.mParent.mId;
-			if (0 < pid)
-				new_root.mCls.mId = rootObj.mCls.mParent.mId;
-		}
-		mCatalogModel->SetData(new_root);
+		mCatalogModel->DoUp();
 		wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, wxID_REFRESH);
 		this->ProcessEvent(evt);
 	}
@@ -715,17 +719,7 @@ void VObjCatalogCtrl::SetModel(std::shared_ptr<IModel> model)
 			mToolBar->SetToolBitmap(whID_CATALOG_SELECT, m_ResMgr->m_ico_folder_obj24);
 		else
 			mToolBar->SetToolBitmap(whID_CATALOG_SELECT, m_ResMgr->m_ico_folder_type24);
-		
-		if (mCatalogModel->IsSelectDlg())
-		{
-			mToolBar->Clear();
-			mReloadTool = mToolBar->AddTool(wxID_REFRESH, "Обновить", m_ResMgr->m_ico_refresh24);
-			Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdReload, this, wxID_REFRESH);
-			mUpTool = mToolBar->AddTool(wxID_BACKWARD, "Назад", m_ResMgr->m_ico_back24);
-			Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdUp, this, wxID_BACKWARD);
-			mToolBar->Realize();
-		}
-		
+				
 		mTableView->SetModel(model);
 	
 		mConnPathChange.disconnect();
@@ -740,7 +734,7 @@ void VObjCatalogCtrl::SetModel(std::shared_ptr<IModel> model)
 
 		
 		OnChangePath(*mCatalogModel->mPath.get(), vec);
-	
+			
 	}
 
 }
@@ -808,6 +802,20 @@ void VObjCatalogCtrl::OnActivated(wxDataViewEvent& evt)
 		} //if (IsObjCatalog)
 		
 	}//if (selectedItem.IsOk())
+}
+//---------------------------------------------------------------------------
+const IModel* VObjCatalogCtrl::GetSelectedItem()const
+{
+	auto selectedItem = mTableView->GetSelection();
+	if (selectedItem.IsOk())
+	{
+		auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
+		//auto objItem = dynamic_cast<object_catalog::MObjItem*> (modelInterface);
+		//auto typetem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
+		
+		return modelInterface;
+	}
+	return nullptr;
 }
 //---------------------------------------------------------------------------
 void VObjCatalogCtrl::GetSelected(std::vector<unsigned int>& selected)

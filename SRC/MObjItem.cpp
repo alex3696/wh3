@@ -200,9 +200,8 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 		const auto& catalogData = catalog->GetData();
 
 		wxString fields, leftJoin;
-		//if (ctSingle == typeItemData.GetClsType())
+		if (catalog->IsPropEnabled()) //ctSingle == typeItemData.GetClsType()
 		{
-			
 			wxString qq;
 			for (const auto& it : catalog->GetFavProps())
 				qq += wxString::Format("\"%s\" TEXT,", it.mID);
@@ -215,24 +214,6 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 				fields = ", x.*";
 			}
 		}
-		/*
-		wxString qq;
-		for (const auto& it : catalog->GetFavProps())
-		{
-			auto typeIt = it.mCls->find(typeItemData.mId);
-			if (it.mCls->end() != typeIt)
-				qq += wxString::Format(", \"%s\"", it.mLabel);
-			else
-				qq += wxString::Format(",NULL AS \"%s\"", it.mLabel);
-		}
-		*/
-		/*
-		if ("1" != typeItemData.mID && "1" == typeItemData.mType)
-			leftJoin =wxString::Format(
-				" LEFT JOIN log_act_%s USING(obj_id) "
-				, typeItemData.mID
-				);
-		*/
 
 		if (catalog->IsObjTree())
 		{

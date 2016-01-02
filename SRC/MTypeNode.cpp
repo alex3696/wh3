@@ -56,13 +56,8 @@ void MTypeItem::LoadChilds()
 	if (!catalog)
 		return;
 
-	if (!catalog->IsObjTree() && catalog->IsSelectDlg())
-		return;
-
-	if( GetData().IsAbstract() )
-		return;
-
-	mObjArray->Load();
+	if (catalog->IsObjEnabled())
+		mObjArray->Load();
 	
 }
 //-------------------------------------------------------------------------
@@ -209,28 +204,54 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 
 	const auto& root = catalog->GetData();
 
+
+
+
+
 	if (catalog->IsObjTree())
 	{
+		wxString filter = catalog->GetFilterSqlString();
+		if (!filter.empty())
+		{
+			filter.Remove(0, 5);
+			filter = " WHERE " + filter;
+		}
+
 		query = wxString::Format(
-			"SELECT cr.title, cr.id, cr.kind, cr.measure, osum.qty, cr.dobj, ob.title "
+			"SELECT cls.title, cls.id, cls.kind, cls.measure, osum.qty, cls.dobj, ob.title "
 			"FROM(SELECT COALESCE(SUM(qty), 0) AS qty, cls_id FROM obj o "
 			"WHERE o.pid = %s  AND o.id>99 GROUP BY o.cls_id) osum "
-			"LEFT JOIN acls cr ON osum.cls_id = cr.id "
-			" LEFT JOIN obj_name ob ON ob.id = cr.dobj "
-			, root.mObj.mId.SqlVal() );
+			"LEFT JOIN cls ON osum.cls_id = cls.id "
+			" LEFT JOIN obj_name ob ON ob.id = cls.dobj "
+			" %s"
+			, root.mObj.mId.SqlVal()
+			, filter );
+		
 		return true;
 	}
 	else
 	{
+		wxString filter;
+		if (catalog->GetFilterClsId().mIsEnabled)
+		{
+			filter = catalog->GetFilterClsId().GetSqlString();
+			filter.Remove(0, 5);
+		}
+		else
+		{
+			filter = wxString::Format("cls.id > 99 AND cls.pid = %s", root.mCls.mId.SqlVal());
+			if (catalog->GetFilterClsKind().mIsEnabled)
+				filter += catalog->GetFilterClsKind().GetSqlString();
+		}
+
 		query = wxString::Format(
-			"SELECT t.title, t.id, t.kind, t.measure "
+			"SELECT cls.title, cls.id, cls.kind, cls.measure "
 			" ,(SELECT COALESCE(SUM(qty), 0) "
-			"     FROM obj o WHERE t.id = o.cls_id GROUP BY o.cls_id)  AS qty "
-			" ,dobj, o.title "
-			" FROM cls t "
-			" LEFT JOIN obj_name o ON o.id = t.dobj "
-			" WHERE t.pid = %s"
-			" AND t.id > 99 "
+			"     FROM obj o WHERE cls.id = o.cls_id GROUP BY o.cls_id)  AS qty "
+			" ,dobj AS doid, o.title AS dotitle"
+			" FROM cls "
+			" LEFT JOIN obj_name o ON o.id = cls.dobj "
+			" WHERE %s"
 			/*
 			"SELECT t.title, osum.qty, t.id, t.kind, t.measure "
 			" FROM cls_tree t "
@@ -240,9 +261,8 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 			" WHERE t.pid = %s "
 			" AND t.id > 99 "
 			*/
-			, root.mCls.mId.SqlVal() );
-		if (catalog->IsSelectDlg())
-			query += " AND t.kind=0 ";
+			, filter);
+
 		return true;
 
 	}

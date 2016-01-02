@@ -540,9 +540,16 @@ public:
 	{
 		AddChild(std::dynamic_pointer_cast<IModel>(newItem));
 	}
+
+	template <class CHILD>
+	std::shared_ptr<IModel> DelChild(std::shared_ptr<CHILD>& newItem)
+	{
+		return DelChild(std::dynamic_pointer_cast<IModel>(newItem));
+	}
+
 	std::shared_ptr<IModel> DelChild(std::shared_ptr<IModel>& remItem)
 	{
-		if (!mVec)
+		if (!mVec || !remItem)
 			return nullptr;
 
 		PtrIdx& ptrIdx = mVec->get<1>();

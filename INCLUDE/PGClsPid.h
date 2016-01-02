@@ -3,6 +3,10 @@
 
 #include "db_rec.h"
 #include "BtnProperty.h"
+#include "MObjCatalog.h"
+
+
+using MCat = wh::object_catalog::MObjCatalog;
 
 using wh_rec_Base = wh::rec::Base;
 WX_PG_DECLARE_VARIANT_DATA(wh_rec_Base)
@@ -23,7 +27,7 @@ public:
 		int childIndex, wxVariant& childValue) const;
 	virtual void RefreshChildren();
 
-	void SetObjTree(bool objTree);
+	void SetCatalog(std::shared_ptr<MCat> cat, bool isTargetObj);
 protected:
 	virtual wxString  ValueToString(wxVariant &  value, int  argFlags = 0)  const;
 

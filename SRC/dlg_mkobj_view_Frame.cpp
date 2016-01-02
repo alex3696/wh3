@@ -48,7 +48,14 @@ Frame::Frame(wxWindow* parent,
 	pg_mainInfo->AppendChild(new wxStringProperty(L"ID", wxPG_LABEL))->Enable(false);
 
 	mPGParent = new wxPGPBaseProperty("Местоположение");
-	mPGParent->SetObjTree(true);
+
+	auto parent_obj_cat = std::make_shared<MCat>();
+	parent_obj_cat->SetCatalog(true);
+	parent_obj_cat->PropEnable(false);
+	parent_obj_cat->ObjEnable(true);
+	parent_obj_cat->SetFilterClsKind(ctQtyByOne, foLess, true);
+
+	mPGParent->SetCatalog(parent_obj_cat,true);
 	mPropGrid->Append(mPGParent);
 	
 }

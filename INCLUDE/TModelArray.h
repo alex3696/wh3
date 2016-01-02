@@ -30,6 +30,16 @@ public:
 		return MakeItem();
 	}
 
+	inline std::shared_ptr<T_Item>  CreateItem(const typename T_Item::T_Data& data 
+											= T_Item::T_Data())const
+	{
+		auto child = std::make_shared < T_Item >();
+		child->SetData(data);
+		return child;
+	}
+
+
+
 	std::shared_ptr<T_Item> at(size_t pos)const
 	{
 		return std::dynamic_pointer_cast<T_Item>(GetChild(pos));

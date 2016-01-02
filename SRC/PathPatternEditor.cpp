@@ -184,8 +184,18 @@ void PathPatternEditor::OnCmdSetAny(wxCommandEvent& evt)
 	if (!GetGiuItemIndex(mSelectedItem, model_idx))
 		return;
 
-	temppath::model::Item::DataType emptyData;
-	mModel->at(model_idx)->SetData(emptyData);
+	long cls_id = 0;
+	if ((mModel->GetChildQty() - 1) == model_idx)
+	{
+		auto data = mModel->at(model_idx)->GetData();
+		data.mObj = rec::Base();
+		mModel->at(model_idx)->SetData(data);
+	}
+	else
+	{
+		temppath::model::Item::DataType emptyData;
+		mModel->at(model_idx)->SetData(emptyData);
+	}
 
 }
 //---------------------------------------------------------------------------
@@ -195,11 +205,15 @@ void PathPatternEditor::OnCmdSetCls(wxCommandEvent& evt)
 	if (!GetGiuItemIndex(mSelectedItem, model_idx))
 		return;
 
-	bool objTree = false;
-	select::ClsDlg dlg(nullptr);
+	
+	CatDlg dlg(nullptr);
+	dlg.SetTargetObj(false);
 
 	auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
-	catalog->SetCatalog(objTree, true, false, "1");
+	catalog->SetCatalog(false);
+	catalog->PropEnable(false);
+	catalog->ObjEnable(false);
+	catalog->SetFilterClsKind(ctQtyByOne, foLess, true);
 	catalog->Load();
 
 	dlg.SetModel(catalog);
@@ -220,29 +234,42 @@ void PathPatternEditor::OnCmdSetClsObj(wxCommandEvent& evt)
 	size_t model_idx(0);
 	if (!GetGiuItemIndex(mSelectedItem, model_idx))
 		return;
+	
+	long cls_id = 0;
+	if ((mModel->GetChildQty() - 1) == model_idx)
+	{
+		cls_id = mModel->at(model_idx)->GetData().mCls.mId;
+	}
 
-	bool objTree = true;
-	select::ClsDlg dlg(nullptr);
+
+
+	CatDlg dlg(nullptr);
+	dlg.SetTargetObj(true);
 
 	auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
-	catalog->SetCatalog(objTree, true, false, "1");
+	
+	catalog->PropEnable(false);
+	catalog->ObjEnable(true);
+	catalog->SetFilterClsKind(ctQtyByOne, foLess, true);
+	if (cls_id)
+	{
+		catalog->SetCatalog(false);
+		catalog->SetFilterClsId(cls_id, foEq, true);
+	}
+	else
+		catalog->SetCatalog(true);
 	catalog->Load();
 
 	dlg.SetModel(catalog);
 	if (wxID_OK == dlg.ShowModal())
 	{
-		wh::rec::ObjTitle obj;
+		wh::rec::ObjInfo obj;
 		if (dlg.GetSelectedObj(obj))
 		{
-			wh::rec::Cls cls;
-			if (dlg.GetSelectedCls(cls))
-			{
-				temppath::model::Item::DataType data;
-
-				data.mCls = cls;
-				data.mObj = obj;
-				mModel->at(model_idx)->SetData(data);
-			}
+			temppath::model::Item::DataType data;
+			data.mCls = obj.mCls;
+			data.mObj = obj.mObj;
+			mModel->at(model_idx)->SetData(data);
 		}
 	}
 }
@@ -319,7 +346,7 @@ void PathPatternEditor::MakeGuiItem(unsigned int pos)
 			mMnuAddToRight->Enable(!isLast);
 			mMnuRemove->Enable(!(mDoNotDeleteFirst && isFirst));
 			mMnuRemove->Enable(!(mDoNotDeleteLast && isLast));
-			mMnuSetAny->Enable(!isLast);
+			//mMnuSetAny->Enable(!isLast);
 			mMnuSetCls->Enable(!isLast);
 
 		}

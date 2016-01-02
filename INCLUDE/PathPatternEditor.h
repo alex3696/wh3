@@ -41,12 +41,12 @@ class PathPatternEditor
 	using CtrlStore =
 		boost::multi_index_container
 		<
-		TmpPathItem*,
-		indexed_by
-		<
-		random_access<>
-		, hashed_unique< identity<TmpPathItem*> >
-		>
+			TmpPathItem*,
+			indexed_by
+			<
+			random_access<>
+			, hashed_unique< identity<TmpPathItem*> >
+			>
 		>;
 	using TIdxRnd = nth_index< CtrlStore, 0>::type;
 	using TIdxPtr = nth_index< CtrlStore, 1>::type;
