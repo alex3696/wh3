@@ -94,7 +94,7 @@ void VObjCatalogCtrl::BuildToolbar(bool is_dlg)
 	mReloadTool = mToolBar->AddTool(wxID_REFRESH, "Обновить", m_ResMgr->m_ico_refresh24);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdReload, this, wxID_REFRESH);
 
-	if (mCatalogModel && mCatalogModel->GetFilterClsId().mIsEnabled)
+	//if (mCatalogModel && mCatalogModel->GetFilterClsId().mIsEnabled)
 	{
 		mUpTool = mToolBar->AddTool(wxID_BACKWARD, "Назад", m_ResMgr->m_ico_back24);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdUp, this, wxID_BACKWARD);
@@ -279,7 +279,7 @@ void VObjCatalogCtrl::OnCmdSetTypeDir(wxCommandEvent& evt)
 	//mToolBar->Refresh();
 	if (mCatalogModel)
 	{
-		mCatalogModel->SetCatalog(false);
+		mCatalogModel->SetCfg(rec::catCls, true, true);
 		mCatalogModel->Load();
 		mTableView->ExpandAll();
 	}
@@ -296,7 +296,7 @@ void VObjCatalogCtrl::OnCmdSetPathDir(wxCommandEvent& evt)
 	//mToolBar->Refresh();
 	if (mCatalogModel)
 	{
-		mCatalogModel->SetCatalog(true);
+		mCatalogModel->SetCfg(rec::catObj, true, true);
 		mCatalogModel->Load();
 		mTableView->ExpandAll();
 	}
@@ -592,7 +592,7 @@ void VObjCatalogCtrl::OnMkCls(wxCommandEvent& evt)
 {
 	if (!mCatalogModel->IsObjTree())
 	{
-		const auto& root = mCatalogModel->GetData();
+		const auto& root = mCatalogModel->GetRoot();
 
 		auto newItem = std::make_shared<object_catalog::MTypeItem>();
 
@@ -771,7 +771,7 @@ void VObjCatalogCtrl::OnActivated(wxDataViewEvent& evt)
 					new_root.mObj.mLabel = objData.mLabel;
 					new_root.mCls.mId = typeData.mId;
 					new_root.mCls.mLabel = typeData.mLabel;
-					mCatalogModel->SetData(new_root);
+					mCatalogModel->SetCatFilter(objData.mId);// setObjRoot
 					wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, wxID_REFRESH);
 					evt.SetString("OnActivated");
 					this->ProcessEvent(evt);
@@ -790,8 +790,9 @@ void VObjCatalogCtrl::OnActivated(wxDataViewEvent& evt)
 				if ("0" == typeData.mType)
 				{
 					new_root.mCls.mId = typeData.mId;
-					new_root.mCls.mParent = mCatalogModel->GetData().mCls.mParent;
-					mCatalogModel->SetData(new_root);
+					//new_root.mCls.mParent = mCatalogModel->GetData().mCls.mParent;
+					mCatalogModel->SetCatFilter(typeData.mId);
+					//mCatalogModel->SetData(new_root);
 					wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, wxID_REFRESH);
 					evt.SetString("OnActivated");
 					this->ProcessEvent(evt);
@@ -879,7 +880,7 @@ bool VObjCatalogCtrl::GetCurrentParent(rec::PathItem& root)const
 	if (!mCatalogModel)
 		return false;
 	
-	root = mCatalogModel->GetData();
+	root = mCatalogModel->GetRoot();
 	return true;
 
 }

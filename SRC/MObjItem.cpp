@@ -197,7 +197,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 		auto catalog = dynamic_cast<MObjCatalog*>(typeArrayModel->GetParent());
 
 		const auto& typeItemData = typeItemModel->GetData();
-		const auto& catalogData = catalog->GetData();
+		const auto& catalogData = catalog->GetRoot();
 
 		wxString fields, leftJoin;
 		if (catalog->IsPropEnabled()) //ctSingle == typeItemData.GetClsType()

@@ -14,20 +14,10 @@
 
 namespace wh{
 namespace object_catalog {
-//-------------------------------------------------------------------------
-
-class MCatalogCfg
-	: public TModelData<rec::CatalogCfg>
-{
-public:
-	MCatalogCfg(const char option = ModelOption::EnableParentNotify)
-		:TModelData<rec::CatalogCfg>()
-	{}
-};
 
 //-------------------------------------------------------------------------	
 class MObjCatalog
-	: public TModelData<rec::PathItem>
+	: public TModelData<rec::CatCfg>
 {
 public:
 	MObjCatalog(const char option
@@ -36,25 +26,35 @@ public:
 		| ModelOption::CommitLoad
 		);
 	
-	virtual bool LoadThisDataFromDb(std::shared_ptr<whTable>&, const size_t)override;
+	void SetCfg(const rec::CatCfg& cfg);
+	void SetCfg(rec::CatType catType = rec::catObj
+		, bool enableProp = true
+		, bool enableObj = true
+		, bool debugColumns = false)
+	{
+		SetCfg(rec::CatCfg(catType, enableProp, enableObj, debugColumns));
+	}
 
-	std::shared_ptr<model::MPath>	mPath;
-	std::shared_ptr<MCatalogCfg>	mCfg;
+
+
+	
 	std::shared_ptr<MTypeArray>		mTypeArray;
 	std::shared_ptr<MFavProp>		mFavProps;
-	std::shared_ptr<MFilterArray>	mFilter;
+	std::shared_ptr<model::MPath>	mPath;
+	
+	void SetCatFilter(long pid, bool enable = true);	
+	wxString GetFilterCat()const;
 
 
 	void SetFilterClsKind(ClsType ct, FilterOp fo = foEq, bool enable=true);
 	const FilterData& GetFilterClsKind()const;
 	void SetFilterClsId(long id, FilterOp fo = foEq, bool enable = true);
 	const FilterData& GetFilterClsId()const;
+
+
+	wxString GetFilterCls()const;
+	wxString GetFilterObj()const;
 	
-	wxString GetFilterSqlString()const;
-	
-	void SetCatalog(bool isObjCatalog);
-	
-	void SetRoot(const rec::PathItem&	new_root);
 	rec::PathItem GetRoot();
 	
 	bool IsPropEnabled()const;
@@ -81,13 +81,11 @@ public:
 	
 	void DoUp();
 	
-	
 protected:
+	std::shared_ptr<MFilterArray>	mFilter;
+	std::shared_ptr<MFilter>		mFilterCat;
 
-	virtual bool GetSelectQuery(wxString&)const override;
-
-	// filter
-
+	
 	
 
 };

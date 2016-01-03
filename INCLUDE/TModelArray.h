@@ -31,10 +31,10 @@ public:
 	}
 
 	inline std::shared_ptr<T_Item>  CreateItem(const typename T_Item::T_Data& data 
-											= T_Item::T_Data())const
+											= T_Item::T_Data(), bool stored=false)const
 	{
 		auto child = std::make_shared < T_Item >();
-		child->SetData(data);
+		child->SetData(data, stored);
 		return child;
 	}
 

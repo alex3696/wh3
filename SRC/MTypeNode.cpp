@@ -41,7 +41,7 @@ bool MTypeItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t
 	{
 		auto catalog = dynamic_cast<MObjCatalog*>(type_array->GetParent());
 		if (catalog)
-			data.mParent = catalog->GetData().mCls.mParent;
+			data.mParent = catalog->GetRoot().mCls.mParent;
 	}
 	
 
@@ -188,8 +188,8 @@ std::shared_ptr<IModel> MTypeArray::CreateChild()
 	auto catalog = dynamic_cast<MObjCatalog*>(this->GetParent());
 	if (catalog)
 	{
-		cls.mParent.mId = catalog->GetData().mCls.mId;
-		cls.mParent.mLabel = catalog->GetData().mCls.mLabel;
+		cls.mParent.mId = catalog->GetRoot().mCls.mId;
+		cls.mParent.mLabel = catalog->GetRoot().mCls.mLabel;
 	}
 	child->SetData(cls);
 	return child;
@@ -202,7 +202,7 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 	if (!catalog)
 		return false;
 
-	const auto& root = catalog->GetData();
+	const auto& root = catalog->GetRoot();
 
 
 
@@ -210,48 +210,42 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 
 	if (catalog->IsObjTree())
 	{
-		wxString filter = catalog->GetFilterSqlString();
-		if (!filter.empty())
+		wxString catFilter = catalog->GetFilterCat();
+		wxString clsFilter = catalog->GetFilterCls();
+		wxString objFilter = catalog->GetFilterObj();
+
+		if (!clsFilter.empty())
 		{
-			filter.Remove(0, 5);
-			filter = " WHERE " + filter;
+			clsFilter.Remove(0, 5);
+			clsFilter = " WHERE " + clsFilter;
 		}
 
 		query = wxString::Format(
 			"SELECT cls.title, cls.id, cls.kind, cls.measure, osum.qty, cls.dobj, ob.title "
-			"FROM(SELECT COALESCE(SUM(qty), 0) AS qty, cls_id FROM obj o "
-			"WHERE o.pid = %s  AND o.id>99 GROUP BY o.cls_id) osum "
-			"LEFT JOIN cls ON osum.cls_id = cls.id "
+			" FROM (SELECT COALESCE(SUM(qty), 0) AS qty, cls_id FROM obj "
+			"       WHERE obj.id>99 %s %s GROUP BY obj.cls_id) osum "
+			" LEFT JOIN cls ON osum.cls_id = cls.id "
 			" LEFT JOIN obj_name ob ON ob.id = cls.dobj "
 			" %s"
-			, root.mObj.mId.SqlVal()
-			, filter );
+			, catFilter
+			, objFilter
+			, clsFilter);
 		
 		return true;
 	}
 	else
 	{
-		wxString filter;
-		if (catalog->GetFilterClsId().mIsEnabled)
-		{
-			filter = catalog->GetFilterClsId().GetSqlString();
-			filter.Remove(0, 5);
-		}
-		else
-		{
-			filter = wxString::Format("cls.id > 99 AND cls.pid = %s", root.mCls.mId.SqlVal());
-			if (catalog->GetFilterClsKind().mIsEnabled)
-				filter += catalog->GetFilterClsKind().GetSqlString();
-		}
+		wxString catFilter = catalog->GetFilterCat();
+		wxString clsFilter = catalog->GetFilterCls();
+		wxString objFilter = catalog->GetFilterObj();
 
 		query = wxString::Format(
 			"SELECT cls.title, cls.id, cls.kind, cls.measure "
-			" ,(SELECT COALESCE(SUM(qty), 0) "
-			"     FROM obj o WHERE cls.id = o.cls_id GROUP BY o.cls_id)  AS qty "
+			" ,(SELECT COALESCE(SUM(qty), 0) FROM obj WHERE obj.cls_id=cls.id %s GROUP BY o.cls_id)  AS qty "
 			" ,dobj AS doid, o.title AS dotitle"
 			" FROM cls "
 			" LEFT JOIN obj_name o ON o.id = cls.dobj "
-			" WHERE %s"
+			" WHERE cls.id > 99 %s %s"
 			/*
 			"SELECT t.title, osum.qty, t.id, t.kind, t.measure "
 			" FROM cls_tree t "
@@ -261,7 +255,9 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 			" WHERE t.pid = %s "
 			" AND t.id > 99 "
 			*/
-			, filter);
+			, objFilter
+			, catFilter
+			, clsFilter	);
 
 		return true;
 
@@ -271,28 +267,3 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 	return false;
 }
 
-
-/*
-SELECT t.title, osum.qty, t.id, t.kind, t.measure , t.pid
-FROM cls_tree t
-RIGHT   JOIN LATERAL
-(
-SELECT COALESCE(count(*), 0) AS qty, n.cls_id
-FROM obj_num n
-WHERE cls_id IN (SELECT id FROM cls_num WHERE pid = 100 AND id > 99)
-GROUP BY n.cls_id
-UNION ALL
-SELECT COALESCE(SUM(qty), 0) AS qty, cls_id
-FROM ONLY obj_names_qtyi n
-LEFT JOIN obj_details_qtyi d ON n.id=objqty_id
-WHERE cls_id IN (SELECT id FROM cls_qtyi WHERE pid = 100 AND id > 99)
-GROUP BY n.cls_id
-UNION ALL
-SELECT COALESCE(SUM(qty), 0) AS qty, cls_id
-FROM ONLY obj_names_qtyf n
-LEFT JOIN obj_details_qtyf d ON n.id=objqty_id
-WHERE cls_id IN (SELECT id FROM cls_qtyf WHERE pid = 100 AND id > 99)
-GROUP BY n.cls_id
-
-) osum ON osum.cls_id = t.id
-*/

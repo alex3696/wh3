@@ -114,7 +114,13 @@ public:
 	{
 		wxString str;
 		for (size_t i = 0; i < GetChildQty(); i++)
-			str += at(i)->GetData().GetSqlString();
+		{
+		#ifdef __DEBUG
+			const auto& data = at(i)->GetData();
+		#endif // DEBUG
+		str += at(i)->GetData().GetSqlString();
+		}
+			
 		return str;
 	}
 };

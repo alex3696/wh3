@@ -336,19 +336,27 @@ struct FavoriteProp : public Prop
 
 
 //-----------------------------------------------------------------------------
-struct CatalogCfg
+enum CatType
 {
-	bool mIsOjbTree;
+	catCls = 0,
+	catObj = 1,
+	catFav = 2
+};
+//-----------------------------------------------------------------------------
+
+struct CatCfg
+{
+	CatType mCatType;
 	bool mEnableProp;
 	bool mEnableObj;
 
 	bool mShowDebugColumns;
 
-	CatalogCfg(	bool isObjTree = true
+	CatCfg(CatType catType = catObj
 				, bool enableProp = true
 				, bool enableObj = true
 				, bool debugColumns = false)
-		: mIsOjbTree(isObjTree)
+		: mCatType(catType)
 		, mEnableProp(enableProp)
 		, mEnableObj(enableObj)
 		, mShowDebugColumns(debugColumns)

@@ -343,7 +343,6 @@ void VObjCatalogDataViewModel::SetModel(std::shared_ptr<IModel> model)
 	mConnClsChange = mCatalogModel->mTypeArray->ConnectChangeSlot(
 		std::bind(&VObjCatalogDataViewModel::OnClsChange, this, sph::_1, sph::_2));
 
-	mCfg = &mCatalogModel->mCfg->GetData();
 //	void OnAppend(const IModel&, const std::vector<unsigned int>&);
 //	void OnRemove(const IModel&, const std::vector<unsigned int>&);
 //	void OnChange(const IModel&, const std::vector<unsigned int>&);

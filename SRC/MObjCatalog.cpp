@@ -8,114 +8,77 @@ using namespace wh::object_catalog;
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
 MObjCatalog::MObjCatalog(const char option)
-	:TModelData<rec::PathItem>(option)
+	:TModelData<rec::CatCfg>(option)
 	, mPath(new model::MPath)
 	, mTypeArray(new MTypeArray)
 	, mFavProps(new MFavProp)
-	, mCfg(new MCatalogCfg)
 	, mFilter(new MFilterArray)
+	, mFilterCat(new MFilter)
 	
 {
 	this->AddChild(mPath);
 	this->AddChild(mTypeArray);
 	this->AddChild(mFavProps);
-	this->AddChild(mCfg);
 	this->AddChild(mFilter);
-	
-	rec::CatalogCfg cfg(false,true);
-	mCfg->SetData(cfg);
 
-	SetFilterClsKind(ctAbstract, foEq, false);
-	SetFilterClsId(1, foEq, false);
-}
-
-//-------------------------------------------------------------------------
-bool MObjCatalog::GetSelectQuery(wxString& query)const
-{
-	if (IsObjTree())
+	// 0
 	{
-		const auto& data = this->GetData();
-		if (data.mObj.mId.IsNull())
-			return false;
-		query = wxString::Format(
-			" SELECT o.id, o.title, o.pid, t.id, t.title, t.pid "
-			" FROM obj o "
-			" LEFT JOIN cls t ON t.id = o.cls_id "
-			" WHERE o.id = %s "
-			, data.mObj.mId.SqlVal()
-			);
-		
+		FilterData fd;
+		fd.mConn = fcAND;
+		fd.mFieldName = "cls.kind";
+		fd.mOp = foEq;
+		fd.mVal = wxString::Format("%d", (int)ctAbstract);
+		fd.mFieldType = dbLong;
+		fd.mIsEnabled = false;
+		auto item = mFilter->CreateItem(fd,true);
+		mFilter->AddChild(item);
 	}
-	else
-	{
-		
-		const auto& data = this->GetData();
-		if (data.mCls.mId.IsNull())
-			return false;
-		query = wxString::Format(
-			"SELECT NULL,NULL, NULL, id, title  , pid "
-			" FROM cls "
-			" WHERE id=%s "
-			, data.mCls.mId.SqlVal()
-			);
+	// 1
+	mFilter->AddChild(
+		mFilter->CreateItem(
+			FilterData("1", "cls.id", dbLong, foEq, fcAND, false), true));
 
-	}
-	return true;
 }
 //-------------------------------------------------------------------------
-bool MObjCatalog::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
+
+void MObjCatalog::SetCfg(const rec::CatCfg& cfg)
 {
-	T_Data data;
-	data.mObj.mId = table->GetAsString(0, row);
-	data.mObj.mLabel = table->GetAsString(1, row);
-	data.mObj.mParent.mId = table->GetAsString(2, row);
-	data.mCls.mId = table->GetAsString(3, row);
-	data.mCls.mLabel = table->GetAsString(4, row);
-	data.mCls.mParent.mId = table->GetAsLong(5, row );
+	this->SetData(cfg);
 	
-	SetData(data, true);
-	return true;
-};
+	switch (cfg.mCatType)
+	{
+	case rec::catCls:	
+	case rec::catObj:
+		SetCatFilter(1, true);	
+		break;
+	default:
+		SetCatFilter(1, false);
+		break;
+	}
+}
+
 //-------------------------------------------------------------------------
 void MObjCatalog::LoadChilds()
 {
+	mPath->Load();
+
 	if(IsPropEnabled())
 		mFavProps->Load();
-	mTypeArray->Load();
-	mPath->Load();
-}
-//-------------------------------------------------------------------------
-
-void MObjCatalog::SetCatalog(bool isObjCatalog)
-{
-	auto cfg = mCfg->GetData();
-	cfg.mIsOjbTree = isObjCatalog;
-	mCfg->SetData(cfg,true);
 	
-	rec::PathItem root;
-	if (isObjCatalog)
-		root.mObj.mId = 1;
-	else
-		root.mCls.mId = 1;
-
-	SetRoot(root);
-}
-//-------------------------------------------------------------------------
-void MObjCatalog::SetRoot(const rec::PathItem&	new_root)
-{
-	SetData(new_root);
+	mTypeArray->Load();
+	
 }
 //-------------------------------------------------------------------------
 bool MObjCatalog::IsObjTree()const
 {
-	const auto& cfg = mCfg->GetData();
-	return cfg.mIsOjbTree;
+	const auto& cfg = this->GetData();
+	return rec::catObj == cfg.mCatType;
 }
 
 //-------------------------------------------------------------------------
 bool MObjCatalog::IsShowDebug()const
 {
-	const auto& cfg = mCfg->GetData();
+	const auto& cfg = this->GetData();
 	return cfg.mShowDebugColumns;
 }
 //-------------------------------------------------------------------------
@@ -124,16 +87,15 @@ bool MObjCatalog::IsPropEnabled()const
 	if (IsAbstractTree())
 		return false;
 
-	const auto& cfg = mCfg->GetData();
+	const auto& cfg = this->GetData();
 	return cfg.mEnableProp && cfg.mEnableObj;
 }
 //-------------------------------------------------------------------------
 void MObjCatalog::PropEnable(bool enable)
 {
-	auto cfg = mCfg->GetData();
+	auto cfg = this->GetData();
 	cfg.mEnableProp = enable;
-	mCfg->SetData(cfg);
-	//Load();
+	this->SetData(cfg);
 }
 
 //-------------------------------------------------------------------------
@@ -142,44 +104,71 @@ bool MObjCatalog::IsObjEnabled()const
 	if (IsAbstractTree())
 		return false;
 
-	const auto& cfg = mCfg->GetData();
+	const auto& cfg = this->GetData();
 	return cfg.mEnableObj;
 }
 //-------------------------------------------------------------------------
 void MObjCatalog::ObjEnable(bool enable)
 {
-	auto cfg = mCfg->GetData();
+	auto cfg = this->GetData();
 	cfg.mEnableObj = enable;
-	mCfg->SetData(cfg);
-	//Load();
+	this->SetData(cfg);
 }
 //-------------------------------------------------------------------------
 rec::PathItem MObjCatalog::GetRoot()
 {
-	const auto& root = this->GetData();
+	const auto& cfg = this->GetData();
+	long pid(0);
+	rec::PathItem root;
+	std::shared_ptr<MFilter> mfilter;
+
+	switch (cfg.mCatType)
+	{
+	case rec::catCls:
+		root.mCls.mId = mFilterCat->GetData().mVal;
+	case rec::catObj:
+		root.mObj.mId = mFilterCat->GetData().mVal;
+		break;
+	default:break;
+	}
 	return root;
 }
 //-------------------------------------------------------------------------
 void MObjCatalog::DoUp()
 {
-	const auto old_root = GetRoot();
+	const auto& cfg = this->GetData();
 
+	std::shared_ptr<model::MPathItem> pathItem;
 	unsigned long pid(0);
-	rec::PathItem new_root = old_root;
+	
+	switch (cfg.mCatType)
+	{
+	case rec::catCls:	
+		if (mPath->GetChildQty() > 1)
+		{
+			pathItem = mPath->at(1);
+			if (pathItem && !pathItem->GetData().mCls.mId.IsNull())
+				pid = pathItem->GetData().mCls.mId;
+		}
+		else
+			pid = 1;
+		SetCatFilter(pid);
+		break;
+	case rec::catObj:	
+		if (mPath->GetChildQty() > 1)
+		{
+			pathItem = mPath->at(1);
+			if (pathItem && !pathItem->GetData().mObj.mId.IsNull())
+				pid = pathItem->GetData().mObj.mId;
+		}
+		else
+			pid = 1;
+		SetCatFilter(pid);
+		break;
+	case rec::catFav:
+	default:break;
+	}
 
-	if (IsObjTree())
-	{
-		pid = old_root.mObj.mParent.mId;
-		if (0 < pid)
-			new_root.mObj.mId = old_root.mObj.mParent.mId;
-	}
-	else
-	{
-		pid = old_root.mCls.mParent.mId;
-		if (0 < pid)
-			new_root.mCls.mId = old_root.mCls.mParent.mId;
-	}
-	SetData(new_root);
 }
 
 //-------------------------------------------------------------------------
@@ -187,15 +176,7 @@ void MObjCatalog::SetFilterClsKind(ClsType ct, FilterOp fo, bool enable)
 {
 	FilterData fd(wxString::Format("%d", (int)ct)
 		, "cls.kind", dbLong, fo, fcAND, enable);
-
-	if (!mFilter->GetChildQty())
-	{
-		auto item = mFilter->CreateItem();
-		mFilter->AddChild(item);
-	}
-		
 	mFilter->at(0)->SetData(fd, true);
-		
 }
 //-------------------------------------------------------------------------
 const FilterData& MObjCatalog::GetFilterClsKind()const
@@ -209,14 +190,7 @@ void MObjCatalog::SetFilterClsId(long id, FilterOp fo, bool enable)
 	FilterData fd(wxString::Format("%d", id)
 		, "cls.id", dbLong, fo, fcAND, enable);
 
-	if (mFilter->GetChildQty() < 2)
-	{
-		auto item = mFilter->CreateItem();
-		mFilter->AddChild(item);
-	}
-
 	mFilter->at(1)->SetData(fd, true);
-
 }
 //-------------------------------------------------------------------------
 const FilterData& MObjCatalog::GetFilterClsId()const
@@ -238,7 +212,36 @@ bool MObjCatalog::IsAbstractTree()const
 	return false;
 }
 //-------------------------------------------------------------------------
-wxString MObjCatalog::GetFilterSqlString()const
+wxString MObjCatalog::GetFilterCls()const
 {
 	return mFilter->GetSqlString();
 }
+//-------------------------------------------------------------------------
+wxString MObjCatalog::GetFilterObj()const
+{
+	return wxEmptyString;
+}
+//-------------------------------------------------------------------------
+void MObjCatalog::SetCatFilter(long pid, bool enable)
+{
+	const auto& cfg = this->GetData();
+	const wxString pidStr = wxString::Format("%d", pid);
+	switch (cfg.mCatType)
+	{
+	case rec::catCls:
+		mFilterCat->SetData(FilterData(pidStr, "cls.pid", dbLong, foEq, fcAND, enable));
+		break;
+	case rec::catObj:
+		mFilterCat->SetData(FilterData(pidStr, "obj.pid", dbLong, foEq, fcAND, enable));
+		break;
+	default:
+		mFilterCat->SetData(FilterData(wxEmptyString, wxEmptyString, dbLong, foEq, fcAND, false));
+		break;
+	}
+}
+//-------------------------------------------------------------------------
+wxString MObjCatalog::GetFilterCat()const
+{
+	return mFilterCat->GetData().GetSqlString();
+}
+

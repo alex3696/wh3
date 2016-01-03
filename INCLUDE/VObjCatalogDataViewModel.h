@@ -46,11 +46,6 @@ public:
 	void ClearModel();
 protected:
 	std::shared_ptr<wh::object_catalog::MObjCatalog> mCatalogModel;
-	
-	// настройки каталога
-	const rec::CatalogCfg* mCfg = nullptr;
-
-
 
 	sig::scoped_connection		mConnClsAppend;
 	sig::scoped_connection		mConnClsRemove;

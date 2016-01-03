@@ -284,20 +284,12 @@ void MainFrame::CreateObjCatalog(const wxString& _objclass,const wxString& _objn
 
 	auto obj_cat = new wh::view::VObjCatalogCtrl(m_Notebook);
 
-	auto node = std::make_shared<wh::object_catalog::MObjCatalog>();
+	auto mcat = std::make_shared<wh::object_catalog::MObjCatalog>();
 
-	wh::rec::PathItem root;
-	root.mCls.mId = "1";
-	root.mCls.mLabel = "Object";
-	root.mObj.mId = "1";
-	root.mObj.mLabel = "Object0";
+	mcat->SetCfg(wh::rec::CatType::catCls, true, true);
+	mcat->Load();
 
-	node->SetData(root);
-	node->MarkSaved();
-
-	node->Load();
-
-	obj_cat->SetModel(node);
+	obj_cat->SetModel(mcat);
 
 
 	m_Notebook->AddPage(obj_cat, "каталог объектов");

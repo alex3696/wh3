@@ -56,7 +56,7 @@ bool MFavProp::GetSelectQuery(wxString& query)const
 	if (!catalog)
 		return false;
 
-	const auto& root = catalog->GetData();
+	const auto& root = catalog->GetRoot();
 
 	if (catalog->IsObjTree())
 	{

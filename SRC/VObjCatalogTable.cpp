@@ -110,7 +110,7 @@ void VObjCatalogTable::ResetColumns()
 
 	if (mCatalogModel)
 	{
-		bool hidden = !mCatalogModel->mCfg->GetData().mShowDebugColumns;
+		bool hidden = !mCatalogModel->GetData().mShowDebugColumns;
 		GetColumn(2)->SetHidden(hidden);
 		GetColumn(3)->SetHidden(hidden);
 		GetColumn(4)->SetHidden(hidden);

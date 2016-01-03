@@ -47,28 +47,28 @@ bool MPathItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t
 bool MPath::GetSelectChildsQuery(wxString& query)const
 {
 	auto catalog = dynamic_cast<MObjCatalog*>(this->GetParent());
+	if (!catalog)
+		return false;
 
-	if (catalog)
+	const auto& root = catalog->GetRoot();
+	if (catalog->IsObjTree())
+	{ 
+		query = wxString::Format(
+			"SELECT oid, otitle, cid, ctitle "
+			" FROM get_path_obj_info(%s)"
+			, root.mObj.mId.SqlVal()
+			);
+		return true;
+	}
+
+	if (catalog->IsClsTree())
 	{
-		const auto& data = catalog->GetData();
-		if (catalog->IsObjTree())
-		{ 
-			query = wxString::Format(
-				"SELECT oid, otitle, cid, ctitle "
-				" FROM get_path_obj_info(%s)"
-				, data.mObj.mId.SqlVal()
-				);
-			return true;
-		}
-		else
-		{
-			query = wxString::Format(
-				"SELECT id, title "
-				" FROM get_path_cls_info(%s)"
-				, data.mCls.mId.SqlVal()
-				);
-			return true;
-		}
+		query = wxString::Format(
+			"SELECT id, title "
+			" FROM get_path_cls_info(%s)"
+			, root.mCls.mId.SqlVal()
+			);
+		return true;
 	}
 	return false;
 }
