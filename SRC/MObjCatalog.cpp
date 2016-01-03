@@ -36,7 +36,7 @@ MObjCatalog::MObjCatalog(const char option)
 	// 1
 	mFilter->AddChild(
 		mFilter->CreateItem(
-			FilterData("1", "cls.id", dbLong, foEq, fcAND, false), true));
+			FilterData("0", "cls.id", dbLong, foEq, fcAND, false), true));
 
 }
 //-------------------------------------------------------------------------
@@ -49,10 +49,10 @@ void MObjCatalog::SetCfg(const rec::CatCfg& cfg)
 	{
 	case rec::catCls:	
 	case rec::catObj:
-		SetCatFilter(1, true);	
+		SetCatFilter(0, true);	
 		break;
 	default:
-		SetCatFilter(1, false);
+		SetCatFilter(0, false);
 		break;
 	}
 }
@@ -150,8 +150,6 @@ void MObjCatalog::DoUp()
 			if (pathItem && !pathItem->GetData().mCls.mId.IsNull())
 				pid = pathItem->GetData().mCls.mId;
 		}
-		else
-			pid = 1;
 		SetCatFilter(pid);
 		break;
 	case rec::catObj:	
@@ -161,8 +159,6 @@ void MObjCatalog::DoUp()
 			if (pathItem && !pathItem->GetData().mObj.mId.IsNull())
 				pid = pathItem->GetData().mObj.mId;
 		}
-		else
-			pid = 1;
 		SetCatFilter(pid);
 		break;
 	case rec::catFav:

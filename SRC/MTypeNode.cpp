@@ -223,7 +223,7 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 		query = wxString::Format(
 			"SELECT cls.title, cls.id, cls.kind, cls.measure, osum.qty, cls.dobj, ob.title "
 			" FROM (SELECT COALESCE(SUM(qty), 0) AS qty, cls_id FROM obj "
-			"       WHERE obj.id>99 %s %s GROUP BY obj.cls_id) osum "
+			"       WHERE (obj.id > 99 OR obj.id=1) %s %s GROUP BY obj.cls_id) osum "
 			" LEFT JOIN cls ON osum.cls_id = cls.id "
 			" LEFT JOIN obj_name ob ON ob.id = cls.dobj "
 			" %s"
@@ -245,7 +245,7 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 			" ,dobj AS doid, o.title AS dotitle"
 			" FROM cls "
 			" LEFT JOIN obj_name o ON o.id = cls.dobj "
-			" WHERE cls.id > 99 %s %s"
+			" WHERE (cls.id > 99 OR cls.id=1) %s %s"
 			/*
 			"SELECT t.title, osum.qty, t.id, t.kind, t.measure "
 			" FROM cls_tree t "
