@@ -5,13 +5,14 @@
 #include "MGroup.h"
 #include "TPresenter.h"
 #include "TViewCtrlPanel.h"
+#include "PathPatternEditor.h"
 
 namespace wh{
 namespace view{
 //-----------------------------------------------------------------------------
 /// Редактор для свойства действия
 class DClsMoveEditor
-	: public view::DlgBaseOkCancel
+	: public wxDialog
 	, public T_View
 {
 public:
@@ -32,15 +33,30 @@ private:
 
 	void OnChangeModel(const IModel* model, const MClsMove::T_Data* data);
 
-	wxPropertyGrid*					mPropGrid;
+	// графические компоненты свеху вниз
+	PathPatternEditor*		mMovEditor;
+	PathPatternEditor*		mSrcPathEditor;
+	PathPatternEditor*		mDstPathEditor;
+	wxPropertyGrid*			mPropGrid;
+	wxButton*				m_btnOK;
+	wxButton*				m_btnCancel;
+	wxStdDialogButtonSizer*	m_sdbSizer;
 
-	// каталог групп
-	std::shared_ptr<MGroupArray>	mGroupArray;
+	// модели
+	std::shared_ptr<MClsMove>		mModel;// Модель разрешений перемещений
 
+	/// Модель перемещаемого шаблона
+	std::shared_ptr<temppath::model::Array>	mMovPattern;
+	/// Модель для массива шаблона-пути-источника
+	std::shared_ptr<temppath::model::Array>	mSrcPatternPath;
+	/// Модель для массива шаблона-пути-приёмника
+	std::shared_ptr<temppath::model::Array>	mDstPatternPath;
 
-	/// Модель свойства класса
-	std::shared_ptr<MClsMove>		mModel;
+	// сигналы
 	sig::scoped_connection			mChangeConnection;
+
+	// TODO: заменить на диалоги групп и действий
+	std::shared_ptr<MGroupArray>	mGroupArray;
 };
 //-----------------------------------------------------------------------------	
 

@@ -107,9 +107,12 @@ PathPatternEditor::PathPatternEditor(wxWindow *parent,
 	mMnuAddToRight = AppendBitmapMenu(&mMenu, miAddToRight, L"добавить справа +", rc->m_ico_plus16);
 	mMnuRemove = AppendBitmapMenu(&mMenu, miRemove, L"удалить", rc->m_ico_delete16);
 	mMenu.AppendSeparator();
-	mMnuSetAny = mMenu.Append(miSetAny, L"* любой");
-	mMnuSetCls = mMenu.Append(miSetCls, L"[?]* выбрать только класс,объект любой");
+	mMnuSetAny = mMenu.Append(miSetAny, L"[*]* любой класс, любой объект");
+	mMnuSetCls = mMenu.Append(miSetCls, L"[?]* выбрать только класс,любой объект");
 	mMnuSetClsObj= mMenu.Append(miSetClsObj, L"[?]? выбрать объект и соответственно его класс");
+
+	mMnuSetFixObj = mMenu.Append(miSetFixObj, L"[X]? выбрать объект");
+	mMnuSetFixAny = mMenu.Append(miSetFixAny, L"[X]* любой объект");
 
 	//Bind(wxEVT_COMMAND_MENU_SELECTED, [](wxCommandEvent& evt){}, miAddToLeft);
 	//Bind(wxEVT_COMMAND_MENU_SELECTED, &PathPatternEditor::PnlShowAct, this, miAddToLeft);
@@ -120,6 +123,8 @@ PathPatternEditor::PathPatternEditor(wxWindow *parent,
 	Bind(wxEVT_MENU, &PathPatternEditor::OnCmdSetAny, this, miSetAny);
 	Bind(wxEVT_MENU, &PathPatternEditor::OnCmdSetCls, this, miSetCls);
 	Bind(wxEVT_MENU, &PathPatternEditor::OnCmdSetClsObj, this, miSetClsObj);
+	Bind(wxEVT_MENU, &PathPatternEditor::OnCmdSetFixObj, this, miSetFixObj);
+	Bind(wxEVT_MENU, &PathPatternEditor::OnCmdSetFixAny, this, miSetFixAny);
 }
 //---------------------------------------------------------------------------
 bool PathPatternEditor::GetGiuItemIndex(TmpPathItem* ch, size_t& model_idx)
@@ -131,10 +136,9 @@ bool PathPatternEditor::GetGiuItemIndex(TmpPathItem* ch, size_t& model_idx)
 		CRndIterator rndIt = mPathChoice.project<0>(ptrIt);
 		CRndIterator rndBegin = mPathChoice.cbegin();
 		model_idx = std::distance(rndBegin, rndIt);
+		return true;
 	}
-	else
-		return false;
-	return true;
+	return false;
 }
 //---------------------------------------------------------------------------
 void PathPatternEditor::OnCmdAddToLeft(wxCommandEvent& evt)
@@ -168,9 +172,7 @@ void PathPatternEditor::OnCmdRemove(wxCommandEvent& evt)
 	size_t model_idx(0);
 	if (GetGiuItemIndex(mSelectedItem, model_idx))
 	{
-		if (mDoNotDeleteFirst && 0 == model_idx)
-			return;
-		if (mDoNotDeleteLast && mModel->GetChildQty() == (model_idx + 1))
+		if (mModel->GetChildQty() > model_idx )
 			return;
 
 		mModel->DelChild(model_idx);
@@ -184,18 +186,8 @@ void PathPatternEditor::OnCmdSetAny(wxCommandEvent& evt)
 	if (!GetGiuItemIndex(mSelectedItem, model_idx))
 		return;
 
-	long cls_id = 0;
-	if ((mModel->GetChildQty() - 1) == model_idx)
-	{
-		auto data = mModel->at(model_idx)->GetData();
-		data.mObj = rec::Base();
-		mModel->at(model_idx)->SetData(data);
-	}
-	else
-	{
-		temppath::model::Item::DataType emptyData;
-		mModel->at(model_idx)->SetData(emptyData);
-	}
+	temppath::model::Item::DataType emptyData;
+	mModel->at(model_idx)->SetData(emptyData);
 
 }
 //---------------------------------------------------------------------------
@@ -232,28 +224,15 @@ void PathPatternEditor::OnCmdSetClsObj(wxCommandEvent& evt)
 	size_t model_idx(0);
 	if (!GetGiuItemIndex(mSelectedItem, model_idx))
 		return;
-	
-	long cls_id = 0;
-	if ((mModel->GetChildQty() - 1) == model_idx)
-	{
-		cls_id = mModel->at(model_idx)->GetData().mCls.mId;
-	}
-
-
 
 	CatDlg dlg(nullptr);
 	dlg.SetTargetObj(true);
 
 	auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
 	
-	catalog->SetFilterClsKind(ctQtyByOne, foLess, true);
-	if (cls_id)
-	{
-		catalog->SetCfg(rec::catCls, false, true);
-		catalog->SetFilterClsId(cls_id, foEq, true);
-	}
-	else
-		catalog->SetCfg(rec::catObj, false, true);
+	catalog->SetCfg(rec::catObj, false, true);
+	if(FixOne_ReqCls!=mMode)
+		catalog->SetFilterClsKind(ctQtyByOne, foLess, true);
 	catalog->Load();
 
 	dlg.SetModel(catalog);
@@ -269,19 +248,65 @@ void PathPatternEditor::OnCmdSetClsObj(wxCommandEvent& evt)
 		}
 	}
 }
-
 //---------------------------------------------------------------------------
-void PathPatternEditor::DoNotDeleteFirst(bool val)
+void PathPatternEditor::OnCmdSetFixObj(wxCommandEvent& evt)
 {
-	mDoNotDeleteFirst = val;
-}
+	size_t model_idx(0);
+	if (!GetGiuItemIndex(mSelectedItem, model_idx))
+		return;
 
+	long cls_id = 0;
+	//if ((mModel->GetChildQty() - 1) == model_idx)
+	{
+		auto m = mModel->at(model_idx);
+		if (m)
+		{
+			const auto& data = m->GetData();
+			if (!data.mCls.mId.IsNull())
+				cls_id = data.mCls.mId;
+		}
+	}
+
+	auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
+
+	catalog->SetFilterClsKind(ctQtyByOne, foLess, true);
+	if (cls_id)
+	{
+		catalog->SetCfg(rec::catCustom, false, true);
+		catalog->SetFilterClsId(cls_id, foEq, true);
+	}
+	catalog->Load();
+
+	CatDlg dlg(nullptr);
+	dlg.SetTargetObj(true);
+	dlg.SetModel(catalog);
+	if (wxID_OK == dlg.ShowModal())
+	{
+		wh::rec::ObjInfo obj;
+		if (dlg.GetSelectedObj(obj))
+		{
+			temppath::model::Item::DataType data;
+			data.mCls = obj.mCls;
+			data.mObj = obj.mObj;
+			mModel->at(model_idx)->SetData(data);
+		}
+	}
+}
 //---------------------------------------------------------------------------
-void PathPatternEditor::DoNotDeleteLast(bool val)
+void PathPatternEditor::OnCmdSetFixAny(wxCommandEvent& evt)
 {
-	mDoNotDeleteLast = val;
-}
+	size_t model_idx(0);
+	if (!GetGiuItemIndex(mSelectedItem, model_idx))
+		return;
 
+	//if ((mModel->GetChildQty() - 1) == model_idx)
+	{
+		auto data = mModel->at(model_idx)->GetData();
+		data.mObj = rec::Base();
+		mModel->at(model_idx)->SetData(data);
+	}
+
+}
 //---------------------------------------------------------------------------
 void PathPatternEditor::SetModel(std::shared_ptr<temppath::model::Array>& newModel)
 {
@@ -312,19 +337,18 @@ void PathPatternEditor::SetModel(std::shared_ptr<temppath::model::Array>& newMod
 void PathPatternEditor::MakeGuiItem(unsigned int pos)
 {
 	auto szrPath = this->GetSizer();
-	auto itPos = mPathChoice.begin() + pos;
+	auto itPos = mPathChoice.begin() + pos;		// получаем позицию GUI элемента
 
-	auto ch = new TmpPathItem(this, wxID_ANY);
-	ch->SetModel(mModel->at(pos));
+	auto ch = new TmpPathItem(this, wxID_ANY);	// создаём новый GUI элемент
+	ch->SetModel(mModel->at(pos));				// устанавливаем модель в GUI
 
-	szrPath->Insert(pos, ch, 0, wxALL | wxALIGN_CENTER_VERTICAL, 1);
-	mPathChoice.insert(itPos, ch);
+	szrPath->Insert(pos, ch, 0, wxALL | wxALIGN_CENTER_VERTICAL, 1);//вставляем в GUI массив
+	mPathChoice.insert(itPos, ch);				// вставляем в перечень
 
 	szrPath->Fit(this);
 	this->GetParent()->Layout();
 
-	// wxEVT_CONTEXT_MENU wxContextMenuEvent
-	//auto popupMenu = [this, ch](wxMouseEvent& evt)
+	// меню элемента
 	auto popupMenu = [this, ch](wxContextMenuEvent& evt)
 	{
 		//TmpPathItem* ch = mSelectedItem;
@@ -338,12 +362,44 @@ void PathPatternEditor::MakeGuiItem(unsigned int pos)
 			bool isLast = (mModel->GetChildQty() - 1 == model_idx);
 			bool isOne = (mModel->GetChildQty() == 1);
 
-			mMnuAddToLeft->Enable(!isFirst || isOne);
-			mMnuAddToRight->Enable(!isLast);
-			mMnuRemove->Enable(!(mDoNotDeleteFirst && isFirst));
-			mMnuRemove->Enable(!(mDoNotDeleteLast && isLast));
-			//mMnuSetAny->Enable(!isLast);
-			mMnuSetCls->Enable(!isLast);
+			mMnuAddToLeft->Enable(false);
+			mMnuAddToRight->Enable(false);
+			mMnuRemove->Enable(false);
+			mMnuSetAny->Enable(false);
+			mMnuSetCls->Enable(false);
+			mMnuSetClsObj->Enable(false);
+			mMnuSetFixObj->Enable(false);
+			mMnuSetFixAny->Enable(false);
+
+			if (isLast && FixOne_ReqCls == mMode)
+			{
+				mMnuSetCls->Enable(true);
+				mMnuSetClsObj->Enable(true);
+			}
+			else if (isLast && ReqOne_ReqCls == mMode)
+			{
+				mMnuAddToLeft->Enable(true);
+				mMnuSetCls->Enable(true);
+				mMnuSetClsObj->Enable(true);
+			}
+			else if (isLast && ReqOne_FixCls == mMode)
+			{
+				mMnuAddToLeft->Enable(true);
+				mMnuSetFixObj->Enable(true);
+				mMnuSetFixAny->Enable(true);
+			}
+			else
+			{
+				mMnuAddToLeft->Enable(true);
+				mMnuAddToRight->Enable(true);
+				mMnuRemove->Enable(true);
+				mMnuSetAny->Enable(true);
+				mMnuSetCls->Enable(true);
+				mMnuSetClsObj->Enable(true);
+				mMnuSetFixObj->Enable(true);
+				mMnuSetFixAny->Enable(true);
+
+			}
 
 		}
 		mSelectedItem = ch;
@@ -355,7 +411,7 @@ void PathPatternEditor::MakeGuiItem(unsigned int pos)
 
 	//ch->Bind(wxEVT_RIGHT_DOWN, popupMenu);
 	//ch->Bind(wxEVT_LEFT_DOWN, popupMenu);
-	ch->Bind(wxEVT_CONTEXT_MENU, popupMenu);
+	ch->Bind(wxEVT_CONTEXT_MENU, popupMenu); // привязывем меню к элементу
 
 }
 

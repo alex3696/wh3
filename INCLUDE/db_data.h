@@ -68,7 +68,7 @@ static wxString ToText(DbType type)
 	return it->mTitle;
 }
 //-----------------------------------------------------------------------------
-static DbType ToType(const wxString str)
+static DbType ToType(const wxString& str)
 {
 	unsigned long val;
 	if (str.ToCULong(&val))

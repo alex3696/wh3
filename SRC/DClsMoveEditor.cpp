@@ -23,13 +23,49 @@ DClsMoveEditor::DClsMoveEditor(wxWindow*		parent,
 	const wxSize&	size,
 	long style,
 	const wxString& name)
-	:DlgBaseOkCancel(parent, id, title, pos, size, style, name), mModel(nullptr)
+	:wxDialog(parent, id, title, pos, size, style, name), mModel(nullptr)
 {
-	SetTitle("Редактирование информации о разрешении действия");
-	wxSizer*	szrMain = GetSizer();
+	mMovPattern.reset(new temppath::model::Array());
+	mSrcPatternPath.reset(new temppath::model::Array());
+	mDstPatternPath.reset(new temppath::model::Array());
+
+	this->SetSize(600, 400);
+	this->SetMinSize(wxSize(600, 400));
+	SetTitle("Редактирование информации о разрешении перемещения");
+	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
+
+	auto mMovPathLabel = new wxStaticText(this, wxID_ANY, "Перемещаемый объект");
+	mMovPathLabel->Wrap(-1);
+	szrMain->Add(mMovPathLabel, 0, wxALL, 5);
+
+	mMovEditor = new PathPatternEditor(this);
+	szrMain->Add(mMovEditor, 0, wxALL | wxEXPAND, 1);
+
+	auto mSrcPathLabet = new wxStaticText(this, wxID_ANY, "Источник");
+	mSrcPathLabet->Wrap(-1);
+	szrMain->Add(mSrcPathLabet, 0, wxALL, 5);
+
+	mSrcPathEditor = new PathPatternEditor(this);
+	szrMain->Add(mSrcPathEditor, 0, wxALL | wxEXPAND, 1);
+
+	auto mDstPathLabet = new wxStaticText(this, wxID_ANY, "Приёмник");
+	mDstPathLabet->Wrap(-1);
+	szrMain->Add(mDstPathLabet, 0, wxALL, 5);
+
+	mDstPathEditor = new PathPatternEditor(this);
+	szrMain->Add(mDstPathEditor, 0, wxALL | wxEXPAND, 1);
 
 	mPropGrid = new wxPropertyGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxPG_DEFAULT_STYLE | wxPG_SPLITTER_AUTO_CENTER);
-	szrMain->Insert(0, mPropGrid, 1, wxALL | wxEXPAND, 0);
+	szrMain->Add(mPropGrid, 1, wxALL | wxEXPAND, 0);
+
+	m_sdbSizer = new wxStdDialogButtonSizer();
+	m_btnOK = new wxButton(this, wxID_OK);//,"Сохранить и закрыть" );
+	m_sdbSizer->AddButton(m_btnOK);
+	m_btnCancel = new wxButton(this, wxID_CANCEL);//," Закрыть" );
+	m_sdbSizer->AddButton(m_btnCancel);
+	m_sdbSizer->Realize();
+	szrMain->Add(m_sdbSizer, 0, wxALL | wxEXPAND, 10);
+	this->SetSizer(szrMain);
 
 	mGroupArray.reset(new MGroupArray);
 	mGroupArray->Load();
@@ -63,101 +99,96 @@ DClsMoveEditor::DClsMoveEditor(wxWindow*		parent,
 		}
 		return false;
 	};
-
-
+	
 	mPropGrid->Append(new wxBoolProperty("Запретить"));
-
 	BtnProperty* groupProp = new BtnProperty("Группа");
 	groupProp->SetOnClickButonFunc(selectGroup);
 	mPropGrid->Append(groupProp);
-
 	mPropGrid->Append(new wxLongStringProperty(L"Скрипт"));
-
-	mPropGrid->Append(new wxStringProperty(L"Класс"));
-	mPropGrid->Append(new wxStringProperty(L"Объект"));
-	
-
-	mPropGrid->Append(new wxStringProperty(L"Источник"));
-	mPropGrid->Append(new wxStringProperty(L"Приемник"));
-
 	mPropGrid->Append(new wxStringProperty(L"ID"))->Enable(false);
-
-
-
+	
 	this->Layout();
 }
 //---------------------------------------------------------------------------
 void DClsMoveEditor::SetModel(std::shared_ptr<IModel>& newModel)
 {
-	if (newModel != mModel)
-	{
-		mChangeConnection.disconnect();
-		mModel = std::dynamic_pointer_cast<MClsMove>(newModel);
-		if (mModel)
-		{
-			auto funcOnChange = std::bind(&DClsMoveEditor::OnChangeModel,
-				this, std::placeholders::_1, std::placeholders::_2);
-			mChangeConnection = mModel->DoConnect(moAfterUpdate, funcOnChange);
-			OnChangeModel(mModel.get(), nullptr);
-		}//if (mModel)
-	}//if
+	if (newModel == mModel)
+		return;
+
+	mChangeConnection.disconnect();
+	mModel = std::dynamic_pointer_cast<MClsMove>(newModel);
+	
+	if (!mModel)
+		return;
+	
+	auto funcOnChange = std::bind(&DClsMoveEditor::OnChangeModel,
+		this, std::placeholders::_1, std::placeholders::_2);
+	mChangeConnection = mModel->DoConnect(moAfterUpdate, funcOnChange);
+	OnChangeModel(mModel.get(), nullptr);
+
 }//SetModel
 
 //---------------------------------------------------------------------------
 void DClsMoveEditor::GetData(rec::ClsSlotAccess& rec) const
 {
 	mPropGrid->CommitChangesFromEditor();
-
 	wxString accessDisabled = mPropGrid->GetPropertyByLabel(L"Запретить")->GetValueAsString();
 	rec.mAccessDisabled = (0 == accessDisabled.CmpNoCase("true")) ? "1" : "0";
-
 	rec.mAcessGroup = mPropGrid->GetPropertyByLabel(L"Группа")->GetValueAsString();
 	rec.mScriptRestrict = mPropGrid->GetPropertyByLabel(L"Скрипт")->GetValueAsString();
-	
-	rec.mCls.mLabel = mPropGrid->GetPropertyByLabel("Класс")->GetValueAsString();
-	rec.mObj.mLabel = mPropGrid->GetPropertyByLabel("Объект")->GetValueAsString();
-
-	/*
-	wh::ObjKeyPath path;
-	wxString generated_path;
-
-	path.ParsePath(mPropGrid->GetPropertyByLabel("Источник")->GetValueAsString());
-	path.GenerateArray(generated_path, true);
-	rec.mSrcPath = generated_path;
-
-	path.ParsePath(mPropGrid->GetPropertyByLabel("Приемник")->GetValueAsString());
-	path.GenerateArray(generated_path, true);
-	rec.mDstPath = generated_path;
-	*/
-
-
 	rec.mId = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
+
+
+	
 }
 //---------------------------------------------------------------------------
 void DClsMoveEditor::SetData(const rec::ClsSlotAccess& rec)
 {
+	if (!mModel)
+		return;
+
 	mPropGrid->CommitChangesFromEditor();
 
 	mPropGrid->GetPropertyByLabel(L"Запретить")->	SetValueFromString(("1" == rec.mAccessDisabled) ? "true" : "false");
 	mPropGrid->GetPropertyByLabel(L"Группа")->SetValueFromString(rec.mAcessGroup);
 	mPropGrid->GetPropertyByLabel(L"Скрипт")->SetValueFromString(rec.mScriptRestrict);
-
-	mPropGrid->GetPropertyByLabel(L"Класс")->SetValueFromString(rec.mCls.mLabel);
-	mPropGrid->GetPropertyByLabel(L"Объект")->SetValueFromString(rec.mObj.mLabel);
-
-	/*
-	wh::ObjKeyPath path;
-	wxString pathStr;
-
-	path.ParseArray(rec.mSrcPath);
-	path.GeneratePath(pathStr);
-	mPropGrid->GetPropertyByLabel("Источник")->SetValueFromString(pathStr);
-
-	path.ParseArray(rec.mDstPath);
-	path.GeneratePath(pathStr);
-	mPropGrid->GetPropertyByLabel("Приемник")->SetValueFromString(pathStr);
-*/
 	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(rec.mId);
+
+	namespace cat = wh::object_catalog;
+	auto permArr = mModel->GetParent();
+	if (!permArr)
+		return;
+	auto clsIModel = permArr->GetParent();
+	auto clsModel = dynamic_cast<cat::MTypeItem*>(clsIModel);
+	if (!clsModel)
+		return;
+
+	// mov
+	rec::PathNode movItemData(rec.mCls.mId, rec.mCls.mLabel,
+								rec.mObj.mId, rec.mObj.mLabel);
+	auto movItemModel = mMovPattern->CreateItem(movItemData);
+	mMovPattern->AddChild(movItemModel);
+	mMovEditor->SetMode(PathPatternEditor::FixOne_ReqCls);
+	mMovEditor->SetModel(mMovPattern);
+
+	// srcPath = srcPath || {%} + [srcCls]srcObj + [movCls]movObj
+	mSrcPatternPath->SetArr2Id2Title(rec.mSrcArrId, rec.mSrcArrTitle);
+	rec::PathNode srcItemData(rec.mSrcCls.mId, rec.mSrcCls.mLabel,
+								rec.mDstCls.mId, rec.mDstCls.mLabel);
+	auto srcItemModel = mSrcPatternPath->CreateItem(srcItemData);
+	mSrcPatternPath->AddChild(srcItemModel);
+	mSrcPathEditor->SetMode(PathPatternEditor::ReqOne_ReqCls);
+	mSrcPathEditor->SetModel(mSrcPatternPath);
+
+	// dstPath = dstPath || {%}+ [dstCls]dstObj 
+	mDstPatternPath->SetArr2Id2Title(rec.mDstArrId, rec.mDstArrTitle);
+	const auto& clsData = clsModel->GetData();
+	rec::PathNode dstItemData(clsData.mId, clsData.mLabel,
+								rec.mDstObj.mId, rec.mDstObj.mLabel);
+	auto dstItemModel = mSrcPatternPath->CreateItem(dstItemData);
+	mDstPatternPath->AddChild(dstItemModel);
+	mDstPathEditor->SetMode(PathPatternEditor::ReqOne_FixCls);
+	mDstPathEditor->SetModel(mDstPatternPath);
 }
 //---------------------------------------------------------------------------
 
@@ -183,6 +214,6 @@ void DClsMoveEditor::UpdateModel()const
 //---------------------------------------------------------------------------
 int DClsMoveEditor::ShowModal()
 {
-	return DlgBaseOkCancel::ShowModal();
+	return wxDialog::ShowModal();
 }
 

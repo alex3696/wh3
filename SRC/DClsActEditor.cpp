@@ -95,7 +95,6 @@ DClsActEditor::DClsActEditor(wxWindow*		parent,
 		return false;
 	};
 
-
 	std::function<bool(wxPGProperty*)> selectGroup = [this](wxPGProperty* prop)
 	{
 		DGroupSelector dlg(nullptr);
@@ -122,25 +121,15 @@ DClsActEditor::DClsActEditor(wxWindow*		parent,
 		return false;
 	};
 
-
 	BtnProperty* btnProp = new BtnProperty("Действие");
 	btnProp->SetOnClickButonFunc(selecAct);
 	mPropGrid->Append(btnProp);
-
 	mPropGrid->Append(new wxBoolProperty("Запретить"));
-	
 	BtnProperty* groupProp = new BtnProperty("Группа");
 	groupProp->SetOnClickButonFunc(selectGroup);
 	mPropGrid->Append(groupProp);
-	
 	mPropGrid->Append(new wxLongStringProperty(L"Скрипт"));
-
-	//mPropGrid->Append(new wxStringProperty(L"Объект"));
-	//mPropGrid->Append(new wxStringProperty(L"Путь"));
-
 	mPropGrid->Append(new wxStringProperty(L"ID"))->Enable(false);
-
-
 
 	this->Layout();
 }
@@ -198,15 +187,12 @@ void DClsActEditor::SetModel(std::shared_ptr<IModel>& newModel)
 void DClsActEditor::GetData(rec::ClsActAccess& rec) const
 {
 	mPropGrid->CommitChangesFromEditor();
-
 	rec.mAct.mLabel = mPropGrid->GetPropertyByLabel(L"Действие")->GetValueAsString();
-
-
 	wxString accessDisabled = mPropGrid->GetPropertyByLabel(L"Запретить")->GetValueAsString();
 	rec.mAccessDisabled = (0 == accessDisabled.CmpNoCase("true")) ? "1" : "0";
-
 	rec.mAcessGroup = mPropGrid->GetPropertyByLabel(L"Группа")->GetValueAsString();
 	rec.mScriptRestrict = mPropGrid->GetPropertyByLabel(L"Скрипт")->GetValueAsString();
+	rec.mId = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
 	
 	auto qty = mPatternPath->GetChildQty();
 	if (qty > 1)
@@ -218,7 +204,7 @@ void DClsActEditor::GetData(rec::ClsActAccess& rec) const
 	rec.mArrId = mPatternPath->GetArr2Id(false);
 	rec.mArrTitle = mPatternPath->GetArr2Title(false);
 
-	rec.mId = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
+	
 }
 //---------------------------------------------------------------------------
 void DClsActEditor::SetData(const rec::ClsActAccess& rec)
@@ -245,9 +231,8 @@ void DClsActEditor::SetData(const rec::ClsActAccess& rec)
 	lastItem->SetData(lastItemData);
 	mPatternPath->AddChild(lastItem);
 	
+	mPathEditor->SetMode(PathPatternEditor::ReqOne_FixCls);
 	mPathEditor->SetModel(mPatternPath);
-	mPathEditor->DoNotDeleteLast(true);
-
 }
 //---------------------------------------------------------------------------
 

@@ -19,10 +19,6 @@ const std::vector<Field> gClsMoveFieldVec = {
 MClsMove::MClsMove(const char option)
 :TModelData<rec::ClsSlotAccess>(option)
 {
-	mSrcPathArr = std::make_shared<temppath::model::Array>();
-	this->AddChild(mSrcPathArr);
-	mDstPathArr = std::make_shared<temppath::model::Array>();
-	this->AddChild(mDstPathArr);
 }
 
 //-------------------------------------------------------------------------
@@ -96,11 +92,11 @@ bool MClsMove::GetInsertQuery(wxString& query)const
 
 		, newPerm.mSrcCls.mId.SqlVal()
 		, newPerm.mSrcObj.mId.SqlVal()
-		, mSrcPathArr->GetArr2Id()
+		, newPerm.mSrcArrId.SqlVal()
 
 		, newPerm.mDstCls.mId.SqlVal()
 		, newPerm.mDstObj.mId.SqlVal()
-		, mDstPathArr->GetArr2Id()
+		, newPerm.mDstArrId.SqlVal()
 
 		);
 	return true;
@@ -137,11 +133,11 @@ bool MClsMove::GetUpdateQuery(wxString& query)const
 
 		, newPerm.mSrcCls.mId.SqlVal()
 		, newPerm.mSrcObj.mId.SqlVal()
-		, mSrcPathArr->GetArr2Id()
+		, newPerm.mSrcArrId.SqlVal()
 
 		, newPerm.mDstCls.mId.SqlVal()
 		, newPerm.mDstObj.mId.SqlVal()
-		, mDstPathArr->GetArr2Id()
+		, newPerm.mDstArrId.SqlVal()
 
 		, oldPerm.mId.SqlVal()
 		);
@@ -192,14 +188,11 @@ bool MClsMove::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t 
 	data.mDstObj.mId = table->GetAsLong(i++, row);
 	data.mDstObj.mLabel = table->GetAsString(i++, row);
 	
-	auto arr2title = table->GetAsString(i++, row);
-	auto arr2id = table->GetAsString(i++, row);
-	mSrcPathArr->SetArr2Id2Title(arr2id, arr2title);
-
-	arr2title = table->GetAsString(i++, row);
-	arr2id = table->GetAsString(i++, row);
-	mDstPathArr->SetArr2Id2Title(arr2id, arr2title);
-
+	data.mSrcArrTitle = table->GetAsString(i++, row);
+	data.mSrcArrId = table->GetAsString(i++, row);
+	
+	data.mDstArrTitle = table->GetAsString(i++, row);
+	data.mDstArrId = table->GetAsString(i++, row);
 
 	SetData(data);
 	return true;

@@ -67,9 +67,6 @@ class PathPatternEditor
 	sig::scoped_connection connAfterInsert;
 	sig::scoped_connection connAfterReset;
 
-	bool mDoNotDeleteFirst = false;
-	bool mDoNotDeleteLast = false;
-
 	void OnAfterReset(const IModel&);
 	void OnAfterInsert(const IModel&, const std::shared_ptr<IModel>&,
 		std::shared_ptr<IModel>&);
@@ -87,6 +84,9 @@ class PathPatternEditor
 	wxMenuItem* mMnuSetAny;
 	wxMenuItem* mMnuSetCls;
 	wxMenuItem* mMnuSetClsObj;
+	wxMenuItem* mMnuSetFixObj;
+	wxMenuItem* mMnuSetFixAny;
+	
 
 	enum MenuID
 	{
@@ -96,6 +96,8 @@ class PathPatternEditor
 		, miSetAny
 		, miSetCls
 		, miSetClsObj
+		, miSetFixObj
+		, miSetFixAny
 	};
 	TmpPathItem* mSelectedItem = nullptr;
 
@@ -105,6 +107,8 @@ class PathPatternEditor
 	void OnCmdSetAny(wxCommandEvent& evt);
 	void OnCmdSetCls(wxCommandEvent& evt);
 	void OnCmdSetClsObj(wxCommandEvent& evt);
+	void OnCmdSetFixObj(wxCommandEvent& evt);
+	void OnCmdSetFixAny(wxCommandEvent& evt);
 
 public:
 	PathPatternEditor(wxWindow *parent,
@@ -116,10 +120,20 @@ public:
 
 	void SetModel(std::shared_ptr<temppath::model::Array>& newModel);
 
-	void DoNotDeleteFirst(bool val = false);
-	void DoNotDeleteLast(bool val = false);
-
-
+	enum Mode			// ограничения
+	{
+		FixOne_ReqCls=0,	// только один элемент // обязательно хотя бы класс [в последнем]
+		ReqOne_ReqCls=1,	// хотя бы один элемент // обязательно хотя бы класс в последнем
+		ReqOne_FixCls=2		// хотя бы один элемент // фиксированный класс в последнем
+	};
+	
+	void SetMode(Mode mode)
+	{
+		mMode = mode;
+	}
+	
+protected:
+	Mode mMode = ReqOne_FixCls;
 };
 
 

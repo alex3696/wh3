@@ -20,8 +20,8 @@ public:
 
 	virtual bool LoadThisDataFromDb(std::shared_ptr<whTable>&, const size_t)override;
 
-	std::shared_ptr<temppath::model::Array>	mSrcPathArr;
-	std::shared_ptr<temppath::model::Array>	mDstPathArr;
+	//std::shared_ptr<temppath::model::Array>	mSrcPathArr;
+	//std::shared_ptr<temppath::model::Array>	mDstPathArr;
 protected:
 	virtual bool GetSelectQuery(wxString&)const override;
 	virtual bool GetInsertQuery(wxString&)const override;

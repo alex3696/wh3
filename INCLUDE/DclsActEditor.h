@@ -35,28 +35,26 @@ private:
 
 	void OnChangeModel(const IModel* model, const MClsAct::T_Data* data);
 
-
+	// графические компоненты свеху вниз
+	PathPatternEditor*		mPathEditor;
+	wxPropertyGrid*			mPropGrid;
 	wxButton*				m_btnOK;
 	wxButton*				m_btnCancel;
 	wxStdDialogButtonSizer*	m_sdbSizer;
 
-	wxPropertyGrid*				mPropGrid;
-	PathPatternEditor*			mPathEditor;
-	
-
-	// каталог действий
-	std::shared_ptr<MActArray>		mActArray;
-	// каталог групп
-	std::shared_ptr<MGroupArray>	mGroupArray;
-
-
+	// модели
 	/// Модель свойства класса
-	std::shared_ptr<MClsAct>		mModel; 
-	///
+	std::shared_ptr<MClsAct>		mModel;
+	/// Модель для массива шаблона-пути
 	std::shared_ptr<temppath::model::Array>	mPatternPath;
-
-
+	
+	// сигналы
 	sig::scoped_connection			mChangeConnection;
+	
+	// TODO: заменить на диалоги групп и действий
+	std::shared_ptr<MActArray>		mActArray;// каталог действий
+	std::shared_ptr<MGroupArray>	mGroupArray;// каталог групп
+
 };
 //-----------------------------------------------------------------------------	
 

@@ -242,14 +242,18 @@ struct ClsSlotAccess
 
 	Base		mSrcCls;
 	Base		mSrcObj;
-	//SqlString	mSrcPath;
+
+	SqlString	mSrcArrId;		//SqlString	mSrcPath;
+	SqlString	mSrcArrTitle;	//SqlString	mSrcPath;
 
 	Base		mCls;
 	Base		mObj;
 
 	Base		mDstCls;
 	Base		mDstObj;
-	//SqlString	mDstPath;
+
+	SqlString	mDstArrId;		//SqlString	mDstPath;
+	SqlString	mDstArrTitle;	//SqlString	mDstPath;
 };
 
 //-----------------------------------------------------------------------------
@@ -340,7 +344,8 @@ enum CatType
 {
 	catCls = 0,
 	catObj = 1,
-	catFav = 2
+	catCustom = 2,
+	catFav = 3
 };
 //-----------------------------------------------------------------------------
 
