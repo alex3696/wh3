@@ -351,7 +351,7 @@ DECLARE
         FROM (
                 SELECT ORDINALITY as ord,res[1] as id1,res[2] as id2
                 FROM 
-                     regexp_matches($1 , 
+                     regexp_matches( substring($1 from '{(.+)}' ),  
                      '%+|{(%|[[:digit:]]+),(%|[[:digit:]]+)}','g') WITH ORDINALITY res
 
              ) arr
@@ -385,6 +385,7 @@ SELECT * FROM tmppath_to_2id_info('{%,{%,%},%%{%,106},{108,%}{111,122}}%');
 
 
 
+SELECT * FROM tmppath_to_2id_info('{%,%}');
 
 
 

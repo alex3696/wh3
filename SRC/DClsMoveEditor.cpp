@@ -87,12 +87,7 @@ DClsMoveEditor::DClsMoveEditor(wxWindow*		parent,
 				const auto& groupData = groupModel->GetData();
 
 				mPropGrid->CommitChangesFromEditor();
-
-				auto clsAct = mModel->GetData();
-
-				clsAct.mAcessGroup = groupData.mLabel;
-
-				mModel->SetData(clsAct);
+				prop->SetValueFromString(groupData.mLabel);
 				return true;
 			}
 
@@ -139,6 +134,33 @@ void DClsMoveEditor::GetData(rec::ClsSlotAccess& rec) const
 	rec.mId = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
 
 
+	if (mMovPattern->GetChildQty())
+	{
+		const auto& mov = mMovPattern->at(0)->GetData();
+		rec.mCls = mov.mCls;
+		rec.mObj = mov.mObj;
+	}
+
+	auto srcLastItem = mSrcPatternPath->GetLast();
+	if (srcLastItem)
+	{
+		const auto& srcLastItemData = srcLastItem->GetData();
+		rec.mSrcCls = srcLastItemData.mCls;
+		rec.mSrcObj = srcLastItemData.mObj;
+	}
+	rec.mSrcArrId = mSrcPatternPath->GetArr2Id(false);
+	rec.mSrcArrTitle = mSrcPatternPath->GetArr2Title(false);
+
+	auto dstLastItem = mDstPatternPath->GetLast();
+	if (dstLastItem)
+	{
+		const auto& dstLastItemData = dstLastItem->GetData();
+		rec.mDstCls = dstLastItemData.mCls;
+		rec.mDstObj = dstLastItemData.mObj;
+	}
+	rec.mDstArrId = mDstPatternPath->GetArr2Id(false);
+	rec.mDstArrTitle = mDstPatternPath->GetArr2Title(false);
+
 	
 }
 //---------------------------------------------------------------------------
@@ -174,7 +196,7 @@ void DClsMoveEditor::SetData(const rec::ClsSlotAccess& rec)
 	// srcPath = srcPath || {%} + [srcCls]srcObj + [movCls]movObj
 	mSrcPatternPath->SetArr2Id2Title(rec.mSrcArrId, rec.mSrcArrTitle);
 	rec::PathNode srcItemData(rec.mSrcCls.mId, rec.mSrcCls.mLabel,
-								rec.mDstCls.mId, rec.mDstCls.mLabel);
+								rec.mSrcObj.mId, rec.mSrcObj.mLabel);
 	auto srcItemModel = mSrcPatternPath->CreateItem(srcItemData);
 	mSrcPatternPath->AddChild(srcItemModel);
 	mSrcPathEditor->SetMode(PathPatternEditor::ReqOne_ReqCls);
@@ -185,7 +207,7 @@ void DClsMoveEditor::SetData(const rec::ClsSlotAccess& rec)
 	const auto& clsData = clsModel->GetData();
 	rec::PathNode dstItemData(clsData.mId, clsData.mLabel,
 								rec.mDstObj.mId, rec.mDstObj.mLabel);
-	auto dstItemModel = mSrcPatternPath->CreateItem(dstItemData);
+	auto dstItemModel = mDstPatternPath->CreateItem(dstItemData);
 	mDstPatternPath->AddChild(dstItemModel);
 	mDstPathEditor->SetMode(PathPatternEditor::ReqOne_FixCls);
 	mDstPathEditor->SetModel(mDstPatternPath);

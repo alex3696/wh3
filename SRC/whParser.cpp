@@ -57,26 +57,32 @@ struct obj_array_parser : qi::grammar<Iterator,  std::deque<wh::ObjKey>(), unico
 		using qi::omit;
 		using unicode::char_;
 
+		any_type %= lexeme['%'];					// any_type
+
 		n_type	%= lexeme[ +(char_ -'{' -'}' -',') ];					// some_type
 		q_type	%=  omit['"'] >>lexeme[ +(char_ -'"' ) ] >> omit['"'];	// "some_type"
 		oq_type %= omit['\''] >> lexeme[+(char_ - '\'')] >> omit['\''];	//'some_type'
-		type %= oq_type | q_type | n_type;  							// TYPE
+		type %= any_type | oq_type | q_type | n_type;  							// TYPE
 		
 		n_name %= lexeme[ *(char_ -'{' -'}' ) ];						// some_name	- может быть и пустым
 		q_name %=  omit['"'] >>lexeme[ *(char_ -'"' ) ] >> omit['"'];	// "some_name"	- может быть и пустым ""
 		oq_name %= omit['\''] >> lexeme[*(char_ - '\'')] >> omit['\''];	// 'some_name'	- может быть и пустым ""
-		name %= oq_name | q_name | n_name;  							// NAME
+		name %= any_type | oq_name | q_name | n_name;  							// NAME
 
-		obj %=	'{' >> type >> ',' >> name >> '}';					//{TYPE,NAME}
+
+		nobj = lexeme['%'][qi::_val = phoenix::construct<wh::ObjKey>()];
+		dobj %= '{' >> type >> ',' >> name >> '}';	
+		obj %= dobj | nobj;
+		//obj %= '{' >> type >> ',' >> name >> '}';
 		
 		obj_vec %= '{'>> (obj % ',') >> '}';						//{ *item }
 
 	}
 
 	qi::rule<Iterator, std::wstring(), unicode::space_type>		
-		type, q_type, oq_type, n_type
+		type, q_type, oq_type, n_type, any_type
 		, name, q_name, oq_name, n_name;
-	qi::rule<Iterator, wh::ObjKey(), unicode::space_type>		obj;
+	qi::rule<Iterator, wh::ObjKey(), unicode::space_type>		obj, nobj, dobj;
 	qi::rule<Iterator, std::deque<wh::ObjKey>(), unicode::space_type> obj_vec;
 
 };//struct obj_array_parser

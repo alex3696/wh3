@@ -158,8 +158,10 @@ int whTable::Exec(const wxString& query,bool with_result)
 
 		if ((result != 2 && !with_result) || !estr.IsEmpty() )
 		{
-			wxString str = wxString::Format(("%d %s"), result, estr);
-			wxLogError(query);
+			wxString str = query;
+			str.Replace("%", "?");
+			wxLogError(str);
+			str = wxString::Format(("%d %s"), result, estr);
 			wxLogError(str);
 			m_DB->RollBack();
 			throw;
@@ -170,9 +172,11 @@ int whTable::Exec(const wxString& query,bool with_result)
 	}
 	
 	auto p2 = GetTickCount();
-	wxLogMessage("%d\t%s", p2-p1, query);
-	
 
+	wxString logStr;
+	logStr << p2 - p1 << "\t" << query;
+	logStr.Replace("%", "?");
+	wxLogMessage(logStr);
 
 	return result;	
 }

@@ -172,7 +172,7 @@ void PathPatternEditor::OnCmdRemove(wxCommandEvent& evt)
 	size_t model_idx(0);
 	if (GetGiuItemIndex(mSelectedItem, model_idx))
 	{
-		if (mModel->GetChildQty() > model_idx )
+		if (mModel->GetChildQty() == 1 )
 			return;
 
 		mModel->DelChild(model_idx);

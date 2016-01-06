@@ -30,6 +30,9 @@ public:
 	wxString GetArr2Id(bool includeLast = false)const;
 	wxString GetArr2Title(bool includeLast = false)const;
 
+	std::shared_ptr<Item>	GetLast()const;
+
+
 };
 
 //-------------------------------------------------------------------------

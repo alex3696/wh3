@@ -80,9 +80,17 @@ bool MClsMove::GetInsertQuery(wxString& query)const
 		"  ,%s, %s, %s "
 		"  ,%s, %s, %s ) "
 		" RETURNING id, access_group, access_disabled, script_restrict "
-		"          ,cls_id, obj_id "
-		"          ,src_cls_id, src_obj_id, src_path "
-		"          ,dst_cls_id, dst_obj_id, dst_path "
+		"          ,cls_id, (SELECT title FROM cls WHERE id=cls_id) "
+		"          ,obj_id, (SELECT title FROM obj WHERE id=obj_id) "
+		"          ,src_cls_id, (SELECT title FROM cls WHERE id=src_cls_id) "
+		"          ,src_obj_id, (SELECT title FROM obj WHERE id=src_obj_id) "
+		"          ,dst_cls_id, (SELECT title FROM cls WHERE id=dst_cls_id) "
+		"          ,dst_obj_id, (SELECT title FROM obj WHERE id=dst_obj_id) "
+		"    	   ,(SELECT arr_2title FROM  tmppath_to_2id_info(src_path)) "
+		"    	   ,(SELECT arr_2id FROM  tmppath_to_2id_info(src_path)) "
+		"    	   ,(SELECT arr_2title FROM  tmppath_to_2id_info(dst_path)) "
+		"    	   ,(SELECT arr_2id FROM  tmppath_to_2id_info(dst_path)) "
+
 		, newPerm.mAcessGroup.SqlVal()
 		, newPerm.mAccessDisabled.SqlVal()
 		, newPerm.mScriptRestrict.SqlVal()
@@ -100,7 +108,7 @@ bool MClsMove::GetInsertQuery(wxString& query)const
 
 		);
 	return true;
-	
+
 }
 //-------------------------------------------------------------------------
 bool MClsMove::GetUpdateQuery(wxString& query)const
@@ -119,7 +127,7 @@ bool MClsMove::GetUpdateQuery(wxString& query)const
 
 	query = wxString::Format(
 		"UPDATE perm_move SET "
-		"  access_group='%s', access_disabled=%s, script_restrict=%s  "
+		"  access_group=%s, access_disabled=%s, script_restrict=%s  "
 		" ,cls_id='%s', obj_id=%s "
 		" ,src_cls_id = %s , src_obj_id = %s , src_path = %s "
 		" ,dst_cls_id = %s , dst_obj_id = %s , dst_path = %s "
@@ -172,20 +180,20 @@ bool MClsMove::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t 
 	data.mAccessDisabled = table->GetAsString(i++, row);
 	data.mScriptRestrict = table->GetAsString(i++, row);
 
-	data.mCls.mId = table->GetAsLong(i++, row);
+	data.mCls.mId = table->GetAsString(i++, row);
 	data.mCls.mLabel = table->GetAsString(i++, row);
-	data.mObj.mId = table->GetAsLong(i++, row);
+	data.mObj.mId = table->GetAsString(i++, row);
 	data.mObj.mLabel = table->GetAsString(i++, row);
 
-	data.mSrcCls.mId = table->GetAsLong(i++, row);
+	data.mSrcCls.mId = table->GetAsString(i++, row);
 	data.mSrcCls.mLabel = table->GetAsString(i++, row);
-	data.mSrcObj.mId = table->GetAsLong(i++, row);
+	data.mSrcObj.mId = table->GetAsString(i++, row);
 	data.mSrcObj.mLabel = table->GetAsString(i++, row);
 	
 
-	data.mDstCls.mId = table->GetAsLong(i++, row);
+	data.mDstCls.mId = table->GetAsString(i++, row);
 	data.mDstCls.mLabel = table->GetAsString(i++, row);
-	data.mDstObj.mId = table->GetAsLong(i++, row);
+	data.mDstObj.mId = table->GetAsString(i++, row);
 	data.mDstObj.mLabel = table->GetAsString(i++, row);
 	
 	data.mSrcArrTitle = table->GetAsString(i++, row);
@@ -218,9 +226,9 @@ bool MClsMove::GetFieldValue(unsigned int col, wxVariant &variant)
 			("1" == data.mAccessDisabled) ? "Запретить" : "Разрешить", mgr->m_ico_accept24);
 		break;
 	case 2:	variant = data.mAcessGroup;						break;
-	case 3: variant = wxString::Format("[%s]%s"
-						, data.mCls.mLabel.toStr()
-						, data.mObj.mLabel.IsNull() ? "%" : data.mObj.mLabel.toStr() );
+	case 3: //variant = wxString::Format("[%s]%s"
+			//			, data.mCls.mLabel.toStr()
+			//			, data.mObj.mLabel.IsNull() ? "%" : data.mObj.mLabel.toStr() );
 		break;
 	case 4: //variant = mSrcPathArr->GetTmpPath();
 		break;

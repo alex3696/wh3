@@ -148,34 +148,6 @@ void DClsActEditor::SetModel(std::shared_ptr<IModel>& newModel)
 	if (!mModel)
 		return;
 
-	const auto state = mModel->GetState();
-	if (msCreated == state)
-	{
-		// инициализируем mPatternPath который привязан только к GUI
-		namespace cat = wh::object_catalog;
-
-		auto permArr = mModel->GetParent();
-		if (!permArr)
-			return;
-		auto clsIModel = permArr->GetParent();
-		auto clsModel = dynamic_cast<cat::MTypeItem*>(clsIModel);
-		if (!clsModel)
-			return;
-
-		const auto& clsData = clsModel->GetData();
-
-		auto clsActPerm = mModel->GetData();
-
-		clsActPerm.mArrId = "{{NULL,NULL}}";
-		clsActPerm.mArrTitle = "{{NULL,NULL}}";
-
-		clsActPerm.mCls.mId = clsData.mId;
-		clsActPerm.mCls.mLabel = clsData.mLabel;
-
-		mModel->SetData(clsActPerm);
-	}
-
-			
 	auto onChangePerm = std::bind(&DClsActEditor::OnChangeModel, this, ph::_1, ph::_2);
 	mChangeConnection = mModel->DoConnect(moAfterUpdate, onChangePerm);
 	OnChangeModel(mModel.get(), nullptr);
@@ -194,13 +166,13 @@ void DClsActEditor::GetData(rec::ClsActAccess& rec) const
 	rec.mScriptRestrict = mPropGrid->GetPropertyByLabel(L"Скрипт")->GetValueAsString();
 	rec.mId = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
 	
-	auto qty = mPatternPath->GetChildQty();
-	if (qty > 1)
+	auto dstLastItem = mPatternPath->GetLast();
+	if (dstLastItem)
 	{
-		rec.mCls = mPatternPath->at(qty - 1)->GetData().mCls;
-		rec.mObj = mPatternPath->at(qty - 1)->GetData().mObj;
+		const auto& dstLastItemData = dstLastItem->GetData();
+		rec.mCls = dstLastItemData.mCls;
+		rec.mObj = dstLastItemData.mObj;
 	}
-
 	rec.mArrId = mPatternPath->GetArr2Id(false);
 	rec.mArrTitle = mPatternPath->GetArr2Title(false);
 
@@ -221,16 +193,23 @@ void DClsActEditor::SetData(const rec::ClsActAccess& rec)
 	// инициализируем mPatternPath который привязан только к GUI
 	// шаблон пути состоит из пути + текущий класс с объектом
 	// если новая запись то надо сделать иначе просто загрузить
+
+	namespace cat = wh::object_catalog;
+	auto permArr = mModel->GetParent();
+	if (!permArr)
+		return;
+	auto clsIModel = permArr->GetParent();
+	auto clsModel = dynamic_cast<cat::MTypeItem*>(clsIModel);
+	if (!clsModel)
+		return;
 	
-	mPatternPath->SetArr2Id2Title(rec.mArrId, rec.mArrTitle);
 	//редактирование : к пути добавляем текущий [класс]объект
-	rec::PathNode lastItemData;
-	lastItemData.mCls = rec.mCls;
-	lastItemData.mObj = rec.mObj;
-	auto lastItem = std::make_shared<temppath::model::Item>();
-	lastItem->SetData(lastItemData);
-	mPatternPath->AddChild(lastItem);
-	
+	mPatternPath->SetArr2Id2Title(rec.mArrId, rec.mArrTitle);
+	const auto& clsData = clsModel->GetData();
+	rec::PathNode dstItemData(clsData.mId, clsData.mLabel,
+								rec.mObj.mId, rec.mObj.mLabel);
+	auto dstItemModel = mPatternPath->CreateItem(dstItemData);
+	mPatternPath->AddChild(dstItemModel);
 	mPathEditor->SetMode(PathPatternEditor::ReqOne_FixCls);
 	mPathEditor->SetModel(mPatternPath);
 }

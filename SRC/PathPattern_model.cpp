@@ -38,11 +38,11 @@ void Array::SetArr2Id2Title(const wxString& arrId, const wxString& arrTitle)
 		std::shared_ptr<Item> item = this->MakeItem();
 		rec::PathNode item_data;
 
-		item_data.mCls.mId = pathId[i].m_Type == "NULL" ? wxEmptyString : pathId[i].m_Type;
-		item_data.mCls.mLabel = pathTitle[i].m_Type == "NULL" ? wxEmptyString : pathTitle[i].m_Type;
+		item_data.mCls.mId = pathId[i].m_Type == "%"||"NULL" ? wxEmptyString : pathId[i].m_Type;
+		item_data.mCls.mLabel = pathTitle[i].m_Type == "%"||"NULL" ? wxEmptyString : pathTitle[i].m_Type;
 
-		item_data.mObj.mId = pathId[i].m_Name == "NULL" ? wxEmptyString : pathId[i].m_Name;
-		item_data.mObj.mLabel = pathTitle[i].m_Name == "NULL" ? wxEmptyString : pathTitle[i].m_Name;
+		item_data.mObj.mId = pathId[i].m_Name == "%"||"NULL" ? wxEmptyString : pathId[i].m_Name;
+		item_data.mObj.mLabel = pathTitle[i].m_Name == "%"||"NULL" ? wxEmptyString : pathTitle[i].m_Name;
 
 		item->SetData(item_data);
 		AddChild(item);
@@ -66,9 +66,13 @@ wxString Array::GetArr2Id(bool includeLast)const
 	{
 		const auto& nd = at(i)->GetData();
 
-		const wxString cls = nd.mCls.mId.IsNull() ? "NULL" : nd.mCls.mId.toStr();
-		const wxString obj = nd.mObj.mId.IsNull() ? "NULL" : nd.mObj.mId.toStr();
-		str += wxString::Format("{%s,%s},", cls, obj);
+		const wxString cls = nd.mCls.mId.IsNull() ? "%" : nd.mCls.mId.toStr();
+		const wxString obj = nd.mObj.mId.IsNull() ? "%" : nd.mObj.mId.toStr();
+
+		if (nd.mCls.mId.IsNull() && nd.mObj.mId.IsNull())
+			str += "%,";
+		else
+			str += wxString::Format("{%s,%s},", cls, obj);
 	}
 
 	if (!str.IsEmpty())
@@ -77,7 +81,7 @@ wxString Array::GetArr2Id(bool includeLast)const
 		str = wxString::Format("{%s}", str);;
 	}
 	else
-		str = "{%}";
+		str = "{}";
 
 	return str;
 }
@@ -94,8 +98,8 @@ wxString Array::GetArr2Title(bool includeLast)const
 	for (size_t i = 0; i < qty; ++i)
 	{
 		const auto& nd = at(i)->GetData();
-		const wxString cls = nd.mCls.mLabel.IsNull() ? "NULL" : nd.mCls.mLabel.toStr();
-		const wxString obj = nd.mObj.mLabel.IsNull() ? "NULL" : nd.mObj.mLabel.toStr();
+		const wxString cls = nd.mCls.mLabel.IsNull() ? "%" : nd.mCls.mLabel.toStr();
+		const wxString obj = nd.mObj.mLabel.IsNull() ? "%" : nd.mObj.mLabel.toStr();
 		str += wxString::Format("{%s,%s},", cls, obj);
 	}
 
@@ -105,8 +109,15 @@ wxString Array::GetArr2Title(bool includeLast)const
 		str = wxString::Format("{%s}", str);;
 	}
 	else
-		str = "{%}";
+		str = "{}";
 
 	return str;
 }
-
+//-----------------------------------------------------------------------------
+std::shared_ptr<Item>	Array::GetLast()const
+{
+	std::shared_ptr<Item> item = this->CreateItem();
+	if (!GetChildQty())
+		return item;
+	return this->at(GetChildQty() - 1);
+}
