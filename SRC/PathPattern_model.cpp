@@ -38,11 +38,14 @@ void Array::SetArr2Id2Title(const wxString& arrId, const wxString& arrTitle)
 		std::shared_ptr<Item> item = this->MakeItem();
 		rec::PathNode item_data;
 
-		item_data.mCls.mId = pathId[i].m_Type == "%"||"NULL" ? wxEmptyString : pathId[i].m_Type;
-		item_data.mCls.mLabel = pathTitle[i].m_Type == "%"||"NULL" ? wxEmptyString : pathTitle[i].m_Type;
-
-		item_data.mObj.mId = pathId[i].m_Name == "%"||"NULL" ? wxEmptyString : pathId[i].m_Name;
-		item_data.mObj.mLabel = pathTitle[i].m_Name == "%"||"NULL" ? wxEmptyString : pathTitle[i].m_Name;
+		if (pathId[i].m_Type != "%" && pathId[i].m_Type != "NULL")
+			item_data.mCls.mId = pathId[i].m_Type;
+		if (pathTitle[i].m_Type != "%" && pathTitle[i].m_Type != "NULL")
+			item_data.mCls.mLabel = pathTitle[i].m_Type;
+		if (pathId[i].m_Name != "%" && pathId[i].m_Name != "NULL")
+			item_data.mObj.mId = pathId[i].m_Name;
+		if (pathTitle[i].m_Name != "%" && pathTitle[i].m_Name != "NULL")
+			item_data.mObj.mLabel = pathTitle[i].m_Name;
 
 		item->SetData(item_data);
 		AddChild(item);
