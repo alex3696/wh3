@@ -308,7 +308,7 @@ CREATE TABLE perm_move
   ,script_restrict TEXT              DEFAULT NULL
 
   ,src_cls_id   BIGINT   NOT NULL 
-  ,src_cls_kind SMALLINT NOT NULL DEFAULT 1 CHECK ((src_cls_kind=1 AND src_cls_id>1)OR(src_cls_kind=0 AND src_cls_id=1))
+  ,src_cls_kind SMALLINT NOT NULL DEFAULT 1 --CHECK ((src_cls_kind=1 AND src_cls_id>1)OR(src_cls_kind=0 AND src_cls_id=1))
   ,src_obj_id  BIGINT            DEFAULT NULL
   ,src_path    TMPPATH  NOT NULL DEFAULT '{%}'
 
@@ -316,7 +316,7 @@ CREATE TABLE perm_move
   ,obj_id      BIGINT            DEFAULT NULL
   
   ,dst_cls_id  BIGINT   NOT NULL 
-  ,dst_cls_kind SMALLINT NOT NULL DEFAULT 1 CHECK ((dst_cls_kind=1 AND dst_cls_id>1)OR(dst_cls_kind=0 AND dst_cls_id=1))
+  ,dst_cls_kind SMALLINT NOT NULL DEFAULT 1 --CHECK ((dst_cls_kind=1 AND dst_cls_id>1)OR(dst_cls_kind=0 AND dst_cls_id=1))
   ,dst_obj_id  BIGINT            DEFAULT NULL
   ,dst_path    TMPPATH  NOT NULL DEFAULT '{%}'
 
@@ -640,26 +640,6 @@ GRANT SELECT        ON obj  TO "Guest";
 GRANT INSERT        ON obj  TO "User";
 GRANT DELETE        ON obj  TO "User";
 GRANT UPDATE        ON obj  TO "User";
-
-
----------------------------------------------------------------------------------------------------
--- тригер подменяющий dst_cls_kind, если это корневой класс
----------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS ftr_biu_perm_move() CASCADE;
-CREATE OR REPLACE FUNCTION ftr_biu_perm_move()  RETURNS trigger AS
-$body$
-DECLARE
-BEGIN
-  IF NEW.dst_cls_id=1 THEN NEW.dst_cls_kind = 0; END IF;
-  IF NEW.src_cls_id=1 THEN NEW.src_cls_kind = 0; END IF;
-RETURN NEW;
-END;
-$body$
-LANGUAGE 'plpgsql';
-CREATE TRIGGER tr_biu_perm_move BEFORE INSERT OR UPDATE ON perm_move FOR EACH ROW EXECUTE PROCEDURE ftr_biu_perm_move();
-
-GRANT EXECUTE ON FUNCTION ftr_biu_perm_move() TO "TypeDesigner";
-
 
 ---------------------------------------------------------------------------------------------------
 -- тригер прикрепления действий к классам

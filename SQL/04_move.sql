@@ -408,10 +408,10 @@ RIGHT JOIN obj mov ON
 RIGHT JOIN obj_num src ON src.id = mov.pid
                     AND  perm.src_cls_id = src.cls_id
                     AND (perm.src_obj_id = src.id OR perm.src_obj_id IS NULL)
-                   AND ( (src.pid=1 AND perm.src_path='{}')OR(get_path_obj_arr_2id(src.pid)::TEXT LIKE perm.src_path) )
+                   AND ( (src.pid<2 AND perm.src_path='{}')OR(get_path_obj_arr_2id(src.pid)::TEXT LIKE perm.src_path) )
 RIGHT JOIN obj_num dst ON perm.dst_cls_id = dst.cls_id 
                   AND (perm.dst_obj_id = dst.id OR perm.dst_obj_id IS NULL)
-                  AND ((dst.pid=1 AND perm.dst_path='{}')OR(get_path_obj_arr_2id(dst.pid)::TEXT LIKE perm.dst_path))
+                  AND ((dst.pid<2 AND perm.dst_path='{}')OR(get_path_obj_arr_2id(dst.pid)::TEXT LIKE perm.dst_path))
 LEFT JOIN obj_name dst_name 
                 ON dst_name.id = dst.id
 -- group permission
