@@ -308,7 +308,7 @@ CREATE TABLE perm_move
   ,script_restrict TEXT              DEFAULT NULL
 
   ,src_cls_id   BIGINT   NOT NULL 
-  ,src_cls_kind SMALLINT NOT NULL DEFAULT 1 CHECK (src_cls_kind=1)
+  ,src_cls_kind SMALLINT NOT NULL DEFAULT 1 CHECK ((src_cls_kind=1 AND src_cls_id>1)OR(src_cls_kind=0 AND src_cls_id=1))
   ,src_obj_id  BIGINT            DEFAULT NULL
   ,src_path    TMPPATH  NOT NULL DEFAULT '{%}'
 
@@ -316,7 +316,7 @@ CREATE TABLE perm_move
   ,obj_id      BIGINT            DEFAULT NULL
   
   ,dst_cls_id  BIGINT   NOT NULL 
-  ,dst_cls_kind SMALLINT NOT NULL DEFAULT 1 CHECK (dst_cls_kind=1)
+  ,dst_cls_kind SMALLINT NOT NULL DEFAULT 1 CHECK ((dst_cls_kind=1 AND dst_cls_id>1)OR(dst_cls_kind=0 AND dst_cls_id=1))
   ,dst_obj_id  BIGINT            DEFAULT NULL
   ,dst_path    TMPPATH  NOT NULL DEFAULT '{%}'
 
@@ -337,7 +337,7 @@ CREATE TABLE perm_move
 --    CHECK (dst_path ~ '^{((((%+)|({(%|[[:digit:]]+),(%|[[:digit:]]+)})),?)+)}$') 
 );--INHERITS (perm);
 CREATE INDEX idx_permmove__user      ON perm_move(access_group);
-CREATE INDEX idx_permmove__srcclsob  ON perm_move(src_cls_id, src_obj_id);
+CREATE INDEX idx_permmove__srcclsobj ON perm_move(src_cls_id, src_obj_id);
 CREATE INDEX idx_permmove__clsobj    ON perm_move(cls_id,     obj_id);
 CREATE INDEX idx_permmove__dstclsobj ON perm_move(dst_cls_id, dst_obj_id);
 
@@ -448,6 +448,7 @@ CREATE TABLE obj_num (
 
 );-- INHERITS (obj);
 CREATE INDEX idx_objnum_pid ON obj_num ("pid") ;
+CREATE UNIQUE INDEX idx_objnum__id_cls_id ON obj_num(id,cls_id);
 
 GRANT SELECT        ON TABLE obj_num  TO "Guest";
 GRANT INSERT        ON TABLE obj_num  TO "ObjDesigner";
@@ -641,6 +642,23 @@ GRANT DELETE        ON obj  TO "User";
 GRANT UPDATE        ON obj  TO "User";
 
 
+---------------------------------------------------------------------------------------------------
+-- тригер подменяющий dst_cls_kind, если это корневой класс
+---------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS ftr_biu_perm_move() CASCADE;
+CREATE OR REPLACE FUNCTION ftr_biu_perm_move()  RETURNS trigger AS
+$body$
+DECLARE
+BEGIN
+  IF NEW.dst_cls_id=1 THEN NEW.dst_cls_kind = 0; END IF;
+  IF NEW.src_cls_id=1 THEN NEW.src_cls_kind = 0; END IF;
+RETURN NEW;
+END;
+$body$
+LANGUAGE 'plpgsql';
+CREATE TRIGGER tr_biu_perm_move BEFORE INSERT OR UPDATE ON perm_move FOR EACH ROW EXECUTE PROCEDURE ftr_biu_perm_move();
+
+GRANT EXECUTE ON FUNCTION ftr_biu_perm_move() TO "TypeDesigner";
 
 
 ---------------------------------------------------------------------------------------------------
@@ -730,7 +748,7 @@ GRANT EXECUTE ON FUNCTION ftg_upd_cls() TO "TypeDesigner";
 DROP FUNCTION IF EXISTS ftg_del_cls() CASCADE;
 CREATE FUNCTION ftg_del_cls() RETURNS TRIGGER AS $$
 BEGIN
-  DELETE FROM cls_name WHERE id = OLD.id;
+  DELETE FROM acls WHERE id = OLD.id;
   RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;

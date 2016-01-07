@@ -340,6 +340,7 @@ SELECT lock_reset(103,1);
 -------------------------------------------------------------------------------
 -- поиск всех возможных вариантов перемещения
 -------------------------------------------------------------------------------
+/*
 DROP VIEW IF EXISTS moverule_lockup CASCADE;
 CREATE OR REPLACE VIEW moverule_lockup AS 
 SELECT 
@@ -387,6 +388,42 @@ RIGHT JOIN wh_role _user
     AND _user.rolname=CURRENT_USER -- определяем ИМЕНА разрешённых пользователей ВКЛЮЧАЯ ТЕКУЩЕГО
 
 WHERE obj.pid <> dst.id AND dst.id>0  ;
+*/
+
+DROP VIEW IF EXISTS moverule_lockup CASCADE;
+CREATE OR REPLACE VIEW moverule_lockup AS 
+  SELECT  
+    mov.id         AS oid
+   ,mov.pid        AS opid
+   ,mov.cls_id     AS ocid
+   ,dst.id         AS dst_oid
+   ,dst.cls_id     AS dst_cid
+   ,dst_name.title AS dst_otitle
+  ,dst.pid         AS dst_opid
+  ,perm.access_disabled AS perm_access_disabled
+FROM perm_move perm
+RIGHT JOIN obj mov ON 
+                (  mov.cls_id IN (SELECT _id FROM get_childs_cls(perm.cls_id))) 
+                AND (perm.obj_id = mov.id OR perm.obj_id IS NULL)
+RIGHT JOIN obj_num src ON src.id = mov.pid
+                    AND  perm.src_cls_id = src.cls_id
+                    AND (perm.src_obj_id = src.id OR perm.src_obj_id IS NULL)
+                   AND ( (src.pid=1 AND perm.src_path='{}')OR(get_path_obj_arr_2id(src.pid)::TEXT LIKE perm.src_path) )
+RIGHT JOIN obj_num dst ON perm.dst_cls_id = dst.cls_id 
+                  AND (perm.dst_obj_id = dst.id OR perm.dst_obj_id IS NULL)
+                  AND ((dst.pid=1 AND perm.dst_path='{}')OR(get_path_obj_arr_2id(dst.pid)::TEXT LIKE perm.dst_path))
+LEFT JOIN obj_name dst_name 
+                ON dst_name.id = dst.id
+-- group permission
+LEFT JOIN wh_role _group 
+    ON perm.access_group=_group.rolname-- определяем ИМЕНА разрешённых групп
+RIGHT JOIN    wh_auth_members membership
+    ON _group.id=membership.roleid -- определяем ИДЕНТИФИКАТОРЫ разрешённых групп
+RIGHT JOIN wh_role _user  
+    ON  _user.id=membership.member -- определяем ИДЕНТИФИКАТОРЫ разрешённых пользователей
+    AND _user.rolname=CURRENT_USER -- определяем ИМЕНА разрешённых пользователей ВКЛЮЧАЯ ТЕКУЩЕГО
+WHERE mov.pid <> dst.id AND dst.id>0  
+;
 
 GRANT SELECT        ON "moverule_lockup" TO "Guest";
 -----------------------------------------------------------------------------------------------------------------------------
@@ -409,9 +446,9 @@ DECLARE
               SELECT 
                 dst_oid, dst_cid, dst_otitle ,dst_opid, sum(perm_access_disabled)
                 FROM moverule_lockup WHERE
-                    cid     = _cls_id 
-                AND src_oid = _old_pid
-                AND oid     = _obj_id
+                    ocid = _cls_id 
+                AND opid = _old_pid
+                AND oid  = _obj_id
                 GROUP BY dst_oid, dst_cid, dst_otitle ,dst_opid
              )t
             WHERE sum=0;
