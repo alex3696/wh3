@@ -402,18 +402,19 @@ CREATE OR REPLACE VIEW moverule_lockup AS
   ,dst.pid         AS dst_opid
   ,perm.access_disabled AS perm_access_disabled
 FROM perm_move perm
-RIGHT JOIN obj mov ON 
+RIGHT JOIN obj mov ON -- находим все объекты+классы которые можно перемещать)
                 (  mov.cls_id IN (SELECT _id FROM get_childs_cls(perm.cls_id))) 
                 AND (perm.obj_id = mov.id OR perm.obj_id IS NULL)
-RIGHT JOIN obj_num src ON src.id = mov.pid
+RIGHT JOIN obj_num src ON src.id = mov.pid -- отсеиваем по текущему положению
                     AND  perm.src_cls_id = src.cls_id
                     AND (perm.src_obj_id = src.id OR perm.src_obj_id IS NULL)
-                   AND ( (src.pid<2 AND perm.src_path='{}')OR(get_path_obj_arr_2id(src.pid)::TEXT LIKE perm.src_path) )
-RIGHT JOIN obj_num dst ON perm.dst_cls_id = dst.cls_id 
+                   AND ( (src.pid=0 AND perm.src_path='{}')OR(get_path_obj_arr_2id(src.pid)::TEXT LIKE perm.src_path) )
+RIGHT JOIN obj_num dst ON perm.dst_cls_id = dst.cls_id -- находим все места куда можно перемещать
                   AND (perm.dst_obj_id = dst.id OR perm.dst_obj_id IS NULL)
-                  AND ((dst.pid<2 AND perm.dst_path='{}')OR(get_path_obj_arr_2id(dst.pid)::TEXT LIKE perm.dst_path))
+                  AND ((dst.pid=0 AND perm.dst_path='{}')OR(get_path_obj_arr_2id(dst.pid)::TEXT LIKE perm.dst_path))
 LEFT JOIN obj_name dst_name 
                 ON dst_name.id = dst.id
+/*
 -- group permission
 LEFT JOIN wh_role _group 
     ON perm.access_group=_group.rolname-- определяем ИМЕНА разрешённых групп
@@ -422,7 +423,10 @@ RIGHT JOIN    wh_auth_members membership
 RIGHT JOIN wh_role _user  
     ON  _user.id=membership.member -- определяем ИДЕНТИФИКАТОРЫ разрешённых пользователей
     AND _user.rolname=CURRENT_USER -- определяем ИМЕНА разрешённых пользователей ВКЛЮЧАЯ ТЕКУЩЕГО
-WHERE mov.pid <> dst.id AND dst.id>0  
+*/    
+WHERE 
+mov.pid <> dst.id AND dst.id>0  
+AND perm.access_group IN (SELECT groupname FROM wh_membership WHERE username=CURRENT_USER)
 ;
 
 GRANT SELECT        ON "moverule_lockup" TO "Guest";

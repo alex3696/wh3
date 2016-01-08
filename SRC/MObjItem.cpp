@@ -225,7 +225,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 				" FROM obj o "
 				" %s "
 				" LEFT JOIN obj_name parent ON parent.id = o.id "
-				" WHERE o.pid = %s AND o.id<>0 AND o.cls_id = %s "
+				" WHERE o.id>0 AND o.pid = %s AND o.cls_id = %s "
 				, fields
 				, leftJoin
 				, catalogData.mObj.mId.toStr()
@@ -243,7 +243,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 				" FROM obj o "
 				" %s "
 				" LEFT JOIN obj_name parent ON parent.id = o.id "
-				" WHERE o.cls_id = %s "
+				" WHERE o.id>0 AND o.cls_id = %s "
 				, fields
 				, leftJoin
 				, typeItemData.mId.SqlVal()

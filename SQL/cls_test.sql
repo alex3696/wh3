@@ -3,7 +3,7 @@
 SET default_transaction_isolation =serializable;
 SET client_min_messages='debug1';
 SHOW client_min_messages;
-
+SET enable_seqscan = ON;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON SEQUENCES FROM public;
@@ -441,6 +441,7 @@ CREATE TABLE obj_num (
      REFERENCES obj_num( id )       MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
 
  ,CONSTRAINT pk_objnum__id          PRIMARY KEY(id)
+ ,CONSTRAINT uk_objnum__idclsid          UNIQUE (id, cls_id)
  ,CONSTRAINT fk_objnum__idclsid     FOREIGN KEY (id,cls_id)
     REFERENCES                          obj_name(id,cls_id)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
@@ -448,7 +449,6 @@ CREATE TABLE obj_num (
 
 );-- INHERITS (obj);
 CREATE INDEX idx_objnum_pid ON obj_num ("pid") ;
-CREATE UNIQUE INDEX idx_objnum__id_cls_id ON obj_num(id,cls_id);
 
 GRANT SELECT        ON TABLE obj_num  TO "Guest";
 GRANT INSERT        ON TABLE obj_num  TO "ObjDesigner";

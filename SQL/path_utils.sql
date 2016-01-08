@@ -4,17 +4,17 @@ SET client_min_messages='debug1';
 
 DROP FUNCTION IF EXISTS get_childs_cls(IN _cid BIGINT) CASCADE;
 
-DROP FUNCTION IF EXISTS get_path_cls_info(IN _cid BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS get_path_cls_arr_id(IN _cid BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS get_path_cls_arr_title(IN _cid BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS get_path_cls(IN _cid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_cls_info(_cid BIGINT,_cpid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_cls_arr_id(_cid BIGINT,_cpid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_cls_arr_title(_cid BIGINT,_cpid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_cls(_cid BIGINT,_cpid BIGINT) CASCADE;
 
 
-DROP FUNCTION IF EXISTS get_path_obj_info(IN _oid BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS get_path_obj_arr_id(IN _oid BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS get_path_obj_arr_2id(IN _oid BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS get_path_obj_arr_2title(IN _oid BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS get_path_obj(IN _oid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_obj_info(_oid BIGINT,_opid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_obj_arr_id(_oid BIGINT,_opid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_obj_arr_2id(_oid BIGINT,_opid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_obj_arr_2title(_oid BIGINT,_opid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_obj(_oid BIGINT,_opid BIGINT) CASCADE;
 
 DROP FUNCTION IF EXISTS fn_array1_to_table(anyarray);
 DROP FUNCTION IF EXISTS obj_arr_id_to_obj_info(IN anyarray);
@@ -50,8 +50,8 @@ RETURN QUERY(
         FROM children AS c, 
              cls  AS t
         WHERE t.pid = c.id AND 
-              NOT cycle AND
-              array_length(exist, 1) < 1000
+              NOT cycle 
+              --AND array_length(exist, 1) < 1000 -- глубина дерева
 )
 SELECT id,  title, kind, pid,  note, measure,dobj
     FROM children WHERE NOT cycle --ORDER BY ord LIMIT 100;
@@ -60,15 +60,16 @@ END;
 $BODY$ LANGUAGE plpgsql STABLE  COST 1000 ROWS 1000;
 GRANT EXECUTE ON FUNCTION get_childs_cls(BIGINT) TO "Guest";
 
-SELECT * FROM get_childs_cls(105);
+SELECT * FROM get_childs_cls(101);
+SELECT * FROM get_childs_cls(0);
 
 
 
 -------------------------------------------------------------------------------
 -- функция получения информации о наследовании класса
 -------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS get_path_cls_info(IN _cid BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION get_path_cls_info(IN _cid BIGINT)
+DROP FUNCTION IF EXISTS    get_path_cls_info(_cid BIGINT,_cpid BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION get_path_cls_info(_cid BIGINT,_cpid BIGINT DEFAULT 0)
  RETURNS TABLE( 
      id BIGINT 
    , pid BIGINT
@@ -92,7 +93,7 @@ RETURN QUERY
           ,FALSE AS cycle
        FROM cls c
        WHERE --c.id=333 
-        _cid IS NOT NULL AND c.id = _cid AND _cid>1
+        _cid IS NOT NULL AND _cid>0 AND c.id = _cid 
        UNION ALL
        SELECT n.id, n.pid, NULL::WHNAME , n.kind, n.title, n.note, NULL
             , p.arr_id     || ARRAY[n.id]::BIGINT[]
@@ -102,51 +103,53 @@ RETURN QUERY
          FROM parents AS p 
          LEFT JOIN acls n ON p.pid=n.id
          WHERE NOT p.cycle 
-               AND n.id > 1
+               AND n.id <> _cpid --AND n.id > 0
      )
      SELECT  * FROM parents WHERE NOT parents.CYCLE;
 
 END; 
 $BODY$ LANGUAGE plpgsql STABLE  COST 100 ROWS 1000;
-GRANT EXECUTE ON FUNCTION get_path_cls_info(BIGINT) TO "Guest";
+GRANT EXECUTE ON FUNCTION get_path_cls_info(BIGINT,BIGINT) TO "Guest";
 SELECT * FROM get_path_cls_info(150);
-SELECT * FROM get_path_cls_info(105);
+SELECT * FROM get_path_cls_info(150,0);
+SELECT * FROM get_path_cls_info(150,1);
 -------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS get_path_cls_arr_id(IN _cid BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION get_path_cls_arr_id(_cid bigint)
+DROP FUNCTION IF EXISTS get_path_cls_arr_id(BIGINT,BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION get_path_cls_arr_id(_cid BIGINT, _cpid BIGINT DEFAULT 0)
   RETURNS BIGINT[] AS
 $BODY$ 
-    SELECT arr_id FROM get_path_cls_info($1) WHERE pid=1
+    SELECT arr_id FROM get_path_cls_info($1,$2) WHERE pid=$2;
 $BODY$
   LANGUAGE sql STABLE COST 100;
-GRANT EXECUTE ON FUNCTION get_path_cls_arr_id(bigint) TO "Guest";
-GRANT EXECUTE ON FUNCTION get_path_cls_arr_id(bigint) TO "Admin" WITH GRANT OPTION;
+GRANT EXECUTE ON FUNCTION get_path_cls_arr_id(BIGINT,BIGINT) TO "Guest";
+GRANT EXECUTE ON FUNCTION get_path_cls_arr_id(BIGINT,BIGINT) TO "Admin" WITH GRANT OPTION;
 SELECT * FROM get_path_cls_arr_id(150);
-SELECT * FROM get_path_cls_arr_id(2167);
+SELECT * FROM get_path_cls_arr_id(150,0);
+SELECT * FROM get_path_cls_arr_id(150,1);
 -------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS get_path_cls_arr_title(IN _cid BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION get_path_cls_arr_title(_cid bigint)
+DROP FUNCTION IF EXISTS get_path_cls_arr_title(BIGINT,BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION get_path_cls_arr_title(_cid BIGINT, _cpid BIGINT DEFAULT 0)
   RETURNS NAME[] AS
 $BODY$ 
-    SELECT arr_title FROM get_path_cls_info($1) WHERE pid=1
+    SELECT arr_title FROM get_path_cls_info($1,$2) WHERE pid=$2;
 $BODY$
   LANGUAGE sql STABLE COST 100;
-GRANT EXECUTE ON FUNCTION get_path_cls_arr_title(bigint) TO "Guest";
-GRANT EXECUTE ON FUNCTION get_path_cls_arr_title(bigint) TO "Admin" WITH GRANT OPTION;
+GRANT EXECUTE ON FUNCTION get_path_cls_arr_title(BIGINT,BIGINT) TO "Guest";
+GRANT EXECUTE ON FUNCTION get_path_cls_arr_title(BIGINT,BIGINT) TO "Admin" WITH GRANT OPTION;
 SELECT * FROM get_path_cls_arr_title(150);
-SELECT * FROM get_path_cls_arr_title(2167);
+SELECT * FROM get_path_cls_arr_title(150,1);
 -------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS get_path_cls(IN _cid BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION get_path_cls(_cid bigint)
+DROP FUNCTION IF EXISTS get_path_cls(BIGINT,BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION get_path_cls(_cid BIGINT, _cpid BIGINT DEFAULT 0)
   RETURNS TEXT AS
 $BODY$ 
-    SELECT path FROM get_path_cls_info($1) WHERE pid=1
+    SELECT path FROM get_path_cls_info($1,$2) WHERE pid=$2;
 $BODY$
   LANGUAGE sql STABLE COST 100;
-GRANT EXECUTE ON FUNCTION get_path_cls(bigint) TO "Guest";
-GRANT EXECUTE ON FUNCTION get_path_cls(bigint) TO "Admin" WITH GRANT OPTION;
+GRANT EXECUTE ON FUNCTION get_path_cls(BIGINT,BIGINT) TO "Guest";
+GRANT EXECUTE ON FUNCTION get_path_cls(BIGINT,BIGINT) TO "Admin" WITH GRANT OPTION;
 SELECT * FROM get_path_cls(150);
-SELECT * FROM get_path_cls(2167);
+SELECT * FROM get_path_cls(150,1);
 
 
 
@@ -157,8 +160,8 @@ SELECT * FROM get_path_cls(2167);
 -------------------------------------------------------------------------------
 -- функция получения информации о пути объектов, по идентификатору объекта
 -------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS get_path_obj_info(IN _oid BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION get_path_obj_info(IN _oid BIGINT)
+DROP FUNCTION IF EXISTS get_path_obj_info(_oid BIGINT,_opid BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION get_path_obj_info(_oid BIGINT,_opid BIGINT DEFAULT 0)
  RETURNS TABLE(
      oid        BIGINT
     ,opid       BIGINT
@@ -185,8 +188,7 @@ RETURN QUERY
           , FALSE AS CYCLE
         FROM obj AS o
         LEFT JOIN cls c ON c.id=o.cls_id
-          WHERE o.id = _oid
-          AND o.id>1
+          WHERE _oid IS NOT NULL AND o.id = _oid AND o.id>0
      UNION ALL
      SELECT o.id, o.pid 
           , onm.title
@@ -201,67 +203,70 @@ RETURN QUERY
         LEFT JOIN obj_num AS o ON o.id = p.pid
         LEFT JOIN obj_name AS onm ON onm.id = o.id
         LEFT JOIN acls c ON onm.cls_id=c.id AND c.kind BETWEEN 1 AND 3
-        WHERE o.id>1 AND NOT p.CYCLE
+        WHERE NOT p.CYCLE
+              AND o.id <> _opid --AND o.id>0
         )
    SELECT * FROM parents WHERE NOT parents.CYCLE;
 
 END; 
 $BODY$ LANGUAGE plpgsql VOLATILE  COST 1000 ROWS 1000;
-GRANT EXECUTE ON FUNCTION get_path_obj_info(BIGINT) TO "Guest";
-GRANT EXECUTE ON FUNCTION get_path_obj_info(BIGINT) TO "Admin" WITH GRANT OPTION;
+GRANT EXECUTE ON FUNCTION get_path_obj_info(BIGINT,BIGINT) TO "Guest";
+GRANT EXECUTE ON FUNCTION get_path_obj_info(BIGINT,BIGINT) TO "Admin" WITH GRANT OPTION;
 
 SELECT * FROM get_path_obj_info(105);
+SELECT * FROM get_path_obj_info(105,0);
+SELECT * FROM get_path_obj_info(105,1);
 
 
 -------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS get_path_obj_arr_id(IN _oid BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION get_path_obj_arr_id(_oid bigint)
+DROP FUNCTION IF EXISTS get_path_obj_arr_id(BIGINT, BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION get_path_obj_arr_id(_oid bigint, _opid BIGINT DEFAULT 0)
   RETURNS BIGINT[] AS
 $BODY$ 
-    SELECT arr_id FROM get_path_obj_info($1) WHERE opid=1
+    SELECT arr_id FROM get_path_obj_info($1,$2) WHERE opid=$2;
 $BODY$
   LANGUAGE sql STABLE COST 100;
-GRANT EXECUTE ON FUNCTION get_path_obj_arr_id(bigint) TO "Guest";
-GRANT EXECUTE ON FUNCTION get_path_obj_arr_id(bigint) TO "Admin" WITH GRANT OPTION;
-SELECT * FROM get_path_obj_arr_id(550);
-SELECT * FROM get_path_obj_arr_id(2167);
+GRANT EXECUTE ON FUNCTION get_path_obj_arr_id(BIGINT,BIGINT) TO "Guest";
+GRANT EXECUTE ON FUNCTION get_path_obj_arr_id(BIGINT,BIGINT) TO "Admin" WITH GRANT OPTION;
+SELECT * FROM get_path_obj_arr_id(105);
+SELECT * FROM get_path_obj_arr_id(105,1);
 -------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS get_path_obj_arr_2id(IN _oid BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION get_path_obj_arr_2id(_oid bigint)
+DROP FUNCTION IF EXISTS get_path_obj_arr_2id(BIGINT, BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION get_path_obj_arr_2id(_oid bigint, _opid BIGINT DEFAULT 0)
   RETURNS BIGINT[] AS
 $BODY$ 
-    SELECT arr_2id FROM get_path_obj_info($1) WHERE opid=1
+    SELECT arr_2id FROM get_path_obj_info($1,$2) WHERE opid=$2;
 $BODY$
   LANGUAGE sql STABLE COST 100;
-GRANT EXECUTE ON FUNCTION get_path_obj_arr_2id(bigint) TO "Guest";
-GRANT EXECUTE ON FUNCTION get_path_obj_arr_2id(bigint) TO "Admin" WITH GRANT OPTION;
-SELECT * FROM get_path_obj_arr_2id(150);
-SELECT * FROM get_path_obj_arr_2id(2167);
+GRANT EXECUTE ON FUNCTION get_path_obj_arr_2id(BIGINT,BIGINT) TO "Guest";
+GRANT EXECUTE ON FUNCTION get_path_obj_arr_2id(BIGINT,BIGINT) TO "Admin" WITH GRANT OPTION;
+SELECT * FROM get_path_obj_arr_2id(105);
+SELECT * FROM get_path_obj_arr_2id(105,1);
 -------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS get_path_obj_arr_2title(IN _oid BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION get_path_obj_arr_2title(_oid bigint)
+DROP FUNCTION IF EXISTS get_path_obj_arr_2title(BIGINT, BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION get_path_obj_arr_2title(_oid bigint, _opid BIGINT DEFAULT 0)
   RETURNS NAME[] AS
 $BODY$ 
-    SELECT arr_2title FROM get_path_obj_info($1) WHERE opid=1
+    SELECT arr_2title FROM get_path_obj_info($1,$2) WHERE opid=$2;
 $BODY$
   LANGUAGE sql STABLE COST 100;
-GRANT EXECUTE ON FUNCTION get_path_obj_arr_2title(bigint) TO "Guest";
-GRANT EXECUTE ON FUNCTION get_path_obj_arr_2title(bigint) TO "Admin" WITH GRANT OPTION;
-SELECT * FROM get_path_obj_arr_2title(104);
-SELECT * FROM get_path_obj_arr_2title(2167);
+GRANT EXECUTE ON FUNCTION get_path_obj_arr_2title(BIGINT,BIGINT) TO "Guest";
+GRANT EXECUTE ON FUNCTION get_path_obj_arr_2title(BIGINT,BIGINT) TO "Admin" WITH GRANT OPTION;
+SELECT * FROM get_path_obj_arr_2title(105);
+SELECT * FROM get_path_obj_arr_2title(105,1);
 
 -------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS get_path_obj(IN _oid BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION get_path_obj(_oid bigint)
+DROP FUNCTION IF EXISTS get_path_obj(BIGINT, BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION get_path_obj(_oid bigint, _opid BIGINT DEFAULT 0)
   RETURNS TEXT AS
 $BODY$ 
-    SELECT path FROM get_path_obj_info($1) WHERE opid=1
+    SELECT path FROM get_path_obj_info($1,$2) WHERE opid=$2;
 $BODY$
   LANGUAGE sql STABLE COST 100;
-GRANT EXECUTE ON FUNCTION get_path_obj(bigint) TO "Guest";
-GRANT EXECUTE ON FUNCTION get_path_obj(bigint) TO "Admin" WITH GRANT OPTION;
-SELECT * FROM get_path_obj(100);
-SELECT * FROM get_path_obj(2167);
+GRANT EXECUTE ON FUNCTION get_path_obj(BIGINT,BIGINT) TO "Guest";
+GRANT EXECUTE ON FUNCTION get_path_obj(BIGINT,BIGINT) TO "Admin" WITH GRANT OPTION;
+SELECT * FROM get_path_obj(105);
+SELECT * FROM get_path_obj(105,1);
 
 
 
@@ -274,7 +279,7 @@ CREATE OR REPLACE FUNCTION fn_array1_to_table(IN anyarray)
   AS $BODY$ 
   SELECT row, $1[row] from generate_subscripts($1, 1) as row
 $BODY$ LANGUAGE sql IMMUTABLE;
---SELECT * FROM fn_array1_to_table('{101,102,103,104}'::int[]);
+SELECT * FROM fn_array1_to_table('{101,102,103,104}'::int[]);
 
 
 -----------------------------------------------------------------------------------------------------------------------------    
@@ -325,8 +330,9 @@ CREATE OR REPLACE FUNCTION fn_array2_to_table(IN anyarray)
   AS $BODY$ 
   SELECT row, $1[row][1],$1[row][2] from generate_subscripts($1, 1) as row
 $BODY$ LANGUAGE sql IMMUTABLE;
---SELECT * FROM fn_array2_to_table('{{101,1011},{102,1022},{103,1033},{104,1044}}'::int[]);
---SELECT * FROM fn_array2_to_table('{{%,%},{%,1022},{103,%},{104,1044}}'::NAME[]);
+
+SELECT * FROM fn_array2_to_table('{{101,1011},{102,1022},{103,1033},{104,1044}}'::int[]);
+SELECT * FROM fn_array2_to_table('{{%,%},{%,1022},{103,%},{104,1044}}'::NAME[]);
 
 
 
@@ -377,31 +383,23 @@ $BODY$
 
 
 SELECT * FROM tmppath_to_2id_info('{%,{%,%},%%{%,106},{108,%}{111,122}}%');
-
-
-
-
-
-
-
-
-SELECT * FROM tmppath_to_2id_info('{%,%}');
+SELECT * FROM tmppath_to_2id_info('{%%,%%%%}');
 
 
 
 
 GRANT EXECUTE ON FUNCTION get_childs_cls(IN _cid BIGINT) TO "User";
 
-GRANT EXECUTE ON FUNCTION get_path_cls_info(IN _cid BIGINT) TO "User";
-GRANT EXECUTE ON FUNCTION get_path_cls_arr_id(IN _cid BIGINT) TO "User";
-GRANT EXECUTE ON FUNCTION get_path_cls_arr_title(IN _cid BIGINT) TO "User";
-GRANT EXECUTE ON FUNCTION get_path_cls(IN _cid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_cls_info(_cid BIGINT,_cpid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_cls_arr_id(_cid BIGINT,_cpid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_cls_arr_title(_cid BIGINT,_cpid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_cls(_cid BIGINT,_cpid BIGINT) TO "User";
 
-GRANT EXECUTE ON FUNCTION get_path_obj_info(IN _oid BIGINT) TO "User";
-GRANT EXECUTE ON FUNCTION get_path_obj_arr_id(IN _oid BIGINT) TO "User";
-GRANT EXECUTE ON FUNCTION get_path_obj_arr_2id(IN _oid BIGINT) TO "User";
-GRANT EXECUTE ON FUNCTION get_path_obj_arr_2title(IN _oid BIGINT) TO "User";
-GRANT EXECUTE ON FUNCTION get_path_obj(IN _oid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_obj_info(_oid BIGINT,_opid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_obj_arr_id(_oid BIGINT,_opid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_obj_arr_2id(_oid BIGINT,_opid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_obj_arr_2title(_oid BIGINT,_opid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_obj(_oid BIGINT,_opid BIGINT) TO "User";
 
 GRANT EXECUTE ON FUNCTION fn_array1_to_table(IN anyarray) TO "Guest";
 GRANT EXECUTE ON FUNCTION obj_arr_id_to_obj_info(IN anyarray) TO "User";

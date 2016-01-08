@@ -177,11 +177,19 @@ using namespace wh;
 bool ObjKeyPath::ParseArray(const std::wstring& str,bool reverse)
 {
 	this->clear();
-	return _ParseArray(str, *(std::deque<wh::ObjKey>*)this );
+	
+	bool res = _ParseArray(str, *(std::deque<wh::ObjKey>*)this);
+	if (res && reverse)
+		std::reverse(this->begin(), this->end());
+	return res;
 }
 //------------------------------------------------------------------------------
 bool ObjKeyPath::ParsePath(const  std::wstring& str,bool reverse)
 {
 	this->clear();
-	return _ParsePath(str, *(std::deque<wh::ObjKey>*)this , reverse);
+	bool res = _ParsePath(str, *(std::deque<wh::ObjKey>*)this, reverse);
+	if (res && reverse)
+		std::reverse(this->begin(), this->end());
+	return res;
+
 }

@@ -27,8 +27,8 @@ public:
 
 	void SetArr2Id2Title(const wxString& arr2Id, const wxString& arr2Title);
 	
-	wxString GetArr2Id(bool includeLast = false)const;
-	wxString GetArr2Title(bool includeLast = false)const;
+	wxString GetArr2Id(bool includeLast = false,bool reverse=true)const;
+	wxString GetArr2Title(bool includeLast = false, bool reverse = true)const;
 
 	std::shared_ptr<Item>	GetLast()const;
 

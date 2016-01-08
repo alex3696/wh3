@@ -29,7 +29,10 @@ void Array::SetArr2Id2Title(const wxString& arrId, const wxString& arrTitle)
 	wh::ObjKeyPath pathId;
 	wh::ObjKeyPath pathTitle;
 
-	if (!pathId.ParseArray(arrId) || !pathTitle.ParseArray(arrTitle)
+	bool reverse_order=true;
+
+	if (   !pathId.ParseArray(arrId, reverse_order) 
+		|| !pathTitle.ParseArray(arrTitle, reverse_order)
 		|| pathId.size() != pathTitle.size())
 		return;
 
@@ -56,7 +59,7 @@ void Array::SetArr2Id2Title(const wxString& arrId, const wxString& arrTitle)
 
 }
 //-----------------------------------------------------------------------------
-wxString Array::GetArr2Id(bool includeLast)const
+wxString Array::GetArr2Id(bool includeLast, bool reverse )const
 {
 	// поскольку в базе требуется только путь, без учёта объекта и его класса
 	// последний элемент массива не берём в учёт и не отсылаем в SQL
@@ -65,7 +68,8 @@ wxString Array::GetArr2Id(bool includeLast)const
 		this->GetChildQty() : this->GetChildQty() - 1;
 
 	wxString str;
-	for (size_t i = 0; i < qty; ++i)
+
+	auto process_item = [this, &str](size_t i)
 	{
 		const auto& nd = at(i)->GetData();
 
@@ -76,8 +80,16 @@ wxString Array::GetArr2Id(bool includeLast)const
 			str += "%,";
 		else
 			str += wxString::Format("{%s,%s},", cls, obj);
-	}
-
+	};
+		
+	if (qty)
+		if (reverse)
+			while (qty)
+				process_item(--qty);
+		else
+			for (size_t i = 0; i < qty; ++i)
+				process_item(i);
+		
 	if (!str.IsEmpty())
 	{
 		str.RemoveLast();
@@ -89,7 +101,7 @@ wxString Array::GetArr2Id(bool includeLast)const
 	return str;
 }
 //-----------------------------------------------------------------------------
-wxString Array::GetArr2Title(bool includeLast)const
+wxString Array::GetArr2Title(bool includeLast, bool reverse)const
 {
 	// поскольку в базе требуется только путь, без учёта объекта и его класса
 	// последний элемент массива не берём в учёт и не отсылаем в SQL
@@ -98,13 +110,26 @@ wxString Array::GetArr2Title(bool includeLast)const
 		this->GetChildQty() : this->GetChildQty() - 1;
 
 	wxString str;
-	for (size_t i = 0; i < qty; ++i)
+	auto process_item = [this, &str](size_t i)
 	{
 		const auto& nd = at(i)->GetData();
 		const wxString cls = nd.mCls.mLabel.IsNull() ? "%" : nd.mCls.mLabel.toStr();
 		const wxString obj = nd.mObj.mLabel.IsNull() ? "%" : nd.mObj.mLabel.toStr();
-		str += wxString::Format("{%s,%s},", cls, obj);
-	}
+
+		if (nd.mCls.mId.IsNull() && nd.mObj.mId.IsNull())
+			str += "%,";
+		else
+			str += wxString::Format("{%s,%s},", cls, obj);
+	};
+
+	if (qty)
+		if (reverse)
+			while (qty)
+				process_item(--qty);
+		else
+			for (size_t i = 0; i < qty; ++i)
+				process_item(i);
+
 
 	if (!str.IsEmpty())
 	{
