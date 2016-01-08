@@ -449,7 +449,8 @@ CREATE TABLE obj_num (
 
 
 );-- INHERITS (obj);
-CREATE INDEX idx_objnum_pid ON obj_num ("pid") ;
+--CREATE INDEX idx_objnum_pid ON obj_num (pid) ;
+CREATE INDEX idx_objnum__id_pid ON obj_num (id ,pid) ;
 
 GRANT SELECT        ON TABLE obj_num  TO "Guest";
 GRANT INSERT        ON TABLE obj_num  TO "ObjDesigner";
@@ -475,7 +476,7 @@ CREATE TABLE obj_qtyi (
 );
 --CREATE INDEX idx_objqtyi_id ON obj_qtyi("id") ;
 --CREATE INDEX idx_objqtyi_pid ON obj_qtyi("pid") ;
-CREATE INDEX idx_objqtyi__id_clsid_cls_kind ON obj_qtyi (id,cls_id,cls_kind) ;
+--CREATE INDEX idx_objqtyi__id_clsid_cls_kind ON obj_qtyi (id,cls_id,cls_kind) ;
 
 GRANT SELECT        ON TABLE obj_qtyi  TO "Guest";
 GRANT INSERT        ON TABLE obj_qtyi  TO "User";
@@ -502,7 +503,7 @@ CREATE TABLE obj_qtyf (
 );
 --CREATE INDEX idx_objqtyf_id ON obj_qtyf("id") ;
 --CREATE INDEX idx_objqtyf_pid ON obj_qtyf("pid") ;
-CREATE INDEX idx_objqtyf__id_clsid_cls_kind ON obj_qtyi (id,cls_id,cls_kind) ;
+--CREATE INDEX idx_objqtyf__id_clsid_cls_kind ON obj_qtyf (id,cls_id,cls_kind) ;
 
 GRANT SELECT        ON TABLE obj_qtyf  TO "Guest";
 GRANT INSERT        ON TABLE obj_qtyf  TO "User";
