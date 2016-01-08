@@ -412,7 +412,7 @@ CREATE TABLE obj_name (
 ,prop       JSONB
 
 ,CONSTRAINT pk_obj__id               PRIMARY KEY(id)
-,CONSTRAINT uk_obj__idclsid          UNIQUE (id, cls_id)
+,CONSTRAINT uk_obj__idclsid          UNIQUE (id, cls_id,cls_kind)
 ,CONSTRAINT uk_obj__title_clsid      UNIQUE (title, cls_id)
 ,CONSTRAINT uk_obj__movelogid     UNIQUE (move_logid) 
 
@@ -437,13 +437,14 @@ DROP TABLE IF EXISTS obj_num CASCADE;
 CREATE TABLE obj_num (
   id         BIGINT  NOT NULL  CHECK (  (id=0 AND pid=0) OR( id>0 AND id<>pid ))
  ,cls_id     BIGINT  NOT NULL 
+ ,cls_kind   BIGINT  NOT NULL DEFAULT 1 CHECK (cls_kind=1)
  ,pid        BIGINT  NOT NULL DEFAULT 1 
      REFERENCES obj_num( id )       MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
 
  ,CONSTRAINT pk_objnum__id          PRIMARY KEY(id)
- ,CONSTRAINT uk_objnum__idclsid          UNIQUE (id, cls_id)
- ,CONSTRAINT fk_objnum__idclsid     FOREIGN KEY (id,cls_id)
-    REFERENCES                          obj_name(id,cls_id)
+ ,CONSTRAINT uk_objnum__idclsid          UNIQUE (id,cls_id,cls_kind)
+ ,CONSTRAINT fk_objnum__idclsid     FOREIGN KEY (id,cls_id,cls_kind)
+    REFERENCES                          obj_name(id,cls_id,cls_kind)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 
 
@@ -461,18 +462,20 @@ GRANT UPDATE (pid)  ON TABLE obj_num  TO "User";
 DROP TABLE IF EXISTS obj_qtyi CASCADE;
 CREATE TABLE obj_qtyi (
   id         BIGINT  NOT NULL 
- ,cls_id     BIGINT  NOT NULL 
+ ,cls_id     BIGINT  NOT NULL
+ ,cls_kind   BIGINT  NOT NULL DEFAULT 2 CHECK (cls_kind=2)
  ,pid        BIGINT        NOT NULL CHECK(pid>0) DEFAULT 1 
       REFERENCES obj_num( id )       MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
  ,qty        NUMERIC(20,0) NOT NULL CHECK (qty>=0)
  ,CONSTRAINT uk_obj_qtyi__id_pid UNIQUE ( id, pid )   
 
- ,CONSTRAINT fk_objqtyi__idclsid     FOREIGN KEY (id,cls_id)
-   REFERENCES                          obj_name(id,cls_id)
+ ,CONSTRAINT fk_objqtyi__idclsid     FOREIGN KEY (id,cls_id,cls_kind)
+   REFERENCES                            obj_name(id,cls_id,cls_kind)
    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX idx_objqtyi_id ON obj_qtyi("id") ;
-CREATE INDEX idx_objqtyi_pid ON obj_qtyi("pid") ;
+--CREATE INDEX idx_objqtyi_id ON obj_qtyi("id") ;
+--CREATE INDEX idx_objqtyi_pid ON obj_qtyi("pid") ;
+CREATE INDEX idx_objqtyi__id_clsid_cls_kind ON obj_qtyi (id,cls_id,cls_kind) ;
 
 GRANT SELECT        ON TABLE obj_qtyi  TO "Guest";
 GRANT INSERT        ON TABLE obj_qtyi  TO "User";
@@ -487,17 +490,19 @@ DROP TABLE IF EXISTS obj_qtyf CASCADE;
 CREATE TABLE obj_qtyf (
   id         BIGINT  NOT NULL 
  ,cls_id     BIGINT  NOT NULL 
+ ,cls_kind   BIGINT  NOT NULL DEFAULT 3 CHECK (cls_kind=3)
  ,pid        BIGINT        NOT NULL CHECK(pid>0) DEFAULT 1 
       REFERENCES obj_num( id )       MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
  ,qty        NUMERIC NOT NULL CHECK (qty>=0)
  ,CONSTRAINT uk_obj_qtyf__id_pid UNIQUE ( id, pid )   
 
-  ,CONSTRAINT fk_objqtyf__idclsid     FOREIGN KEY (id,cls_id)
-   REFERENCES                          obj_name(id,cls_id)
+  ,CONSTRAINT fk_objqtyf__idclsid     FOREIGN KEY (id,cls_id,cls_kind)
+   REFERENCES                             obj_name(id,cls_id,cls_kind)
    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX idx_objqtyf_id ON obj_qtyf("id") ;
-CREATE INDEX idx_objqtyf_pid ON obj_qtyf("pid") ;
+--CREATE INDEX idx_objqtyf_id ON obj_qtyf("id") ;
+--CREATE INDEX idx_objqtyf_pid ON obj_qtyf("pid") ;
+CREATE INDEX idx_objqtyf__id_clsid_cls_kind ON obj_qtyi (id,cls_id,cls_kind) ;
 
 GRANT SELECT        ON TABLE obj_qtyf  TO "Guest";
 GRANT INSERT        ON TABLE obj_qtyf  TO "User";
@@ -772,7 +777,7 @@ BEGIN
         RAISE EXCEPTION ' qty is not integer NEW.qty', NEW.qty;
       END IF;
       INSERT INTO obj_qtyi(id,cls_id, pid, qty) VALUES (NEW.id,NEW.cls_id,NEW.pid,NEW.qty);
-    WHEN 3 THEN INSERT INTO obj_qtyi(id,cls_id, pid, qty) VALUES (NEW.id,NEW.cls_id,NEW.pid,NEW.qty);
+    WHEN 3 THEN INSERT INTO obj_qtyf(id,cls_id, pid, qty) VALUES (NEW.id,NEW.cls_id,NEW.pid,NEW.qty);
     ELSE RAISE EXCEPTION ' %: wrong kind %',TG_NAME,NEW_kind ;
   END CASE;
   RETURN NEW;
@@ -807,6 +812,8 @@ BEGIN
       WHERE id =  NEW.id;
   END IF;
 
+   RAISE DEBUG '%: NEW=% OLD=%',TG_NAME,NEW,OLD;
+
   CASE _kind
     WHEN 1 THEN 
       UPDATE obj_num  SET pid=NEW.pid WHERE id =  NEW.id;
@@ -816,6 +823,7 @@ BEGIN
       END IF;
       UPDATE obj_qtyi SET pid=NEW.pid, qty=NEW.qty WHERE id = NEW.id AND pid=OLD.pid;
     WHEN 3 THEN 
+      RAISE DEBUG '%: UPDATE obj_qtyf SET pid=%, qty=% WHERE id = % AND pid=%',TG_NAME,NEW.pid,NEW.qty,NEW.id,OLD.pid;
       UPDATE obj_qtyf SET pid=NEW.pid, qty=NEW.qty WHERE id = NEW.id AND pid=OLD.pid;
     ELSE RAISE EXCEPTION ' %: wrong kind %',TG_NAME,NEW_kind ;
   END CASE;

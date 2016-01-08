@@ -203,7 +203,8 @@ void PathPatternEditor::OnCmdSetCls(wxCommandEvent& evt)
 
 	auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
 	catalog->SetCfg(rec::catCls, false, false);
-	catalog->SetFilterClsKind(ctQtyByOne, foLess, true);
+	if (FixOne_ReqCls != mMode)
+		catalog->SetFilterClsKind(ctQtyByOne, foLess, true);
 	catalog->Load();
 
 	dlg.SetModel(catalog);

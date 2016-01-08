@@ -555,9 +555,11 @@ BEGIN
   RAISE DEBUG ' _dst_qty=% ',_dst_qty;
   CASE
     WHEN _qty < _src_qty  THEN -- div разделяем исходное количество
+      RAISE DEBUG 'DIV src.qty= (% - %) WHERE id=% AND pid=%',_src_qty, _qty,_oid,_old_opid;
       UPDATE obj SET qty= (_src_qty - _qty)
                       WHERE pid = _old_opid AND id=_oid;      -- уменьшаем исходное количество
       IF _dst_qty IS NOT NULL THEN                                     -- если в месте назначения есть уже такой объёкт
+           RAISE DEBUG 'DIV dst.qty= (% + %) WHERE id=% AND pid=%',_dst_qty, _qty,_oid,_new_opid;
            UPDATE obj SET qty= (_dst_qty + _qty)
                            WHERE pid = _new_opid AND id=_oid; -- добавляем (обновляем имеющееся количество)
        ELSE                                                            -- если в месте назначения объекта нет
