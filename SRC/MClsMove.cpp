@@ -1,15 +1,15 @@
 #include "_pch.h"
 #include "MClsMove.h"
 #include "MObjCatalog.h"
+#include "PathPattern_model.h"
 
 using namespace wh;
 
 const std::vector<Field> gClsMoveFieldVec = {
 		{ "Доступ", FieldType::ftName, true },
-		{ "Группа", FieldType::ftName, true },
+		{ "Источник", FieldType::ftText, true },
 		{ "Объект", FieldType::ftName, true },
-		{ "SrcPath", FieldType::ftText, true },
-		{ "DstPath", FieldType::ftText, true },
+		{ "Приёмник", FieldType::ftText, true },
 		{ "ID", FieldType::ftInt, true }
 };
 
@@ -19,8 +19,39 @@ const std::vector<Field> gClsMoveFieldVec = {
 MClsMove::MClsMove(const char option)
 :TModelData<rec::ClsSlotAccess>(option)
 {
-}
+	namespace ph = std::placeholders;
 
+	auto onChange = std::bind(&MClsMove::OnChange, this, ph::_1, ph::_2);
+
+	connChange = DoConnect(moAfterUpdate, onChange);
+
+}
+//-------------------------------------------------------------------------
+void MClsMove::OnChange(const IModel* model, const DataType* dt)
+{
+	wh::temppath::model::Array pp;
+	
+	mSrcPathGui.clear();
+	pp.SetArr2Id2Title(dt->mSrcArrId, dt->mSrcArrTitle);
+
+	rec::PathNode src;
+	src.mCls = dt->mSrcCls;
+	src.mObj = dt->mSrcObj;
+	pp.AddChild(pp.CreateItem(src));
+	pp.GetPath(mSrcPathGui);
+
+	mDstPathGui.clear();
+	pp.SetArr2Id2Title(dt->mDstArrId, dt->mDstArrTitle);
+
+	rec::PathNode dst;
+	dst.mCls = dt->mDstCls;
+	dst.mObj = dt->mDstObj;
+	pp.AddChild(pp.CreateItem(dst));
+
+	pp.GetPath(mDstPathGui);
+
+
+}
 //-------------------------------------------------------------------------
 bool MClsMove::GetSelectQuery(wxString& query)const
 {
@@ -214,31 +245,22 @@ bool MClsMove::GetFieldValue(unsigned int col, wxVariant &variant)
 	if (!parentCls)
 		return false;
 
-	
-
 	const auto& data = this->GetData();
 	auto mgr = ResMgr::GetInstance();
 	switch (col)
 	{
 	default:	break;
 	case 1:
-		variant = variant << wxDataViewIconText(
-			("1" == data.mAccessDisabled) ? "Запретить" : "Разрешить", mgr->m_ico_accept24);
+		variant = variant << wxDataViewIconText(data.mAcessGroup,
+			("1" == data.mAccessDisabled) ? mgr->m_ico_reject24 : mgr->m_ico_accept24);
 		break;
-	case 2:	variant = data.mAcessGroup;						break;
-	case 3: //variant = wxString::Format("[%s]%s"
-			//			, data.mCls.mLabel.toStr()
-			//			, data.mObj.mLabel.IsNull() ? "%" : data.mObj.mLabel.toStr() );
+	case 2:	variant = mSrcPathGui;	break;
+	case 3:	variant = wxString::Format("[%s]%s"
+		, data.mCls.mLabel.toStr()
+		, data.mObj.mLabel.IsNull() ? "*" :	data.mObj.mLabel.toStr()); 
 		break;
-	case 4: //variant = mSrcPathArr->GetTmpPath();
-		break;
-	case 5: /*
-		variant = wxString::Format("%s/[%s]%s"
-						,mSrcPathArr->GetTmpPath()
-						,parentCls->GetData().mLabel.toStr()
-						, data.mDstObj.mLabel.IsNull() ? "%" : data.mDstObj.mLabel.toStr());
-						*/
-		break;
+	case 4: variant = mDstPathGui;	break;
+	case 5: variant = data.mId.operator wxString();			break;
 	}//switch(col) 
 	return true;
 }

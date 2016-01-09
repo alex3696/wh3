@@ -15,7 +15,7 @@ MovableObj::MovableObj()
 }
 
 //-----------------------------------------------------------------------------
-std::shared_ptr<DstTypeArray>	MovableObj::GetDstTypes()const
+const std::shared_ptr<DstTypeArray>&	MovableObj::GetDstTypes()const
 {
 	return mDstTypes;
 }

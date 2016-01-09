@@ -268,7 +268,9 @@
     <ClInclude Include="..\..\INCLUDE\dlg_move_view_Tree.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_favprop_SelectFrame.h" />
     <ClInclude Include="..\..\INCLUDE\db_filter.h" />
-    <ClInclude Include="..\..\INCLUDE\MCatObj.h" />
+    <ClInclude Include="..\..\INCLUDE\MLog.h" />
+    <ClInclude Include="..\..\INCLUDE\MLogArray.h" />
+    <ClInclude Include="..\..\INCLUDE\MLogFilter.h" />
     <ClInclude Include="..\..\INCLUDE\PathPattern_model.h" />
     <ClInclude Include="..\..\INCLUDE\DUserEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DUserGroupEditor.h" />

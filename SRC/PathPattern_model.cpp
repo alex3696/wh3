@@ -149,3 +149,35 @@ std::shared_ptr<Item>	Array::GetLast()const
 		return item;
 	return this->at(GetChildQty() - 1);
 }
+//-----------------------------------------------------------------------------
+bool Array::GetPath(wxString& path, bool reverse)const
+{
+	wxString str;
+	auto process_item = [this, &str, &path](size_t i)
+	{
+		const auto& item = at(i)->GetData();
+
+		if (item.mCls.mLabel.IsNull() && item.mObj.mLabel.IsNull())
+			path += "/*";
+		else
+		{
+			const wxString cls = item.mCls.mLabel.IsNull() ? "*" : item.mCls.mLabel.toStr();
+			const wxString obj = item.mObj.mLabel.IsNull() ? "*" : item.mObj.mLabel.toStr();
+			path += wxString::Format("/[%s]%s", cls, obj);
+		}
+	};
+	
+	auto qty = 	this->GetChildQty();
+
+	if (qty)
+	{
+		if (reverse)
+			while (qty)
+				process_item(--qty);
+		else
+			for (size_t i = 0; i < qty; ++i)
+				process_item(i);
+		return true;
+	}
+	return false;
+}

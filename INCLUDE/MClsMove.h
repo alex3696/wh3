@@ -23,6 +23,13 @@ public:
 	//std::shared_ptr<temppath::model::Array>	mSrcPathArr;
 	//std::shared_ptr<temppath::model::Array>	mDstPathArr;
 protected:
+
+	void OnChange(const IModel*, const DataType*);
+	wxString mSrcPathGui;
+	wxString mDstPathGui;
+	sig::scoped_connection connChange;
+
+
 	virtual bool GetSelectQuery(wxString&)const override;
 	virtual bool GetInsertQuery(wxString&)const override;
 	virtual bool GetUpdateQuery(wxString&)const override;

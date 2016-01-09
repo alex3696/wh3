@@ -5,9 +5,8 @@
 using namespace wh;
 
 const std::vector<Field> gClsActFieldVec = {
-		{ "Действие", FieldType::ftName, true },
 		{ "Доступ", FieldType::ftName, true },
-		{ "Группа", FieldType::ftName, true },
+		{ "Действие", FieldType::ftName, true },
 		{ "Путь", FieldType::ftText, true },
 		{ "ID", FieldType::ftInt, true }
 };
@@ -255,17 +254,18 @@ bool MClsAct::GetFieldValue(unsigned int col, wxVariant &variant)
 	switch (col)
 	{
 	default:	break;
-	case 1:	variant = variant << wxDataViewIconText(data.mAct.mLabel, mgr->m_ico_act24);
+	case 1:
+		variant = variant << wxDataViewIconText(data.mAcessGroup,
+			("1" == data.mAccessDisabled) ? mgr->m_ico_reject24 : mgr->m_ico_accept24);
 		break;
-	case 2:	variant = ("1" == data.mAccessDisabled) ? "Запретить" : "Разрешить";	break;
-	case 3:	variant = data.mAcessGroup;	break;
-	case 4: 
+	case 2:	variant = data.mAct.mLabel;	break;
+	case 3: 
 		variant = wxString::Format("%s/[%s]%s",
 		mPathGui,
 		data.mCls.mLabel.toStr(),
 		data.mObj.mLabel.IsNull() ? "*" : data.mObj.mLabel.toStr()); 
 		break;
-	case 5: variant = data.mId.toStr();	break;
+	case 4: variant = data.mId.toStr();	break;
 	}//switch(col) 
 	return true;
 }

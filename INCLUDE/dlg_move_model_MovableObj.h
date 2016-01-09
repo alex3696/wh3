@@ -55,7 +55,7 @@ class MovableObj
 public:
 	MovableObj();
 
-	std::shared_ptr<DstTypeArray>	GetDstTypes()const;
+	const std::shared_ptr<DstTypeArray>&	GetDstTypes()const;
 
 	void Unlock();
 	void Move(std::shared_ptr<model::DstObj> dst, const wxString& qty = "1");

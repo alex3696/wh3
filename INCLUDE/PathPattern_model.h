@@ -32,6 +32,7 @@ public:
 
 	std::shared_ptr<Item>	GetLast()const;
 
+	bool GetPath(wxString& path, bool reverse = true)const;
 
 };
 
