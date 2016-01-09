@@ -1,7 +1,6 @@
 #include "_pch.h"
 #include "globaldata.h"
 #include "MainFrame.h"
-#include "whPnlCtrl_MovHistory.h"
 
 using namespace wh;
 //using namespace std;

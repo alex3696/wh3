@@ -4,8 +4,6 @@
 
 #include "whLogin.h"
 
-#include "whPnlCtrl_MovHistory.h"
-
 #include "favorites.h"
 
 #include "VObjCatalogCtrl.h"
@@ -306,18 +304,6 @@ void MainFrame::OnMakeObjWnd(wxCommandEvent& evt)
 //---------------------------------------------------------------------------
 void MainFrame::OnMakeHistoryWnd(wxCommandEvent& evt)
 {
-	wxBusyCursor		busyCursor;
-	wxWindowUpdateLocker	wndDisabler(m_Notebook);
-
-	whPnlCtrl_MovHistory* hist=new whPnlCtrl_MovHistory(m_Notebook);
-	hist->SetLogQueryDataDefault();
-
-	whDataMgr* mgr = whDataMgr::GetInstance();
-	hist->ConnectDB(&mgr->mDb);
-
-	m_Notebook->AddPage(hist,"История");
-	hist->SetFocus();
-	m_AuiMgr.Update();	
 
 }
 //---------------------------------------------------------------------------

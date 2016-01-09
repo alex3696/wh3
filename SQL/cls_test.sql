@@ -775,11 +775,11 @@ BEGIN
     WHEN 1 THEN INSERT INTO obj_num(id,cls_id, pid)VALUES (NEW.id,NEW.cls_id,NEW.pid);NEW.qty:=1;
     WHEN 2 THEN 
       IF (ceil(NEW.qty)<>NEW.qty)THEN
-        RAISE EXCEPTION ' qty is not integer NEW.qty', NEW.qty;
+        RAISE EXCEPTION ' qty is not integer NEW.qty=%', NEW.qty;
       END IF;
       INSERT INTO obj_qtyi(id,cls_id, pid, qty) VALUES (NEW.id,NEW.cls_id,NEW.pid,NEW.qty);
     WHEN 3 THEN INSERT INTO obj_qtyf(id,cls_id, pid, qty) VALUES (NEW.id,NEW.cls_id,NEW.pid,NEW.qty);
-    ELSE RAISE EXCEPTION ' %: wrong kind %',TG_NAME,NEW_kind ;
+    ELSE RAISE EXCEPTION ' %: wrong kind = %',TG_NAME , _kind ;
   END CASE;
   RETURN NEW;
 END;
@@ -820,7 +820,7 @@ BEGIN
       UPDATE obj_num  SET pid=NEW.pid WHERE id =  NEW.id;
     WHEN 2 THEN 
       IF (ceil(NEW.qty)<>NEW.qty)THEN
-        RAISE EXCEPTION ' qty is not integer NEW.qty', NEW.qty;
+        RAISE EXCEPTION ' qty is not integer NEW.qty=%', NEW.qty;
       END IF;
       UPDATE obj_qtyi SET pid=NEW.pid, qty=NEW.qty WHERE id = NEW.id AND pid=OLD.pid;
     WHEN 3 THEN 

@@ -16,24 +16,6 @@
     <Filter Include="GUI\Controls\DataViewExtension">
       <UniqueIdentifier>{8d33963c-ee60-4716-8f4a-bd3139281442}</UniqueIdentifier>
     </Filter>
-    <Filter Include="GUI\History">
-      <UniqueIdentifier>{8c793408-5d7b-44c9-9930-eaf74dce667f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="GUI\History\Model">
-      <UniqueIdentifier>{d0d92e0b-3501-4e57-9a00-7a68cbf88646}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="GUI\History\ViewCtrl">
-      <UniqueIdentifier>{d1efcdcf-8073-44ce-9c33-c22db067d080}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="GUI\History\Panel">
-      <UniqueIdentifier>{51779d33-6263-4e0d-bf3b-9db526d77948}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="GUI\History\_Sorter">
-      <UniqueIdentifier>{fa57983c-b6f6-44d7-aec0-8b3965d0eb49}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="GUI\History\_FilterGUI">
-      <UniqueIdentifier>{de387c20-e5bf-4c85-b26f-a6b053688e14}</UniqueIdentifier>
-    </Filter>
     <Filter Include="DataBase">
       <UniqueIdentifier>{2c83b040-8e1a-46f3-b19f-407f40b72e15}</UniqueIdentifier>
     </Filter>
@@ -148,6 +130,9 @@
     <Filter Include="GUI\Шаблон пути">
       <UniqueIdentifier>{e8360862-bd18-4129-bc5c-51b283f2679f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="История">
+      <UniqueIdentifier>{c7c0b165-8c23-42d8-9591-9b820e8bc5a1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -171,21 +156,6 @@
     <ClCompile Include="..\..\INCLUDE\FB_FORMS\whLogin.cpp">
       <Filter>GUI\Controls\Form_Builder\dlgLogin</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SRC\whModel_MovHistory.cpp">
-      <Filter>GUI\History\Model</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\whViewCtrl_MovHistory.cpp">
-      <Filter>GUI\History\ViewCtrl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\whPnlCtrl_MovHistory.cpp">
-      <Filter>GUI\History\Panel</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\whViewCtrl_Sorter.cpp">
-      <Filter>GUI\History\_Sorter</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\whViewCtrl_Filter.cpp">
-      <Filter>GUI\History\_FilterGUI</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\whDB.cpp">
       <Filter>DataBase</Filter>
     </ClCompile>
@@ -194,9 +164,6 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\whPnlFavorites.cpp">
       <Filter>GUI\MainFrame\Панель избранного</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\whTableMgr.cpp">
-      <Filter>GUI\History\Model</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\BaseTable.cpp">
       <Filter>GUI\Controls\Base</Filter>
@@ -412,24 +379,6 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\FB_FORMS\whLogin.h">
       <Filter>GUI\Controls\Form_Builder\dlgLogin</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\whModel_MovHistory.h">
-      <Filter>GUI\History\Model</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\whTableMgr.h">
-      <Filter>GUI\History\Model</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\whViewCtrl_MovHistory.h">
-      <Filter>GUI\History\ViewCtrl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\whPnlCtrl_MovHistory.h">
-      <Filter>GUI\History\Panel</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\whViewCtrl_Sorter.h">
-      <Filter>GUI\History\_Sorter</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\whViewCtrl_Filter.h">
-      <Filter>GUI\History\_FilterGUI</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\whDB.h">
       <Filter>DataBase</Filter>

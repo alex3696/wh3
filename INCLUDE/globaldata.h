@@ -5,7 +5,6 @@
 #include "whDB.h"
 #include "ResManager.h"
 #include "wxComboBtn.h"
-#include "whTableMgr.h"
 #include "favorites.h"
 
 

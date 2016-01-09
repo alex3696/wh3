@@ -26,7 +26,7 @@ bool MClsMove::GetSelectQuery(wxString& query)const
 {
 	auto parentArray = dynamic_cast<MClsMoveArray*>(this->mParent);
 	auto parentCls = dynamic_cast<object_catalog::MTypeItem*>(parentArray->GetParent());
-	if (parentCls)
+	if (!parentCls)
 		return false;
 	
 	const rec::Cls& cls = parentCls->GetStored();
