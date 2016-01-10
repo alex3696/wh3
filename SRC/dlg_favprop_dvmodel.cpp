@@ -41,7 +41,7 @@ void DvModel::GetValueByRow(wxVariant &variant,
 	case 2:		variant << wxDataViewIconText(prop_data.mLabel.toStr(), 
 							ResMgr::GetInstance()->m_ico_classprop24);
 		break;
-	case 3:		variant = prop_data.mType;	break;
+	case 3:		variant = ToText(prop_data.mType);	break;
 	case 4:		variant = prop_data.mId.toStr();	break;
 	default:break;
 	}

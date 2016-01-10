@@ -139,7 +139,7 @@ void VObjCatalogTable::BuildColumns()
 			wxString name = prop.mLabel;
 			unsigned int width = 50;
 
-			auto fieldType = StringToFt(prop.mType);
+			auto fieldType = ToFieldType(prop.mType);
 			if (ftText != fieldType)
 			{
 				wxWindowDC dc(this);

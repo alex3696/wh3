@@ -87,16 +87,37 @@ void CatDlg::OnSelect(wxDataViewEvent& evt)
 		return;
 	if (!mCatalog->mTypeArray->GetChildQty())
 		return;
+	if (!mTargetValidator)
+		return;
 	
 	auto selectedItem = evt.GetItem();
 	if (selectedItem.IsOk())
 	{
-		auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
-		auto objItem = dynamic_cast<object_catalog::MObjItem*> (modelInterface);
-		auto typeItem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
+		namespace cat = wh::object_catalog;
 
-		if ((mIsTargetObj && objItem) || (!mIsTargetObj && typeItem))
-			m_btnOK->Enable(true);
+		auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
+		auto typeItem = dynamic_cast<cat::MTypeItem*> (modelInterface);
+		if (typeItem)
+		{
+			const cat::MTypeItem::DataType& dt = typeItem->GetData();
+			m_btnOK->Enable(mTargetValidator(&dt, nullptr));
+		}
+		else 
+		{
+			auto objItem = dynamic_cast<cat::MObjItem*> (modelInterface);
+			auto objArray = dynamic_cast<cat::MObjArray*> (objItem->GetParent());
+			if (objArray)
+			{
+				typeItem = dynamic_cast<cat::MTypeItem*> (objArray->GetParent());
+				if (typeItem)
+				{
+					const auto& cls_date = typeItem->GetData();
+					const auto& obj_date = objItem->GetData();
+					m_btnOK->Enable(mTargetValidator(&cls_date, &obj_date));
+				}
+			}
+		}
+		
 	}
 	evt.Skip();
 }

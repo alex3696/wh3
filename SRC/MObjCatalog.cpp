@@ -28,7 +28,7 @@ MObjCatalog::MObjCatalog(const char option)
 		fd.mFieldName = "cls.kind";
 		fd.mOp = foEq;
 		fd.mVal = wxString::Format("%d", (int)ctAbstract);
-		fd.mFieldType = dbLong;
+		fd.mFieldType = ftLong;
 		fd.mIsEnabled = false;
 		auto item = mFilter->CreateItem(fd,true);
 		mFilter->AddChild(item);
@@ -36,7 +36,7 @@ MObjCatalog::MObjCatalog(const char option)
 	// 1
 	mFilter->AddChild(
 		mFilter->CreateItem(
-			FilterData("0", "cls.id", dbLong, foEq, fcAND, false), true));
+			FilterData("0", "cls.id", ftLong, foEq, fcAND, false), true));
 
 }
 //-------------------------------------------------------------------------
@@ -171,7 +171,7 @@ void MObjCatalog::DoUp()
 void MObjCatalog::SetFilterClsKind(ClsType ct, FilterOp fo, bool enable)
 {
 	FilterData fd(wxString::Format("%d", (int)ct)
-		, "cls.kind", dbLong, fo, fcAND, enable);
+		, "cls.kind", ftLong, fo, fcAND, enable);
 	mFilter->at(0)->SetData(fd, true);
 }
 //-------------------------------------------------------------------------
@@ -184,7 +184,7 @@ const FilterData& MObjCatalog::GetFilterClsKind()const
 void MObjCatalog::SetFilterClsId(long id, FilterOp fo, bool enable)
 {
 	FilterData fd(wxString::Format("%d", id)
-		, "cls.id", dbLong, fo, fcAND, enable);
+		, "cls.id", ftLong, fo, fcAND, enable);
 
 	mFilter->at(1)->SetData(fd, true);
 }
@@ -225,13 +225,13 @@ void MObjCatalog::SetCatFilter(long pid, bool enable)
 	switch (cfg.mCatType)
 	{
 	case rec::catCls:
-		mFilterCat->SetData(FilterData(pidStr, "cls.pid", dbLong, foEq, fcAND, enable));
+		mFilterCat->SetData(FilterData(pidStr, "cls.pid", ftLong, foEq, fcAND, enable));
 		break;
 	case rec::catObj:
-		mFilterCat->SetData(FilterData(pidStr, "obj.pid", dbLong, foEq, fcAND, enable));
+		mFilterCat->SetData(FilterData(pidStr, "obj.pid", ftLong, foEq, fcAND, enable));
 		break;
 	default:
-		mFilterCat->SetData(FilterData(wxEmptyString, wxEmptyString, dbLong, foEq, fcAND, false));
+		mFilterCat->SetData(FilterData(wxEmptyString, wxEmptyString, ftLong, foEq, fcAND, false));
 		break;
 	}
 }

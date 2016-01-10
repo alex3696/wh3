@@ -6,8 +6,8 @@ using namespace wh;
 const std::vector<Field> gUserFieldVec = {
 	{ "Имя", FieldType::ftName, true },
 	{ "Описание", FieldType::ftText, true },
-	{ "ID", FieldType::ftInt, true },
-	{ "Лимит подключений", FieldType::ftInt, true },
+	{ "ID", FieldType::ftLong, true },
+	{ "Лимит подключений", FieldType::ftLong, true },
 	{ "Дата окончания", FieldType::ftDate, true }
 };
 

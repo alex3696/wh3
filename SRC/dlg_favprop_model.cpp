@@ -25,7 +25,7 @@ bool FavPropItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size
 	T_Data data;
 	data.mId = table->GetAsLong(0, row);
 	data.mLabel = table->GetAsString(1, row);
-	table->GetAsString(2, row, data.mType);
+	data.mType = ToFieldType(table->GetAsString(2, row));
 	data.mSelected = !(table->GetAsString(3, row).IsEmpty());
 	SetData(data);
 	return true;

@@ -176,12 +176,14 @@ GRANT INSERT        ON TABLE prop_kind  TO "Admin";
 GRANT DELETE        ON TABLE prop_kind  TO "Admin";
 GRANT UPDATE        ON TABLE prop_kind  TO "Admin";
 
-INSERT INTO prop_kind (id, title) VALUES (0, 'text')
-                                        ,(1, 'numberic')
-                                        ,(2, 'date')
-                                        ,(3, 'link')
-                                        ,(4, 'file')
-                                        ,(5, 'array');
+INSERT INTO prop_kind (id, title) VALUES (0,  'text')
+                                        ,(1,  'name')
+                                        ,(10, 'long')
+                                        ,(11, 'double')
+                                        ,(20, 'date')
+                                        ,(30, 'link')
+                                        ,(40, 'file')
+                                        ,(50, 'ftJSON');
 ---------------------------------------------------------------------------------------------------
 -- основная описания свойств(переменных) действий
 ---------------------------------------------------------------------------------------------------
@@ -923,8 +925,8 @@ SET @oid_10 = INSERT INTO obj(title,cls_id,pid) VALUES ('2',@cls_id_1, 1 )RETURN
 
 
 DECLARE @prop_id_1,@prop_id_2,@prop_id_3,@prop_id_4;
-SET @prop_id_1 = INSERT INTO prop(title, kind)VALUES ('Наработка(ч.)', 1)RETURNING id;
-SET @prop_id_2 = INSERT INTO prop(title, kind)VALUES ('Счёт ГК', 1)RETURNING id;
+SET @prop_id_1 = INSERT INTO prop(title, kind)VALUES ('Наработка(ч.)', 10)RETURNING id;
+SET @prop_id_2 = INSERT INTO prop(title, kind)VALUES ('Счёт ГК', 10)RETURNING id;
 SET @prop_id_3 = INSERT INTO prop(title, kind)VALUES ('Комментарий', 0)RETURNING id;
 SET @prop_id_4 = INSERT INTO prop(title, kind)VALUES ('Описание ремонта', 0)RETURNING id;
 

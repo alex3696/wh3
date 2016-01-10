@@ -8,7 +8,7 @@ using namespace wh;
 const std::vector<Field> gPropFieldVec = {
 	{ "Èìÿ", FieldType::ftName, true },
 	{ "Òèï", FieldType::ftText, true },
-	{ "ID", FieldType::ftInt, true }
+	{ "ID", FieldType::ftLong, true }
 };
 
 
@@ -34,7 +34,7 @@ bool MPropChild::GetInsertQuery(wxString& query)const
 {
 	auto data = GetData();
 	query = wxString::Format
-		("INSERT INTO prop(title, kind)VALUES(%s, %s)RETURNING id, title, kind",
+		("INSERT INTO prop(title, kind)VALUES(%s, %d)RETURNING id, title, kind",
 		data.mLabel.SqlVal(), data.mType);
 	return true;
 }
@@ -43,7 +43,7 @@ bool MPropChild::GetUpdateQuery(wxString& query)const
 {
 	const auto& data = GetData();
 	query = wxString::Format(
-		"UPDATE prop SET title=%s , kind=%s WHERE id=%s"
+		"UPDATE prop SET title=%s , kind=%d WHERE id=%s"
 		, data.mLabel.SqlVal(), data.mType, data.mId.SqlVal());
 	return true;
 }
@@ -62,7 +62,7 @@ bool MPropChild::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_
 	T_Data data;
 	data.mId = table->GetAsLong(0, row);
 	data.mLabel =table->GetAsString(1, row);
-	table->GetAsString(2, row, data.mType);
+	data.mType = ToFieldType(table->GetAsString(2, row));
 	SetData(data);
 	return true;
 };
@@ -78,7 +78,7 @@ bool MPropChild::GetFieldValue(unsigned int col, wxVariant &variant)
 	default: break;
 	case 1: variant = variant << wxDataViewIconText(data.mLabel, mgr->m_ico_classprop24);
 		break;
-	case 2: variant = data.GetTypeString(); break;
+	case 2: variant = ToText(data.mType); break;
 	case 3: variant = data.mId.toStr(); break;
 	}//switch(col) 
 	return true;

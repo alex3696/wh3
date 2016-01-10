@@ -65,7 +65,7 @@ void Act::DoAct()
 		{
 			auto propData = prop->GetData();
 			wxString propval;
-			if (propData.mProp.GetTypeInt() == 1)
+			if (propData.mProp.mType == ftLong || propData.mProp.mType == ftDouble)
 				propval = propData.mVal.toStr();
 			else
 				propval = wxString::Format("\"%s\"",propData.mVal.toStr());

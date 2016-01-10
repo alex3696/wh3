@@ -629,6 +629,9 @@
     <ClInclude Include="..\..\INCLUDE\MLogFilter.h">
       <Filter>История</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dbFieldType.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wh3.rc">

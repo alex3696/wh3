@@ -46,13 +46,16 @@ void PnlPropGrid::SetModel(std::shared_ptr<dlg_act::model::PropArray>& model)
 		if (prop)
 		{
 			const auto& propData = prop->GetData();
-			switch (propData.mProp.GetTypeInt())
+			switch (propData.mProp.mType )
 			{
-			case 0: mPropGrid->Append(new wxLongStringProperty(propData.mProp.mLabel)); break;
-			case 1: mPropGrid->Append(new wxFloatProperty(propData.mProp.mLabel));  break;
-			case 2: mPropGrid->Append(new wxDateProperty(propData.mProp.mLabel));  break;
-			case 3: mPropGrid->Append(new wxDateProperty(propData.mProp.mLabel));  break;
-			case 4: mPropGrid->Append(new wxFileProperty(propData.mProp.mLabel));  break;
+			case ftText:	mPropGrid->Append(new wxLongStringProperty(propData.mProp.mLabel)); break;
+			case ftName:	mPropGrid->Append(new wxStringProperty(propData.mProp.mLabel)); break;
+			case ftLong:	mPropGrid->Append(new wxIntProperty(propData.mProp.mLabel));  break;
+			case ftDouble:	mPropGrid->Append(new wxFloatProperty(propData.mProp.mLabel));  break;
+			case ftDate:	mPropGrid->Append(new wxDateProperty(propData.mProp.mLabel));  break;
+			case ftLink:	mPropGrid->Append(new wxStringProperty(propData.mProp.mLabel));  break;
+			case ftFile:	mPropGrid->Append(new wxStringProperty(propData.mProp.mLabel));  break;
+			case ftJSON:	mPropGrid->Append(new wxLongStringProperty(propData.mProp.mLabel));  break;
 			default:
 				break;
 			}

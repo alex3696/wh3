@@ -9,17 +9,9 @@ class CatDlg:
 	public wxDialog
 	,public ctrlWithResMgr
 {
-protected:
-	wxButton*				m_btnOK;
-	wxButton*				m_btnCancel;
-	wxStdDialogButtonSizer*	m_sdbSizer;
-	view::VObjCatalogCtrl*	mMainPanel;
-	std::shared_ptr<object_catalog::MObjCatalog>	mCatalog;
-	bool					mIsTargetObj = true;
+public:
+	typedef std::function<bool(const wh::rec::Cls*,const wh::rec::Obj*)> TargetValidator;
 
-	void OnActivated(wxDataViewEvent& evt);
-	void OnSelect(wxDataViewEvent& evt);
-public:	
 	CatDlg(wxWindow* parent,
 				wxWindowID id = wxID_ANY,
 				const wxString& title=wxEmptyString,
@@ -37,10 +29,23 @@ public:
 
 	void SetModel(std::shared_ptr<IModel> model);
 
-	void SetTargetObj(bool isTargetObj)	{ mIsTargetObj = isTargetObj; }
-
+	void SetTargetValidator(const TargetValidator& tv)	{ mTargetValidator = tv; }
+	
 	bool GetSelectedCls(wh::rec::Cls& cls);
 	bool GetSelectedObj(wh::rec::ObjInfo& obj);
+
+protected:
+	wxButton*				m_btnOK;
+	wxButton*				m_btnCancel;
+	wxStdDialogButtonSizer*	m_sdbSizer;
+	view::VObjCatalogCtrl*	mMainPanel;
+	std::shared_ptr<object_catalog::MObjCatalog>	mCatalog;
+	TargetValidator			mTargetValidator;
+
+
+	void OnActivated(wxDataViewEvent& evt);
+	void OnSelect(wxDataViewEvent& evt);
+
 };
 
 

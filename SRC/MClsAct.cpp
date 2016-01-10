@@ -8,7 +8,7 @@ const std::vector<Field> gClsActFieldVec = {
 		{ "Доступ", FieldType::ftName, true },
 		{ "Действие", FieldType::ftName, true },
 		{ "Путь", FieldType::ftText, true },
-		{ "ID", FieldType::ftInt, true }
+		{ "ID", FieldType::ftLong, true }
 };
 
 

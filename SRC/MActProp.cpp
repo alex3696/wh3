@@ -8,8 +8,8 @@ using namespace wh;
 
 const std::vector<Field> gActPropFieldVec = {
 		{ "Èìÿ", FieldType::ftName, true },
-		{ "RefID", FieldType::ftInt, true },
-		{ "PropID", FieldType::ftInt, true }
+		{ "RefID", FieldType::ftLong, true },
+		{ "PropID", FieldType::ftLong, true }
 };
 
 

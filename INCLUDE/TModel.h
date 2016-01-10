@@ -4,35 +4,11 @@
 #include "_pch.h"
 #include "whDB.h"
 #include "globaldata.h"
+#include "dbFieldType.h"
 
 namespace wh{
 
 namespace sig = boost::signals2;
-//-----------------------------------------------------------------------------
-enum FieldType
-{
-	ftText =	0,
-	ftNumber=	1,
-	ftDate =	2,
-	ftLink =	3,
-	ftFile =	4,
-	
-	ftName =	5,
-	ftInt =		6,
-	ftfloat =	7
-};
-
-
-static FieldType StringToFt(const wxString& str)
-{
-	unsigned long tmp = 0;
-	if( str.ToULong(&tmp) )
-		return FieldType(tmp);
-	return ftName;
-}
-
-
-
 //-----------------------------------------------------------------------------
 struct Field
 {
@@ -83,7 +59,7 @@ public:
 
 //-----------------------------------------------------------------------------
 class IModel;
-
+typedef std::shared_ptr<IModel> SptrIModel;
 
 //-----------------------------------------------------------------------------
 enum ModelOperation
@@ -162,21 +138,13 @@ public:
 		AfterUpdate,		// $1=new=const, 2$=old=nonconst
 		BeforeDelete,	// $1=NULL, 2$=old=const
 		AfterDelete,		// $1=NULL, 2$=old=nonconst
-
-		BeforeLoad,
-		AfterLoad,
-		BeforeSave,
-		AfterSave,
-		
-		BeforeClear,
-		AfterClear
 	};
-	using ArrayChange = std::vector <const IModel >;
-
-	using Signal = sig::signal< void(const IModel*, const ArrayChange*, const ArrayChange*) >;
+	using ArrayChange = std::vector <const SptrIModel >;
+	// 
+	using Signal = sig::signal< void(const IModel&, const ArrayChange&, const ArrayChange&) >;
 
 	using Slot = Signal::slot_type;
-	//using Slot = std::function< void(const IModel*, const ArrayChange*, const ArrayChange*) >;
+	//using Slot = std::function< void(const IModel&, const ArrayChange&, const ArrayChange&) >;
 
 	sig::connection DoConnect(Op op, const Slot &slot)
 	{
@@ -189,8 +157,8 @@ public:
 		return mSig->at((size_t)op)->disconnect(&slot);
 	}
 
-	void DoSignal(Op op, const IModel* model
-		, const ArrayChange* newItem, const ArrayChange* oldItem)
+	void DoSignal(Op op, const IModel& model
+		, const ArrayChange& newItem, const ArrayChange& oldItem)
 	{
 		CheckSignalOp(op);
 		mSig->at((size_t)op)->operator()(model, newItem, oldItem);
@@ -201,7 +169,7 @@ private:
 
 	inline void CheckSignalOp(Op op)
 	{
-		if ((size_t)Op::AfterClear < (size_t)op)
+		if ((size_t)Op::AfterDelete < (size_t)op)
 			BOOST_THROW_EXCEPTION(sig_error() << wxstr("Out of range SigOp"));
 		if (!mSig)
 			mSig.reset(new SignalArray);
@@ -210,7 +178,7 @@ private:
 	}
 
 	using UnqSignal = std::unique_ptr<Signal>;
-	using SignalArray = std::array<UnqSignal, 12>;
+	using SignalArray = std::array<UnqSignal, 6>;
 	using UnqSignalArray = std::unique_ptr<SignalArray>;
 
 	UnqSignalArray mSig;
@@ -229,13 +197,8 @@ public:
 	using SigVecChange = sig::signal<void(const IModel&, const VecChange&) >;
 	using SlotVecChange = std::function<void(const IModel&, const VecChange&)>;
 
-	using SigItemInsert = sig::signal<void
-		(const IModel&, 
-		 const std::shared_ptr<IModel>&, 
-		 std::shared_ptr<IModel>&) >;
-	using SlotItemInsert = std::function<void(const IModel&,
-		const std::shared_ptr<IModel>&,
-		std::shared_ptr<IModel>&)>;
+	using SigItemInsert = sig::signal<void(const IModel&, SptrIModel&, const SptrIModel&) >;
+	using SlotItemInsert = std::function<void(const IModel&, SptrIModel&, const SptrIModel&)>;
 
 	using SigReset = sig::signal<void(const IModel&) >;
 	using SlotReset = std::function<void(const IModel&)>;
@@ -360,20 +323,17 @@ static int GetColumnWidthBy(FieldType ft)
 	switch (ft)
 	{
 	case wh::ftText:	return	-1;		break;
-	case wh::ftNumber:	return	50;		break;
+	case wh::ftName:	return	150;	break;
+	case wh::ftLong:	return	50;		break;
+	case wh::ftDouble:	return	50;		break;
 	case wh::ftDate:	return	100;	break;
 	case wh::ftLink:	return	80;		break;
 	case wh::ftFile:	return	80;		break;
-	
-	case wh::ftName:	return	150;	break;
-	case wh::ftInt:		return	50;		break;
-	case wh::ftfloat:	return	80;		break;
+	case wh::ftJSON:	return	150;	break;
 	default:break;
 	}
 	return -1;
 }
-
-
 //-----------------------------------------------------------------------------
 
 
@@ -434,20 +394,41 @@ protected:
 
 	char mOption;
 
-	bool AppendChildWithoutSignal(std::shared_ptr<IModel>& newItem)
+	bool InsertWithoutSignal
+		(SptrIModel& newItem, const SptrIModel& itemBefore = SptrIModel(nullptr))
 	{
 		if (!newItem)
-			BOOST_THROW_EXCEPTION(error() << wxstr("Can`t add nullptr"));
+			BOOST_THROW_EXCEPTION(error() << wxstr("Can`t insert nullptr"));
 
 		if (newItem->mParent)
 			newItem->mParent->DelChild(newItem);
-
 		newItem->mParent = this;
 		if (!mVec)
 			mVec.reset(new BaseStore);
 
+
+
+		std::pair<RndIterator, bool> pairIterBool;
+		if (itemBefore)
+		{
+			const PtrIdx& ptrIdx = mVec->get<1>();
+			CPtrIterator ptrIt = ptrIdx.find(itemBefore.get());
+			if (ptrIdx.end() != ptrIt)
+			{
+				CRndIterator rndIt = mVec->project<0>(ptrIt);
+				CRndIterator rndBegin = mVec->cbegin();
+				auto pos = std::distance(rndBegin, rndIt);
+				pairIterBool = mVec->insert(rndIt, newItem);
+			}
+			else
+				BOOST_THROW_EXCEPTION(error() << wxstr("Can`t find itemBefore"));
+		}
+		else
+			pairIterBool = mVec->emplace_back(newItem);
+
+		if (!pairIterBool.second)
+			BOOST_THROW_EXCEPTION(error() << wxstr("Can`t emplace_back "));
 		
-		std::pair<RndIterator, bool> pairIterBool = mVec->emplace_back(newItem);
 		return pairIterBool.second;
 	}
 
@@ -493,41 +474,16 @@ public:
 
 	template <class CHILD>
 	void InsertChild(std::shared_ptr<CHILD>& newItem, 
-		std::shared_ptr<IModel>& itemBefore = std::shared_ptr<IModel>(nullptr))
+		SptrIModel& before = SptrIModel(nullptr))
 	{
-		if (!newItem)
-			BOOST_THROW_EXCEPTION(error() << wxstr("Can`t add nullptr"));
-		if (newItem->mParent)
-			newItem->mParent->DelChild(newItem);
-		newItem->mParent = this;
-		if (!mVec)
-			mVec.reset(new BaseStore);
-
-		DoSigBeforeInsert(*this, itemBefore, newItem);
-		
-		if (itemBefore)
-		{
-			const PtrIdx& ptrIdx = mVec->get<1>();
-			CPtrIterator ptrIt = ptrIdx.find(itemBefore.get());
-			if (ptrIdx.end() != ptrIt)
-			{
-				CRndIterator rndIt = mVec->project<0>(ptrIt);
-				CRndIterator rndBegin = mVec->cbegin();
-				auto pos = std::distance(rndBegin, rndIt);
-				mVec->insert(rndIt, newItem);
-			}
-		}
-		else
-			mVec->emplace_back(newItem);
-		
-		DoSigAfterInsert(*this, itemBefore, newItem);
+		DoSigBeforeInsert(*this, newItem, before);
+		InsertWithoutSignal(newItem, before );
+		DoSigAfterInsert(*this, newItem, before);
 	}
-
-
 
 	void AddChild(std::shared_ptr<IModel>& newItem)
 	{
-		if (AppendChildWithoutSignal(newItem))
+		if (InsertWithoutSignal(newItem))
 		{
 			unsigned int pos = mVec->size()-1;
 			VecChange sigVec;
@@ -756,7 +712,7 @@ protected:
 						if (child && LoadChildDataFromDb(child, table, dbNo))
 						{
 							child->MarkSaved();
-							if (AppendChildWithoutSignal(child))
+							if (InsertWithoutSignal(child))
 								sigVec.emplace_back(elemNo++);
 						}
 						dbNo++;
@@ -869,18 +825,18 @@ protected:
 	}
 
 	void DoSigBeforeInsert(const IModel& vec
-		, const std::shared_ptr<IModel>& itemBefore
-		, std::shared_ptr<IModel>& item)
+		, std::shared_ptr<IModel>& item
+		, const std::shared_ptr<IModel>& itemBefore)
 	{
 		if (mSigBeforeInsert)
-			mSigBeforeInsert->operator()(vec, itemBefore, item);
+			mSigBeforeInsert->operator()(vec, item, itemBefore);
 	}
 	void DoSigAfterInsert(const IModel& vec
-		, const std::shared_ptr<IModel>& itemBefore
-		, std::shared_ptr<IModel>& item)
+		, std::shared_ptr<IModel>& item
+		, const std::shared_ptr<IModel>& itemBefore)
 	{
 		if (mSigAfterInsert)
-			mSigAfterInsert->operator()(vec, itemBefore, item);
+			mSigAfterInsert->operator()(vec, item, itemBefore);
 	}
 
 	void SaveRange(ModelState state)

@@ -237,6 +237,7 @@
     <ClInclude Include="..\..\INCLUDE\BaseRefControlPanel.h" />
     <ClInclude Include="..\..\INCLUDE\BtnProperty.h" />
     <ClInclude Include="..\..\INCLUDE\DActEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\dbFieldType.h" />
     <ClInclude Include="..\..\INCLUDE\db_data.h" />
     <ClInclude Include="..\..\INCLUDE\DclsActEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DClsEditor.h" />

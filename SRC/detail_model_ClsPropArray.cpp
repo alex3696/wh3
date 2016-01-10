@@ -15,7 +15,7 @@ bool ClsProp::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t r
 	T_Data data;
 	data.mProp.mId = table->GetAsLong(0, row);
 	data.mProp.mLabel = table->GetAsString(1, row);
-	table->GetAsString(2, row, data.mProp.mType);
+	data.mProp.mType = ToFieldType(table->GetAsString(2, row));
 	data.mVal = table->GetAsString(3, row);
 	SetData(data);
 	return true;

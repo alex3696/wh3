@@ -59,7 +59,7 @@ struct FilterData
 {
 	wxString	mVal;
 	wxString	mFieldName;
-	DbType		mFieldType;
+	FieldType	mFieldType;
 	FilterOp	mOp;
 	FilterConn	mConn;
 	bool		mIsEnabled=false;
@@ -67,7 +67,7 @@ struct FilterData
 	FilterData(){}
 
 	FilterData(const wxString& val, const wxString& fname
-		, DbType ft = dbText, FilterOp fo = foEq, FilterConn fc = fcAND, bool enable = true)
+		, FieldType ft = ftText, FilterOp fo = foEq, FilterConn fc = fcAND, bool enable = true)
 		:mVal(val), mFieldName(fname), mFieldType(ft), mOp(fo), mConn(fc), mIsEnabled(enable)
 	{}
 

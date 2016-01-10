@@ -12,30 +12,36 @@ public:
 	unsigned int	mRowsPerPage = 100;
 	bool			mEnableFavProp = true; // else show all object properties
 	bool			mCompactMode = true;
-	bool			mShowDebugColumns = #ifdef __DEBUG	true #elif 	false #endif;
-	/*
-		#ifdef __DEBUG 
-			true 
-		#elif 
-			false 
-		#endif;
-		*/
+	bool			mShowDebugColumns = __DEBUG; /* #ifdef __DEBUG true #elif false #endif;	*/
+	
 };//class LogCfg
+
+
+class FieldData
+{
+	wxString	mName;
+	FieldType	mType;
+	bool		mShow;
+
+};
+
 
 //-------------------------------------------------------------------------
 class MLog
-	: public TModelData<LogCfg>
 {
 	// 
-	std::shared_ptr<MLogArray>		mLogArray;
+	std::shared_ptr<TModelData<LogCfg>>	mCfg;
+	std::shared_ptr<MLogArray>			mLogArray;
 	std::shared_ptr<MFilterArray>	mFilterArray;
-
+	//std::shared_ptr<MFavPropArray>	mFavPropArray;
+	SigArray mSig;
 public:
-	MLog(const char option = ModelOption::EnableParentNotify);
+	MLog();
 
+	void Load();
 
-
-
+	sig::connection Connect(SigArray::Op op, const SigArray::Slot slot);
+	void            Disconnect(SigArray::Op op, const SigArray::Slot slot);
 
 
 

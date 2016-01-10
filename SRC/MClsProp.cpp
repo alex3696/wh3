@@ -9,8 +9,8 @@ const std::vector<Field> gClsPropFieldVec = {
 		{ "Имя", FieldType::ftName, true },
 		{ "Значение", FieldType::ftText, true },
 		{ "Тип", FieldType::ftName, true },
-		{ "PropID", FieldType::ftInt, true },
-		{ "ID", FieldType::ftInt, true }
+		{ "PropID", FieldType::ftLong, true },
+		{ "ID", FieldType::ftLong, true }
 };
 
 
@@ -107,7 +107,7 @@ bool MClsProp::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t 
 	T_Data data;
 	data.mProp.mId = table->GetAsLong(0, row);
 	data.mProp.mLabel = table->GetAsString(1, row);
-	table->GetAsString(2, row, data.mProp.mType);
+	data.mProp.mType = ToFieldType(table->GetAsString(2, row));
 	data.mVal = table->GetAsString(3, row);
 	data.mId = table->GetAsLong(4, row);
 	SetData(data);
@@ -125,7 +125,7 @@ bool MClsProp::GetFieldValue(unsigned int col, wxVariant &variant)
 		variant = variant << wxDataViewIconText(data.mProp.mLabel, mgr->m_ico_classprop24);
 		break;
 	case 2:	variant = data.mVal;					break;
-	case 3: variant = data.mProp.GetTypeString();	break;
+	case 3: variant = ToText(data.mProp.mType);		break;
 	case 4: variant = data.mProp.mId.toStr();		break;
 	case 5: variant = data.mId.toStr();				break;
 	}//switch(col) 

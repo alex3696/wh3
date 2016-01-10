@@ -10,7 +10,7 @@ const std::vector<Field> gClsMoveFieldVec = {
 		{ "Источник", FieldType::ftText, true },
 		{ "Объект", FieldType::ftName, true },
 		{ "Приёмник", FieldType::ftText, true },
-		{ "ID", FieldType::ftInt, true }
+		{ "ID", FieldType::ftLong, true }
 };
 
 
@@ -38,7 +38,7 @@ void MClsMove::OnChange(const IModel* model, const DataType* dt)
 	src.mCls = dt->mSrcCls;
 	src.mObj = dt->mSrcObj;
 	pp.AddChild(pp.CreateItem(src));
-	pp.GetPath(mSrcPathGui);
+	pp.GetPath(mSrcPathGui,false);
 
 	mDstPathGui.clear();
 	pp.SetArr2Id2Title(dt->mDstArrId, dt->mDstArrTitle);
@@ -48,7 +48,7 @@ void MClsMove::OnChange(const IModel* model, const DataType* dt)
 	dst.mObj = dt->mDstObj;
 	pp.AddChild(pp.CreateItem(dst));
 
-	pp.GetPath(mDstPathGui);
+	pp.GetPath(mDstPathGui,false);
 
 
 }

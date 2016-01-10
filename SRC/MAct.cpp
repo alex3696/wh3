@@ -10,8 +10,8 @@ const std::vector<Field> gActFieldVec = {
 		{ "Имя", FieldType::ftName, true },
 		{ "Описание", FieldType::ftText, true },
 		{ "Цвет", FieldType::ftName, true },
-		{ "ID", FieldType::ftInt, true },
-		{ "VID", FieldType::ftInt, true }
+		{ "ID", FieldType::ftLong, true },
+		{ "VID", FieldType::ftLong, true }
 };
 
 

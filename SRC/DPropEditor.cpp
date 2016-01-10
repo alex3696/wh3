@@ -28,11 +28,9 @@ DPropEditor::DPropEditor(wxWindow*		parent,
 
 
 	wxPGChoices soc;
-	soc.Add(L"Текст", 0);
-	soc.Add(L"Число", 1);
-	soc.Add(L"Дата", 2);
-	soc.Add(L"Ссылка", 3);
-	soc.Add(L"Файл", 4);
+
+	for (const auto& ft : gFieldTypeArray)
+		soc.Add(ft.mTitle, ft.mType);
 
 	auto lbl = mPropGrid->Append(new wxStringProperty(L"Имя", wxPG_LABEL));
 
@@ -64,19 +62,30 @@ void DPropEditor::GetData(rec::Prop& rec) const
 	mPropGrid->CommitChangesFromEditor();
 
 	rec.mLabel = mPropGrid->GetPropertyByLabel("Имя")->GetValueAsString();
-	rec.mType = wxString::Format("%d", mPropGrid->GetPropertyByLabel("Тип")->GetChoiceSelection());
+
+	int cs = mPropGrid->GetPropertyByLabel("Тип")->GetChoiceSelection();
+	rec.mType = (FieldType)mPropGrid->GetPropertyByLabel("Тип")->GetChoices().GetValue(cs);
 	rec.mId = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
 }
 //---------------------------------------------------------------------------
 void DPropEditor::SetData(const rec::Prop& rec)
 {
 	mPropGrid->CommitChangesFromEditor();
+	wxWindowUpdateLocker	wndLockUpdater(mPropGrid);
 
 	mPropGrid->GetPropertyByLabel(L"Имя")->SetValueFromString(rec.mLabel);
 
-	unsigned long sel = 0;
-	rec.mType.ToULong(&sel);
-	mPropGrid->GetPropertyByLabel(L"Тип")->SetChoiceSelection(sel);
+	auto pgPropType = mPropGrid->GetPropertyByLabel(L"Тип");
+	const auto& choices = pgPropType->GetChoices();
+	for (unsigned int i = 0; i < choices.GetCount(); ++i)
+	{
+		if (choices[i].GetValue() == (int)rec.mType )
+		{ 
+			pgPropType->SetChoiceSelection(i);
+			pgPropType->SetValue(choices[i].GetText());
+			break;
+		}
+	}
 
 	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(rec.mId.toStr());
 }

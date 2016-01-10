@@ -3,86 +3,9 @@
 
 #include "globaldata.h"
 #include "ResManager.h"
+#include "TModel.h"
 
 namespace wh{
-//-----------------------------------------------------------------------------
-
-enum DbType{
-	dbText = 0,
-	
-	dbLong = 10,
-	dbFloat = 11,
-	
-	dbDate = 20,
-
-	dbLink = 30,
-	
-	dbFile = 40,
-
-	dbJSON = 50
-};
-//-----------------------------------------------------------------------------
-struct DbTypeItem
-{
-	DbTypeItem(DbType dt, const wxString& str)
-		:mType(dt), mTitle(str)
-	{}
-
-	DbType		mType;
-	wxString	mTitle;
-
-};
-//-----------------------------------------------------------------------------
-using DbTypeArray =
-	boost::multi_index_container
-	<
-	DbTypeItem,
-		indexed_by
-		<
-			random_access<>
-			, ordered_unique< BOOST_MULTI_INDEX_MEMBER(DbTypeItem, DbType, mType)>
-			, ordered_unique< BOOST_MULTI_INDEX_MEMBER(DbTypeItem, wxString, mTitle)>
-		>
-	>;
-
-static DbTypeArray dbTypeArray = { 
-								{ dbText,"Текст" }, 
-								{ dbLong, "Число(целое)" },
-								{ dbFloat, "Число(дробное)" },
-								{ dbDate, "Дата" },
-								{ dbLink, "Ссылка" },
-								{ dbFile, "Файл" },
-								{ dbJSON, "JSON" },
-								};
-
-//-----------------------------------------------------------------------------
-static wxString ToText(DbType type)
-{
-	const auto& dbTypeIdx = dbTypeArray.get<1>();
-	auto it = dbTypeIdx.find(type);
-	if (dbTypeIdx.end() == it)
-	{
-		struct dbtype_error : virtual exception_base {};
-		BOOST_THROW_EXCEPTION(dbtype_error() << wxstr("Unknown DbType"));
-	}
-	return it->mTitle;
-}
-//-----------------------------------------------------------------------------
-static DbType ToType(const wxString& str)
-{
-	unsigned long val;
-	if (str.ToCULong(&val))
-		return (DbType)val;
-	const auto& dbTitleIdx = dbTypeArray.get<2>();
-	auto it = dbTitleIdx.find(str);
-	if (dbTitleIdx.end() == it)
-	{
-		struct dbtype_error : virtual exception_base {};
-		BOOST_THROW_EXCEPTION(dbtype_error() << wxstr("Unknown Type String"));
-	}
-	return it->mType;
-	
-}
 //-----------------------------------------------------------------------------
 class SqlData
 {
@@ -90,7 +13,7 @@ public:
 	struct error : virtual exception_base {};
 	virtual wxString SqlVal()const = 0;
 
-	virtual DbType GetType()const = 0;
+	virtual FieldType GetType()const = 0;
 };
 //-----------------------------------------------------------------------------
 class SqlLong : public SqlData
@@ -104,7 +27,7 @@ public:
 		foMore,
 	};
 
-	virtual DbType GetType()const { return dbLong; }
+	virtual FieldType GetType()const { return ftLong; }
 
 	SqlLong() :mVal(nullptr){}
 	~SqlLong(){ delete mVal; }
@@ -207,7 +130,7 @@ public:
 		foNotLike,
 	};
 
-	virtual DbType GetType()const { return dbText; }
+	virtual FieldType GetType()const { return ftText; }
 
 	SqlString() :mVal(nullptr){}
 	~SqlString(){ delete mVal; }
@@ -271,28 +194,6 @@ public:
 private:
 	wxString* mVal;
 };
-
-
-//template <class SQLDATA>
-//struct SqlFilter
-//{
-//	SQLDATA::FilterOp	mOp;
-//	SQLDATA				mVal;
-//};
-//
-//
-//typedef SqlFilter<SqlLong> FLong;
-//typedef SqlFilter<SqlString> FString;
-//
-
-
-
-
-
-
-
-
-
 
 }//namespace wh
 #endif // __*_H

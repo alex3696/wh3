@@ -121,42 +121,13 @@ struct Prop: public Base
 
 	//wxString	mID;
 	//wxString	mLabel;	
-	wxString	mType = L"0";
+	FieldType	mType;
 
 	Prop(){}
-	Prop(const wxString& label, const wxString& type = L"0")
+	Prop(const wxString& label, const FieldType type = ftText)
 		//:mLabel(label), mType(type)
 		:Base(wxEmptyString,label), mType(type)
 	{}
-
-
-	static wxString IntToType(unsigned int val)
-	{
-		switch (val)
-		{
-		default: BOOST_THROW_EXCEPTION(error() << wxstr("unknown type")); break;
-		case 0: return L"Текст";
-		case 1: return L"Число";
-		case 2: return L"Дата";
-		case 3: return L"Ссылка";
-		case 4: return L"Файл";
-		}//switch(val)
-		return wxEmptyString;
-	}//static wxString IntToType(unsigned int val)
-	wxString GetTypeString()const
-	{
-		unsigned long tmp = 0;
-		mType.ToULong(&tmp);
-		return IntToType(tmp);
-	}//wxString GetTypeString()const
-
-	unsigned long  GetTypeInt()const
-	{
-		unsigned long tmp = 0;
-		mType.ToULong(&tmp);
-		return tmp;
-	}
-
 };
 
 //-----------------------------------------------------------------------------

@@ -72,7 +72,7 @@ void VObjCatalogCtrl::BuildToolbar(bool is_dlg)
 
 	// делаем тулбар
 	// ---------- Общедоступные кнопки
-	if (!is_dlg)
+	//if (!is_dlg)
 	{
 		mCatalogTool = mToolBar->AddTool(whID_CATALOG_SELECT, "Группировать",
 			m_ResMgr->m_ico_folder_obj24, wxEmptyString, wxITEM_NORMAL);

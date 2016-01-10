@@ -5,7 +5,7 @@ using namespace wh;
 
 const std::vector<Field> gUserGroupFieldVec = {
 	{ "Èìÿ", FieldType::ftName, true },
-	{ "ID", FieldType::ftInt, true }
+	{ "ID", FieldType::ftLong, true }
 };
 
 

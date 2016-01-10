@@ -143,28 +143,28 @@ bool PathPatternEditor::GetGiuItemIndex(TmpPathItem* ch, size_t& model_idx)
 //---------------------------------------------------------------------------
 void PathPatternEditor::OnCmdAddToLeft(wxCommandEvent& evt)
 {
-	size_t model_idx(0);
+	size_t before_idx(0);
+	if (!GetGiuItemIndex(mSelectedItem, before_idx))
+		return;
+	const auto	qty = mModel->GetChildQty();
 
-	if (GetGiuItemIndex(mSelectedItem, model_idx))
-	{
-		if (1 == mModel->GetChildQty() || 0 != model_idx)
-			mModel->InsertChild(mModel->CreateChild(), mModel->GetChild(model_idx));
-
-	}
-
+	auto new_item = mModel->CreateChild();
+	auto before_item = (qty > before_idx) ? mModel->GetChild(before_idx) : SptrIModel(nullptr);
+	mModel->InsertChild(new_item, before_item);
 }
 //---------------------------------------------------------------------------
 void PathPatternEditor::OnCmdAddToRight(wxCommandEvent& evt)
 {
-	size_t model_idx(0);
+	size_t before_idx(0);
+	if (!GetGiuItemIndex(mSelectedItem, before_idx))
+		return;
+	const auto	qty = mModel->GetChildQty();
+	
+	before_idx++;
 
-	if (GetGiuItemIndex(mSelectedItem, model_idx))
-	{
-		if (mPathChoice.size() - 1 != model_idx)
-			mModel->InsertChild(mModel->CreateChild(), mModel->GetChild(model_idx + 1));
-
-	}
-
+	auto new_item = mModel->CreateChild();
+	auto before_item = (qty > before_idx) ? mModel->GetChild(before_idx) : SptrIModel(nullptr);
+	mModel->InsertChild(new_item, before_item);
 }
 //---------------------------------------------------------------------------
 void PathPatternEditor::OnCmdRemove(wxCommandEvent& evt)
@@ -197,14 +197,20 @@ void PathPatternEditor::OnCmdSetCls(wxCommandEvent& evt)
 	if (!GetGiuItemIndex(mSelectedItem, model_idx))
 		return;
 
-	
+	auto tv = [this](const wh::rec::Cls* cls, const wh::rec::Obj* obj)->bool
+	{
+		if (ReqOne_ReqCls == mMode || ReqOne_FixCls == mMode)
+			return cls && !obj && 1 == (long)cls->mType;
+		return cls && !obj;
+	};
+
 	CatDlg dlg(nullptr);
-	dlg.SetTargetObj(false);
+	dlg.SetTargetValidator(tv);
 
 	auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
 	catalog->SetCfg(rec::catCls, false, false);
-	if (FixOne_ReqCls != mMode)
-		catalog->SetFilterClsKind(ctQtyByOne, foLess, true);
+	//if (FixOne_ReqCls != mMode)
+	//	catalog->SetFilterClsKind(ctQtyByOne, foLess, true);
 	catalog->Load();
 
 	dlg.SetModel(catalog);
@@ -226,14 +232,22 @@ void PathPatternEditor::OnCmdSetClsObj(wxCommandEvent& evt)
 	if (!GetGiuItemIndex(mSelectedItem, model_idx))
 		return;
 
+	auto tv = [this](const wh::rec::Cls* cls, const wh::rec::Obj* obj)->bool
+	{
+		if (ReqOne_ReqCls == mMode || ReqOne_FixCls == mMode)
+			return cls && obj && 1== (long)cls->mType;
+		return cls && obj;
+	};
+
 	CatDlg dlg(nullptr);
-	dlg.SetTargetObj(true);
+	dlg.SetTargetValidator(tv);
 
 	auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
 	
-	catalog->SetCfg(rec::catObj, false, true);
-	if(FixOne_ReqCls!=mMode)
-		catalog->SetFilterClsKind(ctQtyByOne, foLess, true);
+	catalog->SetCfg(rec::catCls, false, true);
+	//catalog->SetCfg(rec::catObj, false, true);
+	//if(FixOne_ReqCls!=mMode)
+	//	catalog->SetFilterClsKind(ctQtyByOne, foLess, true);
 	catalog->Load();
 
 	dlg.SetModel(catalog);
@@ -256,30 +270,30 @@ void PathPatternEditor::OnCmdSetFixObj(wxCommandEvent& evt)
 	if (!GetGiuItemIndex(mSelectedItem, model_idx))
 		return;
 
-	long cls_id = 0;
-	//if ((mModel->GetChildQty() - 1) == model_idx)
-	{
-		auto m = mModel->at(model_idx);
-		if (m)
-		{
-			const auto& data = m->GetData();
-			if (!data.mCls.mId.IsNull())
-				cls_id = data.mCls.mId;
-		}
-	}
+	auto m = mModel->at(model_idx);
+	if (!m)
+		return;
 
+	const auto& cls_data = m->GetData();
+	long cls_id = cls_data.mCls.mId.IsNull() ? 0 : cls_id = cls_data.mCls.mId;
+
+	if (!cls_id)
+		return;
+	
 	auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
 
+	catalog->SetCfg(rec::catCustom, false, true);
 	catalog->SetFilterClsKind(ctQtyByOne, foLess, true);
-	if (cls_id)
-	{
-		catalog->SetCfg(rec::catCustom, false, true);
-		catalog->SetFilterClsId(cls_id, foEq, true);
-	}
+	catalog->SetFilterClsId(cls_id, foEq, true);
 	catalog->Load();
 
+	auto tv = [](const wh::rec::Cls* cls, const wh::rec::Obj* obj)->bool
+	{
+		return cls && obj;
+	};
+
 	CatDlg dlg(nullptr);
-	dlg.SetTargetObj(true);
+	dlg.SetTargetValidator(tv);
 	dlg.SetModel(catalog);
 	if (wxID_OK == dlg.ShowModal())
 	{
@@ -454,8 +468,9 @@ void PathPatternEditor
 
 //---------------------------------------------------------------------------
 void PathPatternEditor::OnAfterInsert(const IModel& vec
+	, std::shared_ptr<IModel>& newItem
 	, const std::shared_ptr<IModel>& itemBefore
-	, std::shared_ptr<IModel>& newItem)
+	)
 {
 	size_t pos;
 	auto item = std::dynamic_pointer_cast<temppath::model::Item>(newItem);
