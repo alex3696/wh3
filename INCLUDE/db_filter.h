@@ -75,7 +75,7 @@ struct FilterData
 	{ 
 		wxString str;
 		if (mIsEnabled)
-			str << " " << ToSqlString(mConn) << mFieldName <<
+			str << " " << ToSqlString(mConn) << " " << mFieldName <<
 				ToSqlString(mOp) << "'" << mVal << "' ";
 		return str; 
 	};

@@ -150,7 +150,7 @@ void PathPatternEditor::OnCmdAddToLeft(wxCommandEvent& evt)
 
 	auto new_item = mModel->CreateChild();
 	auto before_item = (qty > before_idx) ? mModel->GetChild(before_idx) : SptrIModel(nullptr);
-	mModel->InsertChild(new_item, before_item);
+	mModel->Insert(new_item, before_item);
 }
 //---------------------------------------------------------------------------
 void PathPatternEditor::OnCmdAddToRight(wxCommandEvent& evt)
@@ -164,7 +164,7 @@ void PathPatternEditor::OnCmdAddToRight(wxCommandEvent& evt)
 
 	auto new_item = mModel->CreateChild();
 	auto before_item = (qty > before_idx) ? mModel->GetChild(before_idx) : SptrIModel(nullptr);
-	mModel->InsertChild(new_item, before_item);
+	mModel->Insert(new_item, before_item);
 }
 //---------------------------------------------------------------------------
 void PathPatternEditor::OnCmdRemove(wxCommandEvent& evt)
@@ -464,27 +464,34 @@ void PathPatternEditor
 
 //---------------------------------------------------------------------------
 void PathPatternEditor::OnAfterInsert(const IModel& vec
-	, std::shared_ptr<IModel>& newItem
-	, const std::shared_ptr<IModel>& itemBefore
-	)
+	, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore)
 {
 	size_t pos;
-	auto item = std::dynamic_pointer_cast<temppath::model::Item>(newItem);
 
-	if (!item || !vec.GetItemPosition(newItem, pos))
-		return;
-
-	MakeGuiItem(pos);
+	for (const auto& curr : newItems)
+	{
+		auto item = std::dynamic_pointer_cast<temppath::model::Item>(curr);
+		if (!item || !vec.GetItemPosition(item, pos))
+			return;
+		MakeGuiItem(pos);
+		pos++;
+	}
 
 }
 //---------------------------------------------------------------------------
 void PathPatternEditor::ResetGui()
 {
-	auto szrPath = this->GetSizer();
+	for (const auto ch : mPathChoice)
+		delete ch;
+	mPathChoice.clear();
 
 	auto qty = mModel->GetChildQty();
 	for (size_t i = 0; i < qty; i++)
 		MakeGuiItem(i);
+
+	auto szrPath = this->GetSizer();
+	szrPath->Fit(this);
+	this->GetParent()->Layout();
 
 }
 

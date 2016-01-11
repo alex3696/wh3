@@ -168,6 +168,7 @@
     <ClCompile Include="..\..\SRC\dlg_move_view_CtrlPanel.cpp" />
     <ClCompile Include="..\..\SRC\dlg_move_view_DvModel.cpp" />
     <ClCompile Include="..\..\SRC\dlg_move_view_Frame.cpp" />
+    <ClCompile Include="..\..\SRC\MLog.cpp" />
     <ClCompile Include="..\..\SRC\PathPattern_model.cpp" />
     <ClCompile Include="..\..\SRC\DUserEditor.cpp" />
     <ClCompile Include="..\..\SRC\DUserGroupEditor.cpp" />

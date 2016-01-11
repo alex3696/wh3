@@ -351,6 +351,9 @@
     <ClCompile Include="..\..\SRC\MObjCatalog.cpp">
       <Filter>Каталог объектов\Основная панель\model</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\SRC\MLog.cpp">
+      <Filter>История</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\INCLUDE\_pch.h">

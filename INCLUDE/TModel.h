@@ -197,16 +197,18 @@ public:
 	using SigVecChange = sig::signal<void(const IModel&, const VecChange&) >;
 	using SlotVecChange = std::function<void(const IModel&, const VecChange&)>;
 
-	using SigItemInsert = sig::signal<void(const IModel&, SptrIModel&, const SptrIModel&) >;
-	using SlotItemInsert = std::function<void(const IModel&, SptrIModel&, const SptrIModel&)>;
+	using SigInsert = sig::signal<void(const IModel&
+		,const std::vector<SptrIModel>&, const SptrIModel&) >;
+	using SlotInsert = std::function<void(const IModel&
+		, const std::vector<SptrIModel>&, const SptrIModel&)>;
 
-	sig::connection ConnBeforeInsert(const SlotItemInsert &subscriber)const
+	sig::connection ConnBeforeInsert(const SlotInsert &subscriber)const
 	{
 		if (!mSigBeforeInsert)
-			mSigBeforeInsert.reset(new SigItemInsert);
+			mSigBeforeInsert.reset(new SigInsert);
 		return mSigBeforeInsert->connect(subscriber);
 	}
-	void DisconnBeforeInsert(const SlotItemInsert &subscriber)const
+	void DisconnBeforeInsert(const SlotInsert &subscriber)const
 	{
 		if (mSigBeforeInsert)
 		{
@@ -215,13 +217,13 @@ public:
 		}
 	}
 	
-	sig::connection ConnAfterInsert(const SlotItemInsert &subscriber)const
+	sig::connection ConnAfterInsert(const SlotInsert &subscriber)const
 	{
 		if (!mSigAfterInsert)
-			mSigAfterInsert.reset(new SigItemInsert);
+			mSigAfterInsert.reset(new SigInsert);
 		return mSigAfterInsert->connect(subscriber);
 	}
-	void DisconnAfterInsert(const SlotItemInsert &subscriber)const
+	void DisconnAfterInsert(const SlotInsert &subscriber)const
 	{
 		if (mSigAfterInsert)
 		{
@@ -289,8 +291,8 @@ protected:
 		//SigChange		Change;
 	};
 
-	mutable std::unique_ptr<SigItemInsert>		mSigBeforeInsert;
-	mutable std::unique_ptr<SigItemInsert>		mSigAfterInsert;
+	mutable std::unique_ptr<SigInsert>		mSigBeforeInsert;
+	mutable std::unique_ptr<SigInsert>		mSigAfterInsert;
 
 	mutable std::unique_ptr<SigImpl>	mSig;
 };
@@ -350,7 +352,10 @@ protected:
 	struct extr_voidptr
 	{
 		typedef const void* result_type;
-		inline result_type operator()(const std::shared_ptr<IModel>& r)const { return r.get(); }
+		inline result_type operator()(const std::shared_ptr<IModel>& r)const 
+		{ 
+			return r.get(); 
+		}
 	};
 	
 	using BaseStore =
@@ -454,15 +459,36 @@ public:
 	}
 
 	template <class CHILD>
-	void InsertChild(std::shared_ptr<CHILD>& newItem, 
+	void Insert(const std::vector<std::shared_ptr<CHILD>> & newItems,
 		SptrIModel& before = SptrIModel(nullptr))
 	{
-		DoSigBeforeInsert(*this, newItem, before);
-		InsertWithoutSignal(newItem, before );
-		DoSigAfterInsert(*this, newItem, before);
+		DoSigBeforeInsert(*this, newItems, before);
+		
+		int qty_inserted = 0;
+		
+		for (const auto& curr : newItems)
+			qty_inserted += InsertWithoutSignal(curr, before) ? 1 : 0;
+
+		if (qty_inserted != newItems.size())
+			BOOST_THROW_EXCEPTION(error() << wxstr("Not all inserted"));
+
+		DoSigAfterInsert(*this, newItems, before);
 	}
 
-	void AddChild(std::shared_ptr<IModel>& newItem)
+
+	template <class CHILD>
+	void Insert(std::shared_ptr<CHILD>& newItem, 
+		SptrIModel& before = SptrIModel(nullptr))
+	{
+		std::vector<SptrIModel> new_vec;
+		new_vec.emplace_back(newItem);
+		
+		DoSigBeforeInsert(*this, new_vec, before);
+		if (InsertWithoutSignal(newItem, before))
+			DoSigAfterInsert(*this, new_vec, before);
+	}
+
+	void AddChild(SptrIModel& newItem)
 	{
 		if (InsertWithoutSignal(newItem))
 		{
@@ -800,18 +826,18 @@ protected:
 	}
 
 	void DoSigBeforeInsert(const IModel& vec
-		, std::shared_ptr<IModel>& item
+		, const std::vector<SptrIModel>& new_vec
 		, const std::shared_ptr<IModel>& itemBefore)
 	{
 		if (mSigBeforeInsert)
-			mSigBeforeInsert->operator()(vec, item, itemBefore);
+			mSigBeforeInsert->operator()(vec, new_vec, itemBefore);
 	}
 	void DoSigAfterInsert(const IModel& vec
-		, std::shared_ptr<IModel>& item
+		, const std::vector<SptrIModel>& new_vec
 		, const std::shared_ptr<IModel>& itemBefore)
 	{
 		if (mSigAfterInsert)
-			mSigAfterInsert->operator()(vec, item, itemBefore);
+			mSigAfterInsert->operator()(vec, new_vec, itemBefore);
 	}
 
 	void SaveRange(ModelState state)
