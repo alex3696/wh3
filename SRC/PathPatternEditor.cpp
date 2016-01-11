@@ -335,17 +335,13 @@ void PathPatternEditor::SetModel(std::shared_ptr<temppath::model::Array>& newMod
 
 	auto onAddNode = std::bind(&PathPatternEditor::OnAddNode, this, ph::_1, ph::_2);
 	auto onDelNode = std::bind(&PathPatternEditor::OnDelNode, this, ph::_1, ph::_2);
-	auto onAfterReset = std::bind(&PathPatternEditor::OnAfterReset, this, ph::_1);
 	auto onAfterIns = std::bind(&PathPatternEditor::OnAfterInsert, this, ph::_1, ph::_2, ph::_3);
 
 	connAdd = mModel->ConnectAppendSlot(onAddNode);
 	connDel = mModel->ConnectBeforeRemove(onDelNode);
-	connAfterReset = mModel->ConnAfterReset(onAfterReset);
 	connAfterInsert = mModel->ConnAfterInsert(onAfterIns);
-
-	mModel->Reset();
-
-
+	
+	ResetGui();
 
 }
 //---------------------------------------------------------------------------
@@ -482,11 +478,11 @@ void PathPatternEditor::OnAfterInsert(const IModel& vec
 
 }
 //---------------------------------------------------------------------------
-void PathPatternEditor::OnAfterReset(const IModel& model)
+void PathPatternEditor::ResetGui()
 {
 	auto szrPath = this->GetSizer();
 
-	auto qty = model.GetChildQty();
+	auto qty = mModel->GetChildQty();
 	for (size_t i = 0; i < qty; i++)
 		MakeGuiItem(i);
 

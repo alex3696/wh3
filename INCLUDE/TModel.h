@@ -200,24 +200,6 @@ public:
 	using SigItemInsert = sig::signal<void(const IModel&, SptrIModel&, const SptrIModel&) >;
 	using SlotItemInsert = std::function<void(const IModel&, SptrIModel&, const SptrIModel&)>;
 
-	using SigReset = sig::signal<void(const IModel&) >;
-	using SlotReset = std::function<void(const IModel&)>;
-
-	sig::connection ConnAfterReset(const SlotReset &subscriber)const
-	{
-		if (!mSigAfterReset)
-			mSigAfterReset.reset(new SigReset);
-		return mSigAfterReset->connect(subscriber);
-	}
-	void DisconnAfterReset(const SlotReset &subscriber)const
-	{
-		if (mSigAfterReset)
-		{
-			mSigAfterReset->disconnect(&subscriber);
-			mSigAfterReset.reset(nullptr);
-		}
-	}
-
 	sig::connection ConnBeforeInsert(const SlotItemInsert &subscriber)const
 	{
 		if (!mSigBeforeInsert)
@@ -309,7 +291,6 @@ protected:
 
 	mutable std::unique_ptr<SigItemInsert>		mSigBeforeInsert;
 	mutable std::unique_ptr<SigItemInsert>		mSigAfterInsert;
-	mutable std::unique_ptr<SigReset >			mSigAfterReset;
 
 	mutable std::unique_ptr<SigImpl>	mSig;
 };
@@ -671,12 +652,6 @@ public:
 			return;
 		for (auto& child : *mVec)
 			child->MarkSaved();
-	}
-
-	void Reset()
-	{
-		if (mSigAfterReset)
-			mSigAfterReset->operator()(*this);
 	}
 
 protected:
