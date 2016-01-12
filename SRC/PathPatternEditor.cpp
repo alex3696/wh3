@@ -333,11 +333,9 @@ void PathPatternEditor::SetModel(std::shared_ptr<temppath::model::Array>& newMod
 
 	namespace ph = std::placeholders;
 
-	auto onAddNode = std::bind(&PathPatternEditor::OnAddNode, this, ph::_1, ph::_2);
 	auto onDelNode = std::bind(&PathPatternEditor::OnDelNode, this, ph::_1, ph::_2);
 	auto onAfterIns = std::bind(&PathPatternEditor::OnAfterInsert, this, ph::_1, ph::_2, ph::_3);
 
-	connAdd = mModel->ConnectAppendSlot(onAddNode);
 	connDel = mModel->ConnectBeforeRemove(onDelNode);
 	connAfterInsert = mModel->ConnAfterInsert(onAfterIns);
 	
@@ -450,16 +448,6 @@ void PathPatternEditor::OnDelNode(const IModel& model, const std::vector<unsigne
 	szrPath->Fit(this);
 	this->GetParent()->Layout();
 
-}
-//---------------------------------------------------------------------------
-void PathPatternEditor
-::OnAddNode(const IModel& model, const std::vector<unsigned int>& vec)
-{
-	for (size_t i = 0; i < vec.size(); i++)
-	{
-		size_t pos = vec[i];
-		MakeGuiItem(pos);
-	}
 }
 
 //---------------------------------------------------------------------------

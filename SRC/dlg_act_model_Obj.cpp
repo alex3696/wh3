@@ -9,7 +9,7 @@ Obj::Obj(const char option)
 	:TModelData<DataType>()
 	, mActArray(new ActArray)
 {
-	this->AddChild(std::dynamic_pointer_cast<IModel>(mActArray));
+	this->Insert(std::dynamic_pointer_cast<IModel>(mActArray));
 }
 
 //-----------------------------------------------------------------------------

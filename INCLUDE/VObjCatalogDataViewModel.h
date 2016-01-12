@@ -51,11 +51,15 @@ protected:
 	sig::scoped_connection		mConnClsRemove;
 	sig::scoped_connection		mConnClsChange;
 
-	void OnClsAppend(const IModel&, const std::vector<unsigned int>&);
+	void OnClsAfterInsert(const IModel& vec
+		, const std::vector<SptrIModel>& newItems
+		, const SptrIModel& itemBefore);
 	void OnClsRemove(const IModel&, const std::vector<unsigned int>&);
 	void OnClsChange(const IModel&, const std::vector<unsigned int>&);
 
-	void OnObjAppend(const IModel&, const std::vector<unsigned int>&);
+	void OnObjAfterInsert(const IModel& vec
+		, const std::vector<SptrIModel>& newItems
+		, const SptrIModel& itemBefore);
 	void OnObjRemove(const IModel&, const std::vector<unsigned int>&);
 	//void OnObjChange(const IModel&, const std::vector<unsigned int>&);
 	std::map<wxDataViewItem, sig::scoped_connection> mConnAddObj;

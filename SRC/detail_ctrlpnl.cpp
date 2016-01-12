@@ -77,24 +77,19 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 		this, sph::_1, sph::_2);
 	mChangeMainDetail = mObj->DoConnect(moAfterUpdate, funcOnChange);
 
-	mConnClsPropAppend = mObj->GetClsPropArray()->ConnectAppendSlot(
-		std::bind(&CtrlPnl::OnClsPropAppend, this, sph::_1, sph::_2));
+	mConnClsPropAppend = mObj->GetClsPropArray()->ConnAfterInsert(
+		std::bind(&CtrlPnl::OnClsPropAfterInsert, this, sph::_1, sph::_2, sph::_3));
 	mConnClsPropRemove = mObj->GetClsPropArray()->ConnectRemoveSlot(
 		std::bind(&CtrlPnl::OnClsPropRemove, this, sph::_1, sph::_2));
 	mConnClsPropChange = mObj->GetClsPropArray()->ConnectChangeSlot(
 		std::bind(&CtrlPnl::OnClsPropChange, this, sph::_1, sph::_2));
 
-
-
-	mConnObjPropAppend = mObj->GetObjPropArray()->ConnectAppendSlot(
-		std::bind(&CtrlPnl::OnObjPropAppend, this, sph::_1, sph::_2));
+	mConnObjPropAppend = mObj->GetObjPropArray()->ConnAfterInsert(
+		std::bind(&CtrlPnl::OnObjPropAfterInsert, this, sph::_1, sph::_2, sph::_3));
 	mConnObjPropRemove = mObj->GetObjPropArray()->ConnectRemoveSlot(
 		std::bind(&CtrlPnl::OnObjPropRemove, this, sph::_1, sph::_2));
 	mConnObjPropChange = mObj->GetObjPropArray()->ConnectChangeSlot(
 		std::bind(&CtrlPnl::OnObjPropChange, this, sph::_1, sph::_2));
-
-
-
 }
 //-----------------------------------------------------------------------------
 CtrlPnl::~CtrlPnl()
@@ -197,20 +192,17 @@ void CtrlPnl::UpdateTab()
 	//mPropGrid->SetCaptionBackgroundColour(wxColour(255, 200, 200));
 
 }
-
 //-----------------------------------------------------------------------------
-void CtrlPnl::OnClsPropAppend(const IModel& model, const std::vector<unsigned int>& vec)
+void CtrlPnl::OnClsPropAfterInsert(const IModel& vec
+	, const std::vector<SptrIModel>& newItems
+	, const SptrIModel& itemBefore)
 {
-	//if ( &model != mObj.get())
-	//	return;
-
 	auto propCategory = mPropGrid->GetProperty("user_cls_prop");
-
-	for (const unsigned int& i : vec)
+	for (const auto& curr : newItems)
 	{
-		auto item = dynamic_pointer_cast<model::ClsProp>(mObj->GetClsPropArray()->GetChild(i));
+		auto item = dynamic_pointer_cast<model::ClsProp>(curr);
 		const auto& data = item->GetData();
-		propCategory->AppendChild( new wxStringProperty(
+		propCategory->AppendChild(new wxStringProperty(
 			data.mProp.mLabel
 			, wxString::Format("ClsProp_%s", data.mProp.mLabel.toStr())
 			, data.mVal));
@@ -267,13 +259,15 @@ void CtrlPnl::OnClsPropChange(const IModel& model, const std::vector<unsigned in
 	}
 }
 //-----------------------------------------------------------------------------
-void CtrlPnl::OnObjPropAppend(const IModel& model, const std::vector<unsigned int>& vec)
+void CtrlPnl::OnObjPropAfterInsert(const IModel& vec
+	, const std::vector<SptrIModel>& newItems
+	, const SptrIModel& itemBefore)
 {
 	auto propCategory = mPropGrid->GetProperty("user_obj_prop");
 
-	for (const unsigned int& i : vec)
+	for (const auto& curr : newItems)
 	{
-		auto item = dynamic_pointer_cast<model::ObjProp>(mObj->GetObjPropArray()->GetChild(i));
+		auto item = dynamic_pointer_cast<model::ObjProp>(curr);
 		const auto& data = item->GetData();
 		propCategory->AppendChild(new wxStringProperty(
 			data.mProp.mLabel

@@ -13,7 +13,7 @@ Act::Act(const char option)
 	: TModelData<DataType>(option)
 	, mPropArray(new PropArray)
 {
-	this->AddChild(std::dynamic_pointer_cast<IModel>(mPropArray));
+	this->Insert(std::dynamic_pointer_cast<IModel>(mPropArray));
 }
 
 //-----------------------------------------------------------------------------

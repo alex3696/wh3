@@ -336,8 +336,8 @@ void VObjCatalogDataViewModel::SetModel(std::shared_ptr<IModel> model)
 	
 	namespace sph = std::placeholders;
 
-	mConnClsAppend = mCatalogModel->mTypeArray->ConnectAppendSlot(
-		std::bind(&VObjCatalogDataViewModel::OnClsAppend, this, sph::_1, sph::_2));
+	mConnClsAppend = mCatalogModel->mTypeArray->ConnAfterInsert(
+		std::bind(&VObjCatalogDataViewModel::OnClsAfterInsert, this, sph::_1, sph::_2, sph::_3));
 	mConnClsRemove = mCatalogModel->mTypeArray->ConnectBeforeRemove(
 		std::bind(&VObjCatalogDataViewModel::OnClsRemove, this, sph::_1, sph::_2));
 	mConnClsChange = mCatalogModel->mTypeArray->ConnectChangeSlot(
@@ -358,24 +358,27 @@ void VObjCatalogDataViewModel::ClearModel()
 
 
 //---------------------------------------------------------------------------
-void VObjCatalogDataViewModel::OnClsAppend(const IModel& newVec,
-	const std::vector<unsigned int>& itemVec)
+void VObjCatalogDataViewModel::OnClsAfterInsert(const IModel& vec
+	, const std::vector<SptrIModel>& newItems
+	, const SptrIModel& itemBefore)
+	//const IModel& newVec,const std::vector<unsigned int>& itemVec)
 {
 	namespace sph = std::placeholders; 
+	namespace cat = wh::object_catalog;
 
-	auto typeArray = mCatalogModel->mTypeArray;
+	auto typeArray = mCatalogModel->mTypeArray; // == vec
 
 	wxDataViewItemArray typeItemArray;
-	for (const unsigned int& i : itemVec)
+	//for (const unsigned int& i : itemVec)
+	for (const auto& curr : newItems)
 	{
-		auto clsModel = std::dynamic_pointer_cast<object_catalog::MTypeItem>
-			(typeArray->GetChild(i));
+		auto clsModel = std::dynamic_pointer_cast<cat::MTypeItem>(curr);
 						
 		wxDataViewItem typeItem(clsModel.get());
 		typeItemArray.Add(typeItem);
 
-		mConnAddObj[typeItem] = clsModel->mObjArray->ConnectAppendSlot(
-			std::bind(&VObjCatalogDataViewModel::OnObjAppend, this, sph::_1, sph::_2));
+		mConnAddObj[typeItem] = clsModel->mObjArray->ConnAfterInsert(
+			std::bind(&VObjCatalogDataViewModel::OnObjAfterInsert, this, sph::_1, sph::_2, sph::_3));
 
 		mConnDelObj[typeItem] = clsModel->mObjArray->ConnectBeforeRemove(
 			std::bind(&VObjCatalogDataViewModel::OnObjRemove, this, sph::_1, sph::_2));
@@ -386,16 +389,18 @@ void VObjCatalogDataViewModel::OnClsAppend(const IModel& newVec,
 }//OnAppend
 
 //---------------------------------------------------------------------------
-void VObjCatalogDataViewModel::OnObjAppend(const IModel& newVec,
-	const std::vector<unsigned int>& itemVec)
+void VObjCatalogDataViewModel::OnObjAfterInsert(const IModel& vec
+	, const std::vector<SptrIModel>& newItems
+	, const SptrIModel& itemBefore)
+//(const IModel& newVec,const std::vector<unsigned int>& itemVec)
 {
-	auto clsItem = dynamic_cast<object_catalog::MTypeItem*>(newVec.GetParent());
+	// vec == clsModel->mObjArray
 	
+	auto clsItem = dynamic_cast<object_catalog::MTypeItem*>(vec.GetParent());
 	wxDataViewItemArray newObjArray;
-	for (const unsigned int& i : itemVec)
+	for (const auto& curr : newItems)
 	{
-		auto child = newVec.GetChild(i);
-		wxDataViewItem objItem(child.get());
+		wxDataViewItem objItem(curr.get());
 		newObjArray.Add(objItem);
 	}
 	ItemsAdded(wxDataViewItem(clsItem), newObjArray);

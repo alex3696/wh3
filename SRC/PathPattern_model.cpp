@@ -51,7 +51,7 @@ void Array::SetArr2Id2Title(const wxString& arrId, const wxString& arrTitle)
 			item_data.mObj.mLabel = pathTitle[i].m_Name;
 
 		item->SetData(item_data);
-		AddChild(item);
+		Insert(item);
 	}
 
 

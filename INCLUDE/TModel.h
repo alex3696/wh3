@@ -232,12 +232,6 @@ public:
 		}
 	}
 
-	sig::connection ConnectAppendSlot(const SlotVecChange &subscriber)const
-	{
-		if (!mSig)
-			mSig.reset(new SigImpl);
-		return mSig->AppendChild.connect(subscriber);
-	}
 	sig::connection ConnectBeforeRemove(const SlotVecChange &slot)const
 	{
 		if (!mSig)
@@ -260,11 +254,6 @@ public:
 		return mSig->ChangeChild.connect(subscriber);
 	}
 
-	inline void DisconnectAppendSlot(const SlotVecChange &subscriber)const
-	{
-		if (mSig)
-			mSig->AppendChild.disconnect(&subscriber);
-	}
 	inline void DisconnectRemoveSlot(const SlotVecChange &subscriber)const
 	{
 		if (mSig)
@@ -284,7 +273,6 @@ public:
 protected:
 	struct SigImpl
 	{
-		SigVecChange	AppendChild;
 		SigVecChange	BeforeRemove;
 		SigVecChange	RemoveChild;
 		SigVecChange	ChangeChild;
@@ -467,7 +455,14 @@ public:
 		int qty_inserted = 0;
 		
 		for (const auto& curr : newItems)
-			qty_inserted += InsertWithoutSignal(curr, before) ? 1 : 0;
+		{
+			auto newImodel = std::dynamic_pointer_cast<IModel>(curr);
+			if (newImodel)
+				qty_inserted += InsertWithoutSignal(newImodel, before) ? 1 : 0;
+			else
+				BOOST_THROW_EXCEPTION(error() << wxstr("Can`t cast to IModel"));
+
+		}
 
 		if (qty_inserted != newItems.size())
 			BOOST_THROW_EXCEPTION(error() << wxstr("Not all inserted"));
@@ -484,24 +479,15 @@ public:
 		new_vec.emplace_back(newItem);
 		
 		DoSigBeforeInsert(*this, new_vec, before);
-		if (InsertWithoutSignal(newItem, before))
-			DoSigAfterInsert(*this, new_vec, before);
-	}
 
-	void AddChild(SptrIModel& newItem)
-	{
-		if (InsertWithoutSignal(newItem))
+		auto newImodel = std::dynamic_pointer_cast<IModel>(newItem);
+		if (newImodel)
 		{
-			unsigned int pos = mVec->size()-1;
-			VecChange sigVec;
-			sigVec.emplace_back(pos);
-			DoSigAppendChild(sigVec);
+			if (InsertWithoutSignal(newImodel, before))
+				DoSigAfterInsert(*this, new_vec, before);
 		}
-	}
-	template <class CHILD>
-	void AddChild(std::shared_ptr<CHILD>& newItem)
-	{
-		AddChild(std::dynamic_pointer_cast<IModel>(newItem));
+		else
+			BOOST_THROW_EXCEPTION(error() << wxstr("Can`t cast to IModel"));
 	}
 
 	template <class CHILD>
@@ -686,9 +672,11 @@ protected:
 
 	virtual void LoadChilds()
 	{
-		// 1 отключаем уведомления родителю, если включено, нет необходимости дёргать это событие более одного раза
+		// отключаем уведомление родителей, чтоб несколько раз не уведомлять
+		// на Clear, Insert, а потом после обновления каждого чилда
 		auto enableParentNotify = (mOption & ModelOption::EnableParentNotify);
 		mOption = mOption & ~ModelOption::EnableParentNotify;
+
 		Clear(); // очищаем, если у детишек есть клиенты, то они отвалятся
 		// загружаем детишек
 		wxString query;
@@ -698,41 +686,33 @@ protected:
 			auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
 			if (table)
 			{
-				VecChange sigVec;
+				std::vector<SptrIModel> new_vec;
 				unsigned int rowQty = table->GetRowCount();
+				
 				if (rowQty)
 				{
-					if (!mVec)
-						mVec.reset(new BaseStore);
-
-					unsigned int dbNo = 0;
-					unsigned int elemNo = 0;
-					while (dbNo < rowQty)
+					for (unsigned int i = 0; i < rowQty; ++i)
 					{
 						std::shared_ptr<IModel> child = CreateChild();
-						if (child && LoadChildDataFromDb(child, table, dbNo))
+						if (child && LoadChildDataFromDb(child, table, i))
 						{
 							child->MarkSaved();
-							if (InsertWithoutSignal(child))
-								sigVec.emplace_back(elemNo++);
+							new_vec.emplace_back(child);
 						}
-						dbNo++;
-					}
-
+					}//for (auto i = 0; i < rowQty; ++i)
+					Insert(new_vec);
 				}//if (rowQty)
 
 				// загружаем каскадно детишек
 				if (rowQty && (mOption & ModelOption::CascadeLoad))
 					for (auto item : *mVec)
 						item->LoadChilds();
-
-				DoSigAppendChild(sigVec);
 			}//if(table)
-		}
-		// 3 Каскадно уведомить родителей об изменении
-		if (enableParentNotify)
-			mOption = mOption | ModelOption::EnableParentNotify;
-		DoNotifyParent();
+			if (enableParentNotify)// включаем уведомления родителя как было
+				mOption = mOption | ModelOption::EnableParentNotify;
+			// 3 Каскадно уведомить родителей об изменении
+			DoNotifyParent();
+		}//if (queryExist)
 	}
 	virtual void SaveChilds()
 	{
@@ -806,12 +786,6 @@ protected:
 		if (mParent && (mOption & ModelOption::EnableParentNotify))
 			mParent->OnChildChage(this);
 	}
-	void DoSigAppendChild(VecChange& sigVec)
-	{
-		if (mSig)
-			mSig->AppendChild(*this, sigVec);
-		DoNotifyParent();
-	}
 	void DoSigRemoveChild(VecChange& sigVec)
 	{
 		if (mSig)
@@ -831,6 +805,7 @@ protected:
 	{
 		if (mSigBeforeInsert)
 			mSigBeforeInsert->operator()(vec, new_vec, itemBefore);
+		DoNotifyParent();
 	}
 	void DoSigAfterInsert(const IModel& vec
 		, const std::vector<SptrIModel>& new_vec
@@ -838,6 +813,7 @@ protected:
 	{
 		if (mSigAfterInsert)
 			mSigAfterInsert->operator()(vec, new_vec, itemBefore);
+		DoNotifyParent();
 	}
 
 	void SaveRange(ModelState state)

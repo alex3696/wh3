@@ -27,65 +27,19 @@ MClsAct::MClsAct(const char option)
 	//OnChange(this, &GetData());
 }
 //-------------------------------------------------------------------------
-wxString MClsAct::GetSrcPathPattern()const
-{
-	wxString pathPattern;
-	const wxString& arrId = GetData().mArrId;
-	wh::ObjKeyPath pathId;
-	if (!pathId.ParseArray(arrId))
-		return "'{}'";
-	for (size_t i = 0; i < pathId.size(); ++i)
-	{
-		const auto& item = pathId[i];
-
-		if ("NULL" == item.m_Name && "NULL" == item.m_Type)
-			pathPattern += "%,";
-		else
-		{
-			const wxString cls = "NULL" == item.m_Type ? "%" : item.m_Type;
-			const wxString obj = "NULL" == item.m_Name ? "%" : item.m_Name;
-			pathPattern += wxString::Format("{%s,%s},", cls, obj);
-
-		}
-	}
-	if (!pathPattern.IsEmpty())
-	{
-		pathPattern.RemoveLast();
-		pathPattern = wxString::Format("'{%s}'", pathPattern);;
-	}
-	else
-		pathPattern = "'{%}'";
-	return pathPattern;
-}
-//-------------------------------------------------------------------------
 void MClsAct::OnChange(const IModel* model, const DataType* dt)
 {
 	mPathGui.clear();
-	
-
 	if (!model || !dt)
 		return;
 
-	const wxString& arrTitle = dt->mArrTitle;
-	wh::ObjKeyPath pathTitle;
-	if (!pathTitle.ParseArray(arrTitle))
-		return;
-	for (size_t i = 0; i < pathTitle.size(); ++i)
-	{
-		const auto& item = pathTitle[i];
-
-		if ("NULL" == item.m_Name && "NULL" == item.m_Type)
-			mPathGui += "/*";
-		else
-		{
-			const wxString cls = "NULL" == item.m_Type ? "*" : item.m_Type;
-			const wxString obj = "NULL" == item.m_Name ? "*" : item.m_Name;
-			mPathGui += wxString::Format("/[%s]%s", cls, obj);
-
-		}
-	}
-
-
+	wh::temppath::model::Array pp;
+	pp.SetArr2Id2Title(dt->mArrId, dt->mArrTitle);
+	rec::PathNode src;
+	src.mCls = dt->mCls;
+	src.mObj = dt->mObj;
+	pp.Insert(pp.CreateItem(src));
+	pp.GetPath(mPathGui, false);
 
 }
 //-------------------------------------------------------------------------
@@ -139,6 +93,22 @@ bool MClsAct::GetInsertQuery(wxString& query)const
 	
 
 	query = wxString::Format(
+		"WITH ins AS( "
+		" INSERT INTO perm_act(access_group, access_disabled, script_restrict,"
+		"                      cls_id, obj_id, src_path, act_id) "
+		" VALUES(%s, %s, %s "
+		"       ,%s, %s, %s ,%s ) "
+		" RETURNING * ) "
+		" SELECT perm.id, access_group, access_disabled, script_restrict "
+		" , cls.id, cls.title, obj.id, obj.title "
+		" , act.id, act.title "
+		" , arr_2title, arr_2id "
+		" FROM ins AS perm "
+		" LEFT JOIN LATERAL tmppath_to_2id_info(src_path) x ON true "
+		" LEFT JOIN cls   ON cls.id = perm.cls_id "
+		" LEFT JOIN obj   ON obj.id = perm.obj_id "
+		" LEFT JOIN act ON act.id = perm.act_id "
+		/*
 		" INSERT INTO perm_act( "
 		"  access_group, access_disabled, script_restrict "
 		" ,cls_id, obj_id, src_path "
@@ -153,13 +123,14 @@ bool MClsAct::GetInsertQuery(wxString& query)const
 		"          ,act_id, (SELECT title FROM act WHERE id=act_id) "
         "    	   ,(SELECT arr_2title FROM  tmppath_to_2id_info(src_path)) "
 		"          ,(SELECT arr_2id    FROM  tmppath_to_2id_info(src_path)) "
+		*/
 		, newPerm.mAcessGroup.SqlVal()
 		, newPerm.mAccessDisabled.SqlVal()
 		, newPerm.mScriptRestrict.SqlVal()
 
 		, cls.mId.SqlVal() //newPerm.mSrcCls.mId = cls.mID;
 		, newPerm.mObj.mId.SqlVal()
-		, GetSrcPathPattern()//newPerm.mArrId.SqlVal()
+		, newPerm.mArrId.SqlVal()
 
 		, newPerm.mAct.mId.SqlVal()
 		);
@@ -193,7 +164,7 @@ bool MClsAct::GetUpdateQuery(wxString& query)const
 
 			, cls.mId.SqlVal() //newPerm.mSrcCls.mId = cls.mID;
 			, newPerm.mObj.mId.SqlVal()
-			, GetSrcPathPattern() //newPerm.mArrId.SqlVal()
+			, newPerm.mArrId.SqlVal()
 			
 			, newPerm.mAct.mId.SqlVal()
 
@@ -259,12 +230,7 @@ bool MClsAct::GetFieldValue(unsigned int col, wxVariant &variant)
 			("1" == data.mAccessDisabled) ? mgr->m_ico_reject24 : mgr->m_ico_accept24);
 		break;
 	case 2:	variant = data.mAct.mLabel;	break;
-	case 3: 
-		variant = wxString::Format("%s/[%s]%s",
-		mPathGui,
-		data.mCls.mLabel.toStr(),
-		data.mObj.mLabel.IsNull() ? "*" : data.mObj.mLabel.toStr()); 
-		break;
+	case 3: variant = mPathGui;	break;
 	case 4: variant = data.mId.toStr();	break;
 	}//switch(col) 
 	return true;

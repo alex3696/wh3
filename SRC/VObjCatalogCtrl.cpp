@@ -575,7 +575,7 @@ void VObjCatalogCtrl::OnMkObj(wxCommandEvent& evt)
 		return;
 
 	auto newObjModel = typeItem->mObjArray->CreateChild();
-	typeItem->mObjArray->AddChild(newObjModel);
+	typeItem->mObjArray->Insert(newObjModel);
 
 	auto newObj = std::dynamic_pointer_cast<MObjItem>(newObjModel);
 
@@ -722,18 +722,20 @@ void VObjCatalogCtrl::SetModel(std::shared_ptr<IModel> model)
 				
 		mTableView->SetModel(model);
 	
+		namespace sph = std::placeholders;
+
 		mConnPathChange.disconnect();
 		auto funcOnChange = std::bind(&VObjCatalogCtrl::OnChangePath,
-			this, std::placeholders::_1, std::placeholders::_2);
-		mConnPathChange = mCatalogModel->mPath->ConnectAppendSlot(funcOnChange);
+			this, sph::_1, sph::_2, sph::_3);
+		mConnPathChange = mCatalogModel->mPath->ConnAfterInsert(funcOnChange);
 
-		std::vector<unsigned int> vec;
+		std::vector<SptrIModel> vec;
 		unsigned int qty = mCatalogModel->mPath->GetChildQty();
 		for (unsigned int i = 0; i < qty; ++i)
-			vec.push_back(i);
+			vec.emplace_back(mCatalogModel->mPath->GetChild(i));
 
 		
-		OnChangePath(*mCatalogModel->mPath.get(), vec);
+		OnChangePath(*mCatalogModel->mPath.get(), vec, SptrIModel(nullptr));
 			
 	}
 
@@ -869,7 +871,8 @@ void VObjCatalogCtrl::OnSelect(wxDataViewEvent& evt)
 	UpdateToolsStates();
 }
 //-------------------------------------------------------------------------
-void VObjCatalogCtrl::OnChangePath(const IModel& model, const std::vector<unsigned int>& vec)
+void VObjCatalogCtrl::OnChangePath(const IModel& vec
+	, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore)
 {
 	if (mCatalogModel)
 		mPathSring->SetValue(mCatalogModel->mPath->GetPathStr());

@@ -76,7 +76,7 @@ wxString MObjItem::GetPathString()
 					else
 					{
 						auto path = std::make_shared<model::ObjPath>();
-						this->AddChild(std::dynamic_pointer_cast<IModel>(path));
+						this->Insert(std::dynamic_pointer_cast<IModel>(path));
 						path->Load();
 						return path->AsString();
 					}

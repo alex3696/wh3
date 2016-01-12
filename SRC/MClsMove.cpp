@@ -37,7 +37,7 @@ void MClsMove::OnChange(const IModel* model, const DataType* dt)
 	rec::PathNode src;
 	src.mCls = dt->mSrcCls;
 	src.mObj = dt->mSrcObj;
-	pp.AddChild(pp.CreateItem(src));
+	pp.Insert(pp.CreateItem(src));
 	pp.GetPath(mSrcPathGui,false);
 
 	mDstPathGui.clear();
@@ -46,7 +46,7 @@ void MClsMove::OnChange(const IModel* model, const DataType* dt)
 	rec::PathNode dst;
 	dst.mCls = dt->mDstCls;
 	dst.mObj = dt->mDstObj;
-	pp.AddChild(pp.CreateItem(dst));
+	pp.Insert(pp.CreateItem(dst));
 
 	pp.GetPath(mDstPathGui,false);
 

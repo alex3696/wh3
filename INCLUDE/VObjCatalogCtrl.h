@@ -61,7 +61,8 @@ class VObjCatalogCtrl
 
 	std::shared_ptr<object_catalog::MObjItem> GetSelectedObj()const;
 
-	void OnChangePath(const IModel&, const std::vector<unsigned int>&);
+	void OnChangePath(const IModel& vec
+		, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore);
 	sig::scoped_connection		mConnPathChange;
 public:
 

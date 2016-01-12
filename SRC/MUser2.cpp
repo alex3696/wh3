@@ -24,7 +24,7 @@ std::shared_ptr<MUserGroupArray> MUser2::GetGroupArray()
 	{
 		mGroupArray.reset(new MUserGroupArray);
 		std::shared_ptr<IModel> item = std::dynamic_pointer_cast<IModel>(mGroupArray);
-		this->AddChild(item);
+		this->Insert(item);
 	}
 	return mGroupArray;
 }
@@ -102,7 +102,7 @@ void MUser2::LoadChilds()
 	{
 		mGroupArray.reset(new MUserGroupArray);
 		std::shared_ptr<IModel> item = std::dynamic_pointer_cast<IModel>(mGroupArray);
-		this->AddChild(item);
+		this->Insert(item);
 	}
 	mGroupArray->Load();
 }

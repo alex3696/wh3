@@ -258,8 +258,8 @@ void DvModel::SetModel(std::shared_ptr<IModel> model)
 
 	namespace sph = std::placeholders;
 
-	mConnClsAppend = mMovable->GetDstTypes()->ConnectAppendSlot(
-		std::bind(&DvModel::OnClsAppend, this, sph::_1, sph::_2));
+	mConnClsAppend = mMovable->GetDstTypes()->ConnAfterInsert(
+		std::bind(&DvModel::OnAfterInsert, this, sph::_1, sph::_2, sph::_3));
 	mConnClsRemove = mMovable->GetDstTypes()->ConnectRemoveSlot(
 		std::bind(&DvModel::OnClsRemove, this, sph::_1, sph::_2));
 	mConnClsChange = mMovable->GetDstTypes()->ConnectChangeSlot(
@@ -276,30 +276,27 @@ void DvModel::ClearModel()
 
 
 //---------------------------------------------------------------------------
-void DvModel::OnClsAppend(const IModel& newVec,
-	const std::vector<unsigned int>& itemVec)
+void DvModel::OnAfterInsert(const IModel& vec
+	, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore)
 {
-
-	for (const unsigned int& i : itemVec)
+	// vec = mMovable->GetDstTypes()
+	for (const auto& curr : newItems)
 	{
-		auto typeModel = std::dynamic_pointer_cast<model::DstType>
-			(mMovable->GetDstTypes()->GetChild(i));
-
+		auto typeModel = std::dynamic_pointer_cast<model::DstType>(curr);
+		
 		wxDataViewItem typeItem(typeModel.get());
 		ItemAdded(wxDataViewItem(NULL), typeItem);
 
 		auto objArray = typeModel->GetObjects();
 		wxDataViewItemArray objItemArray;
+
 		for (unsigned int j = 0; j < objArray->GetChildQty(); ++j)
 		{
 			wxDataViewItem objItem(objArray->GetChild(j).get());
 			objItemArray.Add(objItem);
 		}
 		ItemsAdded(typeItem, objItemArray);
-		//this->Expand(typeItem);
 	}
-
-	//Select(wxDataViewItem(nullptr));
 
 }//OnAppend
 //---------------------------------------------------------------------------

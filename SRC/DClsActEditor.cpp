@@ -209,7 +209,7 @@ void DClsActEditor::SetData(const rec::ClsActAccess& rec)
 	rec::PathNode dstItemData(clsData.mId, clsData.mLabel,
 								rec.mObj.mId, rec.mObj.mLabel);
 	auto dstItemModel = mPatternPath->CreateItem(dstItemData);
-	mPatternPath->AddChild(dstItemModel);
+	mPatternPath->Insert(dstItemModel);
 	mPathEditor->SetMode(PathPatternEditor::ReqOne_FixCls);
 	mPathEditor->SetModel(mPatternPath);
 }

@@ -16,10 +16,10 @@ MObjCatalog::MObjCatalog(const char option)
 	, mFilterCat(new MFilter)
 	
 {
-	this->AddChild(mPath);
-	this->AddChild(mTypeArray);
-	this->AddChild(mFavProps);
-	this->AddChild(mFilter);
+	this->Insert(mPath);
+	this->Insert(mTypeArray);
+	this->Insert(mFavProps);
+	this->Insert(mFilter);
 
 	// 0
 	{
@@ -31,10 +31,10 @@ MObjCatalog::MObjCatalog(const char option)
 		fd.mFieldType = ftLong;
 		fd.mIsEnabled = false;
 		auto item = mFilter->CreateItem(fd,true);
-		mFilter->AddChild(item);
+		mFilter->Insert(item);
 	}
 	// 1
-	mFilter->AddChild(
+	mFilter->Insert(
 		mFilter->CreateItem(
 			FilterData("0", "cls.id", ftLong, foEq, fcAND, false), true));
 

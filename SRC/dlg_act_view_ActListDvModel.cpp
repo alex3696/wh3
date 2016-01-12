@@ -118,8 +118,8 @@ void ActListDvModel::SetModel(std::shared_ptr<dlg_act::model::ActArray> model)
 
 	namespace sph = std::placeholders;
 
-	mConnAppend = mActArray->ConnectAppendSlot(
-		std::bind(&ActListDvModel::OnAppend, this, sph::_1, sph::_2));
+	mConnAppend = mActArray->ConnAfterInsert(
+		std::bind(&ActListDvModel::OnAfterInsert, this, sph::_1, sph::_2, sph::_3));
 	mConnRemove = mActArray->ConnectRemoveSlot(
 		std::bind(&ActListDvModel::OnRemove, this, sph::_1, sph::_2));
 	mConnChange = mActArray->ConnectChangeSlot(
@@ -136,17 +136,14 @@ void ActListDvModel::ClearModel()
 
 
 //---------------------------------------------------------------------------
-void ActListDvModel::OnAppend(const IModel& newVec,
-	const std::vector<unsigned int>& itemVec)
+void ActListDvModel::OnAfterInsert(const IModel& vec
+	, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore)
 {
-	for (const unsigned int& i : itemVec)
+	for (const auto& curr : newItems)
 	{
-		auto actModel = std::dynamic_pointer_cast<model::Act>(mActArray->GetChild(i));
-		wxDataViewItem actItem(actModel.get());
+		wxDataViewItem actItem(curr.get());
 		ItemAdded(wxDataViewItem(NULL), actItem);
 	}
-
-
 }//OnAppend
 //---------------------------------------------------------------------------
 void ActListDvModel::OnRemove(const IModel& newVec,

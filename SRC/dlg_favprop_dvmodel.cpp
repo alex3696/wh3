@@ -118,8 +118,8 @@ void DvModel::SetModel(std::shared_ptr<IModel> model)
 
 	namespace sph = std::placeholders;
 
-	mConnPropAppend = mPropArray->ConnectAppendSlot(
-		std::bind(&DvModel::OnPropAppend, this, sph::_1, sph::_2));
+	mConnPropAppend = mPropArray->ConnAfterInsert(
+		std::bind(&DvModel::OnPropAppend, this, sph::_1, sph::_2, sph::_3));
 	mConnPropRemove = mPropArray->ConnectRemoveSlot(
 		std::bind(&DvModel::OnPropRemove, this, sph::_1, sph::_2));
 	mConnPropChange = mPropArray->ConnectChangeSlot(
@@ -137,8 +137,9 @@ void DvModel::ClearModel()
 
 
 //---------------------------------------------------------------------------
-void DvModel::OnPropAppend(const IModel& newVec,
-	const std::vector<unsigned int>& itemVec)
+void DvModel::OnPropAppend(const IModel& vec
+	, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore)
+
 {
 	if (!mPropArray)
 		return;

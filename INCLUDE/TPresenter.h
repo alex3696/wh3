@@ -21,7 +21,7 @@ public:
 		ModelState vecState;
 		vecState = vecModel->GetState();
 		#endif
-		vecModel->AddChild(newItem);
+		vecModel->Insert(newItem);
 		itemEditor.SetModel(newItem);
 		#ifdef __DEBUG
 		vecState = vecModel->GetState();

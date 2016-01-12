@@ -10,7 +10,7 @@ MovableObj::MovableObj()
 	:TModelData<DataType>(ModelOption::CommitLoad)
 	, mDstTypes(new DstTypeArray)
 {
-	this->AddChild(std::dynamic_pointer_cast<IModel>(mDstTypes));
+	this->Insert(std::dynamic_pointer_cast<IModel>(mDstTypes));
 
 }
 

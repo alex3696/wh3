@@ -21,7 +21,6 @@ public:
 
 	wxString GetSrcPathGui()const;
 protected:
-	wxString GetSrcPathPattern()const;
 
 	void OnChange(const IModel*, const DataType*);
 	wxString mPathGui;

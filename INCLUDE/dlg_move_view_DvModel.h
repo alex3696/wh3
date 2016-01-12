@@ -47,7 +47,8 @@ protected:
 	sig::scoped_connection		mConnClsRemove;
 	sig::scoped_connection		mConnClsChange;
 
-	void OnClsAppend(const IModel&, const std::vector<unsigned int>&);
+	void OnAfterInsert(const IModel& vec
+		, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore);
 	void OnClsRemove(const IModel&, const std::vector<unsigned int>&);
 	void OnClsChange(const IModel&, const std::vector<unsigned int>&);
 

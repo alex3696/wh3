@@ -27,7 +27,8 @@ class T_VecView
 {
 public:
 	virtual void SetModel(std::shared_ptr<IModel>) = 0;
-	virtual void OnAppend(const IModel&, const std::vector<unsigned int>&) = 0;
+	virtual void OnAfterInsert(const IModel&
+		, const std::vector<SptrIModel>&, const SptrIModel&) = 0;
 	virtual void OnRemove(const IModel&, const std::vector<unsigned int>&) = 0;
 	virtual void OnChange(const IModel&, const std::vector<unsigned int>&) = 0;
 

@@ -49,9 +49,11 @@ bool MClsProp::GetInsertQuery(wxString& query)const
 		const rec::Cls& cls = parentCls->GetData();
 		
 		query = wxString::Format(
-			"INSERT INTO prop_cls (val, cls_id, cls_kind, prop_id) "
-			" VALUES(%s, %s, %d, %s) "
-			" RETURNING id "
+			"WITH ins AS("
+			"  INSERT INTO prop_cls(val, cls_id, cls_kind, prop_id)"
+			"    VALUES(%s, %s, %d, %s)  RETURNING id, val, prop_id)"
+			"SELECT prop.id, prop.title, prop.kind, ins.val, ins.id FROM ins "
+			"  LEFT JOIN prop ON ins.prop_id = prop.id "
 			, prop.mVal.SqlVal()
 			, cls.mId.SqlVal()
 			, (int)cls.GetClsType()
@@ -59,6 +61,10 @@ bool MClsProp::GetInsertQuery(wxString& query)const
 		return true;
 	}
 	return false;
+
+
+
+
 }
 //-------------------------------------------------------------------------
 bool MClsProp::GetUpdateQuery(wxString& query)const

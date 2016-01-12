@@ -67,9 +67,7 @@ class PathPatternEditor
 	sig::scoped_connection connAfterInsert;
 
 	void ResetGui();
-	void OnAfterInsert(const IModel&
-		, const std::vector<SptrIModel>&, const SptrIModel&);
-	void OnAddNode(const IModel&, const std::vector<unsigned int>&);
+	void OnAfterInsert(const IModel&, const std::vector<SptrIModel>&, const SptrIModel&);
 	void OnDelNode(const IModel&, const std::vector<unsigned int>&);
 
 	void MakeGuiItem(unsigned int pos);

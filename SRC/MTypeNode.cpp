@@ -17,8 +17,8 @@ MTypeItem::MTypeItem(const char option)
 	, mObjArray(new MObjArray)
 	, mFavProp(new dlg::favprop::model::FavPropArray)
 {
-	this->AddChild(std::dynamic_pointer_cast<IModel>(mObjArray));
-	this->AddChild(std::dynamic_pointer_cast<IModel>(mFavProp));
+	this->Insert(std::dynamic_pointer_cast<IModel>(mObjArray));
+	this->Insert(std::dynamic_pointer_cast<IModel>(mFavProp));
 }
 
 
@@ -94,7 +94,7 @@ std::shared_ptr<MClsPropArray> MTypeItem::GetClsPropArray()
 	{
 		mPropArray.reset(new MClsPropArray);
 		std::shared_ptr<IModel> item = std::dynamic_pointer_cast<IModel>(mPropArray);
-		this->AddChild(item);
+		this->Insert(item);
 	}
 	return mPropArray;
 }
@@ -105,7 +105,7 @@ std::shared_ptr<MClsActArray> MTypeItem::GetClsActArray()
 	{
 		mActArray.reset(new MClsActArray);
 		std::shared_ptr<IModel> item = std::dynamic_pointer_cast<IModel>(mActArray);
-		this->AddChild(item);
+		this->Insert(item);
 	}
 	return mActArray;
 }
@@ -116,7 +116,7 @@ std::shared_ptr<MClsMoveArray> MTypeItem::GetClsMoveArray()
 	{
 		mMoveArray.reset(new MClsMoveArray);
 		std::shared_ptr<IModel> item = std::dynamic_pointer_cast<IModel>(mMoveArray);
-		this->AddChild(item);
+		this->Insert(item);
 	}
 	return mMoveArray;
 }

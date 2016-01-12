@@ -11,9 +11,9 @@ Obj::Obj(const char option)
 	, mObjProp(new ObjPropArray)
 	, mObjPropValLoader(new ObjPropValLoader)
 {
-	this->AddChild(mObjProp);
-	this->AddChild(mClsProp);
-	this->AddChild(mObjPropValLoader);
+	this->Insert(mObjProp);
+	this->Insert(mClsProp);
+	this->Insert(mObjPropValLoader);
 }
 //-----------------------------------------------------------------------------
 void Obj::SetObject(const wxString& cls_id, const wxString& obj_id, const wxString& obj_pid)

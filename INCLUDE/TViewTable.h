@@ -80,8 +80,8 @@ public:
 
 			namespace sph = std::placeholders;
 
-			mConnAppend = mModel->ConnectAppendSlot(
-				std::bind(&TViewTable::OnAppend, this, sph::_1, sph::_2) );
+			mConnAppend = mModel->ConnAfterInsert(
+				std::bind(&TViewTable::OnAfterInsert, this, sph::_1, sph::_2, sph::_3));
 			mConnRemove = mModel->ConnectRemoveSlot(
 				std::bind(&TViewTable::OnRemove, this, sph::_1, sph::_2));
 			mConnChange = mModel->ConnectChangeSlot(
@@ -95,15 +95,25 @@ public:
 	};
 
 
-	virtual void OnAppend(const IModel& newVec,
-		const std::vector<unsigned int>& itemVec)override
+	virtual void OnAfterInsert(const IModel& vec
+		, const std::vector<SptrIModel>& newItems
+		, const SptrIModel& itemBefore) override
 	{
-		if (itemVec.size() > 100)
-			mDataViewModel->Reset(itemVec.size());
+		if (itemBefore)
+		{
+			size_t pos;
+			if (vec.GetItemPosition(itemBefore, pos))
+			{
+				for (const auto& curr : newItems)
+					mDataViewModel->RowInserted(pos++);
+			}
+		}
 		else
-			for (size_t i = 0; i < itemVec.size(); i++)
+		{
+			for (const auto& curr : newItems)
 				mDataViewModel->RowAppended();
-		OnChangeVecState(newVec.GetState());
+		}
+		OnChangeVecState(vec.GetState());
 	}//OnAppend
 	virtual void OnRemove(const IModel& newVec,
 		const std::vector<unsigned int>& itemVec)override

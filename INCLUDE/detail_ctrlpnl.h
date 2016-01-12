@@ -40,10 +40,14 @@ protected:
 	
 	void OnChangeMainDetail(const IModel* model, const model::Obj::T_Data* data);
 
-	void OnClsPropAppend(const IModel&, const std::vector<unsigned int>&);
+	void OnClsPropAfterInsert(const IModel& vec
+		, const std::vector<SptrIModel>& newItems
+		, const SptrIModel& itemBefore);
 	void OnClsPropRemove(const IModel&, const std::vector<unsigned int>&);
 	void OnClsPropChange(const IModel&, const std::vector<unsigned int>&);
-	void OnObjPropAppend(const IModel&, const std::vector<unsigned int>&);
+	void OnObjPropAfterInsert(const IModel& vec
+		, const std::vector<SptrIModel>& newItems
+		, const SptrIModel& itemBefore);
 	void OnObjPropRemove(const IModel&, const std::vector<unsigned int>&);
 	void OnObjPropChange(const IModel&, const std::vector<unsigned int>&);
 

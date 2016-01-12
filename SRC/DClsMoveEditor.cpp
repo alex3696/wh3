@@ -189,7 +189,7 @@ void DClsMoveEditor::SetData(const rec::ClsSlotAccess& rec)
 	rec::PathNode movItemData(rec.mCls.mId, rec.mCls.mLabel,
 								rec.mObj.mId, rec.mObj.mLabel);
 	auto movItemModel = mMovPattern->CreateItem(movItemData);
-	mMovPattern->AddChild(movItemModel);
+	mMovPattern->Insert(movItemModel);
 	mMovEditor->SetMode(PathPatternEditor::FixOne_ReqCls);
 	mMovEditor->SetModel(mMovPattern);
 
@@ -198,7 +198,7 @@ void DClsMoveEditor::SetData(const rec::ClsSlotAccess& rec)
 	rec::PathNode srcItemData(rec.mSrcCls.mId, rec.mSrcCls.mLabel,
 								rec.mSrcObj.mId, rec.mSrcObj.mLabel);
 	auto srcItemModel = mSrcPatternPath->CreateItem(srcItemData);
-	mSrcPatternPath->AddChild(srcItemModel);
+	mSrcPatternPath->Insert(srcItemModel);
 	mSrcPathEditor->SetMode(PathPatternEditor::ReqOne_ReqCls);
 	mSrcPathEditor->SetModel(mSrcPatternPath);
 
@@ -208,7 +208,7 @@ void DClsMoveEditor::SetData(const rec::ClsSlotAccess& rec)
 	rec::PathNode dstItemData(clsData.mId, clsData.mLabel,
 								rec.mDstObj.mId, rec.mDstObj.mLabel);
 	auto dstItemModel = mDstPatternPath->CreateItem(dstItemData);
-	mDstPatternPath->AddChild(dstItemModel);
+	mDstPatternPath->Insert(dstItemModel);
 	mDstPathEditor->SetMode(PathPatternEditor::ReqOne_FixCls);
 	mDstPathEditor->SetModel(mDstPatternPath);
 }

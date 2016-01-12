@@ -12,7 +12,7 @@ DstType::DstType()
 	:TModelData<DataType>(ModelOption::EnableNotifyFromChild)
 	, mObjects(new DstObjArray)
 {
-	this->AddChild(std::dynamic_pointer_cast<IModel>(mObjects));
+	this->Insert(std::dynamic_pointer_cast<IModel>(mObjects));
 }
 
 //-----------------------------------------------------------------------------
@@ -44,7 +44,7 @@ bool DstType::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t r
 	auto dstObjModel = std::make_shared<DstObj>();
 	dstObjModel->SetData(dst_obj);
 
-	mObjects->AddChild(dstObjModel);
+	mObjects->Insert(dstObjModel);
 	SetData(dst_cls);
 
 	return true;
@@ -106,7 +106,7 @@ bool DstTypeArray::LoadChildDataFromDb(std::shared_ptr<IModel>& child,
 		auto dstObjModel = std::make_shared<DstObj>();
 		dstObjModel->SetData(dst_obj,true);
 					
-		it->second->mObjects->AddChild(dstObjModel);
+		it->second->mObjects->Insert(dstObjModel);
 		return false;
 	}
 

@@ -33,7 +33,7 @@ std::shared_ptr<MActPropArray> MAct::GetPropArray()
 	{
 		mPropArray.reset(new MActPropArray);
 		std::shared_ptr<IModel> item = std::dynamic_pointer_cast<IModel>(mPropArray);
-		this->AddChild(item);
+		this->Insert(item);
 	}
 	return mPropArray;
 }
@@ -100,7 +100,7 @@ void MAct::LoadChilds()
 	{
 		mPropArray.reset(new MActPropArray);
 		std::shared_ptr<IModel> item = std::dynamic_pointer_cast<IModel>(mPropArray);
-		this->AddChild(item);
+		this->Insert(item);
 	}
 	mPropArray->Load();
 }
