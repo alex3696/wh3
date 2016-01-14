@@ -5,8 +5,8 @@
 
 class App : public wxApp
 {
-	FILE*  mLogFile;
-	wxLog*  mLogger;
+	FILE*  mLogFile = nullptr;
+	wxLog*  mLogger = nullptr;
 public:
 	virtual bool OnInit();
 	virtual int OnExit();

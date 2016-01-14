@@ -55,9 +55,9 @@
 
 static const wxString wxEmptyString2;
 
-#if wxUSE_DATEPICKCTRL
+//#if wxUSE_DATEPICKCTRL
     #include <wx/datectrl.h>
-#endif
+//#endif
 
 /* DatabaseLayer headers */
 #include <DatabaseLayer.h>

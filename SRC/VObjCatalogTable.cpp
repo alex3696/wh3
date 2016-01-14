@@ -131,9 +131,11 @@ void VObjCatalogTable::ResetColumns()
 //---------------------------------------------------------------------------
 void VObjCatalogTable::BuildColumns()
 {
-	int colIndex = 7;
+	
 
 	if (msNull != mCatalogModel->mFavProps->GetState())
+	{
+		int colIndex = 7;
 		for (const auto& prop : mCatalogModel->GetFavProps())
 		{
 			wxString name = prop.mLabel;
@@ -143,18 +145,18 @@ void VObjCatalogTable::BuildColumns()
 			if (ftText != fieldType)
 			{
 				wxWindowDC dc(this);
-				auto dcWidth = dc.GetTextExtent(name).GetWidth()+20;
+				auto dcWidth = dc.GetTextExtent(name).GetWidth() + 20;
 				auto typeWidth = GetColumnWidthBy(fieldType);
 				//width = (dcWidth > typeWidth && dcWidth < typeWidth*3) ? dcWidth : typeWidth;
-				width = ( typeWidth*3-dcWidth > 0) ? dcWidth : typeWidth;
+				width = (typeWidth * 3 - dcWidth > 0) ? dcWidth : typeWidth;
 			}
 			else
 				EnableAutosizeColumn(colIndex - 1);
-			
+
 			AppendTextColumn(name, colIndex++, wxDATAVIEW_CELL_INERT, width,
 				wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 		}
-	
+	}
 	
 	this->OnResize(wxSizeEvent());
 

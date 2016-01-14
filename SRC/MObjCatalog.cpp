@@ -118,7 +118,6 @@ void MObjCatalog::ObjEnable(bool enable)
 rec::PathItem MObjCatalog::GetRoot()
 {
 	const auto& cfg = this->GetData();
-	long pid(0);
 	rec::PathItem root;
 	std::shared_ptr<MFilter> mfilter;
 

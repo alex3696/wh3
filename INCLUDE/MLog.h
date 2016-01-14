@@ -13,7 +13,7 @@ public:
 	unsigned int	mRowsPerPage = 100;
 	bool			mEnableFavProp = true; // else show all object properties
 	bool			mCompactMode = true;
-	bool			mShowDebugColumns = __DEBUG; /* #ifdef __DEBUG true #elif false #endif;	*/
+	bool			mShowDebugColumns = true;// __DEBUG; /* #ifdef __DEBUG true #elif false #endif;	*/
 	
 };//class LogCfg
 
@@ -25,7 +25,7 @@ public:
 		:public boost::noncopyable
 	{
 	public:
-		Filter(const DbFieldInfo& f):mField(f){}
+		Filter(const DbFieldInfo& f) :mField(f), mEnable(false){}
 		const DbFieldInfo& mField;
 		wxString	mVal;
 		FilterOp	mOp;

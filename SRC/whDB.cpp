@@ -242,8 +242,6 @@ int whTable::Exec(const wxString& query,std::deque<wxString>& pathes)
 		wxLogError(str);
 		m_DB->RollBack();
 		throw;
-
-		result=1;
 	}
 
 	auto p2 = GetTickCount();

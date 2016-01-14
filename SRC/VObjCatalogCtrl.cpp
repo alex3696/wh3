@@ -319,7 +319,7 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 	// иначе выделяется 0-элемент
 	struct ClsIdx
 	{
-		ClsIdx(){}
+		ClsIdx() :mPos(0){}
 		ClsIdx(const rec::Cls& cls, unsigned int pos)
 			:mCls(cls), mPos(pos){}
 		rec::Cls		mCls;
@@ -328,7 +328,7 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 
 	struct ObjIdx
 	{
-		ObjIdx(){}
+		ObjIdx() :mPos(0){}
 		ObjIdx(const rec::ObjTitle& obj, unsigned int pos)
 			:mObj(obj), mPos(pos){}
 
@@ -467,29 +467,29 @@ void VObjCatalogCtrl::OnCmdFavProp(wxCommandEvent& evt)
 	auto selectedItem = mTableView->GetSelection();
 	if (!selectedItem.IsOk())
 		return;
-	
-	using namespace object_catalog;
-
 	auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
-	MTypeItem* typeItem = dynamic_cast<MTypeItem*> (modelInterface);
+	namespace cat = object_catalog;
 
-	if (!typeItem)
+	
+	cat::MTypeItem* selectedCls(nullptr);
+
+	cat::MObjItem* objItem = dynamic_cast<cat::MObjItem*> (modelInterface);
+	if (objItem)
 	{
-		MObjItem* objItem = dynamic_cast<MObjItem*> (modelInterface);
-		if (objItem)
-		{
-			MObjArray* objArray = dynamic_cast<MObjArray*> (objItem->GetParent());
-			if (objArray)
-				typeItem = dynamic_cast<MTypeItem*> (objArray->GetParent());
-		}
+		cat::MObjArray* objArray = dynamic_cast<cat::MObjArray*> (objItem->GetParent());
+		if (objArray)
+			selectedCls = dynamic_cast<cat::MTypeItem*> (objArray->GetParent());
 	}
-	if (!typeItem)
+	else
+		selectedCls = dynamic_cast<cat::MTypeItem*> (modelInterface);
+	
+	if (!selectedCls)
 		return;
 
 	dlg::favprop::view::SelectFrame dlg(this);
 
-	typeItem->mFavProp->Load();
-	dlg.SetModel(std::dynamic_pointer_cast<IModel>(typeItem->mFavProp));
+	selectedCls->mFavProp->Load();
+	dlg.SetModel(std::dynamic_pointer_cast<IModel>(selectedCls->mFavProp));
 	dlg.ShowModal();
 	OnCmdReload(wxCommandEvent(wxID_REFRESH));
 }

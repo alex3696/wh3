@@ -202,12 +202,6 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 	if (!catalog)
 		return false;
 
-	const auto& root = catalog->GetRoot();
-
-
-
-
-
 	if (catalog->IsObjTree())
 	{
 		wxString catFilter = catalog->GetFilterCat();

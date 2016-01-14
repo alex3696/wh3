@@ -71,7 +71,7 @@ bool FavPropItem::GetUpdateQuery(wxString& query)const
 		return false;
 
 	const rec::Cls& cls = parentCls->GetStored();
-	const auto& newObj = this->GetData();
+	//const auto& newObj = this->GetData();
 
 	if (cls.IsAbstract())
 		return false;

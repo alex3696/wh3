@@ -70,7 +70,7 @@ public:
 	Ftp();
 
 	void	DoConnect();
-	void	DoCopyFile(wxInputStream* src,wxOutputStream* dst,const size_t src_size,const wxString& msg);
+	static void	DoCopyFile(wxInputStream* src,wxOutputStream* dst,const size_t src_size,const wxString& msg);
 public:
 	void	Remove(const wxFileName& file);
 	void	Upload(const wxFileName& localfile,const wxFileName& ftpfile);

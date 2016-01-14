@@ -60,8 +60,8 @@ struct FilterData
 	wxString	mVal;
 	wxString	mFieldName;
 	FieldType	mFieldType;
-	FilterOp	mOp;
-	FilterConn	mConn;
+	FilterOp	mOp = foEq;
+	FilterConn	mConn = fcAND;
 	bool		mIsEnabled=false;
 
 	FilterData(){}
@@ -115,10 +115,8 @@ public:
 		wxString str;
 		for (size_t i = 0; i < GetChildQty(); i++)
 		{
-		#ifdef __DEBUG
-			const auto& data = at(i)->GetData();
-		#endif // DEBUG
-		str += at(i)->GetData().GetSqlString();
+		//#ifdef __DEBUG const auto& data = at(i)->GetData();	#endif // DEBUG
+			str += at(i)->GetData().GetSqlString();
 		}
 			
 		return str;

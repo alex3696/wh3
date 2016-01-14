@@ -367,9 +367,9 @@ void PathPatternEditor::MakeGuiItem(unsigned int pos)
 		size_t model_idx(0);
 		if (GetGiuItemIndex(ch, model_idx))
 		{
-			bool isFirst = (0 == model_idx);
+			//bool isFirst = (0 == model_idx);
 			bool isLast = (mModel->GetChildQty() - 1 == model_idx);
-			bool isOne = (mModel->GetChildQty() == 1);
+			//bool isOne = (mModel->GetChildQty() == 1);
 
 			mMnuAddToLeft->Enable(false);
 			mMnuAddToRight->Enable(false);

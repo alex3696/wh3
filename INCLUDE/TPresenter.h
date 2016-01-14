@@ -17,21 +17,12 @@ public:
 					bool mExecSave = 1)const
 	{
 		auto newItem = vecModel->CreateChild();
-		#ifdef __DEBUG
-		ModelState vecState;
-		vecState = vecModel->GetState();
-		#endif
+		//#ifdef __DEBUG 	ModelState vecState;	vecState = vecModel->GetState();	#endif
 		vecModel->Insert(newItem);
 		itemEditor.SetModel(newItem);
-		#ifdef __DEBUG
-		vecState = vecModel->GetState();
-		#endif
 		if (wxID_OK == itemEditor.ShowModal())
 		{
 			itemEditor.UpdateModel();
-			#ifdef __DEBUG
-			vecState = vecModel->GetState();
-			#endif
 			if (mExecSave)
 				vecModel->Save();
 		}//if (wxID_OK == editor.ShowModal())
@@ -41,10 +32,6 @@ public:
 			if (state == msCreated || state == msNull)
 				vecModel->DelChild(newItem);
 		}//else if (wxID_OK == editor.ShowModal())
-
-		#ifdef __DEBUG
-		vecState = vecModel->GetState();
-		#endif
 
 	}
 };
