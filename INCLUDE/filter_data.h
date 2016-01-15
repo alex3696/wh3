@@ -1,8 +1,7 @@
-#ifndef __DB_FILTER_H
-#define __DB_FILTER_H
+#ifndef __FILTERDATA_H
+#define __FILTERDATA_H
 
 #include "db_rec.h"
-#include "TModel.h"
 
 namespace wh{
 //-------------------------------------------------------------------------
@@ -79,48 +78,6 @@ struct FilterData
 				ToSqlString(mOp) << "'" << mVal << "' ";
 		return str; 
 	};
-};
-//-------------------------------------------------------------------------
-class MFilter
-	: public TModelData<FilterData>
-{
-public:
-	MFilter(const char option = ModelOption::EnableParentNotify)
-		:TModelData<FilterData>(option)
-	{}
-
-	MFilter(const FilterData& fd,const char option = ModelOption::EnableParentNotify)
-		:TModelData<FilterData>(option)
-	{
-		SetData(fd, true);
-	}
-
-};
-//-------------------------------------------------------------------------
-class MFilterArray
-	: public TModelArray<MFilter>
-{
-public:
-	MFilterArray(const char option
-		= ModelOption::EnableParentNotify
-		| ModelOption::EnableNotifyFromChild
-		| ModelOption::CommitSave)
-		: TModelArray<MFilter>(option)
-	{}
-
-	
-	//std::shared_ptr<MFilter> AddFilter(const FilterData& fd);
-	wxString GetSqlString()const
-	{
-		wxString str;
-		for (size_t i = 0; i < GetChildQty(); i++)
-		{
-		//#ifdef __DEBUG const auto& data = at(i)->GetData();	#endif // DEBUG
-			str += at(i)->GetData().GetSqlString();
-		}
-			
-		return str;
-	}
 };
 
 //-------------------------------------------------------------------------

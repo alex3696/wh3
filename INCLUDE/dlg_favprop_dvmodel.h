@@ -48,7 +48,7 @@ protected:
 	
 	void OnPropAppend(const IModel& vec
 		, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore);
-	void OnPropRemove(const IModel&, const std::vector<unsigned int>&);
+	void OnPropBeforeRemove(const IModel&, const std::vector<SptrIModel>&);
 	void OnPropChange(const IModel&, const std::vector<unsigned int>&);
 
 	//virtual bool IsEnabledByRow(unsigned int row, unsigned int col) const override;

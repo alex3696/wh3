@@ -54,9 +54,9 @@ public:
 			int colIndex = 1;
 			for (const auto& field : fvec)
 			{
-				if (field.mShow)
+				if (field.mGuiShow)
 				{
-					wxString name = field.mName;
+					wxString name = field.mTitle;
 					auto width = GetColumnWidthBy(field.mType);
 
 					if (ftText == field.mType)
@@ -82,8 +82,8 @@ public:
 
 			mConnAppend = mModel->ConnAfterInsert(
 				std::bind(&TViewTable::OnAfterInsert, this, sph::_1, sph::_2, sph::_3));
-			mConnRemove = mModel->ConnectRemoveSlot(
-				std::bind(&TViewTable::OnRemove, this, sph::_1, sph::_2));
+			mConnRemove = mModel->ConnectBeforeRemove(
+				std::bind(&TViewTable::OnBeforeRemove, this, sph::_1, sph::_2));
 			mConnChange = mModel->ConnectChangeSlot(
 				std::bind(&TViewTable::OnChange, this, sph::_1, sph::_2));
 
@@ -115,24 +115,23 @@ public:
 		}
 		OnChangeVecState(vec.GetState());
 	}//OnAppend
-	virtual void OnRemove(const IModel& newVec,
-		const std::vector<unsigned int>& itemVec)override
+	virtual void OnBeforeRemove(const IModel& vec,
+		const std::vector<SptrIModel>& remVec)override
 	{
-		auto removeQty = itemVec.size();
-
-		//GetChildQty- новый размер(после удаления элемента/элементов)
-		bool removeAll = newVec.GetChildQty() == 0 ; 
-
-		if (!removeAll && removeQty<100)
+		if (vec.size() != remVec.size() )
 		{
+			size_t pos;
 			wxArrayInt	itemsArray;
-			for (const unsigned int& item : itemVec)
-				itemsArray.push_back(item);
+			for (const auto& remItem : remVec)
+			{
+				if (vec.GetItemPosition(remItem, pos))
+					itemsArray.push_back(pos);
+			}
 			mDataViewModel->RowsDeleted(itemsArray);
 		}
 		else
 			mDataViewModel->Reset(0);
-		OnChangeVecState(newVec.GetState());
+		OnChangeVecState(vec.GetState());
 	}//OnRemove
 	virtual void OnChange(const IModel& newVec,
 		const std::vector<unsigned int>& itemVec)override

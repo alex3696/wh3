@@ -333,10 +333,10 @@ void PathPatternEditor::SetModel(std::shared_ptr<temppath::model::Array>& newMod
 
 	namespace ph = std::placeholders;
 
-	auto onDelNode = std::bind(&PathPatternEditor::OnDelNode, this, ph::_1, ph::_2);
+	auto onBeforeRemove = std::bind(&PathPatternEditor::OnBeforeRemove, this, ph::_1, ph::_2);
 	auto onAfterIns = std::bind(&PathPatternEditor::OnAfterInsert, this, ph::_1, ph::_2, ph::_3);
 
-	connDel = mModel->ConnectBeforeRemove(onDelNode);
+	connDel = mModel->ConnectBeforeRemove(onBeforeRemove);
 	connAfterInsert = mModel->ConnAfterInsert(onAfterIns);
 	
 	ResetGui();
@@ -426,13 +426,19 @@ void PathPatternEditor::MakeGuiItem(unsigned int pos)
 
 
 //---------------------------------------------------------------------------
-void PathPatternEditor::OnDelNode(const IModel& model, const std::vector<unsigned int>& vec)
+void PathPatternEditor::OnBeforeRemove(const IModel& vec, const std::vector<SptrIModel>& remVec)
 {
 	std::vector<TmpPathItem*> to_del;
-	for (const auto idx : vec)
+	
+	
+	for (const auto& remItem : remVec)
 	{
-		auto it = mPathChoice.begin() + idx;
-		to_del.emplace_back(*it);
+		size_t idx = 0;
+		if (vec.GetItemPosition(remItem, idx))
+		{
+			auto it = mPathChoice.begin() + idx;
+			to_del.emplace_back(*it);
+		}
 	}
 
 	for (const auto ch : to_del)

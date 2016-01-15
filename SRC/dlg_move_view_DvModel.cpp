@@ -260,8 +260,8 @@ void DvModel::SetModel(std::shared_ptr<IModel> model)
 
 	mConnClsAppend = mMovable->GetDstTypes()->ConnAfterInsert(
 		std::bind(&DvModel::OnAfterInsert, this, sph::_1, sph::_2, sph::_3));
-	mConnClsRemove = mMovable->GetDstTypes()->ConnectRemoveSlot(
-		std::bind(&DvModel::OnClsRemove, this, sph::_1, sph::_2));
+	mConnClsRemove = mMovable->GetDstTypes()->ConnectBeforeRemove(
+		std::bind(&DvModel::OnClsBeforeRemove, this, sph::_1, sph::_2));
 	mConnClsChange = mMovable->GetDstTypes()->ConnectChangeSlot(
 		std::bind(&DvModel::OnClsChange, this, sph::_1, sph::_2));
 
@@ -300,14 +300,13 @@ void DvModel::OnAfterInsert(const IModel& vec
 
 }//OnAppend
 //---------------------------------------------------------------------------
-void DvModel::OnClsRemove(const IModel& newVec,
-	const std::vector<unsigned int>& itemVec)
+void DvModel::OnClsBeforeRemove(const IModel& vec,
+	const std::vector<SptrIModel>& remVec)
 {
 	wxDataViewItemArray itemArray;
-	for (const unsigned int& i : itemVec)
+	for (const auto& remItem : remVec)
 	{
-		auto item = mMovable->GetDstTypes()->GetChild(i);
-		itemArray.Add(wxDataViewItem(item.get()));
+		itemArray.Add(wxDataViewItem(remItem.get()));
 	}
 	ItemsDeleted(wxDataViewItem(NULL), itemArray);
 

@@ -120,8 +120,8 @@ void ActListDvModel::SetModel(std::shared_ptr<dlg_act::model::ActArray> model)
 
 	mConnAppend = mActArray->ConnAfterInsert(
 		std::bind(&ActListDvModel::OnAfterInsert, this, sph::_1, sph::_2, sph::_3));
-	mConnRemove = mActArray->ConnectRemoveSlot(
-		std::bind(&ActListDvModel::OnRemove, this, sph::_1, sph::_2));
+	mConnRemove = mActArray->ConnectBeforeRemove(
+		std::bind(&ActListDvModel::OnBeforeRemove, this, sph::_1, sph::_2));
 	mConnChange = mActArray->ConnectChangeSlot(
 		std::bind(&ActListDvModel::OnChange, this, sph::_1, sph::_2));
 
@@ -146,14 +146,13 @@ void ActListDvModel::OnAfterInsert(const IModel& vec
 	}
 }//OnAppend
 //---------------------------------------------------------------------------
-void ActListDvModel::OnRemove(const IModel& newVec,
-	const std::vector<unsigned int>& itemVec)
+void ActListDvModel::OnBeforeRemove(const IModel& vec,
+	const std::vector<SptrIModel>& remVec)
 {
 	wxDataViewItemArray itemArray;
-	for (const unsigned int& i : itemVec)
+	for (const auto& remItem : remVec)
 	{
-		auto item = mActArray->GetChild(i);
-		itemArray.Add(wxDataViewItem(item.get()));
+		itemArray.Add(wxDataViewItem(remItem.get()));
 	}
 	ItemsDeleted(wxDataViewItem(NULL), itemArray);
 }//OnRemove

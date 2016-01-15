@@ -339,7 +339,7 @@ void VObjCatalogDataViewModel::SetModel(std::shared_ptr<IModel> model)
 	mConnClsAppend = mCatalogModel->mTypeArray->ConnAfterInsert(
 		std::bind(&VObjCatalogDataViewModel::OnClsAfterInsert, this, sph::_1, sph::_2, sph::_3));
 	mConnClsRemove = mCatalogModel->mTypeArray->ConnectBeforeRemove(
-		std::bind(&VObjCatalogDataViewModel::OnClsRemove, this, sph::_1, sph::_2));
+		std::bind(&VObjCatalogDataViewModel::OnClsBeforeRemove, this, sph::_1, sph::_2));
 	mConnClsChange = mCatalogModel->mTypeArray->ConnectChangeSlot(
 		std::bind(&VObjCatalogDataViewModel::OnClsChange, this, sph::_1, sph::_2));
 
@@ -361,7 +361,6 @@ void VObjCatalogDataViewModel::ClearModel()
 void VObjCatalogDataViewModel::OnClsAfterInsert(const IModel& vec
 	, const std::vector<SptrIModel>& newItems
 	, const SptrIModel& itemBefore)
-	//const IModel& newVec,const std::vector<unsigned int>& itemVec)
 {
 	namespace sph = std::placeholders; 
 	namespace cat = wh::object_catalog;
@@ -381,7 +380,7 @@ void VObjCatalogDataViewModel::OnClsAfterInsert(const IModel& vec
 			std::bind(&VObjCatalogDataViewModel::OnObjAfterInsert, this, sph::_1, sph::_2, sph::_3));
 
 		mConnDelObj[typeItem] = clsModel->mObjArray->ConnectBeforeRemove(
-			std::bind(&VObjCatalogDataViewModel::OnObjRemove, this, sph::_1, sph::_2));
+			std::bind(&VObjCatalogDataViewModel::OnObjBeforeRemove, this, sph::_1, sph::_2));
 
 	}
 	ItemsAdded(wxDataViewItem(NULL), typeItemArray);
@@ -392,7 +391,6 @@ void VObjCatalogDataViewModel::OnClsAfterInsert(const IModel& vec
 void VObjCatalogDataViewModel::OnObjAfterInsert(const IModel& vec
 	, const std::vector<SptrIModel>& newItems
 	, const SptrIModel& itemBefore)
-//(const IModel& newVec,const std::vector<unsigned int>& itemVec)
 {
 	// vec == clsModel->mObjArray
 	
@@ -406,41 +404,38 @@ void VObjCatalogDataViewModel::OnObjAfterInsert(const IModel& vec
 	ItemsAdded(wxDataViewItem(clsItem), newObjArray);
 }
 //---------------------------------------------------------------------------
-void VObjCatalogDataViewModel::OnObjRemove(const IModel& newVec,
-	const std::vector<unsigned int>& itemVec)
+void VObjCatalogDataViewModel::OnObjBeforeRemove(const IModel& vec,
+	const std::vector<SptrIModel>& remVec)
 {
 	wxDataViewItemArray all;
 	//GetChildren(wxDataViewItem(newVec.GetParent()), all);
 
 	wxDataViewItemArray itemArray;
-	for (const unsigned int& i : itemVec)
+	for (const auto& remItem : remVec)
 	{
-		auto item = newVec.GetChild(i);
-		itemArray.Add(wxDataViewItem(item.get()));
+		itemArray.Add(wxDataViewItem(remItem.get()));
 	}
-	ItemsDeleted(wxDataViewItem(newVec.GetParent()), itemArray);
+	ItemsDeleted(wxDataViewItem(vec.GetParent()), itemArray);
 
 
 }//OnRemove
 
 //---------------------------------------------------------------------------
-void VObjCatalogDataViewModel::OnClsRemove(const IModel& newVec,
-	const std::vector<unsigned int>& itemVec)
+void VObjCatalogDataViewModel::OnClsBeforeRemove(const IModel& vec,
+	const std::vector<SptrIModel>& remVec)
 {
 	wxDataViewItemArray itemArray;
-	for (const unsigned int& i : itemVec)
+	for (const auto& remItem : remVec)
 	{
-		auto item = mCatalogModel->mTypeArray->GetChild(i);
-		wxDataViewItem dwitem(item.get());
+		wxDataViewItem dwitem(remItem.get());
 		itemArray.Add(dwitem);
 
 		mConnAddObj.erase(dwitem);
 		mConnDelObj.erase(dwitem);
 		mConnEditObj.erase(dwitem);
+
 	}
 	ItemsDeleted(wxDataViewItem(NULL), itemArray);
-
-
 }//OnRemove
 //---------------------------------------------------------------------------
 void VObjCatalogDataViewModel::OnClsChange(const IModel& newVec,

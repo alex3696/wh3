@@ -54,14 +54,16 @@ protected:
 	void OnClsAfterInsert(const IModel& vec
 		, const std::vector<SptrIModel>& newItems
 		, const SptrIModel& itemBefore);
-	void OnClsRemove(const IModel&, const std::vector<unsigned int>&);
+	void OnClsBeforeRemove(const IModel&, const std::vector<SptrIModel>&);
+
 	void OnClsChange(const IModel&, const std::vector<unsigned int>&);
 
 	void OnObjAfterInsert(const IModel& vec
 		, const std::vector<SptrIModel>& newItems
 		, const SptrIModel& itemBefore);
-	void OnObjRemove(const IModel&, const std::vector<unsigned int>&);
-	//void OnObjChange(const IModel&, const std::vector<unsigned int>&);
+	void OnObjBeforeRemove(const IModel&, const std::vector<SptrIModel>&);
+
+
 	std::map<wxDataViewItem, sig::scoped_connection> mConnAddObj;
 	std::map<wxDataViewItem, sig::scoped_connection> mConnDelObj;
 	std::map<wxDataViewItem, sig::scoped_connection> mConnEditObj;

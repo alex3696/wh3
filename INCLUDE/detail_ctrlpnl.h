@@ -43,12 +43,12 @@ protected:
 	void OnClsPropAfterInsert(const IModel& vec
 		, const std::vector<SptrIModel>& newItems
 		, const SptrIModel& itemBefore);
-	void OnClsPropRemove(const IModel&, const std::vector<unsigned int>&);
+	void OnClsPropBeforeRemove(const IModel&, const std::vector<SptrIModel>&);
 	void OnClsPropChange(const IModel&, const std::vector<unsigned int>&);
 	void OnObjPropAfterInsert(const IModel& vec
 		, const std::vector<SptrIModel>& newItems
 		, const SptrIModel& itemBefore);
-	void OnObjPropRemove(const IModel&, const std::vector<unsigned int>&);
+	void OnObjPropBeforeRemove(const IModel&, const std::vector<SptrIModel>&);
 	void OnObjPropChange(const IModel&, const std::vector<unsigned int>&);
 
 

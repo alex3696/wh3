@@ -49,7 +49,7 @@ protected:
 
 	void OnAfterInsert(const IModel& vec
 		, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore);
-	void OnRemove(const IModel&, const std::vector<unsigned int>&);
+	void OnBeforeRemove(const IModel&, const std::vector<SptrIModel>&);
 	void OnChange(const IModel&, const std::vector<unsigned int>&);
 
 

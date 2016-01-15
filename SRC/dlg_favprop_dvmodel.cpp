@@ -120,8 +120,8 @@ void DvModel::SetModel(std::shared_ptr<IModel> model)
 
 	mConnPropAppend = mPropArray->ConnAfterInsert(
 		std::bind(&DvModel::OnPropAppend, this, sph::_1, sph::_2, sph::_3));
-	mConnPropRemove = mPropArray->ConnectRemoveSlot(
-		std::bind(&DvModel::OnPropRemove, this, sph::_1, sph::_2));
+	mConnPropRemove = mPropArray->ConnectBeforeRemove(
+		std::bind(&DvModel::OnPropBeforeRemove, this, sph::_1, sph::_2));
 	mConnPropChange = mPropArray->ConnectChangeSlot(
 		std::bind(&DvModel::OnPropChange, this, sph::_1, sph::_2));
 
@@ -162,24 +162,13 @@ void DvModel::OnPropAppend(const IModel& vec
 }//OnAppend
 
 //---------------------------------------------------------------------------
-void DvModel::OnPropRemove(const IModel& newVec,
-	const std::vector<unsigned int>& itemVec)
+void DvModel::OnPropBeforeRemove(const IModel& vec,
+	const std::vector<SptrIModel>& remVec)
 {
 	if (!mPropArray)
 		return;
-
-	this->Reset(mPropArray->GetChildQty());
-	/*
-	wxDataViewItemArray itemArray;
-	for (const unsigned int& i : itemVec)
-	{
-		auto prop_model = std::dynamic_pointer_cast<model::FavPropItem>
-			(mPropArray->GetChild(i));
-		itemArray.Add(wxDataViewItem(prop_model.get()));
-	}
-	ItemsDeleted(wxDataViewItem(NULL), itemArray);
-	*/
-
+	auto newSize = vec.size() - remVec.size();
+	this->Reset(newSize);
 
 }//OnRemove
 //---------------------------------------------------------------------------

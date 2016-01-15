@@ -29,7 +29,7 @@ public:
 	virtual void SetModel(std::shared_ptr<IModel>) = 0;
 	virtual void OnAfterInsert(const IModel&
 		, const std::vector<SptrIModel>&, const SptrIModel&) = 0;
-	virtual void OnRemove(const IModel&, const std::vector<unsigned int>&) = 0;
+	virtual void OnBeforeRemove(const IModel&, const std::vector<SptrIModel>&) = 0;
 	virtual void OnChange(const IModel&, const std::vector<unsigned int>&) = 0;
 
 	virtual void GetSelected(std::vector<unsigned int>&) = 0;

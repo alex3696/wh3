@@ -4,7 +4,7 @@
 #include "TModelArray.h"
 #include "db_rec.h"
 
-#include "db_filter.h"
+#include "FilterModel.h"
 
 #include "MObjCatPath.h"
 #include "MTypeNode.h"

@@ -620,9 +620,6 @@
     <ClInclude Include="..\..\INCLUDE\db_data.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\db_filter.h">
-      <Filter>Templates</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MLog.h">
       <Filter>История</Filter>
     </ClInclude>
@@ -634,6 +631,15 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dbFieldType.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\FilterModel.h">
+      <Filter>Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\filter_data.h">
+      <Filter>Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\field_data.h">
+      <Filter>Templates</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

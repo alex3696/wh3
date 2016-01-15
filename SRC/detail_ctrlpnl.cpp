@@ -79,15 +79,15 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 
 	mConnClsPropAppend = mObj->GetClsPropArray()->ConnAfterInsert(
 		std::bind(&CtrlPnl::OnClsPropAfterInsert, this, sph::_1, sph::_2, sph::_3));
-	mConnClsPropRemove = mObj->GetClsPropArray()->ConnectRemoveSlot(
-		std::bind(&CtrlPnl::OnClsPropRemove, this, sph::_1, sph::_2));
+	mConnClsPropRemove = mObj->GetClsPropArray()->ConnectBeforeRemove(
+		std::bind(&CtrlPnl::OnClsPropBeforeRemove, this, sph::_1, sph::_2));
 	mConnClsPropChange = mObj->GetClsPropArray()->ConnectChangeSlot(
 		std::bind(&CtrlPnl::OnClsPropChange, this, sph::_1, sph::_2));
 
 	mConnObjPropAppend = mObj->GetObjPropArray()->ConnAfterInsert(
 		std::bind(&CtrlPnl::OnObjPropAfterInsert, this, sph::_1, sph::_2, sph::_3));
-	mConnObjPropRemove = mObj->GetObjPropArray()->ConnectRemoveSlot(
-		std::bind(&CtrlPnl::OnObjPropRemove, this, sph::_1, sph::_2));
+	mConnObjPropRemove = mObj->GetObjPropArray()->ConnectBeforeRemove(
+		std::bind(&CtrlPnl::OnObjPropBeforeRemove, this, sph::_1, sph::_2));
 	mConnObjPropChange = mObj->GetObjPropArray()->ConnectChangeSlot(
 		std::bind(&CtrlPnl::OnObjPropChange, this, sph::_1, sph::_2));
 }
@@ -218,23 +218,26 @@ void CtrlPnl::OnClsPropAfterInsert(const IModel& vec
 
 }
 //-----------------------------------------------------------------------------
-void CtrlPnl::OnClsPropRemove(const IModel& model, const std::vector<unsigned int>& vec)
+void CtrlPnl::OnClsPropBeforeRemove(const IModel& vec, const std::vector<SptrIModel>& remVec)
 {
 	auto cls_prop_array = mObj->GetClsPropArray();
 	
 	auto propCategory = mPropGrid->GetProperty("user_cls_prop");
-	if (cls_prop_array->GetChildQty() == vec.size())
+	if (cls_prop_array->size() == remVec.size())
 	{
 		propCategory->DeleteChildren();
 	}
 	else
 	{
-		std::vector<wxPGProperty*> prop_array;
-		for (const unsigned int& i : vec)
-			prop_array.emplace_back(propCategory->Item(i));
+		size_t pos = 0;
+		for (const auto& remItem : remVec)
+		{
+			if (vec.GetItemPosition(remItem, pos))
+			{
+				mPropGrid->DeleteProperty(pos);
+			}
 
-		for (const auto& j : prop_array)
-			mPropGrid->DeleteProperty(j);
+		}
 	}
 
 	if (!propCategory->GetChildCount())
@@ -284,23 +287,26 @@ void CtrlPnl::OnObjPropAfterInsert(const IModel& vec
 
 }
 //-----------------------------------------------------------------------------
-void CtrlPnl::OnObjPropRemove(const IModel& model, const std::vector<unsigned int>& vec)
+void CtrlPnl::OnObjPropBeforeRemove(const IModel& vec, const std::vector<SptrIModel>& remVec)
 {
 	auto obj_prop_array = mObj->GetObjPropArray();
 
 	auto propCategory = mPropGrid->GetProperty("user_obj_prop");
-	if (obj_prop_array->GetChildQty() == vec.size())
+	if (obj_prop_array->GetChildQty() == remVec.size())
 	{
 		propCategory->DeleteChildren();
 	}
 	else
 	{
-		std::vector<wxPGProperty*> prop_array;
-		for (const unsigned int& i : vec)
-			prop_array.emplace_back(propCategory->Item(i));
+		size_t pos = 0;
+		for (const auto& remItem : remVec)
+		{
+			if (vec.GetItemPosition(remItem, pos))
+			{
+				mPropGrid->DeleteProperty(pos);
+			}
 
-		for (const auto& j : prop_array)
-			mPropGrid->DeleteProperty(j);
+		}
 	}
 	if (!propCategory->GetChildCount())
 		propCategory->Hide(true);

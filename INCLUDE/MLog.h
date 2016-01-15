@@ -3,7 +3,7 @@
 
 #include "TModel.h"
 #include "MLogArray.h"
-#include "db_filter.h"
+#include "filter_data.h"
 
 namespace wh{
 //-------------------------------------------------------------------------
@@ -31,24 +31,17 @@ public:
 		FilterOp	mOp;
 		FilterConn	mConn;
 		bool		mEnable;
-		
+
 		wxString GetSql()const
 		{
 			wxString str;
 			if (mEnable)
 				str << ToSqlString(mConn) << " " << mField.mTitle <<
-					ToSqlString(mOp) << "'" << mVal << "' ";
+				ToSqlString(mOp) << "'" << mVal << "' ";
 			return str;
 		};
 	};
 
-	enum Action
-	{
-		dbaSELECT = 0x01,
-		dbaINSERT = 0x02,
-		dbaUPDATE = 0x04,
-		dbaDELETE = 0x08
-	};
 	std::unique_ptr<DbFieldInfo::Filter>	mFilter;
 	
 	wxString	mTitle;
@@ -56,7 +49,6 @@ public:
 	FieldType	mType	 = ftText;
 	bool		mGuiShow = true;
 	bool		mGuiEdit = false;
-	char		mDbAction = dbaSELECT | dbaUPDATE;
 	int			mSort = 0;
 
 	DbFieldInfo();
@@ -122,12 +114,9 @@ public:
 		for (unsigned int i = 0; i<mField.size();++i)
 		{
 			const auto& fd = *mField[i];
-			if (fd.mDbAction & DbFieldInfo::dbaSELECT)
-			{
-				fields << fd.mDbTitle << ",";
-				if (fd.mSort)
+			fields << fd.mDbTitle << ",";
+			if (fd.mSort)
 					sort_order.emplace(std::make_pair(fd.mSort, fd.mDbTitle));
-			}
 				
 			if (fd.HasFilter())
 				filters << fd.GetFilter().GetSql();

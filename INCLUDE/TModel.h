@@ -5,57 +5,11 @@
 #include "whDB.h"
 #include "globaldata.h"
 #include "dbFieldType.h"
+#include "field_data.h"
 
 namespace wh{
 
 namespace sig = boost::signals2;
-//-----------------------------------------------------------------------------
-struct Field
-{
-	Field(const char* name, FieldType ft, bool show)
-	:mName(name), mType(ft), mShow(show)
-	{}
-
-
-	Field(const wxString& name, FieldType ft, bool show)
-		:mName(name), mType(ft), mShow(show)
-	{}
-	wxString	mName;
-	FieldType	mType;
-	bool		mShow;
-};
-//-----------------------------------------------------------------------------
-const static std::vector<Field> gEmptyFieldVec;
-
-class FieldsInfo
-{
-public:
-	virtual ~FieldsInfo()
-	{
-	}
-
-	virtual const std::vector<Field>& GetFieldVector()const
-	{
-		return gEmptyFieldVec;
-	}
-	unsigned int GetFieldQty()const
-	{
-		return GetFieldVector().size();
-	}
-	const wxString& GetFieldName(unsigned int col)const
-	{
-		return GetFieldVector()[col].mName;
-	}
-	const FieldType& GetFieldType(unsigned int col)const
-	{
-		return GetFieldVector()[col].mType;
-	}
-	virtual bool GetFieldValue(unsigned int col, wxVariant &variant)
-	{
-		return false;
-	}
-
-};
 
 //-----------------------------------------------------------------------------
 class IModel;
@@ -76,9 +30,7 @@ class SigData
 	//: public boost::noncopyable
 {
 public:
-	//using Signal = sig::signal<void(const IModel*, DATA* const)>;
-	using Signal = sig::signal<void(const IModel*, const DATA*)>;
-	//using Slot = std::function< void(const IModel*, const DATA*) >;
+	using Signal = sig::signal<void(const IModel*, const DATA* const)>;
 	using Slot = typename Signal::slot_type;
 
 	sig::connection DoConnect(ModelOperation op, const Slot &slot)
@@ -190,98 +142,115 @@ class IModelNotifier
 public:
 	virtual ~IModelNotifier(){}
 
-	//using SigChange = sig::signal<void(const IModel&) >;
-	//using SlotChange = std::function<void(const IModel&)>;
-
 	using VecChange = std::vector<unsigned int>;
+
 	using SigVecChange = sig::signal<void(const IModel&, const VecChange&) >;
-	using SlotVecChange = std::function<void(const IModel&, const VecChange&)>;
+	using SlotVecChange = SigVecChange::slot_type;
 
 	using SigInsert = sig::signal<void(const IModel&
 		,const std::vector<SptrIModel>&, const SptrIModel&) >;
-	using SlotInsert = std::function<void(const IModel&
-		, const std::vector<SptrIModel>&, const SptrIModel&)>;
+	using SlotInsert = SigInsert::slot_type;
+	//using SlotInsert = std::function<void(const IModel&
+	//	, const std::vector<SptrIModel>&, const SptrIModel&)>;
+
+	using SigRemove = sig::signal<void(const IModel&, const std::vector<SptrIModel>&)>;
+	using SlotRemove = SigRemove::slot_type;
+
 
 	sig::connection ConnBeforeInsert(const SlotInsert &subscriber)const
 	{
-		if (!mSigBeforeInsert)
-			mSigBeforeInsert.reset(new SigInsert);
-		return mSigBeforeInsert->connect(subscriber);
+		if (!mSig)
+			mSig.reset(new SigImpl);
+		if (!mSig->BeforeInsert)
+			mSig->BeforeInsert.reset(new SigInsert);
+		return mSig->BeforeInsert->connect(subscriber);
+	}
+	sig::connection ConnAfterInsert(const SlotInsert &subscriber)const
+	{
+		if (!mSig)
+			mSig.reset(new SigImpl);
+		if (!mSig->AfterInsert)
+			mSig->AfterInsert.reset(new SigInsert);
+		return mSig->AfterInsert->connect(subscriber);
 	}
 	void DisconnBeforeInsert(const SlotInsert &subscriber)const
 	{
-		if (mSigBeforeInsert)
+		if (mSig && mSig->BeforeInsert)
 		{
-			mSigBeforeInsert->disconnect(&subscriber);
-			mSigBeforeInsert.reset(nullptr);
+			mSig->BeforeInsert->disconnect(&subscriber);
+			mSig->BeforeInsert.reset(nullptr);
 		}
-	}
-	
-	sig::connection ConnAfterInsert(const SlotInsert &subscriber)const
-	{
-		if (!mSigAfterInsert)
-			mSigAfterInsert.reset(new SigInsert);
-		return mSigAfterInsert->connect(subscriber);
 	}
 	void DisconnAfterInsert(const SlotInsert &subscriber)const
 	{
-		if (mSigAfterInsert)
+		if (mSig && mSig->AfterInsert)
 		{
-			mSigAfterInsert->disconnect(&subscriber);
-			mSigAfterInsert.reset(nullptr);
+			mSig->AfterInsert->disconnect(&subscriber);
+			mSig->AfterInsert.reset(nullptr);
 		}
 	}
 
-	sig::connection ConnectBeforeRemove(const SlotVecChange &slot)const
+	sig::connection ConnectBeforeRemove(const SlotRemove &slot)const
 	{
 		if (!mSig)
 			mSig.reset(new SigImpl);
-		return mSig->BeforeRemove.connect(slot);
-
+		if (!mSig->BeforeRemove)
+			mSig->BeforeRemove.reset(new SigRemove);
+		return mSig->BeforeRemove->connect(slot);
 	}
-
-	sig::connection ConnectRemoveSlot(const SlotVecChange &subscriber)const
+	sig::connection ConnectAfterRemove(const SlotRemove &slot)const
 	{
 		if (!mSig)
 			mSig.reset(new SigImpl);
-		return mSig->RemoveChild.connect(subscriber);
-
+		if (!mSig->AfterRemove)
+			mSig->AfterRemove.reset(new SigRemove);
+		return mSig->AfterRemove->connect(slot);
 	}
-	sig::connection ConnectChangeSlot(const SlotVecChange &subscriber)const
+	void DisconnectBeforeRemove(const SlotRemove &subscriber)const
+	{
+		if (mSig && mSig->BeforeRemove)
+		{
+			mSig->BeforeRemove->disconnect(&subscriber);
+			mSig->BeforeRemove.reset(nullptr);
+		}
+	}
+	void DisconnectAfterRemove(const SlotRemove &subscriber)const
+	{
+		if (mSig && mSig->AfterRemove)
+		{
+			mSig->AfterRemove->disconnect(&subscriber);
+			mSig->AfterRemove.reset(nullptr);
+		}
+	}
+	
+	sig::connection ConnectChangeSlot(const SlotVecChange &slot)const
 	{
 		if (!mSig)
 			mSig.reset(new SigImpl);
-		return mSig->ChangeChild.connect(subscriber);
+		if (!mSig->ChangeChild)
+			mSig->ChangeChild.reset(new SigVecChange);
+		return mSig->ChangeChild->connect(slot);
 	}
-
-	inline void DisconnectRemoveSlot(const SlotVecChange &subscriber)const
+	void DisconnectChangeSlot(const SlotVecChange &slot)const
 	{
-		if (mSig)
-			mSig->RemoveChild.disconnect(&subscriber);
-	}
-	inline void DisconnectBeforeRemove(const SlotVecChange &subscriber)const
-	{
-		if (mSig)
-			mSig->BeforeRemove.disconnect(&subscriber);
-	}
-	inline void DisconnectChangeSlot(const SlotVecChange &subscriber)const
-	{
-		if (mSig)
-			mSig->ChangeChild.disconnect(&subscriber);
+		if (mSig && mSig->AfterRemove)
+		{
+			mSig->ChangeChild->disconnect(&slot);
+			mSig->ChangeChild.reset(nullptr);
+		}
 	}
 
 protected:
 	struct SigImpl
 	{
-		SigVecChange	BeforeRemove;
-		SigVecChange	RemoveChild;
-		SigVecChange	ChangeChild;
-		//SigChange		Change;
+		std::unique_ptr<SigInsert>		BeforeInsert;
+		std::unique_ptr<SigInsert>		AfterInsert;
+
+		std::unique_ptr<SigRemove>		BeforeRemove;
+		std::unique_ptr<SigRemove>		AfterRemove;
+
+		std::unique_ptr<SigVecChange>	ChangeChild;
 	};
-
-	mutable std::unique_ptr<SigInsert>		mSigBeforeInsert;
-	mutable std::unique_ptr<SigInsert>		mSigAfterInsert;
-
 	mutable std::unique_ptr<SigImpl>	mSig;
 };
 
@@ -310,14 +279,14 @@ static int GetColumnWidthBy(FieldType ft)
 
 
 
-namespace ModelOption
+enum ModelOption:char
 {
-	const char CommitSave = 0x01;
-	const char CommitLoad = 0x02;
-	const char CascadeLoad = 0x04;
-	const char CascadeSave = 0x08;
-	const char EnableNotifyFromChild = 0x10;
-	const char EnableParentNotify = 0x20;
+	CommitSave = 0x01,
+	CommitLoad = 0x02,
+	CascadeLoad = 0x04,
+	CascadeSave = 0x08,
+	EnableNotifyFromChild = 0x10,
+	EnableParentNotify = 0x20
 };
 
 //-----------------------------------------------------------------------------
@@ -368,8 +337,7 @@ protected:
 
 	char mOption;
 
-	bool InsertWithoutSignal
-		(SptrIModel& newItem, const SptrIModel& itemBefore = SptrIModel(nullptr))
+	bool InsertWithoutSignal(SptrIModel& newItem, const SptrIModel& itemBefore)
 	{
 		if (!newItem)
 			BOOST_THROW_EXCEPTION(error() << wxstr("Can`t insert nullptr"));
@@ -405,6 +373,20 @@ protected:
 		
 		return pairIterBool.second;
 	}
+	bool RemoveWithoutSignal(SptrIModel& remItem)
+	{
+		if (!mVec || !remItem)
+			return false; // BOOST_THROW_EXCEPTION(error() << wxstr("Can`t remove nullptr"));
+
+		PtrIdx& ptrIdx = mVec->get<1>();
+		CPtrIterator ptrIt = ptrIdx.find(remItem.get());
+		if (ptrIdx.end() != ptrIt) // this own item ?
+		{
+			ptrIdx.erase(ptrIt);
+			return true;
+		}
+		return false;
+	}
 
 public:
 	explicit IModel(const char option = ModelOption::EnableParentNotify)
@@ -437,6 +419,10 @@ public:
 	{
 		return mVec ? mVec->size() : 0;
 	}
+	size_t  size()const
+	{
+		return mVec ? mVec->size() : 0;
+	}
 	
 	std::shared_ptr<IModel> GetChild(size_t pos)const 
 	{
@@ -450,10 +436,8 @@ public:
 	void Insert(const std::vector<std::shared_ptr<CHILD>> & newItems,
 		SptrIModel& before = SptrIModel(nullptr))
 	{
-		DoSigBeforeInsert(*this, newItems, before);
-		
-		int qty_inserted = 0;
-		
+		DoSigBeforeInsert(newItems, before);
+		unsigned int qty_inserted = 0;
 		for (const auto& curr : newItems)
 		{
 			auto newImodel = std::dynamic_pointer_cast<IModel>(curr);
@@ -461,87 +445,69 @@ public:
 				qty_inserted += InsertWithoutSignal(newImodel, before) ? 1 : 0;
 			else
 				BOOST_THROW_EXCEPTION(error() << wxstr("Can`t cast to IModel"));
-
 		}
-
 		if (qty_inserted != newItems.size())
 			BOOST_THROW_EXCEPTION(error() << wxstr("Not all inserted"));
-
-		DoSigAfterInsert(*this, newItems, before);
+		DoSigAfterInsert(newItems, before);
 	}
-
-
 	template <class CHILD>
 	void Insert(std::shared_ptr<CHILD>& newItem, 
 		SptrIModel& before = SptrIModel(nullptr))
 	{
 		std::vector<SptrIModel> new_vec;
 		new_vec.emplace_back(newItem);
-		
-		DoSigBeforeInsert(*this, new_vec, before);
-
-		auto newImodel = std::dynamic_pointer_cast<IModel>(newItem);
-		if (newImodel)
-		{
-			if (InsertWithoutSignal(newImodel, before))
-				DoSigAfterInsert(*this, new_vec, before);
-		}
-		else
-			BOOST_THROW_EXCEPTION(error() << wxstr("Can`t cast to IModel"));
+		Insert(new_vec, before);
 	}
 
 	template <class CHILD>
-	std::shared_ptr<IModel> DelChild(std::shared_ptr<CHILD>& newItem)
+	void DelChild(const std::vector<std::shared_ptr<CHILD>> & remVec)
 	{
-		return DelChild(std::dynamic_pointer_cast<IModel>(newItem));
-	}
-
-	std::shared_ptr<IModel> DelChild(std::shared_ptr<IModel>& remItem)
-	{
-		if (!mVec || !remItem)
-			return nullptr;
-
-		PtrIdx& ptrIdx = mVec->get<1>();
-		CPtrIterator ptrIt = ptrIdx.find(remItem.get() );
-		if (ptrIdx.end() != ptrIt) // this own item ?
+		DoSigBefoRemove(remVec);
+		unsigned int removedQty = 0;
+		for (auto& curr : remVec)
 		{
-			unsigned int pos;
-			bool itemHavePos = GetItemPosition(remItem, pos);
-
-			if (itemHavePos)
-			{
-				VecChange sigVec;
-				sigVec.emplace_back(pos);
-				DoSigBefoRemove(sigVec);
-
-				remItem->mParent = nullptr;
-				ptrIdx.erase(ptrIt);
-						
-				DoSigRemoveChild(sigVec);
-
-				return remItem;
-			}
+			auto remImodel = std::dynamic_pointer_cast<IModel>(curr);
+			if (remImodel)
+				removedQty += RemoveWithoutSignal(remImodel) ? 1 : 0;
+			else
+				BOOST_THROW_EXCEPTION(error() << wxstr("Can`t cast to IModel"));
 		}
-		return nullptr;
+		if (removedQty != remVec.size())
+			BOOST_THROW_EXCEPTION(error() << wxstr("Not all removed"));
+		DoSigAfterRemove(remVec);
 	}
+	
+	template <class CHILD>
+	void DelChild(std::shared_ptr<CHILD>& remItem)
+	{
+		std::vector<std::shared_ptr<CHILD>> remVec;
+		remVec.emplace_back(remItem);
+		DelChild(remVec);
+	}
+
 	std::shared_ptr<IModel> DelChild(size_t pos)
 	{
 		if (mVec && mVec->size() > pos)
 		{
 			auto remItem = (*mVec)[pos];
-			VecChange sigVec;
-			sigVec.emplace_back(pos);
-			DoSigBefoRemove(sigVec);
-
-			remItem->mParent = nullptr;
-			mVec->erase(mVec->begin() + pos);
-			
-			DoSigRemoveChild(sigVec);
-
+			DelChild(remItem);
 			return remItem;
 		}
 		return std::shared_ptr<IModel>();
 	}
+
+	void Clear()
+	{
+		if (!mVec || mVec->empty())
+			return;
+		std::vector<SptrIModel> remVec;
+		for (auto& remItem : (*mVec))
+			remVec.emplace_back(remItem);
+			
+		DelChild(remVec);
+	}
+
+
 	virtual std::shared_ptr<IModel> CreateChild()
 	{
 		return std::shared_ptr<IModel>();
@@ -568,25 +534,7 @@ public:
 		return GetItemPosition(item_ptr.get(),pos);
 		
 	}
-	void Clear()
-	{
-		if (!mVec || mVec->empty() )
-			return;
 
-		auto vecSize = mVec->size();
-		std::vector<unsigned int> tmpVec(vecSize);
-
-		for (unsigned int i = 0; i < mVec->size(); ++i)
-		{
-			auto item = (*mVec)[i];
-			item->mParent = nullptr;
-			tmpVec[i] = i;
-		}
-		DoSigBefoRemove(tmpVec);
-		mVec->clear();
-		mVec.reset(nullptr);
-		DoSigRemoveChild(tmpVec);
-	}
 	bool GetCanCommitSave()const
 	{
 		return ModelOption::CommitSave & mOption;
@@ -762,8 +710,8 @@ protected:
 					{
 						std::vector< unsigned int>   sigVec;
 						sigVec.emplace_back(pos);
-						if (mSig)
-							mSig->ChangeChild(*this, sigVec);
+						if (mSig && mSig->ChangeChild)
+							(*mSig->ChangeChild)(*this, sigVec);
 						DoNotifyParent();
 					}// if (GetItemPosition(sender, pos))
 				}//if (isStateModified)
@@ -786,33 +734,31 @@ protected:
 		if (mParent && (mOption & ModelOption::EnableParentNotify))
 			mParent->OnChildChage(this);
 	}
-	void DoSigRemoveChild(VecChange& sigVec)
+	void DoSigAfterRemove(const std::vector<SptrIModel>& sigVec)
 	{
-		if (mSig)
-			mSig->RemoveChild(*this, sigVec);
+		if (mSig && mSig->AfterRemove)
+			(*mSig->AfterRemove)(*this, sigVec);
 		DoNotifyParent();
 	}
-	void DoSigBefoRemove(VecChange& sigVec)
+	void DoSigBefoRemove(const std::vector<SptrIModel>& sigVec)
 	{
-		if (mSig)
-			mSig->BeforeRemove(*this, sigVec);
+		if (mSig && mSig->BeforeRemove)
+			(*mSig->BeforeRemove)(*this, sigVec);
 		DoNotifyParent();
 	}
 
-	void DoSigBeforeInsert(const IModel& vec
-		, const std::vector<SptrIModel>& new_vec
+	void DoSigBeforeInsert(const std::vector<SptrIModel>& new_vec
 		, const std::shared_ptr<IModel>& itemBefore)
 	{
-		if (mSigBeforeInsert)
-			mSigBeforeInsert->operator()(vec, new_vec, itemBefore);
+		if (mSig && mSig->BeforeInsert)
+			(*mSig->BeforeInsert)(*this, new_vec, itemBefore);
 		DoNotifyParent();
 	}
-	void DoSigAfterInsert(const IModel& vec
-		, const std::vector<SptrIModel>& new_vec
+	void DoSigAfterInsert(const std::vector<SptrIModel>& new_vec
 		, const std::shared_ptr<IModel>& itemBefore)
 	{
-		if (mSigAfterInsert)
-			mSigAfterInsert->operator()(vec, new_vec, itemBefore);
+		if (mSig && mSig->AfterInsert)
+			(*mSig->AfterInsert)(*this, new_vec, itemBefore);
 		DoNotifyParent();
 	}
 

@@ -68,7 +68,7 @@ class PathPatternEditor
 
 	void ResetGui();
 	void OnAfterInsert(const IModel&, const std::vector<SptrIModel>&, const SptrIModel&);
-	void OnDelNode(const IModel&, const std::vector<unsigned int>&);
+	void OnBeforeRemove(const IModel&, const std::vector<SptrIModel>&);
 
 	void MakeGuiItem(unsigned int pos);
 
