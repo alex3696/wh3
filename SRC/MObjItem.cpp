@@ -161,7 +161,13 @@ bool MObjItem::GetUpdateQuery(wxString& query)const
 bool MObjItem::GetDeleteQuery(wxString& query)const
 {
 	auto parentArray = dynamic_cast<MObjArray*>(this->mParent);
+	if (!parentArray)
+		return false;
 	auto parentCls = dynamic_cast<MTypeItem*>(parentArray->GetParent());
+	if (!parentCls)
+		return false;
+	if (msNull == parentCls->GetState() || msNull == GetState())
+		return false;
 
 	const rec::Cls& cls = parentCls->GetStored();
 	const auto& oldObj = this->GetStored();
@@ -233,7 +239,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 		{
 			query = wxString::Format(
 				"SELECT o.id, o.pid, o.title, o.qty "
-				" , o.move_logid, get_path_obj(o.pid)  AS path "
+				" , o.move_logid, get_path_obj(o.pid,1)  AS path "
 				" , parent.title "
 				"   %s "
 				" FROM obj o "

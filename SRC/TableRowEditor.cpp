@@ -97,7 +97,6 @@ void TableRowPGDefaultEditor::GetData(TableRowData& rec) const
 	if (!table)
 		return;
 	const auto& field_vec = table->mFieldVec;
-	const auto& data = mModel->GetData();
 	rec.resize(field_vec.size());
 	for (unsigned int i = 0; i < field_vec.size(); ++i)
 	{

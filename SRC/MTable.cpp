@@ -149,7 +149,6 @@ bool ITableRow::GetDeleteQuery(wxString& query)const
 		return false;
 	const wxString table = mtable->GetTableName();
 	const auto& field_vec = mtable->mFieldVec;
-	const auto& row_data = GetData();
 	const auto& stored_row_data = GetStored();
 
 	wxString keycond;
@@ -160,7 +159,7 @@ bool ITableRow::GetDeleteQuery(wxString& query)const
 		{
 			if (!keycond.IsEmpty())
 				keycond << " AND ";
-			keycond << field.mDbTitle << "='" << row_data[i] << "'";
+			keycond << field.mDbTitle << "='" << stored_row_data[i] << "'";
 		}
 	}
 
