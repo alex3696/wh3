@@ -459,8 +459,7 @@ public:
 		Insert(new_vec, before);
 	}
 
-	template <class CHILD>
-	void DelChild(const std::vector<std::shared_ptr<CHILD>> & remVec)
+	void DelChild(const std::vector<SptrIModel> & remVec)
 	{
 		DoSigBefoRemove(remVec);
 		unsigned int removedQty = 0;
@@ -480,7 +479,7 @@ public:
 	template <class CHILD>
 	void DelChild(std::shared_ptr<CHILD>& remItem)
 	{
-		std::vector<std::shared_ptr<CHILD>> remVec;
+		std::vector<SptrIModel> remVec;
 		remVec.emplace_back(remItem);
 		DelChild(remVec);
 	}
@@ -683,12 +682,7 @@ protected:
 			++i;
 			++range.first;
 		}
-		for (auto& item : tmpVec)
-			DelChild(item);
-
-
-		//stateIdx.erase(range.first, range.second);
-
+		DelChild(tmpVec);
 	}
 
 	
@@ -842,7 +836,8 @@ public:
 	//{
 	//	mStored = stored;
 	//	mCurrent = current;
-	//	DoSigChangeData();
+	//	DoSignal(moAfterUpdate, this, nullptr);
+	//	DoNotifyParent();
 	//}
 	virtual void MarkDeletedData()override
 	{
@@ -1041,155 +1036,10 @@ static ModelState GetState(const T_Data& stored, const T_Data& current)
 	return msDeleted;
 }
 //-----------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------------------
-template< typename T_Data  >
-class TModelDB
-	: public boost::noncopyable
-{
-public:
-
-	struct error : virtual exception_base {};
-	typedef T_Data						T_Data;
-
-	const T_Data& GetStored() const
-	{
-		if (!mStored)
-			BOOST_THROW_EXCEPTION(error() << wxstr("No model data, msNull"));
-		return *mStored.get();
-	}
-	const T_Data& GetData() const
-	{
-		if (mCurrent) // msCreated msUpdated msExist
-			return *mCurrent.get();
-		return GetStored();
-	}
-	ModelState	  GetState()const
-	{
-		auto state = ::GetState(mStored, mCurrent);
-		
-		if (msExist == state && msExist != GetStateNested() )
-			state = msUpdated;
-		return state;
-	}
-	void SetData(const T_Data& data)
-	{
-		switch (GetState())
-		{
-		default: case msNull: case msDeleted: break;
-		case msExist:
-			mCurrent.reset(new T_Data);
-		case msUpdated: case msCreated:
-			*mCurrent.get() = data;
-			DoSigChange();
-			break;
-		}
-	}
-	void SetData(std::shared_ptr<T_Data>& stored, std::shared_ptr<T_Data>& current)
-	{
-		mStored = stored;
-		mCurrent = current;
-		DoSigChange();
-	}
-
-	void Load()
-	{
-		LoadThis();
-		LoadNested();
-	}
-	void Save()
-	{
-		SaveThis();
-		SaveNested();
-	}
-
-
-	void MarkDeleted()
-	{
-		mCurrent = nullptr;
-		DoSigChange();
-	}
-	void MarkSaved()
-	{
-		mStored = mCurrent;
-		DoSigChange();
-	}
-private:
-	
-	std::shared_ptr<T_Data>		mStored;
-	std::shared_ptr<T_Data>		mCurrent;
-
-protected:
-	virtual void SaveThis(){}
-	virtual void SaveNested(){}
-
-	virtual void LoadThis(){}
-	virtual void LoadNested(){}
-
-
-	virtual ModelState	  GetStateNested()const
-	{
-		return msExist;
-	}
-
-	TModelDB(const std::shared_ptr<T_Data>& stored = nullptr,
-		const std::shared_ptr<T_Data>& current = nullptr)
-		:mStored(stored), mCurrent(current)
-	{}
-
-	virtual void DoSigChange()const = 0;
-
-};
 
 
 
 
-
-
-//-------------------------------------------------------------------------------------------------
-#define MODEL_SIGNALIMPL(TYPE)\
-protected:\
-	using SigChange = signal<void(const TYPE&) >; \
-	mutable SigChange	sigChange; \
-	virtual void DoSigChange()const override\
-{\
-	sigChange(*static_cast<const TYPE*>(this)); \
-}\
-public:\
-	using SlotChange = std::function<void(const TYPE&)>; \
-	inline connection ConnectChangeSlot(const SlotChange& subscriber, bool signal = true)const\
-{\
-	connection conn = sigChange.connect(subscriber); \
-if (signal)\
-	DoSigChange(); \
-	return conn; \
-}\
-	inline void DisconnectChangeSlot(const SlotChange& subscriber)const\
-{\
-	sigChange.disconnect(&subscriber); \
-}
-
-
-//-------------------------------------------------------------------------------------------------
-#define MODEL_CREATEIMPL(TYPE)\
-public:\
-	static std::shared_ptr<TYPE> Create( \
-		std::shared_ptr<T_Data>& current = std::shared_ptr<T_Data>(new T_Data), \
-		std::shared_ptr<T_Data>& stored = std::shared_ptr<T_Data>(nullptr) )\
-	{\
-		TYPE*	newModel = new TYPE(stored, current); \
-		return std::shared_ptr<TYPE>(newModel); \
-	}
-
-
-
-//-------------------------------------------------------------------------------------------------
-#define INHERIT_MODEL(BASE,TYPE)\
-protected:\
-TYPE(const std::shared_ptr<T_Data>& stored = nullptr, const std::shared_ptr<T_Data>& current = nullptr)\
-	: BASE (stored, current)\
-{} \
-MODEL_CREATEIMPL(TYPE)\
-MODEL_SIGNALIMPL(TYPE)
 
 
 

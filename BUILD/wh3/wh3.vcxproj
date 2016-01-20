@@ -169,6 +169,7 @@
     <ClCompile Include="..\..\SRC\dlg_move_view_DvModel.cpp" />
     <ClCompile Include="..\..\SRC\dlg_move_view_Frame.cpp" />
     <ClCompile Include="..\..\SRC\MLog.cpp" />
+    <ClCompile Include="..\..\SRC\MProp2.cpp" />
     <ClCompile Include="..\..\SRC\PathPattern_model.cpp" />
     <ClCompile Include="..\..\SRC\DUserEditor.cpp" />
     <ClCompile Include="..\..\SRC\DUserGroupEditor.cpp" />
@@ -189,11 +190,15 @@
     <ClCompile Include="..\..\SRC\DActPropEditor.cpp" />
     <ClCompile Include="..\..\SRC\PathPatternEditor.cpp" />
     <ClCompile Include="..\..\SRC\PGClsPid.cpp" />
+    <ClCompile Include="..\..\SRC\MTable.cpp" />
+    <ClCompile Include="..\..\SRC\TableCtrl.cpp" />
+    <ClCompile Include="..\..\SRC\TableRowEditor.cpp" />
     <ClCompile Include="..\..\SRC\VActPanel.cpp" />
     <ClCompile Include="..\..\SRC\VClsDataEditorPanel.cpp" />
     <ClCompile Include="..\..\SRC\VObjCatalogCtrl.cpp" />
     <ClCompile Include="..\..\SRC\VObjCatalogDataViewModel.cpp" />
     <ClCompile Include="..\..\SRC\VObjCatalogTable.cpp" />
+    <ClCompile Include="..\..\SRC\VTable.cpp" />
     <ClCompile Include="..\..\SRC\VUserPanel.cpp" />
     <ClCompile Include="..\..\SRC\whParser.cpp" />
     <ClCompile Include="..\..\SRC\whPnlFavorites.cpp">
@@ -274,6 +279,7 @@
     <ClInclude Include="..\..\INCLUDE\MLog.h" />
     <ClInclude Include="..\..\INCLUDE\MLogArray.h" />
     <ClInclude Include="..\..\INCLUDE\MLogFilter.h" />
+    <ClInclude Include="..\..\INCLUDE\MProp2.h" />
     <ClInclude Include="..\..\INCLUDE\PathPattern_model.h" />
     <ClInclude Include="..\..\INCLUDE\DUserEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DUserGroupEditor.h" />
@@ -292,6 +298,8 @@
     <ClInclude Include="..\..\INCLUDE\MObjCatPath.h" />
     <ClInclude Include="..\..\INCLUDE\PathPatternEditor.h" />
     <ClInclude Include="..\..\INCLUDE\PGClsPid.h" />
+    <ClInclude Include="..\..\INCLUDE\TableCtrl.h" />
+    <ClInclude Include="..\..\INCLUDE\TableRowEditor.h" />
     <ClInclude Include="..\..\INCLUDE\TModel.h" />
     <ClInclude Include="..\..\INCLUDE\BaseControlPanel.h" />
     <ClInclude Include="..\..\INCLUDE\BaseTable.h" />
@@ -299,6 +307,7 @@
     <ClInclude Include="..\..\INCLUDE\Favorites.h" />
     <ClInclude Include="..\..\INCLUDE\TModelArray.h" />
     <ClInclude Include="..\..\INCLUDE\field_data.h" />
+    <ClInclude Include="..\..\INCLUDE\MTable.h" />
     <ClInclude Include="..\..\INCLUDE\TPresenter.h" />
     <ClInclude Include="..\..\INCLUDE\TView.h" />
     <ClInclude Include="..\..\INCLUDE\TViewCtrlPanel.h" />
@@ -317,6 +326,7 @@
     <ClInclude Include="..\..\INCLUDE\VObjCatalogDataViewModel.h" />
     <ClInclude Include="..\..\INCLUDE\VObjCatalogTable.h" />
     <ClInclude Include="..\..\INCLUDE\VPropCtrlPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\VTable.h" />
     <ClInclude Include="..\..\INCLUDE\VUserCtrlPanel.h" />
     <ClInclude Include="..\..\INCLUDE\VUserPanel.h" />
     <ClInclude Include="..\..\INCLUDE\wxComboBtn.h" />

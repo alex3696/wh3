@@ -12,6 +12,11 @@ public:
 	class Filter
 	{
 	public:
+		Filter(const wxString& val, FilterOp fo = foEq
+			, FilterConn fc = fcAND, bool enable = true)
+			:mVal(val), mOp(fo), mConn(fc), mEnable(enable)
+		{}
+
 		wxString	mVal;
 		FilterOp	mOp;
 		FilterConn	mConn;
@@ -22,17 +27,24 @@ public:
 	wxString	mDbTitle;
 	FieldType	mType = ftText;
 	bool		mGuiShow = true;
-	bool		mGuiEdit = false;
+	bool		mGuiEdit = true;
+	
+	//bool		mSelect = true;
+	bool		mInsert = true;
+	bool		mUpdate = true;
+	bool		mKey = false;
+
 	int			mSort = 0;
 	std::vector<Filter> mFilter;
 
+	Field(){}
 	Field(const char* name, FieldType ft, bool show)
 		:mTitle(name), mType(ft), mGuiShow(show)
 	{}
 
 
-	Field(const wxString& name, FieldType ft, bool show)
-		:mTitle(name), mType(ft), mGuiShow(show)
+	Field(const wxString& name, FieldType ft, bool show, const wxString& dbname=wxEmptyString)
+		:mTitle(name), mType(ft), mGuiShow(show), mDbTitle(dbname)
 	{}
 
 	wxString GetSqlFilter(unsigned int i)const

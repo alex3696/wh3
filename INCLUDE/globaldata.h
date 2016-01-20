@@ -170,8 +170,30 @@ struct SafeCallEvent
 
 };
 
+//-----------------------------------------------------------------------------
+struct SafeCallCommandEvent
+{
+	void operator()(std::function<void(wxCommandEvent&)>& method, wxCommandEvent& evt)const
+	{
+		try
+		{
+			if (method)
+				method(evt);
+		}//try
+		catch (boost::exception & e)
+		{
+			whDataMgr::GetDB().RollBack();
+			wxLogWarning(wxString(diagnostic_information(e)));
+		}///catch(boost::exception & e)
+		catch (...)
+		{
+			wxLogWarning(wxString("Unhandled exception"));
+		}//catch(...)
+	};
 
 
+};
+//-----------------------------------------------------------------------------
 
 
 

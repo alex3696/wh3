@@ -13,6 +13,10 @@
 #include "VGroupCtrlPanel.h"
 #include "VUserCtrlPanel.h"
 
+
+#include "TableCtrl.h"
+#include "MProp2.h"
+
 //---------------------------------------------------------------------------
 BEGIN_EVENT_TABLE( MainFrame, wxFrame )
 
@@ -157,11 +161,17 @@ void MainFrame::BuildToolbar()
 	m_MainToolBar->AddTool(CMD_DB_DISCONNECT, "Отключиться от БД", m_ResMgr->m_ico_disconnect24, "Отключиться от БД", wxITEM_RADIO);
 	m_MainToolBar->AddSeparator();
 
-	m_btnFavorites = m_MainToolBar->AddTool(CMD_SHOWFAVORITES, "Открыть избранное", m_ResMgr->m_ico_favorites24, "Открыть избранное", wxITEM_CHECK);
+	//m_btnFavorites = m_MainToolBar->AddTool(CMD_SHOWFAVORITES, "Открыть избранное", m_ResMgr->m_ico_favorites24, "Открыть избранное", wxITEM_CHECK);
 
 	m_MainToolBar->AddTool(CMD_MAKEOBJWND, "Открыть каталог объектов", m_ResMgr->m_ico_add_obj_tab24, "Открыть каталог объектов");
-
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::DoMenuPreferences, this, wxID_PREFERENCES);
+
+
+
+
+
+
+
 
 	m_MainToolBar->Realize();
 
@@ -212,6 +222,25 @@ void MainFrame::ShowDevToolBar(bool show)
 		m_DevToolBar->AddTool(CMD_PNLSHOWACT, "Действия",
 			m_ResMgr->m_ico_acts24, wxEmptyString, wxITEM_NORMAL);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowAct, this, CMD_PNLSHOWACT);
+
+		m_DevToolBar->AddTool(CMD_DB_TEST, "Тест", m_ResMgr->m_ico_views24, "Тест");
+		auto cmdTest = [this](wxCommandEvent& evt)
+		{
+			wxBusyCursor			busyCursor;
+			wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+			auto wnd = new wh::TableCtrl(m_Notebook);
+			auto model = std::make_shared<wh::MPropTable>();
+			auto editor = std::make_shared<wh::TableRowPGDefaultEditor>();
+			model->Load();
+			wnd->SetEditor(editor);
+			wnd->SetModel(model);
+			m_Notebook->AddPage(wnd, "ТЕСТ");
+			wnd->SetFocus();
+			m_AuiMgr.Update();
+		};
+		Bind(wxEVT_COMMAND_MENU_SELECTED, cmdTest, CMD_DB_TEST);
+
+
 		m_DevToolBar->Realize();
 
 		m_AuiMgr.AddPane(m_DevToolBar, wxAuiPaneInfo().Name(wxT("DevToolBar")).
@@ -248,8 +277,9 @@ void MainFrame::ShowDevToolBar(bool show)
 		break;
 	}
 
-	show ? m_DevToolBar->Show() : m_DevToolBar->Hide();
 
+	
+	show ? m_DevToolBar->Show() : m_DevToolBar->Hide();
 	m_AuiMgr.Update();
 }
 //---------------------------------------------------------------------------

@@ -127,6 +127,12 @@
     <Filter Include="Controls\Шаблон пути">
       <UniqueIdentifier>{e8360862-bd18-4129-bc5c-51b283f2679f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Таблица Свойств">
+      <UniqueIdentifier>{3b281320-9aac-4f87-8096-8340613d3167}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Таблица Свойств\Table">
+      <UniqueIdentifier>{27388e6a-f0c3-42fe-97a7-37526630ebd7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -353,6 +359,21 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\MLog.cpp">
       <Filter>История</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MProp2.cpp">
+      <Filter>Таблица Свойств</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MTable.cpp">
+      <Filter>Таблица Свойств\Table</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\TableCtrl.cpp">
+      <Filter>Таблица Свойств\Table</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\VTable.cpp">
+      <Filter>Таблица Свойств\Table</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\TableRowEditor.cpp">
+      <Filter>Таблица Свойств\Table</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -593,9 +614,6 @@
     <ClInclude Include="..\..\INCLUDE\VPropCtrlPanel.h">
       <Filter>VProp</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\db_rec.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\detail_model.h">
       <Filter>Detail\model</Filter>
     </ClInclude>
@@ -617,9 +635,6 @@
     <ClInclude Include="..\..\INCLUDE\MObjCatalog.h">
       <Filter>Каталог объектов\Основная панель\model</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\db_data.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MLog.h">
       <Filter>История</Filter>
     </ClInclude>
@@ -629,9 +644,6 @@
     <ClInclude Include="..\..\INCLUDE\MLogFilter.h">
       <Filter>История</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\dbFieldType.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\FilterModel.h">
       <Filter>Templates</Filter>
     </ClInclude>
@@ -640,6 +652,30 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\field_data.h">
       <Filter>Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\db_data.h">
+      <Filter>Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\dbFieldType.h">
+      <Filter>Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\db_rec.h">
+      <Filter>Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MProp2.h">
+      <Filter>Таблица Свойств</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MTable.h">
+      <Filter>Таблица Свойств\Table</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\TableCtrl.h">
+      <Filter>Таблица Свойств\Table</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\TableRowEditor.h">
+      <Filter>Таблица Свойств\Table</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VTable.h">
+      <Filter>Таблица Свойств\Table</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
