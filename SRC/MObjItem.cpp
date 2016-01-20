@@ -141,16 +141,12 @@ bool MObjItem::GetUpdateQuery(wxString& query)const
 			pid = cls.mDefaultObj.mId;
 	}
 
-
+	//TODO: сделать тригер не позвол€ющий мен€ть если объекта нет в таблице блокировки
 	if (!cls.mType.IsNull())
 	{
 		query = wxString::Format(
-			"UPDATE obj SET "
-			"       title=%s, pid=%s, qty=%s "
-			" WHERE id=%s AND cls_id=%s AND pid=%s "
+		"UPDATE obj SET title=%s WHERE id=%s AND cls_id=%s AND pid=%s "
 			, newObj.mLabel.SqlVal()
-			, newObj.mParent.mId.SqlVal()
-			, newObj.mQty.SqlVal()
 			, oldObj.mId.SqlVal()
 			, cls.mId.SqlVal()
 			, oldObj.mParent.mId.SqlVal()

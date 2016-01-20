@@ -123,10 +123,12 @@ void Frame::OnChangeModel(const IModel* model, const object_catalog::MObjItem::T
 		SetTitle("Создание объекта");
 		mPropGrid->SetPropertyValue(mPGParent,
 			WXVARIANT(catalog->IsObjTree() ? catalog->GetRoot().mObj : cls_data.mDefaultObj));
+		mPGParent->Enable(true);
 		break;
 	case msExist: case msUpdated:	
 		SetTitle("Редактирование объекта");
 		mPropGrid->SetPropertyValue(mPGParent, WXVARIANT(obj_data.mParent));
+		mPGParent->Enable(false);
 		break;
 	}
 }
