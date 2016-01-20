@@ -696,6 +696,33 @@ GRANT EXECUTE ON FUNCTION ftr_aud_perm_act() TO "TypeDesigner";
 
 
 ---------------------------------------------------------------------------------------------------
+-- тригер для таблицы классов, запрещающий зацикливание
+---------------------------------------------------------------------------------------------------
+-- Узел не может подчиняться потомку == потомок узла не может быть его родителем ==
+-- перемещение ветки OLD.pid -> NEW.pid
+-- 0.1.2.3.4.5 перемещаем 4.5 в ветку 0.1 -> OLD.pid=3 -> NEW.pid=1
+-- проверяем чтоб в родителях новой ветки отсутствовал id текущей ветки
+DROP FUNCTION IF EXISTS ftr_bu_acls() CASCADE;
+CREATE OR REPLACE FUNCTION ftr_bu_acls()  RETURNS trigger AS
+$body$
+DECLARE
+BEGIN
+-- Если произошло изменение родителя узла
+  IF NEW.pid IS NOT NULL AND (NEW.pid <> OLD.pid OR OLD.pid IS NULL) THEN
+  -- Пытаемся найти в родителькой ветки нового родителя текущий узел
+    PERFORM FROM get_path_cls_info(NEW.pid) WHERE id = OLD.id;
+    IF FOUND THEN
+      RAISE EXCEPTION ' %: can`t change pid - cycling error',TG_NAME;
+    END IF;
+  END IF;
+
+RETURN NEW;
+END;
+$body$
+LANGUAGE 'plpgsql';
+CREATE TRIGGER tr_bu_acls BEFORE UPDATE ON acls FOR EACH ROW EXECUTE PROCEDURE ftr_bu_acls();
+GRANT EXECUTE ON FUNCTION ftr_bu_acls() TO "TypeDesigner";
+---------------------------------------------------------------------------------------------------
 -- тригер создания класса
 ---------------------------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS ftg_ins_cls() CASCADE;
@@ -704,6 +731,11 @@ BEGIN
   NEW.id := COALESCE(NEW.id,nextval('seq_cls_id'));
   NEW.dobj := COALESCE(NEW.dobj,1);
     
+
+  IF NEW.kind=0 THEN
+    NEW.measure=NULL;
+  END IF;
+  
   INSERT INTO acls (id, title, note, kind, pid, dobj,measure) 
             VALUES ( NEW.id, NEW.title, NEW.note,NEW.kind,NEW.pid, NEW.dobj, NEW.measure);
   RETURN NEW;

@@ -42,9 +42,9 @@ void wxPGPBaseProperty::SetCatalog(std::shared_ptr<MCat> cat, bool isTargetObj)
 
 	std::function<bool(wxPGProperty*)> selecFunc = [this, cat, isTargetObj](wxPGProperty* prop)
 	{
-		auto tv = [](const wh::rec::Cls* cls, const wh::rec::Obj* obj)->bool
+		auto tv = [isTargetObj](const wh::rec::Cls* cls, const wh::rec::Obj* obj)->bool
 		{
-			return cls && obj;
+			return cls && ((isTargetObj) ? obj : true);
 		};
 
 		CatDlg dlg(nullptr);
