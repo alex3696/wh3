@@ -7,6 +7,33 @@
 namespace wh{
 
 //-------------------------------------------------------------------------
+struct FilterData
+{
+	wxString	mVal;
+	wxString	mFieldName;
+	FieldType	mFieldType;
+	FilterOp	mOp = foEq;
+	FilterConn	mConn = fcAND;
+	bool		mIsEnabled=false;
+
+	FilterData(){}
+
+	FilterData(const wxString& val, const wxString& fname
+		, FieldType ft = ftText, FilterOp fo = foEq, FilterConn fc = fcAND, bool enable = true)
+		:mVal(val), mFieldName(fname), mFieldType(ft), mOp(fo), mConn(fc), mIsEnabled(enable)
+	{}
+
+	wxString GetSqlString()const 
+	{ 
+		wxString str;
+		if (mIsEnabled)
+			str << " " << ToSqlString(mConn) << " " << mFieldName <<
+				ToSqlString(mOp) << "'" << mVal << "' ";
+		return str; 
+	};
+};
+
+//-------------------------------------------------------------------------
 class MFilter
 	: public TModelData<FilterData>
 {

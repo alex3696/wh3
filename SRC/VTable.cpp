@@ -25,9 +25,9 @@ void VTable::SetModel(std::shared_ptr<ITable> model)
 		mModel = model;
 		const auto& fvec = mModel->mFieldVec;
 			
-		for (unsigned int i = 0; i < fvec.size(); ++i)
+		for (unsigned int i = 0; i < fvec->size(); ++i)
 		{
-			const auto& field = fvec.at(i)->GetData();
+			const auto& field = fvec->at(i)->GetData();
 			if (field.mGuiShow)
 			{
 				wxString name = field.mTitle;

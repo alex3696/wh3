@@ -12,7 +12,7 @@ bool ITableRow::LoadThisDataFromDb(std::shared_ptr<whTable>& db, const size_t ro
 
 	TableRowData data;
 
-	for (size_t col = 0; col < mtable->mFieldVec.GetChildQty(); col++)
+	for (size_t col = 0; col < mtable->mFieldVec->GetChildQty(); col++)
 		data.emplace_back(db->GetAsString(col, row));
 	SetData(data);
 	return true;
@@ -28,9 +28,9 @@ bool ITableRow::GetSelectQuery(wxString& query)const
 	const auto& stored_row_data = GetStored();
 
 	wxString fields, keycond, filter_sql;
-	for (unsigned int i = 0; i < field_vec.size(); ++i)
+	for (unsigned int i = 0; i < field_vec->size(); ++i)
 	{
-		const auto& field = field_vec.at(i)->GetData();
+		const auto& field = field_vec->at(i)->GetData();
 		fields += field.mDbTitle + ",";
 
 		for (const auto& filter : field.mFilter)
@@ -74,9 +74,9 @@ bool ITableRow::GetInsertQuery(wxString& query)const
 	const auto& row_data = GetData();
 
 	wxString fields, values, ins_table_fields, keylist, keycond;
-	for (unsigned int i = 0; i < field_vec.size(); ++i)
+	for (unsigned int i = 0; i < field_vec->size(); ++i)
 	{
-		const auto& field = field_vec.at(i)->GetData();
+		const auto& field = field_vec->at(i)->GetData();
 		if (field.mInsert)
 		{
 			fields << field.mDbTitle << ",";
@@ -120,9 +120,9 @@ bool ITableRow::GetUpdateQuery(wxString& query)const
 
 
 	wxString update_fields, keycond;
-	for (unsigned int i = 0; i < field_vec.size(); ++i)
+	for (unsigned int i = 0; i < field_vec->size(); ++i)
 	{
-		const auto& field = field_vec.at(i)->GetData();
+		const auto& field = field_vec->at(i)->GetData();
 		if (field.mUpdate)
 		{
 			update_fields << field.mDbTitle << "='" << row_data[i] << "',";
@@ -152,9 +152,9 @@ bool ITableRow::GetDeleteQuery(wxString& query)const
 	const auto& stored_row_data = GetStored();
 
 	wxString keycond;
-	for (unsigned int i = 0; i < field_vec.size(); ++i)
+	for (unsigned int i = 0; i < field_vec->size(); ++i)
 	{
-		const auto& field = field_vec.at(i)->GetData();
+		const auto& field = field_vec->at(i)->GetData();
 		if (field.mKey)
 		{
 			if (!keycond.IsEmpty())
@@ -174,14 +174,15 @@ bool ITableRow::GetDeleteQuery(wxString& query)const
 //-------------------------------------------------------------------------
 ITable::ITable(const char option)
 	:IModel(option)
+	, mFieldVec(new IFieldArray)
 {
 	namespace ph = std::placeholders;
 
 	auto fnAI = std::bind(&ITable::OnFieldAfterInsert, this, ph::_1, ph::_2, ph::_3);
 	auto fnBR = std::bind(&ITable::OnFieldBeforeRemove, this, ph::_1, ph::_2);
 		
-	mFieldVec.ConnAfterInsert(fnAI);
-	mFieldVec.ConnectBeforeRemove(fnBR);
+	mFieldVec->ConnAfterInsert(fnAI);
+	mFieldVec->ConnectBeforeRemove(fnBR);
 
 }
 //-------------------------------------------------------------------------
@@ -222,7 +223,7 @@ bool ITable::LoadChildDataFromDb(std::shared_ptr<IModel>& child,
 
 	TableRowData data;
 		
-	for (size_t col = 0; col < mFieldVec.GetChildQty(); col++)
+	for (size_t col = 0; col < mFieldVec->GetChildQty(); col++)
 		data.emplace_back(table->GetAsString(col, row));
 	childModel->SetData(data);
 	return true;
@@ -246,9 +247,9 @@ bool ITable::GetSelectChildsQuery(wxString& query)const
 	const auto& field_vec = this->mFieldVec;
 
 	wxString fields, filter_sql;
-	for (unsigned int i = 0; i < field_vec.size(); ++i)
+	for (unsigned int i = 0; i < field_vec->size(); ++i)
 	{
-		const auto& field = field_vec.at(i)->GetData();
+		const auto& field = field_vec->at(i)->GetData();
 		fields += field.mDbTitle + ",";
 
 		for (const auto& filter : field.mFilter)

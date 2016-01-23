@@ -168,6 +168,7 @@
     <ClCompile Include="..\..\SRC\dlg_move_view_CtrlPanel.cpp" />
     <ClCompile Include="..\..\SRC\dlg_move_view_DvModel.cpp" />
     <ClCompile Include="..\..\SRC\dlg_move_view_Frame.cpp" />
+    <ClCompile Include="..\..\SRC\FilterArrayEditor.cpp" />
     <ClCompile Include="..\..\SRC\MLog.cpp" />
     <ClCompile Include="..\..\SRC\MProp2.cpp" />
     <ClCompile Include="..\..\SRC\PathPattern_model.cpp" />
@@ -274,6 +275,7 @@
     <ClInclude Include="..\..\INCLUDE\dlg_move_view_Frame.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_move_view_Tree.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_favprop_SelectFrame.h" />
+    <ClInclude Include="..\..\INCLUDE\FilterArrayEditor.h" />
     <ClInclude Include="..\..\INCLUDE\filter_data.h" />
     <ClInclude Include="..\..\INCLUDE\FilterModel.h" />
     <ClInclude Include="..\..\INCLUDE\MLog.h" />

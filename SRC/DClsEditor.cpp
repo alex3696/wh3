@@ -184,12 +184,7 @@ void DClsEditor::OnChangeModel(const IModel* model,
 			break;
 		case ctQtyByFloat: case ctQtyByOne:
 			mClsPropPanel->Show(true);
-			mClsActPanel->Show(true);
-			mClsMovePanel->Show(true);
-
 			mNotebook->AddPage(mClsPropPanel, "Свойства", false, 1);
-			mNotebook->AddPage(mClsActPanel, "Действия", false, 3);
-			mNotebook->AddPage(mClsMovePanel, "Перемещения", false, 5);
 			break;
 		case ctAbstract:
 		default:break;

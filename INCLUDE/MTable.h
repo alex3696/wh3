@@ -44,7 +44,7 @@ public:
 		= ModelOption::EnableParentNotify
 		| ModelOption::EnableNotifyFromChild);
 
-	IFieldArray mFieldVec;
+	std::shared_ptr<IFieldArray> mFieldVec;
 
 	virtual bool GetFieldValue(unsigned int col, wxVariant &variant);
 

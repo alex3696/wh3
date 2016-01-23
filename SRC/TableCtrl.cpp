@@ -13,18 +13,49 @@ TableCtrl::TableCtrl(wxWindow* parent,
 	:wxPanel(parent, id, pos, size, style, name)
 {
 	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
-	SetSizer(szrMain);
 
 	mToolBar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
-	GetSizer()->Add(mToolBar, 0, wxALL | wxEXPAND, 0);
+	szrMain->Add(mToolBar, 0, wxALL | wxEXPAND, 0);
+	
+	
+	mSplitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D);
+	mSplitter->Connect(wxEVT_IDLE, wxIdleEventHandler(TableCtrl::mSplitterOnIdle), NULL, this);
 
-	mTableView = new VTable(this);
-	GetSizer()->Add(mTableView, 1, wxALL | wxEXPAND, 0);
+	wxPanel* pnlLeft;
+	pnlLeft = new wxPanel(mSplitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	wxBoxSizer* szrLeft;
+	szrLeft = new wxBoxSizer(wxVERTICAL);
+
+	mFilterEditor = new FilterArrayEditor(pnlLeft);
+	szrLeft->Add(mFilterEditor, 1, wxEXPAND, 5);
+
+	pnlLeft->SetSizer(szrLeft);
+	pnlLeft->Layout();
+	szrLeft->Fit(pnlLeft);
+	wxPanel* pnlRight;
+	pnlRight = new wxPanel(mSplitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	wxBoxSizer* szrRight;
+	szrRight = new wxBoxSizer(wxVERTICAL);
+
+	mTableView = new VTable(pnlRight);
+	szrRight->Add(mTableView, 1, wxEXPAND, 5);
+
+
+	pnlRight->SetSizer(szrRight);
+	pnlRight->Layout();
+	szrRight->Fit(pnlRight);
+	mSplitter->SplitVertically(pnlLeft, pnlRight, 200);
+	szrMain->Add(mSplitter, 1, wxEXPAND, 5);
+
+	
 
 	Bind(wxEVT_COMMAND_DATAVIEW_ITEM_CONTEXT_MENU, &TableCtrl::OnContextMenu, this);
 	Bind(wxEVT_COMMAND_DATAVIEW_SELECTION_CHANGED, &TableCtrl::OnSelectChange, this);
 
-	Layout();
+	this->SetSizer(szrMain);
+	this->Layout();
+	this->Centre(wxBOTH);
+
 }
 //-----------------------------------------------------------------------------
 void TableCtrl::SetModel(std::shared_ptr<ITable> model)
@@ -170,11 +201,7 @@ void TableCtrl::OnCmdInsert(wxCommandEvent& WXUNUSED(evt))
 	mMTable->Insert(newItem);
 	mEditor->SetModel(newItem);
 
-	if (wxID_OK == mEditor->ShowModal())
-	{
-		mEditor->DataFromWindow();
-	}//if (wxID_OK == editor.ShowModal())
-	else
+	if (wxID_OK != mEditor->ShowModal())
 	{
 		auto state = newItem->GetState();
 		if (state == msCreated || state == msNull)
@@ -233,10 +260,7 @@ void TableCtrl::OnCmdChange(wxCommandEvent& WXUNUSED(evt))
 	if (!updItem)
 		return;
 	mEditor->SetModel(updItem);
-	if (wxID_OK == mEditor->ShowModal())
-	{
-		mEditor->DataFromWindow();
-	}// if (wxID_OK
+	mEditor->ShowModal();
 }
 //-----------------------------------------------------------------------------
 void TableCtrl::OnTableChangeState(const IModel& vec)

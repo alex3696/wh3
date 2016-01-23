@@ -23,8 +23,8 @@ MPropTable::MPropTable(const char option)
 {
 	std::vector<SptrIModel> fields;
 	
-	fields.emplace_back(mFieldVec.CreateItem(Field("Èìÿ", FieldType::ftName, true,"title"), true));
-	fields.emplace_back(mFieldVec.CreateItem(Field("Òèï", FieldType::ftText, true,"kind"), true));
+	fields.emplace_back(mFieldVec->CreateItem(Field("Èìÿ", FieldType::ftName, true,"title"), true));
+	fields.emplace_back(mFieldVec->CreateItem(Field("Òèï", FieldType::ftName, true, "kind"), true));
 	
 	Field fieldID("ID", FieldType::ftLong, true, "id");
 	fieldID.mKey = true;
@@ -33,9 +33,9 @@ MPropTable::MPropTable(const char option)
 	fieldID.mUpdate = false;
 
 	//fieldID.mFilter.emplace_back(Field::Filter("100"));
-	fields.emplace_back(mFieldVec.CreateItem(fieldID, true));
+	fields.emplace_back(mFieldVec->CreateItem(fieldID, true));
 
-	mFieldVec.Insert(fields);
+	mFieldVec->Insert(fields);
 
 }
 

@@ -47,18 +47,6 @@ public:
 		:mTitle(name), mType(ft), mGuiShow(show), mDbTitle(dbname)
 	{}
 
-	wxString GetSqlFilter(unsigned int i)const
-	{
-		wxString str;
-		if (mFilter.size() > i)
-			return str;
-		const auto& filter = mFilter[i];
-		
-		if (filter.mEnable)
-			str << ToSqlString(filter.mConn) << " " << mDbTitle <<
-			ToSqlString(filter.mOp) << "'" << filter.mVal << "' ";
-		return str;
-	};
 
 };
 //-----------------------------------------------------------------------------

@@ -4,6 +4,7 @@
 #include "BaseTable.h"
 #include "TableRowEditor.h"
 #include "VTable.h"
+#include "FilterArrayEditor.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
@@ -40,9 +41,12 @@ protected:
 	VTable*					mTableView = nullptr;
 	wxMenu					mContextMenu;
 	
+	wxSplitterWindow*				mSplitter;
+	FilterArrayEditor*				mFilterEditor;
 	std::shared_ptr<ITable>			mMTable;
+	
 	std::shared_ptr<TableRowEditor> mEditor;
-
+	
 	void OnSelectChange(wxDataViewEvent &event);
 	void OnContextMenu(wxDataViewEvent &event);
 
@@ -71,7 +75,11 @@ private:
 	void OnAfterRemove(const IModel& vec, const std::vector<SptrIModel>& remVec);
 	void OnAfterChange(const IModel& vec, const std::vector<unsigned int>& itemVec);
 
-
+	void mSplitterOnIdle(wxIdleEvent&)
+	{
+		mSplitter->SetSashPosition(200);
+		mSplitter->Disconnect(wxEVT_IDLE, wxIdleEventHandler(TableCtrl::mSplitterOnIdle), NULL, this);
+	}
 	
 };
 //-----------------------------------------------------------------------------
