@@ -12,50 +12,44 @@ TableCtrl::TableCtrl(wxWindow* parent,
 	const wxString& name)
 	:wxPanel(parent, id, pos, size, style, name)
 {
-	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
-
-	mToolBar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
-	szrMain->Add(mToolBar, 0, wxALL | wxEXPAND, 0);
+	// Create Aui
+	mAuiMgr.SetManagedWindow(this);
 	
-	
-	mSplitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D);
-	mSplitter->Connect(wxEVT_IDLE, wxIdleEventHandler(TableCtrl::mSplitterOnIdle), NULL, this);
+	// Create AuiToolbar
+	mToolBar = new wxAuiToolBar(this);
 
-	wxPanel* pnlLeft;
-	pnlLeft = new wxPanel(mSplitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-	wxBoxSizer* szrLeft;
-	szrLeft = new wxBoxSizer(wxVERTICAL);
+	// Create Filter Panel
+	mFilterEditor = new FilterArrayEditor(this);
+	mAuiMgr.AddPane(mFilterEditor, wxAuiPaneInfo().
+		Name("FilterPane").Caption("Фильтр")
+		.Left().Layer(1).Position(1)
+		.MinSize(250, 200)
+		.CloseButton(false).Dockable(false).Floatable(false)
+		.Hide()
+		.PaneBorder(false)
+		);
 
-	mFilterEditor = new FilterArrayEditor(pnlLeft);
-	szrLeft->Add(mFilterEditor, 1, wxEXPAND, 5);
+	// Create Table Panel
+	mTableView = new VTable(this);
+	mAuiMgr.AddPane(mTableView, wxAuiPaneInfo().
+		Name("TablePane")
+		.CenterPane().Layer(1).Position(1)
+		.CloseButton(true).MaximizeButton(true)
+		.PaneBorder(false));
 
-	pnlLeft->SetSizer(szrLeft);
-	pnlLeft->Layout();
-	szrLeft->Fit(pnlLeft);
-	wxPanel* pnlRight;
-	pnlRight = new wxPanel(mSplitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-	wxBoxSizer* szrRight;
-	szrRight = new wxBoxSizer(wxVERTICAL);
+	mAuiMgr.Update();
 
-	mTableView = new VTable(pnlRight);
-	szrRight->Add(mTableView, 1, wxEXPAND, 5);
-
-
-	pnlRight->SetSizer(szrRight);
-	pnlRight->Layout();
-	szrRight->Fit(pnlRight);
-	mSplitter->SplitVertically(pnlLeft, pnlRight, 200);
-	szrMain->Add(mSplitter, 1, wxEXPAND, 5);
-
-	
 
 	Bind(wxEVT_COMMAND_DATAVIEW_ITEM_CONTEXT_MENU, &TableCtrl::OnContextMenu, this);
 	Bind(wxEVT_COMMAND_DATAVIEW_SELECTION_CHANGED, &TableCtrl::OnSelectChange, this);
 
-	this->SetSizer(szrMain);
-	this->Layout();
-	this->Centre(wxBOTH);
 
+
+}
+//-----------------------------------------------------------------------------
+TableCtrl::~TableCtrl()
+{
+	mAuiMgr.UnInit();
 }
 //-----------------------------------------------------------------------------
 void TableCtrl::SetModel(std::shared_ptr<ITable> model)
@@ -107,18 +101,31 @@ void TableCtrl::OnContextMenu(wxDataViewEvent &event)
 //-----------------------------------------------------------------------------
 void TableCtrl::BuildToolBar()
 {
-	wxAcceleratorEntry entries[6];
+	wxAcceleratorEntry entries[7];
 	entries[0].Set(wxACCEL_CTRL, (int) 'R', wxID_REFRESH);
 	entries[1].Set(wxACCEL_NORMAL, WXK_F5,  wxID_REFRESH);
 	entries[2].Set(wxACCEL_CTRL, (int) 'S', wxID_SAVE);
 	entries[3].Set(wxACCEL_CTRL, (int) 'N', wxID_NEW);
 	entries[4].Set(wxACCEL_NORMAL, WXK_DELETE, wxID_REMOVE);
 	entries[5].Set(wxACCEL_CTRL, (int) 'O', wxID_EDIT);
-	wxAcceleratorTable accel(6, entries);
+	entries[6].Set(wxACCEL_CTRL, (int) 'F', wxID_FIND);
+	wxAcceleratorTable accel(7, entries);
 	SetAcceleratorTable(accel);
 
 	namespace ph = std::placeholders;
 
+	mToolBar->ClearTools();
+	mAuiMgr.DetachPane(mToolBar);
+	
+	if (mEnableFilter)
+	{
+		std::function<void(wxCommandEvent&)>
+			fn = std::bind(&TableCtrl::OnCmdFind, this, ph::_1);
+		auto fnFind = std::bind(SafeCallCommandEvent(), fn, ph::_1);
+		mToolBar->AddTool(wxID_FIND, "Фильтр", m_ResMgr->m_ico_filter24
+			,wxEmptyString, wxITEM_CHECK);
+		Bind(wxEVT_COMMAND_MENU_SELECTED, fnFind, wxID_FIND);
+	}
 	if (mEnableLoad)
 	{
 		std::function<void(wxCommandEvent&)> 
@@ -146,7 +153,6 @@ void TableCtrl::BuildToolBar()
 		mToolBar->AddTool(wxID_NEW, "Добавить", m_ResMgr->m_ico_create24);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, fnInsert, wxID_NEW);
 	}
-
 	if (mEnableRemove)
 	{
 		std::function<void(wxCommandEvent&)>
@@ -155,7 +161,7 @@ void TableCtrl::BuildToolBar()
 		mToolBar->AddTool(wxID_REMOVE, "Удалить", m_ResMgr->m_ico_delete24);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, fnRemove, wxID_REMOVE);
 	}
-
+	
 	if (mEnableChange)
 	{
 		std::function<void(wxCommandEvent&)>
@@ -164,7 +170,15 @@ void TableCtrl::BuildToolBar()
 		mToolBar->AddTool(wxID_EDIT, "Редактировать", m_ResMgr->m_ico_edit24);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, fnChange, wxID_EDIT);
 	}
+
+
 	mToolBar->Realize();
+	mAuiMgr.AddPane(mToolBar, wxAuiPaneInfo().
+		Name("ToolBarPane")
+		.ToolbarPane().Top().Floatable(false)
+		.PaneBorder(false)
+		);
+	mAuiMgr.Update();
 }
 //-----------------------------------------------------------------------------
 void TableCtrl::BuildPopupMenu()
@@ -268,6 +282,22 @@ void TableCtrl::OnTableChangeState(const IModel& vec)
 	bool exist = (msExist == vec.GetState());
 	mToolBar->EnableTool(wxID_SAVE, !exist);
 	mToolBar->Refresh();
+}
+//-----------------------------------------------------------------------------
+void TableCtrl::OnCmdFind(wxCommandEvent& WXUNUSED(evt))
+{
+	wxAuiPaneInfo& pi = mAuiMgr.GetPane("FilterPane");
+	if (pi.IsOk())
+	{
+		bool visible = !pi.IsShown();
+		pi.Show(visible);
+
+		wxAuiToolBarItem* tool = mToolBar->FindTool(wxID_FIND);
+		if (tool)
+			tool->SetState(visible ? wxAUI_BUTTON_STATE_CHECKED : wxAUI_BUTTON_STATE_NORMAL);
+
+		mAuiMgr.Update();
+	}//if(!pi.IsOk())	
 }
 //-----------------------------------------------------------------------------
 void TableCtrl::OnAfterInsert(const IModel& vec, const std::vector<SptrIModel>& newItems

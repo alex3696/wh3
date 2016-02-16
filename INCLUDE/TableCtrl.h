@@ -19,16 +19,19 @@ public:
 		const wxSize& size = wxDefaultSize,
 		long style = wxTAB_TRAVERSAL,
 		const wxString& name = wxPanelNameStr);
+	~TableCtrl();
 
 	void SetModel(std::shared_ptr<ITable> model);
 	void SetEditor(std::shared_ptr<TableRowEditor> model);
 
+	void SetEnableFilter(bool enable = true) { mEnableFilter = enable; }
 	void SetEnableLoad(bool enable = true) { mEnableLoad = enable; }
 	void SetEnableSave(bool enable = true) { mEnableSave = enable; }
 	void SetEnableInsert(bool enable = true) { mEnableInsert = enable; }
 	void SetEnableRemove(bool enable = true) { mEnableRemove = enable; }
 	void SetEnableChange(bool enable = true) { mEnableChange = enable; }
 
+	bool IsEnableFilter()const { return mEnableFilter; }
 	bool IsEnableLoad()const { return mEnableLoad; }
 	bool IsEnableSave()const { return mEnableSave; }
 	bool IsEnableInsert()const { return mEnableInsert; }
@@ -37,11 +40,11 @@ public:
 
 	void GetSelected(std::vector<unsigned int>& selected);
 protected:
+	wxAuiManager			mAuiMgr;
 	wxAuiToolBar*			mToolBar = nullptr;
 	VTable*					mTableView = nullptr;
 	wxMenu					mContextMenu;
 	
-	wxSplitterWindow*				mSplitter;
 	FilterArrayEditor*				mFilterEditor;
 	std::shared_ptr<ITable>			mMTable;
 	
@@ -53,6 +56,7 @@ protected:
 	void BuildToolBar();
 	void BuildPopupMenu();
 private:
+	bool					mEnableFilter = true;
 	bool					mEnableLoad = true;
 	bool					mEnableSave = true;
 	bool					mEnableInsert = true;
@@ -64,6 +68,7 @@ private:
 	void OnCmdInsert(wxCommandEvent& WXUNUSED(evt));
 	void OnCmdRemove(wxCommandEvent& WXUNUSED(evt));
 	void OnCmdChange(wxCommandEvent& WXUNUSED(evt));
+	void OnCmdFind(wxCommandEvent& WXUNUSED(evt));
 
 
 	void OnTableChangeState(const IModel& vec);
@@ -74,13 +79,6 @@ private:
 	void OnAfterInsert(const IModel& vec, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore);
 	void OnAfterRemove(const IModel& vec, const std::vector<SptrIModel>& remVec);
 	void OnAfterChange(const IModel& vec, const std::vector<unsigned int>& itemVec);
-
-	void mSplitterOnIdle(wxIdleEvent&)
-	{
-		mSplitter->SetSashPosition(200);
-		mSplitter->Disconnect(wxEVT_IDLE, wxIdleEventHandler(TableCtrl::mSplitterOnIdle), NULL, this);
-	}
-	
 };
 //-----------------------------------------------------------------------------
 

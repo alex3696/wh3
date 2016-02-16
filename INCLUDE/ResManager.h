@@ -69,6 +69,7 @@ public:
 	
 	DEF_INIT_ICO24(plus);
 	DEF_INIT_ICO24(delete);
+	DEF_INIT_ICO24(filter);
 	DEF_INIT_ICO24(addfilter);
 	DEF_INIT_ICO24(add_type);
 	DEF_INIT_ICO24(add_obj);
