@@ -24,7 +24,10 @@ MPropTable::MPropTable(const char option)
 	std::vector<SptrIModel> fields;
 	
 	fields.emplace_back(mFieldVec->CreateItem(Field("Èìÿ", FieldType::ftName, true,"title"), true));
-	fields.emplace_back(mFieldVec->CreateItem(Field("Òèï", FieldType::ftName, true, "kind"), true));
+		
+	Field field_type("Òèï", FieldType::ftLong, true, "kind");
+	field_type.mEditor = FieldEditor::Type;
+	fields.emplace_back(mFieldVec->CreateItem(field_type, true));
 	
 	Field fieldID("ID", FieldType::ftLong, true, "id");
 	fieldID.mKey = true;

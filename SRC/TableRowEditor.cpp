@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "TableRowEditor.h"
+#include "PGPTypeId.h"
 
 using namespace wh;
 
@@ -87,7 +88,19 @@ void TableRowPGDefaultEditor::SetModel(std::shared_ptr<ITableRow>& newModel)
 		{
 		case ftText:	pgp = mPropGrid->Append(new wxLongStringProperty(field.mTitle)); break;
 		case ftName:	pgp = mPropGrid->Append(new wxStringProperty(field.mTitle)); break;
-		case ftLong:	pgp = mPropGrid->Append(new wxIntProperty(field.mTitle));  break;
+		case ftLong:	
+			if (FieldEditor::Type == field.mEditor)
+			{
+				pgp = mPropGrid->Append(new wxPGPSmallType(field.mTitle));
+				//auto chs = pgp->GetChoices();
+				//chs.Insert(wxEmptyString, 0, -1);
+			}
+			else if (FieldEditor::Normal == field.mEditor)
+			{
+				pgp = mPropGrid->Append(new wxStringProperty(field.mTitle));
+				pgp->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+			}
+			break;
 		case ftDouble:	pgp = mPropGrid->Append(new wxFloatProperty(field.mTitle));  break;
 		case ftDate:	pgp = mPropGrid->Append(new wxDateProperty(field.mTitle));  break;
 		case ftLink:	pgp = mPropGrid->Append(new wxStringProperty(field.mTitle));  break;
@@ -116,7 +129,18 @@ void TableRowPGDefaultEditor::GetData(TableRowData& rec) const
 		const auto& field = field_vec->at(i)->GetData();
 		auto pgp = mPropGrid->GetPropertyByLabel(field.mTitle);
 		if (pgp)
-			rec[i] = pgp->GetValueAsString();
+		{
+			if (ftLong == field.mType && field.mEditor == FieldEditor::Type)
+			{
+				int cs = pgp->GetChoiceSelection();
+				int ftype = pgp->GetChoices().GetValue(cs);
+				if (-1 != ftype)
+					rec[i] = wxString::Format("%d", ftype);
+			}
+			else
+				rec[i] = pgp->GetValueAsString();
+		}
+			
 	}
 }
 //---------------------------------------------------------------------------

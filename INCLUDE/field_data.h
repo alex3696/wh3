@@ -4,7 +4,11 @@
 #include "filter_data.h"
 namespace wh{
 
-
+enum class FieldEditor
+{
+	Normal = 0,
+	Type = 1
+};
 //-----------------------------------------------------------------------------
 class Field
 {
@@ -26,6 +30,7 @@ public:
 	wxString	mTitle;
 	wxString	mDbTitle;
 	FieldType	mType = ftText;
+	FieldEditor mEditor = FieldEditor::Normal;
 	bool		mGuiShow = true;
 	bool		mGuiEdit = true;
 	

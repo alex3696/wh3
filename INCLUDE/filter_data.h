@@ -43,8 +43,8 @@ static wxString ToSqlString(FilterOp fo)
 	case wh::foNotEq:	return " <> ";
 	case wh::foLess:	return " < ";
 	case wh::foMore:	return " > ";
-	case wh::foLike:	return " LIKE ";
-	case wh::foNotLike: return " NOT LIKE ";
+	case wh::foLike:	return " ~~* ";
+	case wh::foNotLike: return " !~~* ";
 	case wh::foBetween: return " BETWEEN ";
 	case wh::foNotBetween:return " NOT BETWEEN ";
 	default:break;

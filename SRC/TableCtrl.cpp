@@ -56,6 +56,7 @@ void TableCtrl::SetModel(std::shared_ptr<ITable> model)
 {
 	mMTable = model;
 	mTableView->SetModel(model);
+	mFilterEditor->SetModel(model->mFieldVec);
 
 	BuildToolBar();
 	BuildPopupMenu();
@@ -267,6 +268,9 @@ void TableCtrl::OnCmdChange(wxCommandEvent& WXUNUSED(evt))
 		return;
 
 	auto sel = mTableView->GetSelection();
+	if (!sel.IsOk())
+		return;
+
 	auto row = mTableView->GetRow(sel);
 
 	auto updItem = mMTable->at(row);

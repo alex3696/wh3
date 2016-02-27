@@ -127,7 +127,7 @@ void VTable::OnChange(const IModel& newVec, const std::vector<unsigned int>& ite
 void VTable::OnChangeVecState(ModelState state)
 {
 	if (msExist == state)
-		this->SetBackgroundColour(wxColour(240, 255, 245));
+		this->SetBackgroundColour(wxColour(230, 250, 255));
 	else
 		this->SetBackgroundColour(wxColour(255, 250, 250));
 }

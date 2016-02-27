@@ -19,7 +19,10 @@ public:
 	void SetModel(std::shared_ptr<IFieldArray>& newModel);
 
 protected:
-	std::shared_ptr<IFieldArray> mModel;
+	std::shared_ptr<IFieldArray>	mModel;
+	wxPropertyGrid*					mPropGrid;
+
+	void OnApply(wxCommandEvent& evt);
 };
 //-------------------------------------------------------------------------
 }//namespace wh{

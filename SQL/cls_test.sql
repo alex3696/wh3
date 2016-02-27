@@ -151,7 +151,7 @@ CREATE TABLE acls (
 );
 CREATE INDEX idx_acls__pid   ON acls(pid);
 CREATE UNIQUE INDEX uidx_acls__title_vcharops ON acls(title varchar_pattern_ops);
-CREATE INDEX uidx_acls__title_tgm ON acls USING gin (title gin_trgm_ops);
+CREATE INDEX idx_acls__title_tgm ON acls USING gin (title gin_trgm_ops);
 --CREATE UNIQUE INDEX uidx_acls__title_bitmap ON acls(title);
 --CREATE INDEX idx_acls__path  ON acls USING GIST(path);
 --CREATE INDEX idx_acls__abstract_id ON acls(id) WHERE (kind>0);
@@ -199,7 +199,7 @@ CREATE TABLE prop (
     MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
 );
 CREATE INDEX idx_prop__title_vpo ON prop(title varchar_pattern_ops);
-CREATE INDEX idx_prop__title_tgm ON acls USING gin (title gin_trgm_ops);
+CREATE INDEX idx_prop__title_tgm ON prop USING gin (title gin_trgm_ops);
 
 GRANT SELECT        ON TABLE prop  TO "Guest";
 GRANT INSERT        ON TABLE prop  TO "TypeDesigner";
@@ -245,7 +245,7 @@ CREATE TABLE act (
 ,CONSTRAINT uk_act__title UNIQUE ( title )
 );
 CREATE INDEX idx_act__title_vpo ON act(title varchar_pattern_ops);
-CREATE INDEX idx_act__title_tgm ON acls USING gin (title gin_trgm_ops);
+CREATE INDEX idx_act__title_tgm ON act USING gin (title gin_trgm_ops);
 
 GRANT SELECT        ON TABLE act  TO "Guest";
 GRANT INSERT        ON TABLE act  TO "TypeDesigner";

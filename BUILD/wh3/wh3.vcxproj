@@ -192,6 +192,7 @@
     <ClCompile Include="..\..\SRC\PathPatternEditor.cpp" />
     <ClCompile Include="..\..\SRC\PGClsPid.cpp" />
     <ClCompile Include="..\..\SRC\MTable.cpp" />
+    <ClCompile Include="..\..\SRC\PGPTypeId.cpp" />
     <ClCompile Include="..\..\SRC\TableCtrl.cpp" />
     <ClCompile Include="..\..\SRC\TableRowEditor.cpp" />
     <ClCompile Include="..\..\SRC\VActPanel.cpp" />
@@ -300,6 +301,7 @@
     <ClInclude Include="..\..\INCLUDE\MObjCatPath.h" />
     <ClInclude Include="..\..\INCLUDE\PathPatternEditor.h" />
     <ClInclude Include="..\..\INCLUDE\PGClsPid.h" />
+    <ClInclude Include="..\..\INCLUDE\PGPTypeId.h" />
     <ClInclude Include="..\..\INCLUDE\TableCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\TableRowEditor.h" />
     <ClInclude Include="..\..\INCLUDE\TModel.h" />
