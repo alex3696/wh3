@@ -42,6 +42,8 @@ public:
 protected:
 	wxAuiManager			mAuiMgr;
 	wxAuiToolBar*			mToolBar = nullptr;
+	wxAuiToolBar*			mPageToolBar = nullptr;
+	wxStaticText*			mPageLabel = nullptr;
 	VTable*					mTableView = nullptr;
 	wxMenu					mContextMenu;
 	
@@ -52,6 +54,7 @@ protected:
 	
 	void OnSelectChange(wxDataViewEvent &event);
 	void OnContextMenu(wxDataViewEvent &event);
+	void OnColumnHeaderlClick(wxDataViewEvent &event);
 
 	void BuildToolBar();
 	void BuildPopupMenu();
@@ -69,6 +72,8 @@ private:
 	void OnCmdRemove(wxCommandEvent& WXUNUSED(evt));
 	void OnCmdChange(wxCommandEvent& WXUNUSED(evt));
 	void OnCmdFind(wxCommandEvent& WXUNUSED(evt));
+	void OnCmdBackward(wxCommandEvent& WXUNUSED(evt));
+	void OnCmdForward(wxCommandEvent& WXUNUSED(evt));
 
 
 	void OnTableChangeState(const IModel& vec);

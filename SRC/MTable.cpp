@@ -175,6 +175,9 @@ bool ITableRow::GetDeleteQuery(wxString& query)const
 ITable::ITable(const char option)
 	:IModel(option)
 	, mFieldVec(new IFieldArray)
+	, mPageLimit(new UIntData)
+	, mPageNo(new UIntData)
+
 {
 	namespace ph = std::placeholders;
 
@@ -184,6 +187,8 @@ ITable::ITable(const char option)
 	mFieldVec->ConnAfterInsert(fnAI);
 	mFieldVec->ConnectBeforeRemove(fnBR);
 
+	mPageLimit->SetData(100, true);
+	mPageNo->SetData(0, true);
 }
 //-------------------------------------------------------------------------
 bool ITable::GetFieldValue(unsigned int col, wxVariant &variant)
@@ -246,7 +251,7 @@ bool ITable::GetSelectChildsQuery(wxString& query)const
 	const wxString table = GetTableName();
 	const auto& field_vec = this->mFieldVec;
 
-	wxString fields, filter_sql;
+	wxString fields, filter_sql, limit_page, sort;
 	for (unsigned int i = 0; i < field_vec->size(); ++i)
 	{
 		const auto& field = field_vec->at(i)->GetData();
@@ -263,14 +268,31 @@ bool ITable::GetSelectChildsQuery(wxString& query)const
 			filter_sql << field.mDbTitle << ToSqlString(filter.mOp)
 				<< "'" << filter.mVal << "' ";
 		}
+
+		if (field.mSort > 0)
+			sort << field.mDbTitle << " ASC,";
+		else if (field.mSort < 0)
+			sort << field.mDbTitle << " DESC,";
 	}
 	fields.RemoveLast();
+	
+	if (!sort.IsEmpty())
+	{
+		sort.RemoveLast();
+		sort = " ORDER BY " + sort;
+	}
+	
+	const unsigned int page_limit = mPageLimit->GetData();
+	const unsigned int page_no = mPageNo->GetData();
+	limit_page << " LIMIT " << page_limit << " OFFSET " << page_limit * page_no;
 
 	query.clear();
 
 	query << "SELECT " << fields << " FROM " << table;
 	if (!filter_sql.IsEmpty())
 		query << " WHERE " << filter_sql;
+	query << sort;
+	query << limit_page;
 
 	return !query.empty();
 }

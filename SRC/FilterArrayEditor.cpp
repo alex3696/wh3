@@ -103,12 +103,13 @@ void FilterArrayEditor::OnApply(wxCommandEvent& evt)
 					int cs = pgProp->GetChoiceSelection();
 					int ftype = pgProp->GetChoices().GetValue(cs);
 					if (-1 != ftype)
-						gui_value = wxString::Format("%d", ftype);
+						fldData.mFilter.emplace_back(wxString::Format("%d", ftype));
 				}
-				if (ftName == fldData.mType || ftText == fldData.mType)
+				else if (ftName == fldData.mType || ftText == fldData.mType)
 				{
-					gui_value << "%" << pgProp->GetValueAsString().Trim().Trim(false) << "%";
-					fldData.mFilter.emplace_back(gui_value, foLike);
+					gui_value = pgProp->GetValueAsString().Trim().Trim(false);
+					if (!gui_value.IsEmpty())
+						fldData.mFilter.emplace_back("%"+gui_value+"%", foLike);
 				}
 				else
 				{

@@ -16,7 +16,21 @@ TableCtrl::TableCtrl(wxWindow* parent,
 	mAuiMgr.SetManagedWindow(this);
 	
 	// Create AuiToolbar
-	mToolBar = new wxAuiToolBar(this);
+	mToolBar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize
+		, 0 | wxAUI_TB_PLAIN_BACKGROUND | wxAUI_TB_TEXT );
+
+	// Create Page AuiToolbar
+	mPageToolBar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize
+		, 0 | wxAUI_TB_PLAIN_BACKGROUND | wxAUI_TB_TEXT );
+	mPageToolBar->AddTool(wxID_BACKWARD, "назад"
+		, wxArtProvider::GetBitmap(wxART_GO_BACK, wxART_MENU), "Предыдущая страница");
+	mPageLabel = new wxStaticText(mPageToolBar, wxID_ANY, "MyLabel");
+	mPageLabel->Wrap(-1);
+
+	mPageToolBar->AddControl(mPageLabel, "Показаны строки");
+	mPageToolBar->AddTool(wxID_FORWARD, "вперёд"
+		, wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_MENU), "Следующая страница");
+	mPageToolBar->Realize();
 
 	// Create Filter Panel
 	mFilterEditor = new FilterArrayEditor(this);
@@ -37,12 +51,19 @@ TableCtrl::TableCtrl(wxWindow* parent,
 		.CloseButton(true).MaximizeButton(true)
 		.PaneBorder(false));
 
+	wxAuiDockArt* ap = mAuiMgr.GetArtProvider();
+	ap->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, mPageToolBar->GetBackgroundColour());
 	mAuiMgr.Update();
 
 
 	Bind(wxEVT_COMMAND_DATAVIEW_ITEM_CONTEXT_MENU, &TableCtrl::OnContextMenu, this);
 	Bind(wxEVT_COMMAND_DATAVIEW_SELECTION_CHANGED, &TableCtrl::OnSelectChange, this);
 
+	//Bind(wxEVT_DATAVIEW_COLUMN_SORTED, &TableCtrl::OnColumnSort, this);
+	Bind(wxEVT_DATAVIEW_COLUMN_HEADER_CLICK, &TableCtrl::OnColumnHeaderlClick, this);
+
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &TableCtrl::OnCmdBackward, this, wxID_BACKWARD);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &TableCtrl::OnCmdForward, this, wxID_FORWARD);
 
 
 }
@@ -100,8 +121,56 @@ void TableCtrl::OnContextMenu(wxDataViewEvent &event)
 
 }
 //-----------------------------------------------------------------------------
+void TableCtrl::OnColumnHeaderlClick(wxDataViewEvent &event)
+{
+	if (!mMTable)
+		return;
+	auto column_no = event.GetColumn();
+	auto column = event.GetDataViewColumn();
+
+	// очистить всю сортировку и сделать сортировку в выбранном столбце
+	for (unsigned int i = 0; i < mMTable->mFieldVec->GetChildQty(); ++i)
+	{
+		auto field = mMTable->mFieldVec->at(i)->GetData();
+		
+		if (i == column_no)
+		{
+			switch (field.mSort)
+			{
+			case -1:	
+				field.mSort = 0;	
+				mTableView->GetColumn(i)->SetBitmap(wxNullBitmap);
+				break;
+			case 0:		
+				field.mSort = 1;	
+				mTableView->GetColumn(i)->SetBitmap(m_ResMgr->m_ico_sort_asc16);
+				break;
+			case 1:		
+				field.mSort = -1;	
+				mTableView->GetColumn(i)->SetBitmap(m_ResMgr->m_ico_sort_desc16);
+				break;
+			default:break;
+			}
+		}
+		else
+		{
+			field.mSort = 0;
+			mTableView->GetColumn(i)->SetBitmap(wxNullBitmap);
+		}
+			
+		mMTable->mFieldVec->at(i)->SetData(field, true);
+	}
+	
+	mMTable->mPageNo->SetData(0, true);
+	OnCmdLoad(wxCommandEvent(wxID_REFRESH));
+	
+}
+
+//-----------------------------------------------------------------------------
 void TableCtrl::BuildToolBar()
 {
+	wxWindowUpdateLocker	wndLockUpdater(this);
+
 	wxAcceleratorEntry entries[7];
 	entries[0].Set(wxACCEL_CTRL, (int) 'R', wxID_REFRESH);
 	entries[1].Set(wxACCEL_NORMAL, WXK_F5,  wxID_REFRESH);
@@ -116,6 +185,7 @@ void TableCtrl::BuildToolBar()
 	namespace ph = std::placeholders;
 
 	mToolBar->ClearTools();
+	mAuiMgr.DetachPane(mPageToolBar);
 	mAuiMgr.DetachPane(mToolBar);
 	
 	if (mEnableFilter)
@@ -124,7 +194,7 @@ void TableCtrl::BuildToolBar()
 			fn = std::bind(&TableCtrl::OnCmdFind, this, ph::_1);
 		auto fnFind = std::bind(SafeCallCommandEvent(), fn, ph::_1);
 		mToolBar->AddTool(wxID_FIND, "Фильтр", m_ResMgr->m_ico_filter24
-			,wxEmptyString, wxITEM_CHECK);
+			, "Показать фильтр(CTRL+F)", wxITEM_CHECK);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, fnFind, wxID_FIND);
 	}
 	if (mEnableLoad)
@@ -132,7 +202,7 @@ void TableCtrl::BuildToolBar()
 		std::function<void(wxCommandEvent&)> 
 			fn = std::bind(&TableCtrl::OnCmdLoad, this, ph::_1);
 		auto fnLoad = std::bind(SafeCallCommandEvent(), fn, ph::_1);
-		mToolBar->AddTool(wxID_REFRESH, "Обновить", m_ResMgr->m_ico_refresh24);
+		mToolBar->AddTool(wxID_REFRESH, "Обновить", m_ResMgr->m_ico_refresh24,"Обновить(CTRL+R)");
 		Bind(wxEVT_COMMAND_MENU_SELECTED, fnLoad, wxID_REFRESH);
 	}
 	if (mEnableSave)
@@ -140,7 +210,7 @@ void TableCtrl::BuildToolBar()
 		std::function<void(wxCommandEvent&)> 
 			fn = std::bind(&TableCtrl::OnCmdSave, this, ph::_1);
 		auto fnSave = std::bind(SafeCallCommandEvent(), fn, ph::_1);
-		mToolBar->AddTool(wxID_SAVE, "Сохранить", m_ResMgr->m_ico_save24);
+		mToolBar->AddTool(wxID_SAVE, "Сохранить", m_ResMgr->m_ico_save24,"Сохранить(CTRL+S)");
 		Bind(wxEVT_COMMAND_MENU_SELECTED, fnSave, wxID_SAVE);
 	}
 
@@ -151,7 +221,7 @@ void TableCtrl::BuildToolBar()
 		std::function<void(wxCommandEvent&)>
 			fn = std::bind(&TableCtrl::OnCmdInsert, this, ph::_1);
 		auto fnInsert = std::bind(SafeCallCommandEvent(), fn, ph::_1);
-		mToolBar->AddTool(wxID_NEW, "Добавить", m_ResMgr->m_ico_create24);
+		mToolBar->AddTool(wxID_NEW, "Добавить", m_ResMgr->m_ico_create24, "Добавить(CTRL+N)");
 		Bind(wxEVT_COMMAND_MENU_SELECTED, fnInsert, wxID_NEW);
 	}
 	if (mEnableRemove)
@@ -159,7 +229,7 @@ void TableCtrl::BuildToolBar()
 		std::function<void(wxCommandEvent&)>
 			fn = std::bind(&TableCtrl::OnCmdRemove, this, ph::_1);
 		auto fnRemove = std::bind(SafeCallCommandEvent(), fn, ph::_1);
-		mToolBar->AddTool(wxID_REMOVE, "Удалить", m_ResMgr->m_ico_delete24);
+		mToolBar->AddTool(wxID_REMOVE, "Удалить", m_ResMgr->m_ico_delete24, "Удалить(DELETE)");
 		Bind(wxEVT_COMMAND_MENU_SELECTED, fnRemove, wxID_REMOVE);
 	}
 	
@@ -168,7 +238,7 @@ void TableCtrl::BuildToolBar()
 		std::function<void(wxCommandEvent&)>
 			fn = std::bind(&TableCtrl::OnCmdChange, this, ph::_1);
 		auto fnChange = std::bind(SafeCallCommandEvent(), fn, ph::_1);
-		mToolBar->AddTool(wxID_EDIT, "Редактировать", m_ResMgr->m_ico_edit24);
+		mToolBar->AddTool(wxID_EDIT, "Редактировать", m_ResMgr->m_ico_edit24, "Редактировать(CTRL+O)");
 		Bind(wxEVT_COMMAND_MENU_SELECTED, fnChange, wxID_EDIT);
 	}
 
@@ -179,6 +249,14 @@ void TableCtrl::BuildToolBar()
 		.ToolbarPane().Top().Floatable(false)
 		.PaneBorder(false)
 		);
+
+	mPageToolBar->Realize();
+	mAuiMgr.AddPane(mPageToolBar, wxAuiPaneInfo().
+		Name("PageToolBarPane")
+		.ToolbarPane().Top().Floatable(false)
+		.PaneBorder(false).CaptionVisible(false)
+		);
+
 	mAuiMgr.Update();
 }
 //-----------------------------------------------------------------------------
@@ -192,6 +270,10 @@ void TableCtrl::OnCmdLoad(wxCommandEvent& WXUNUSED(evt))
 		return;
 	wxBusyCursor			busyCursor;
 	wxWindowUpdateLocker	wndLockUpdater(mTableView);
+
+	auto itemLimit = mTableView->GetClientSize().GetHeight() / 24 - 1;
+	mMTable->mPageLimit->SetData(itemLimit, true);
+
 	mMTable->Load();
 }
 //-----------------------------------------------------------------------------
@@ -283,9 +365,26 @@ void TableCtrl::OnCmdChange(wxCommandEvent& WXUNUSED(evt))
 //-----------------------------------------------------------------------------
 void TableCtrl::OnTableChangeState(const IModel& vec)
 {
+	wxWindowUpdateLocker	wndLockUpdater(this);
+
 	bool exist = (msExist == vec.GetState());
 	mToolBar->EnableTool(wxID_SAVE, !exist);
 	mToolBar->Refresh();
+
+	if (!mMTable)
+		return;
+
+	const auto& limit = mMTable->mPageLimit->GetData();
+	const auto& no = mMTable->mPageNo->GetData();
+	const auto& curr_qty = mMTable->GetChildQty();
+
+	wxString page_label;
+	page_label << " " << (no*limit) << " - " << (no*limit + curr_qty);
+	mPageLabel->SetLabel(page_label);
+
+	mPageToolBar->EnableTool(wxID_BACKWARD, no ? true : false);
+	mPageToolBar->EnableTool(wxID_FORWARD, curr_qty >= limit);
+	mPageToolBar->Refresh();
 }
 //-----------------------------------------------------------------------------
 void TableCtrl::OnCmdFind(wxCommandEvent& WXUNUSED(evt))
@@ -302,6 +401,32 @@ void TableCtrl::OnCmdFind(wxCommandEvent& WXUNUSED(evt))
 
 		mAuiMgr.Update();
 	}//if(!pi.IsOk())	
+}
+//-----------------------------------------------------------------------------
+void TableCtrl::OnCmdBackward(wxCommandEvent& evt)
+{
+	if (!mMTable)
+		return;
+	const auto& limit = mMTable->mPageLimit->GetData();
+	const auto& no = mMTable->mPageNo->GetData();
+
+	if (no > 0)
+		mMTable->mPageNo->SetData(no-1);
+
+	OnCmdLoad(evt);
+}
+//-----------------------------------------------------------------------------
+void TableCtrl::OnCmdForward(wxCommandEvent& evt)
+{
+	if (!mMTable)
+		return;
+	const auto& limit = mMTable->mPageLimit->GetData();
+	const auto& no = mMTable->mPageNo->GetData();
+
+	if (mMTable->GetChildQty() >= limit)
+		mMTable->mPageNo->SetData(no + 1);
+	
+	OnCmdLoad(evt);
 }
 //-----------------------------------------------------------------------------
 void TableCtrl::OnAfterInsert(const IModel& vec, const std::vector<SptrIModel>& newItems

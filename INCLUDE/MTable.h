@@ -12,7 +12,7 @@ using IFieldArray = TModelArray<ITableField>;
 
 using TableRowData = std::vector<wxString>;
 
-//using ITableRow = TModelData<TableRowData>;
+using UIntData = TModelData<unsigned int>;
 //-------------------------------------------------------------------------
 class ITableRow
 	: public TModelData<TableRowData>
@@ -44,7 +44,9 @@ public:
 		= ModelOption::EnableParentNotify
 		| ModelOption::EnableNotifyFromChild);
 
-	std::shared_ptr<IFieldArray> mFieldVec;
+	std::shared_ptr<IFieldArray>	mFieldVec;
+	std::shared_ptr<UIntData>		mPageLimit;
+	std::shared_ptr<UIntData>		mPageNo;
 
 	virtual bool GetFieldValue(unsigned int col, wxVariant &variant);
 

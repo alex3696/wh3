@@ -10,7 +10,7 @@ VTable::VTable(wxWindow*		parent,
 		long			style )
 		: BaseTable(parent, id, pos, size, style)
 {
-
+	SetRowHeight(24);
 }
 //-----------------------------------------------------------------------------
 void VTable::SetModel(std::shared_ptr<ITable> model)
