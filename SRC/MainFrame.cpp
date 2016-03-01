@@ -16,6 +16,7 @@
 
 #include "TableCtrl.h"
 #include "MProp2.h"
+#include "MHistory.h"
 
 //---------------------------------------------------------------------------
 BEGIN_EVENT_TABLE( MainFrame, wxFrame )
@@ -223,22 +224,41 @@ void MainFrame::ShowDevToolBar(bool show)
 			m_ResMgr->m_ico_acts24, wxEmptyString, wxITEM_NORMAL);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowAct, this, CMD_PNLSHOWACT);
 
-		m_DevToolBar->AddTool(CMD_DB_TEST, "Тест", m_ResMgr->m_ico_views24, "Тест");
+		m_DevToolBar->AddTool(CMD_DB_TEST, "Тест", m_ResMgr->m_ico_views24);
 		auto cmdTest = [this](wxCommandEvent& evt)
 		{
 			wxBusyCursor			busyCursor;
 			wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 			auto wnd = new wh::TableCtrl(m_Notebook);
 			auto model = std::make_shared<wh::MPropTable>();
-			auto editor = std::make_shared<wh::TableRowPGDefaultEditor>();
 			model->Load();
-			wnd->SetEditor(editor);
 			wnd->SetModel(model);
-			m_Notebook->AddPage(wnd, "ТЕСТ");
-			wnd->SetFocus();
+			m_Notebook->AddPage(wnd, "ТЕСТ Свойства", true
+				, ResMgr::GetInstance()->m_ico_list_prop24);
 			m_AuiMgr.Update();
 		};
 		Bind(wxEVT_COMMAND_MENU_SELECTED, cmdTest, CMD_DB_TEST);
+
+
+		m_DevToolBar->AddTool(CMD_MAKEHISTORYWND, "История", m_ResMgr->m_ico_history24);
+		auto cmdHistTest = [this](wxCommandEvent& evt)
+		{
+			wxBusyCursor			busyCursor;
+			wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+			auto wnd = new wh::TableCtrl(m_Notebook);
+			wnd->SetRowHeight(32);
+
+			auto model = std::make_shared<wh::MLogTable>();
+			model->Load();
+			wnd->SetEnableSave(false);
+			wnd->SetEnableInsert(false);
+			wnd->SetEnableChange(false);
+			wnd->SetModel(model);
+			m_Notebook->AddPage(wnd, "История", true
+				, ResMgr::GetInstance()->m_ico_history24);
+			m_AuiMgr.Update();
+		};
+		Bind(wxEVT_COMMAND_MENU_SELECTED, cmdHistTest, CMD_MAKEHISTORYWND);
 
 
 		m_DevToolBar->Realize();

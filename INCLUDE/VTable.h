@@ -18,7 +18,11 @@ public:
 
 	void SetModel(std::shared_ptr<ITable> model);
 
+	int GetRowHeight()const {return mRowHeight;}
+	virtual bool SetRowHeight(int height) override;
 protected:
+	int mRowHeight;
+
 	std::shared_ptr<ITable>		mModel;
 	sig::scoped_connection		mConnAppend;
 	sig::scoped_connection		mConnRemove;

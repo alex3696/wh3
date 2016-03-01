@@ -530,6 +530,7 @@ CREATE TABLE log_act (
   ,prop      JSONB
 
 );--INHERITS (log);
+CREATE INDEX idx_logact__actid ON log_act(act_id);
 --CREATE INDEX idx_permmove__user ON perm_move(src_cls_id, src_obj_id);
 --CREATE INDEX idx_permmove__user ON perm_move(cls_id,     obj_id);
 --CREATE INDEX idx_permmove__user ON perm_move(dst_cls_id, dst_obj_id);
@@ -558,6 +559,7 @@ CREATE TABLE log_move (
   -- state
   ,act_logid     BIGINT             REFERENCES log_act( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE RESTRICT 
 );
+CREATE INDEX idx_logmove__lastactid ON log_move(act_logid);
 
 GRANT SELECT        ON TABLE log_move  TO "Guest";
 GRANT INSERT        ON TABLE log_move  TO "User";

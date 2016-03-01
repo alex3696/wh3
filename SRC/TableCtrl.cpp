@@ -106,6 +106,13 @@ void TableCtrl::SetEditor(std::shared_ptr<TableRowEditor> editor)
 	mEditor = editor;
 }
 //-----------------------------------------------------------------------------
+std::shared_ptr<TableRowEditor> TableCtrl::GetEditor()
+{
+	if (!mEditor)
+		mEditor = std::make_shared<wh::TableRowPGDefaultEditor>();
+	return mEditor;
+}
+//-----------------------------------------------------------------------------
 void TableCtrl::GetSelected(std::vector<unsigned int>& selected)
 {
 
@@ -132,22 +139,24 @@ void TableCtrl::OnColumnHeaderlClick(wxDataViewEvent &event)
 	for (unsigned int i = 0; i < mMTable->mFieldVec->GetChildQty(); ++i)
 	{
 		auto field = mMTable->mFieldVec->at(i)->GetData();
+		wxDataViewColumn* column = mTableView->GetColumnCount() > i ? 
+			mTableView->GetColumn(i) : nullptr;
 		
-		if (i == column_no)
+		if (i == column_no && column)
 		{
 			switch (field.mSort)
 			{
 			case -1:	
 				field.mSort = 0;	
-				mTableView->GetColumn(i)->SetBitmap(wxNullBitmap);
+				column->SetBitmap(wxNullBitmap);
 				break;
 			case 0:		
 				field.mSort = 1;	
-				mTableView->GetColumn(i)->SetBitmap(m_ResMgr->m_ico_sort_asc16);
+				column->SetBitmap(m_ResMgr->m_ico_sort_asc16);
 				break;
 			case 1:		
 				field.mSort = -1;	
-				mTableView->GetColumn(i)->SetBitmap(m_ResMgr->m_ico_sort_desc16);
+				column->SetBitmap(m_ResMgr->m_ico_sort_desc16);
 				break;
 			default:break;
 			}
@@ -155,7 +164,8 @@ void TableCtrl::OnColumnHeaderlClick(wxDataViewEvent &event)
 		else
 		{
 			field.mSort = 0;
-			mTableView->GetColumn(i)->SetBitmap(wxNullBitmap);
+			if (column)
+				column->SetBitmap(wxNullBitmap);
 		}
 			
 		mMTable->mFieldVec->at(i)->SetData(field, true);
@@ -271,7 +281,7 @@ void TableCtrl::OnCmdLoad(wxCommandEvent& WXUNUSED(evt))
 	wxBusyCursor			busyCursor;
 	wxWindowUpdateLocker	wndLockUpdater(mTableView);
 
-	auto itemLimit = mTableView->GetClientSize().GetHeight() / 24 - 1;
+	auto itemLimit = mTableView->GetClientSize().GetHeight() / mTableView->GetRowHeight() - 1;
 	mMTable->mPageLimit->SetData(itemLimit, true);
 
 	mMTable->Load();
@@ -288,7 +298,7 @@ void TableCtrl::OnCmdSave(wxCommandEvent& WXUNUSED(evt))
 //-----------------------------------------------------------------------------
 void TableCtrl::OnCmdInsert(wxCommandEvent& WXUNUSED(evt))
 {
-	if (!mEnableInsert || !mMTable || !mEditor)
+	if (!mEnableInsert || !mMTable)
 		return;
 
 	auto newItem = mMTable->CreateItem();
@@ -296,9 +306,9 @@ void TableCtrl::OnCmdInsert(wxCommandEvent& WXUNUSED(evt))
 		return;
 
 	mMTable->Insert(newItem);
-	mEditor->SetModel(newItem);
+	GetEditor()->SetModel(newItem);
 
-	if (wxID_OK != mEditor->ShowModal())
+	if (wxID_OK != GetEditor()->ShowModal())
 	{
 		auto state = newItem->GetState();
 		if (state == msCreated || state == msNull)
@@ -346,7 +356,7 @@ void TableCtrl::OnCmdRemove(wxCommandEvent& WXUNUSED(evt))
 //-----------------------------------------------------------------------------
 void TableCtrl::OnCmdChange(wxCommandEvent& WXUNUSED(evt))
 {
-	if (!mEnableChange || !mMTable || !mEditor)
+	if (!mEnableChange || !mMTable)
 		return;
 
 	auto sel = mTableView->GetSelection();
@@ -359,8 +369,8 @@ void TableCtrl::OnCmdChange(wxCommandEvent& WXUNUSED(evt))
 
 	if (!updItem)
 		return;
-	mEditor->SetModel(updItem);
-	mEditor->ShowModal();
+	GetEditor()->SetModel(updItem);
+	GetEditor()->ShowModal();
 }
 //-----------------------------------------------------------------------------
 void TableCtrl::OnTableChangeState(const IModel& vec)

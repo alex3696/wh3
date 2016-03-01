@@ -384,6 +384,9 @@
     <ClCompile Include="..\..\SRC\PGPTypeId.cpp">
       <Filter>Controls\PropertyGridExt</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\SRC\MHistory.cpp">
+      <Filter>Таблица Свойств</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\INCLUDE\_pch.h">
@@ -691,6 +694,9 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\PGPTypeId.h">
       <Filter>Controls\PropertyGridExt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MHistory.h">
+      <Filter>Таблица Свойств</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

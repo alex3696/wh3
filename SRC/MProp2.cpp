@@ -49,23 +49,18 @@ void MPropTable::GetValueByRow(wxVariant& val, unsigned int row, unsigned int co
 	if (!mrow)
 		return;
 	const auto& row_data = mrow->GetData();
-	
+	if (row_data.size() <= col)
+		return;
+
 	switch (col)
 	{
-	case 0: 
-		if (row_data.size()>col)
-			val = row_data.at(0); 
-		return;
-	case 1: 
-		if (row_data.size()>col)
-			if (!row_data.at(1).IsEmpty())
+	case 1: if (!row_data.at(col).IsEmpty())
 				val = ToText(ToFieldType(row_data.at(1))); 
-		return;
-	case 2: 
-		if (row_data.size()>col)
-			val = row_data.at(2); 
-		return;
-	default:break;
+		break;
+	case 0:
+	case 2:
+	default:val = row_data.at(col);
+		break;
 	}
 }
 //-------------------------------------------------------------------------

@@ -63,7 +63,7 @@ bool MAct::GetInsertQuery(wxString& query)const
 bool MAct::GetUpdateQuery(wxString& query)const
 {
 	auto act = GetData();
-	query = wxString::Format("UPDATE t_act SET "
+	query = wxString::Format("UPDATE act SET "
 		"title='%s', note=%s, color=%s, script=%s "
 		"WHERE id = %s ",
 		act.mLabel,

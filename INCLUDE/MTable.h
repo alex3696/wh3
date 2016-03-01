@@ -56,6 +56,8 @@ public:
 	std::shared_ptr<ITableRow> at(size_t pos)const;
 
 	virtual void GetValueByRow(wxVariant& val, unsigned int row, unsigned int col);
+	virtual bool GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr &attr) const;
+
 	virtual wxString GetTableName()const;
 protected:
 	virtual bool LoadChildDataFromDb(std::shared_ptr<IModel>& child,

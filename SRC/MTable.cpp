@@ -219,6 +219,34 @@ void ITable::GetValueByRow(wxVariant& val, unsigned int row, unsigned int col)
 		val = row_data.at(col);
 }
 //-------------------------------------------------------------------------
+bool ITable::GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr &attr) const
+{
+	const ModelState state = GetChild(row)->GetState();
+
+	switch (state)
+	{
+		//msNull
+	default:  break;
+	case msCreated:
+		attr.SetBold(true);
+		attr.SetColour(*wxBLUE);
+		break;
+	case msExist:
+		attr.SetBold(false);
+		attr.SetColour(*wxBLACK);
+		break;
+	case msUpdated:
+		attr.SetBold(true);
+		attr.SetColour(wxColour(128, 64, 0));
+		break;
+	case msDeleted:
+		attr.SetBold(true);
+		attr.SetColour(*wxRED);
+		break;
+	}//switch
+	return true;
+}
+//-------------------------------------------------------------------------
 bool ITable::LoadChildDataFromDb(std::shared_ptr<IModel>& child,
 	std::shared_ptr<whTable>& table, const size_t row)
 {

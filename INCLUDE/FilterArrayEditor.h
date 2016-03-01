@@ -23,6 +23,7 @@ protected:
 	wxPropertyGrid*					mPropGrid;
 
 	void OnApply(wxCommandEvent& evt);
+	void OnClear(wxCommandEvent& evt);
 };
 //-------------------------------------------------------------------------
 }//namespace wh{

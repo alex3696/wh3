@@ -265,7 +265,7 @@ static int GetColumnWidthBy(FieldType ft)
 	case wh::ftText:	return	-1;		break;
 	case wh::ftName:	return	150;	break;
 	case wh::ftLong:	return	100;	break;
-	case wh::ftDouble:	return	50;		break;
+	case wh::ftDouble:	return	100;	break;
 	case wh::ftDate:	return	100;	break;
 	case wh::ftLink:	return	80;		break;
 	case wh::ftFile:	return	80;		break;

@@ -5,7 +5,7 @@
 using namespace wh;
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// PathPatternEditor
+// FilterArrayEditor
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 FilterArrayEditor::FilterArrayEditor(wxWindow *parent,
@@ -23,14 +23,26 @@ FilterArrayEditor::FilterArrayEditor(wxWindow *parent,
 	mPropGrid = new wxPropertyGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxPG_DEFAULT_STYLE | wxPG_SPLITTER_AUTO_CENTER);
 	szrMain->Add(mPropGrid, 1, wxALL | wxEXPAND, 0);
 	
-	wxButton* apply_btn = new wxButton(this, wxID_APPLY,"Применить");
-	szrMain->Add(apply_btn, 0, wxEXPAND, 10);
 
+
+
+	wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
+	auto clearFilter = new wxBitmapButton(this, wxID_CLEAR
+		, wxArtProvider::GetBitmap(wxART_CROSS_MARK, wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
+	btnSizer->Add(clearFilter, 0, wxALL, 5);
+
+
+	wxButton* apply_btn = new wxButton(this, wxID_APPLY,"Применить");
+	btnSizer->Add(apply_btn, 1, wxALL, 5);
+
+
+	szrMain->Add(btnSizer, 0, wxEXPAND, 5);
 	
 	this->SetSizer(szrMain);
 	this->Layout();
 
 	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &FilterArrayEditor::OnApply, this, wxID_APPLY);
+	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &FilterArrayEditor::OnClear, this, wxID_CLEAR);
 
 }
 
@@ -54,8 +66,8 @@ void FilterArrayEditor::SetModel(std::shared_ptr<IFieldArray>& newModel)
 			wxPGProperty* pgp = nullptr;
 			switch (fldData.mType)
 			{
-			case ftText:	mPropGrid->Append(new wxLongStringProperty(fldData.mTitle)); break;
-			case ftName:	mPropGrid->Append(new wxStringProperty(fldData.mTitle)); break;
+			case ftText:	pgp = mPropGrid->Append(new wxLongStringProperty(fldData.mTitle)); break;
+			case ftName:	pgp = mPropGrid->Append(new wxStringProperty(fldData.mTitle)); break;
 			case ftLong:	
 				if (FieldEditor::Type == fldData.mEditor)
 				{
@@ -71,13 +83,20 @@ void FilterArrayEditor::SetModel(std::shared_ptr<IFieldArray>& newModel)
 					pgp->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
 				}
 				break;
-			case ftDouble:	mPropGrid->Append(new wxFloatProperty(fldData.mTitle));  break;
-			case ftDate:	mPropGrid->Append(new wxDateProperty(fldData.mTitle));  break;
-			case ftLink:	mPropGrid->Append(new wxStringProperty(fldData.mTitle));  break;
-			case ftFile:	mPropGrid->Append(new wxStringProperty(fldData.mTitle));  break;
-			case ftJSON:	mPropGrid->Append(new wxLongStringProperty(fldData.mTitle));  break;
+			case ftDouble:	pgp = mPropGrid->Append(new wxFloatProperty(fldData.mTitle));  break;
+			case ftDate:	pgp = mPropGrid->Append(new wxDateProperty(fldData.mTitle));  
+				pgp->SetAttribute(wxPG_DATE_PICKER_STYLE
+					,(long)(wxDP_DROPDOWN |
+					wxDP_SHOWCENTURY |
+					wxDP_ALLOWNONE));
+				break;
+			case ftLink:	pgp = mPropGrid->Append(new wxStringProperty(fldData.mTitle));  break;
+			case ftFile:	pgp = mPropGrid->Append(new wxStringProperty(fldData.mTitle));  break;
+			case ftJSON:	pgp = mPropGrid->Append(new wxLongStringProperty(fldData.mTitle));  break;
 			default:break;
 			}
+			if (pgp)
+				pgp->SetValueToUnspecified();
 		}
 	}
 }
@@ -124,4 +143,13 @@ void FilterArrayEditor::OnApply(wxCommandEvent& evt)
 	}
 	wxCommandEvent refresh_evt(wxEVT_COMMAND_MENU_SELECTED, wxID_REFRESH);
 	this->GetParent()->ProcessWindowEvent(refresh_evt);
+}
+//---------------------------------------------------------------------------
+void FilterArrayEditor::OnClear(wxCommandEvent& evt)
+{
+	wxPropertyGridIterator it;
+	for (it = mPropGrid->GetIterator(); !it.AtEnd(); it++)
+	{
+		(*it)->SetValueToUnspecified();
+	}
 }

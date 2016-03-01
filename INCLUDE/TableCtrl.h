@@ -23,6 +23,7 @@ public:
 
 	void SetModel(std::shared_ptr<ITable> model);
 	void SetEditor(std::shared_ptr<TableRowEditor> model);
+	std::shared_ptr<TableRowEditor> GetEditor();
 
 	void SetEnableFilter(bool enable = true) { mEnableFilter = enable; }
 	void SetEnableLoad(bool enable = true) { mEnableLoad = enable; }
@@ -39,6 +40,8 @@ public:
 	bool IsEnableChange()const { return mEnableChange; }
 
 	void GetSelected(std::vector<unsigned int>& selected);
+
+	bool SetRowHeight(int height) { return mTableView->SetRowHeight(height); }
 protected:
 	wxAuiManager			mAuiMgr;
 	wxAuiToolBar*			mToolBar = nullptr;
@@ -47,9 +50,8 @@ protected:
 	VTable*					mTableView = nullptr;
 	wxMenu					mContextMenu;
 	
-	FilterArrayEditor*				mFilterEditor;
 	std::shared_ptr<ITable>			mMTable;
-	
+	FilterArrayEditor*				mFilterEditor;
 	std::shared_ptr<TableRowEditor> mEditor;
 	
 	void OnSelectChange(wxDataViewEvent &event);

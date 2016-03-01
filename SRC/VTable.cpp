@@ -13,6 +13,14 @@ VTable::VTable(wxWindow*		parent,
 	SetRowHeight(24);
 }
 //-----------------------------------------------------------------------------
+bool VTable::SetRowHeight(int height)
+{
+	bool ret = wxDataViewCtrl::SetRowHeight(height);
+	if (ret)
+		mRowHeight = height;
+	return ret;
+}
+//-----------------------------------------------------------------------------
 void VTable::SetModel(std::shared_ptr<ITable> model)
 {
 	if (model && mModel != model)
@@ -25,20 +33,28 @@ void VTable::SetModel(std::shared_ptr<ITable> model)
 		mModel = model;
 		const auto& fvec = mModel->mFieldVec;
 			
+		int columnNo = 0;
+
 		for (unsigned int i = 0; i < fvec->size(); ++i)
 		{
 			const auto& field = fvec->at(i)->GetData();
 			if (field.mGuiShow)
 			{
+				
 				wxString name = field.mTitle;
 				auto width = GetColumnWidthBy(field.mType);
 
 				if (ftText == field.mType)
-					EnableAutosizeColumn(i);
+					EnableAutosizeColumn(columnNo);
 
-				AppendTextColumn(name, i, wxDATAVIEW_CELL_INERT, width,
+				auto col = AppendTextColumn(name, i, wxDATAVIEW_CELL_INERT, width,
 					wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
+
+				//if (!field.mGuiShow)
+				//	col->SetHidden(true);
+				columnNo++;
 			}
+			
 		}
 
 		namespace ph = std::placeholders;
@@ -126,43 +142,20 @@ void VTable::OnChange(const IModel& newVec, const std::vector<unsigned int>& ite
 //-----------------------------------------------------------------------------
 void VTable::OnChangeVecState(ModelState state)
 {
+	/*
 	if (msExist == state)
 		this->SetBackgroundColour(wxColour(230, 250, 255));
 	else
 		this->SetBackgroundColour(wxColour(255, 250, 250));
+	*/
 }
 //-----------------------------------------------------------------------------
-bool VTable::GetAttrByRow(unsigned int row, unsigned int WXUNUSED(col),
+bool VTable::GetAttrByRow(unsigned int row, unsigned int col,
 	wxDataViewItemAttr &attr) const 
 {
-	if (mModel)
-	{
-		const ModelState state = mModel->GetChild(row)->GetState();
-		switch (state)
-		{
-			//msNull
-		default:  break;
-		case msCreated:
-			attr.SetBold(true);
-			attr.SetColour(*wxBLUE);
-			break;
-		case msExist:
-			attr.SetBold(false);
-			attr.SetColour(*wxBLACK);
-			break;
-		case msUpdated:
-			attr.SetBold(true);
-			attr.SetColour(wxColour(128, 64, 0));
-			break;
-		case msDeleted:
-			attr.SetBold(true);
-			attr.SetColour(*wxRED);
-			break;
-		}//switch
-		return true;
-	}
-
-	return false;
+	if (!mModel)
+		return false;
+	return mModel->GetAttrByRow(row, col, attr);
 }
 //-----------------------------------------------------------------------------
 void VTable::GetValueByRow(wxVariant& val, unsigned int row, unsigned int col) 

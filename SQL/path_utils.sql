@@ -339,8 +339,8 @@ SELECT * FROM fn_array2_to_table('{{%,%},{%,1022},{103,%},{104,1044}}'::NAME[]);
 -----------------------------------------------------------------------------------------------------------------------------    
 -- функция преобразования шаблона пути массива 
 -----------------------------------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS tmppath_to_2id_info(IN TEXT);
-CREATE OR REPLACE FUNCTION tmppath_to_2id_info(IN tpath TEXT)
+DROP FUNCTION IF EXISTS tmppath_to_2id_info(IN TEXT,BIGINT );
+CREATE OR REPLACE FUNCTION tmppath_to_2id_info(IN tpath TEXT,IN offset_qty BIGINT DEFAULT 0)
   RETURNS TABLE(
      arr_2title NAME[]
     ,arr_2id    BIGINT[]
@@ -366,14 +366,14 @@ DECLARE
                                             WHEN arr.id1 IS NULL OR arr.id1='%'
                                             THEN obj.cls_id
                                             ELSE arr.id1::BIGINT END
-        ORDER BY arr.ord;
+        ORDER BY arr.ord DESC OFFSET offset_qty;
 
 BEGIN
     path:='';
     FOR rec IN _unpackpath LOOP
         arr_2title := arr_2title || ARRAY[ ARRAY[rec.cls_title,rec.obj_title] ];
         arr_2id := arr_2id || ARRAY[ ARRAY[rec.cls_id,rec.obj_id]::BIGINT[] ]::BIGINT[];
-        path:=  '/['||COALESCE(rec.cls_title,'')||']'||COALESCE(rec.obj_title,'') || path;
+        path:=  path || '/['||COALESCE(rec.cls_title,'')||']'||COALESCE(rec.obj_title,'');
     END LOOP;
     RETURN next;
     RETURN;
