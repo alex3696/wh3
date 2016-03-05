@@ -122,6 +122,8 @@ using boost::multi_index_container;
 #include <boost/ptr_container/ptr_map.hpp>
 
 //---------------------------------------------------------------------------
+#include <boost/property_tree/json_parser.hpp>
+//---------------------------------------------------------------------------
 #include <boost/assert.hpp>
 
 #include <boost/exception/all.hpp>

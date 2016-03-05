@@ -4,10 +4,6 @@
 #include "db_rec.h"
 #include "MTable.h"
 
-#include <boost/property_tree/ini_parser.hpp>
-#include <boost/property_tree/xml_parser.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/info_parser.hpp>
 
 namespace wh{
 

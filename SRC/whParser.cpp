@@ -70,7 +70,7 @@ struct obj_array_parser : qi::grammar<Iterator,  std::deque<wh::ObjKey>(), unico
 		name %= any_type | oq_name | q_name | n_name;  							// NAME
 
 
-		nobj = lexeme['%'][qi::_val = phoenix::construct<wh::ObjKey>()];
+		nobj = lexeme['%'][qi::_val = boost::phoenix::construct<wh::ObjKey>()];
 		dobj %= '{' >> type >> ',' >> name >> '}';	
 		obj %= dobj | nobj;
 		//obj %= '{' >> type >> ',' >> name >> '}';
