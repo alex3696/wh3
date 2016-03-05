@@ -4,6 +4,11 @@
 #include "db_rec.h"
 #include "MTable.h"
 
+#include <boost/property_tree/ini_parser.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/info_parser.hpp>
+
 namespace wh{
 
 //-------------------------------------------------------------------------
@@ -41,9 +46,14 @@ public:
 	virtual bool GetAttrByRow(unsigned int row
 		, unsigned int col, wxDataViewItemAttr &attr) const override;
 protected:
-	
+	//std::vector<boost::property_tree::ptree> mProp;
 
 	virtual wxString GetTableName()const override;
+
+	unsigned int mStaticColumnQty;
+
+	sig::scoped_connection		mConnRowBI;
+	void OnRowBeforeInsert(const IModel& vec, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore);
 };
 
 

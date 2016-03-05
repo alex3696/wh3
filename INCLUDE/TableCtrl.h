@@ -39,8 +39,6 @@ public:
 	bool IsEnableRemove()const { return mEnableRemove; }
 	bool IsEnableChange()const { return mEnableChange; }
 
-	void GetSelected(std::vector<unsigned int>& selected);
-
 	bool SetRowHeight(int height) { return mTableView->SetRowHeight(height); }
 protected:
 	wxAuiManager			mAuiMgr;
@@ -54,12 +52,12 @@ protected:
 	FilterArrayEditor*				mFilterEditor;
 	std::shared_ptr<TableRowEditor> mEditor;
 	
-	void OnSelectChange(wxDataViewEvent &event);
-	void OnContextMenu(wxDataViewEvent &event);
-	void OnColumnHeaderlClick(wxDataViewEvent &event);
+	//void OnSelectChange(wxDataViewEvent &event);
+	//void OnContextMenu(wxDataViewEvent &event);
+	//void BuildPopupMenu();
 
 	void BuildToolBar();
-	void BuildPopupMenu();
+	
 private:
 	bool					mEnableFilter = true;
 	bool					mEnableLoad = true;

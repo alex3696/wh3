@@ -14,7 +14,9 @@ enum FieldType
 	ftLong = 10,
 	ftDouble = 11,
 
-	ftDate = 20,
+	ftDateTime = 20,
+	ftDate = 21,
+	ftTime = 22,
 
 	ftLink = 30,
 
@@ -50,7 +52,9 @@ static FieldTypeArray gFieldTypeArray = {
 								{ ftName, "Имя" },
 								{ ftLong, "Число(целое)" },
 								{ ftDouble, "Число(дробное)" },
+								{ ftDateTime, "Дата Время" },
 								{ ftDate, "Дата" },
+								{ ftTime, "Время" },
 								{ ftLink, "Ссылка" },
 								{ ftFile, "Файл" },
 								{ ftJSON, "JSON" },

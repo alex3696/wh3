@@ -228,14 +228,14 @@ void MainFrame::ShowDevToolBar(bool show)
 		auto cmdTest = [this](wxCommandEvent& evt)
 		{
 			wxBusyCursor			busyCursor;
-			wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+			m_Notebook->Freeze(); //wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 			auto wnd = new wh::TableCtrl(m_Notebook);
 			auto model = std::make_shared<wh::MPropTable>();
-			model->Load();
-			wnd->SetModel(model);
 			m_Notebook->AddPage(wnd, "ТЕСТ Свойства", true
 				, ResMgr::GetInstance()->m_ico_list_prop24);
 			m_AuiMgr.Update();
+			m_Notebook->Thaw();
+			wnd->SetModel(model);
 		};
 		Bind(wxEVT_COMMAND_MENU_SELECTED, cmdTest, CMD_DB_TEST);
 
@@ -244,19 +244,17 @@ void MainFrame::ShowDevToolBar(bool show)
 		auto cmdHistTest = [this](wxCommandEvent& evt)
 		{
 			wxBusyCursor			busyCursor;
-			wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+			m_Notebook->Freeze(); //wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+			auto model = std::make_shared<wh::MLogTable>();
 			auto wnd = new wh::TableCtrl(m_Notebook);
 			wnd->SetRowHeight(32);
-
-			auto model = std::make_shared<wh::MLogTable>();
-			model->Load();
 			wnd->SetEnableSave(false);
 			wnd->SetEnableInsert(false);
 			wnd->SetEnableChange(false);
-			wnd->SetModel(model);
-			m_Notebook->AddPage(wnd, "История", true
-				, ResMgr::GetInstance()->m_ico_history24);
+			m_Notebook->AddPage(wnd, "История", true, ResMgr::GetInstance()->m_ico_history24);
 			m_AuiMgr.Update();
+			m_Notebook->Thaw();
+			wnd->SetModel(model);
 		};
 		Bind(wxEVT_COMMAND_MENU_SELECTED, cmdHistTest, CMD_MAKEHISTORYWND);
 

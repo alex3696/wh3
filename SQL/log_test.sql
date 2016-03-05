@@ -5,7 +5,7 @@ DROP VIEW IF EXISTS log;
 
 CREATE OR REPLACE VIEW log AS 
 SELECT log.id::BIGINT       AS log_id
-      ,log.timemark AS log_time
+      ,date_trunc('second' ,log.timemark)::timestamp  AS log_dt
       ,log.username AS log_user
       
       ,log.act_id
@@ -21,7 +21,8 @@ SELECT log.id::BIGINT       AS log_id
 ,(SELECT path FROM tmppath_to_2id_info(log.src_path::TEXT,1)) AS src_path
 ,(SELECT path FROM tmppath_to_2id_info(log.dst_path::TEXT,1)) AS dst_path
 ,log.curr_prop AS prop
-
+       ,log.timemark::timestamptz::date  AS log_date
+       ,date_trunc('second' ,log.timemark)::timestamptz::time AS log_time
 
 FROM
 (
@@ -54,6 +55,19 @@ SELECT log_act.id, timemark, username, act_id, act.title, act.color
 ;
 --SELECT *  FROM log;
 --SELECT src_path||'->'||dst_path  FROM log;
+SELECT log_time::timestamptz::date
+      ,date_trunc('second' ,log_time)::timestamptz::time
+      ,* 
+FROM log --WHERE log_time::timestamptz::date='2016.01-23'
+ORDER BY log_time::timestamptz::date ASC
+
+SELECT log_time::timestamptz::date AS ldate
+      ,date_trunc('second' ,log_time)::timestamptz::time AS ltime
+      ,* 
+FROM log --WHERE log_time::timestamptz::date='2016.01-23'
+ORDER BY log_time
+
+
 
 
 

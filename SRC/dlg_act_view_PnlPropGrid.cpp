@@ -85,7 +85,9 @@ bool PnlPropGrid::UpdateModel()
 			auto pgProp = mPropGrid->GetProperty(propData.mProp.mLabel);
 			if (pgProp)
 			{
-				propData.mVal = pgProp->GetValueAsString(); 
+				auto val = pgProp->GetValueAsString();
+				val.Replace("\"", "\\\"");
+				propData.mVal = val;
 				if (!propData.mVal.IsNull())
 					prop->SetData(propData);
 				else

@@ -62,7 +62,9 @@ public:
 	unsigned int			GetRow (const wxDataViewItem &item) const;
 
 	void					SelectRow(unsigned int row);
-	
+
+	int GetRowHeight()const { return mRowHeight; }
+	virtual bool SetRowHeight(int height) override;
 protected:
 	friend class			InternalBaseTableModel;
 	InternalBaseTableModel*	mDataViewModel;
@@ -75,7 +77,8 @@ protected:
 	
 	virtual wxString		GetColumnType( unsigned int col ) const ;											// define
 	virtual void			GetValueByRow( wxVariant &variant,unsigned int row, unsigned int col )=0;			// define
-
+private:
+	int mRowHeight;
 	
 };//class BaseTable
 

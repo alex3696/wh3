@@ -56,11 +56,11 @@ TableCtrl::TableCtrl(wxWindow* parent,
 	mAuiMgr.Update();
 
 
-	Bind(wxEVT_COMMAND_DATAVIEW_ITEM_CONTEXT_MENU, &TableCtrl::OnContextMenu, this);
-	Bind(wxEVT_COMMAND_DATAVIEW_SELECTION_CHANGED, &TableCtrl::OnSelectChange, this);
+	//Bind(wxEVT_COMMAND_DATAVIEW_ITEM_CONTEXT_MENU, &TableCtrl::OnContextMenu, this);
+	//Bind(wxEVT_COMMAND_DATAVIEW_SELECTION_CHANGED, &TableCtrl::OnSelectChange, this);
 
 	//Bind(wxEVT_DATAVIEW_COLUMN_SORTED, &TableCtrl::OnColumnSort, this);
-	Bind(wxEVT_DATAVIEW_COLUMN_HEADER_CLICK, &TableCtrl::OnColumnHeaderlClick, this);
+	
 
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &TableCtrl::OnCmdBackward, this, wxID_BACKWARD);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &TableCtrl::OnCmdForward, this, wxID_FORWARD);
@@ -80,7 +80,6 @@ void TableCtrl::SetModel(std::shared_ptr<ITable> model)
 	mFilterEditor->SetModel(model->mFieldVec);
 
 	BuildToolBar();
-	BuildPopupMenu();
 	
 	mConnAfterInsert.disconnect();
 	mConnAfterRemove.disconnect();
@@ -113,68 +112,7 @@ std::shared_ptr<TableRowEditor> TableCtrl::GetEditor()
 	return mEditor;
 }
 //-----------------------------------------------------------------------------
-void TableCtrl::GetSelected(std::vector<unsigned int>& selected)
-{
 
-}
-//-----------------------------------------------------------------------------
-void TableCtrl::OnSelectChange(wxDataViewEvent &event)
-{
-
-}
-//-----------------------------------------------------------------------------
-void TableCtrl::OnContextMenu(wxDataViewEvent &event)
-{
-
-}
-//-----------------------------------------------------------------------------
-void TableCtrl::OnColumnHeaderlClick(wxDataViewEvent &event)
-{
-	if (!mMTable)
-		return;
-	auto column_no = event.GetColumn();
-	auto column = event.GetDataViewColumn();
-
-	// очистить всю сортировку и сделать сортировку в выбранном столбце
-	for (unsigned int i = 0; i < mMTable->mFieldVec->GetChildQty(); ++i)
-	{
-		auto field = mMTable->mFieldVec->at(i)->GetData();
-		wxDataViewColumn* column = mTableView->GetColumnCount() > i ? 
-			mTableView->GetColumn(i) : nullptr;
-		
-		if (i == column_no && column)
-		{
-			switch (field.mSort)
-			{
-			case -1:	
-				field.mSort = 0;	
-				column->SetBitmap(wxNullBitmap);
-				break;
-			case 0:		
-				field.mSort = 1;	
-				column->SetBitmap(m_ResMgr->m_ico_sort_asc16);
-				break;
-			case 1:		
-				field.mSort = -1;	
-				column->SetBitmap(m_ResMgr->m_ico_sort_desc16);
-				break;
-			default:break;
-			}
-		}
-		else
-		{
-			field.mSort = 0;
-			if (column)
-				column->SetBitmap(wxNullBitmap);
-		}
-			
-		mMTable->mFieldVec->at(i)->SetData(field, true);
-	}
-	
-	mMTable->mPageNo->SetData(0, true);
-	OnCmdLoad(wxCommandEvent(wxID_REFRESH));
-	
-}
 
 //-----------------------------------------------------------------------------
 void TableCtrl::BuildToolBar()
@@ -270,20 +208,12 @@ void TableCtrl::BuildToolBar()
 	mAuiMgr.Update();
 }
 //-----------------------------------------------------------------------------
-void TableCtrl::BuildPopupMenu()
-{
-}
-//-----------------------------------------------------------------------------
 void TableCtrl::OnCmdLoad(wxCommandEvent& WXUNUSED(evt))
 {
 	if (!mEnableLoad || !mMTable)
 		return;
 	wxBusyCursor			busyCursor;
-	wxWindowUpdateLocker	wndLockUpdater(mTableView);
-
-	auto itemLimit = mTableView->GetClientSize().GetHeight() / mTableView->GetRowHeight() - 1;
-	mMTable->mPageLimit->SetData(itemLimit, true);
-
+	wxWindowUpdateLocker	wndLockUpdater(this);
 	mMTable->Load();
 }
 //-----------------------------------------------------------------------------
@@ -292,7 +222,7 @@ void TableCtrl::OnCmdSave(wxCommandEvent& WXUNUSED(evt))
 	if (!mEnableSave || !mMTable)
 		return;
 	wxBusyCursor			busyCursor;
-	wxWindowUpdateLocker	wndLockUpdater(mTableView);
+	wxWindowUpdateLocker	wndLockUpdater(this);
 	mMTable->Save();
 }
 //-----------------------------------------------------------------------------
@@ -422,8 +352,7 @@ void TableCtrl::OnCmdBackward(wxCommandEvent& evt)
 
 	if (no > 0)
 		mMTable->mPageNo->SetData(no-1);
-
-	OnCmdLoad(evt);
+	mMTable->Load();
 }
 //-----------------------------------------------------------------------------
 void TableCtrl::OnCmdForward(wxCommandEvent& evt)
@@ -435,8 +364,7 @@ void TableCtrl::OnCmdForward(wxCommandEvent& evt)
 
 	if (mMTable->GetChildQty() >= limit)
 		mMTable->mPageNo->SetData(no + 1);
-	
-	OnCmdLoad(evt);
+	mMTable->Load();
 }
 //-----------------------------------------------------------------------------
 void TableCtrl::OnAfterInsert(const IModel& vec, const std::vector<SptrIModel>& newItems

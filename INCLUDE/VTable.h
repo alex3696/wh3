@@ -17,32 +17,37 @@ public:
 		long			style = 0 | wxDV_MULTIPLE);
 
 	void SetModel(std::shared_ptr<ITable> model);
-
-	int GetRowHeight()const {return mRowHeight;}
-	virtual bool SetRowHeight(int height) override;
 protected:
-	int mRowHeight;
-
-	std::shared_ptr<ITable>		mModel;
-	sig::scoped_connection		mConnAppend;
-	sig::scoped_connection		mConnRemove;
-	sig::scoped_connection		mConnChange;
-
-	sig::scoped_connection		mConnAR;
-
-	void OnRowAfterInsert(const IModel& vec
-		, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore);
-	void OnRowBeforeRemove(const IModel& vec, const std::vector<SptrIModel>& remVec);
-	void OnRowAfterRemove(const IModel& vec, const std::vector<SptrIModel>& remVec);
-	void OnChange(const IModel& newVec, const std::vector<unsigned int>& itemVec);
-
+	virtual void OnResize(wxSizeEvent& evt)override;
+	void OnColumnHeaderlClick(wxDataViewEvent &event);
 	void OnChangeVecState(ModelState state);
 
 	virtual bool GetAttrByRow(unsigned int row, unsigned int WXUNUSED(col)
-		,	wxDataViewItemAttr &attr) const override;
+		, wxDataViewItemAttr &attr) const override;
 	virtual void GetValueByRow(wxVariant& val, unsigned int row
 		, unsigned int col) override final;
 
+	std::shared_ptr<ITable>		mModel;
+		
+	sig::scoped_connection		mConnRowAI;
+	sig::scoped_connection		mConnRowBR;
+	sig::scoped_connection		mConnRowAR;
+	sig::scoped_connection		mConnRowAC;
+	
+	sig::scoped_connection		mConnFieldAI;
+	sig::scoped_connection		mConnFieldBR;
+	sig::scoped_connection		mConnFieldAC;
+
+
+	void OnRowAfterInsert(const IModel& vec, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore);
+	void OnRowBeforeRemove(const IModel& vec, const std::vector<SptrIModel>& remVec);
+	void OnRowAfterRemove(const IModel& vec, const std::vector<SptrIModel>& remVec);
+	void OnRowAfterChange(const IModel& newVec, const std::vector<unsigned int>& itemVec);
+
+	void OnFieldAfterInsert(const IModel& vec, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore);
+	void OnFieldBeforeRemove(const IModel& vec, const std::vector<SptrIModel>& remVec);
+	void OnFieldInfoChange(const IModel& newVec, const std::vector<unsigned int>& itemVec);
+	
 };
 //-----------------------------------------------------------------------------
 

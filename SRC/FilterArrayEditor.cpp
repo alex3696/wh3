@@ -84,11 +84,14 @@ void FilterArrayEditor::SetModel(std::shared_ptr<IFieldArray>& newModel)
 				}
 				break;
 			case ftDouble:	pgp = mPropGrid->Append(new wxFloatProperty(fldData.mTitle));  break;
+			case ftDateTime:
+			case ftTime:	
 			case ftDate:	pgp = mPropGrid->Append(new wxDateProperty(fldData.mTitle));  
 				pgp->SetAttribute(wxPG_DATE_PICKER_STYLE
 					,(long)(wxDP_DROPDOWN |
 					wxDP_SHOWCENTURY |
 					wxDP_ALLOWNONE));
+				pgp->SetAttribute(wxPG_DATE_FORMAT, wxS("%Y.%m.%d"));
 				break;
 			case ftLink:	pgp = mPropGrid->Append(new wxStringProperty(fldData.mTitle));  break;
 			case ftFile:	pgp = mPropGrid->Append(new wxStringProperty(fldData.mTitle));  break;
@@ -122,22 +125,31 @@ void FilterArrayEditor::OnApply(wxCommandEvent& evt)
 					int cs = pgProp->GetChoiceSelection();
 					int ftype = pgProp->GetChoices().GetValue(cs);
 					if (-1 != ftype)
+					{
 						fldData.mFilter.emplace_back(wxString::Format("%d", ftype));
+					}
 				}
 				else if (ftName == fldData.mType || ftText == fldData.mType)
 				{
 					gui_value = pgProp->GetValueAsString().Trim().Trim(false);
 					if (!gui_value.IsEmpty())
-						fldData.mFilter.emplace_back("%"+gui_value+"%", foLike);
+					{
+						fldData.mFilter.emplace_back("%" + gui_value + "%", foLike);
+					}
 				}
 				else
 				{
 					gui_value = pgProp->GetValueAsString().Trim().Trim(false);
 					if (!gui_value.IsEmpty())
+					{
 						fldData.mFilter.emplace_back(gui_value);
+						
+					}
 				}
+				const wh::Field& oldFldData = fld->GetData();
+				if (fldData != oldFldData )
+					fld->SetData(fldData);
 				
-				fld->SetData(fldData);
 			}//if (pgProp)
 		}//if (fld)
 	}

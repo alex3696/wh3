@@ -157,6 +157,15 @@ void	BaseTable::SelectRow(unsigned int row)
 { 
 	Select(GetItem(row)); 
 }
+
+//-----------------------------------------------------------------------------
+bool BaseTable::SetRowHeight(int height)
+{
+	bool ret = wxDataViewCtrl::SetRowHeight(height);
+	if (ret)
+		mRowHeight = height;
+	return ret;
+}
 //---------------------------------------------------------------------------
 unsigned int BaseTable::GetModelColumnCount() const 
 {

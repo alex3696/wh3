@@ -25,6 +25,19 @@ public:
 		FilterOp	mOp;
 		FilterConn	mConn;
 		bool		mEnable;
+
+		bool operator==(const Filter& f)const
+		{
+			return mVal == f.mVal
+				&& mOp == f.mOp
+				&& mEnable == f.mEnable
+				&& mConn == f.mConn;
+		}
+
+		bool operator!=(const Filter& f)const
+		{
+			return !operator==(f);
+		}
 	};
 
 	wxString	mTitle;
@@ -52,6 +65,37 @@ public:
 		:mTitle(name), mType(ft), mGuiShow(show), mDbTitle(dbname)
 	{}
 
+	bool operator==(const Field& fld)const
+	{
+		if (mFilter.size() != fld.mFilter.size())
+			return false;
+
+		bool eqFilter = true;
+		for (size_t i = 0; i < mFilter.size(); ++i)
+		{
+			if (mFilter[i] != fld.mFilter[i])
+			{ 
+				eqFilter = false;
+				break;
+			}
+		}
+		return eqFilter
+			&& mTitle == fld.mTitle
+			&& mDbTitle == fld.mDbTitle
+			&& mType == fld.mType
+			&& mEditor == fld.mEditor
+			&& mGuiShow == fld.mGuiShow
+			&& mGuiEdit == fld.mGuiEdit
+			&& mInsert == fld.mInsert
+			&& mUpdate == fld.mUpdate
+			&& mKey == fld.mKey
+			&& mSort == fld.mSort;
+	}
+
+	bool operator!=(const Field& fld)const
+	{
+		return !operator==(fld);
+	}
 
 };
 //-----------------------------------------------------------------------------

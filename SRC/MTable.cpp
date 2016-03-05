@@ -265,12 +265,12 @@ bool ITable::LoadChildDataFromDb(std::shared_ptr<IModel>& child,
 void ITable::OnFieldAfterInsert(const IModel& vec, const std::vector<SptrIModel>& newVec
 	, const SptrIModel& itemBefore)
 {
-	this->Clear();
+	//this->Clear();
 }
 //-------------------------------------------------------------------------
 void ITable::OnFieldBeforeRemove(const IModel& vec, const std::vector<SptrIModel>& remVec)
 {
-	this->Clear();
+	//this->Clear();
 }
 
 //-------------------------------------------------------------------------
