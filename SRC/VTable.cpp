@@ -176,6 +176,8 @@ void VTable::OnFieldAfterInsert(const IModel& vec, const std::vector<SptrIModel>
 
 				if (ftText == field.mType)
 					EnableAutosizeColumn(col_idx);
+
+				SetGuiColumnSort(field, col);
 			}//if (field.mGuiShow)
 
 		}
@@ -212,25 +214,29 @@ void VTable::OnFieldInfoChange(const IModel& newVec, const std::vector<unsigned 
 			return;
 		wxDataViewColumn* curr_column = GetColumn(col_idx);
 		
-		if (curr_column)
-		{
-			if (0 == field.mSort)
-			{
-				curr_column->SetTitle(field.mTitle);
-				curr_column->SetBitmap(wxNullBitmap);
-			}
-			else
-			{
-				if ( 1 < abs(field.mSort))
-					curr_column->SetTitle(wxString::Format("(%d)", abs(field.mSort)) + field.mTitle);
-				if (0 > field.mSort)
-					curr_column->SetBitmap(m_ResMgr->m_ico_sort_desc16);
-				else //(0 < field.mSort)
-					curr_column->SetBitmap(m_ResMgr->m_ico_sort_asc16);
-			}
-		}
+		SetGuiColumnSort(field, curr_column);
 	}//for (const auto& model_idx: itemVec )
 	
+}
+//-----------------------------------------------------------------------------
+void VTable::SetGuiColumnSort(const wh::Field& field, wxDataViewColumn* col)
+{
+	if (!col)
+		return;
+	if (0 == field.mSort)
+	{
+		col->SetTitle(field.mTitle);
+		col->SetBitmap(wxNullBitmap);
+	}
+	else
+	{
+		if (1 < abs(field.mSort))
+			col->SetTitle(wxString::Format("(%d)", abs(field.mSort)) + field.mTitle);
+		if (0 > field.mSort)
+			col->SetBitmap(m_ResMgr->m_ico_sort_desc16);
+		else //(0 < field.mSort)
+			col->SetBitmap(m_ResMgr->m_ico_sort_asc16);
+	}
 }
 //-----------------------------------------------------------------------------
 void VTable::OnColumnHeaderlClick(wxDataViewEvent &event)

@@ -77,7 +77,7 @@ void TableCtrl::SetModel(std::shared_ptr<ITable> model)
 {
 	mMTable = model;
 	mTableView->SetModel(model);
-	mFilterEditor->SetModel(model->mFieldVec);
+	mFilterEditor->SetModel(model);
 
 	BuildToolBar();
 	

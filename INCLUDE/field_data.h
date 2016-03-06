@@ -16,10 +16,23 @@ public:
 	class Filter
 	{
 	public:
+		Filter()
+			:mOp(foEq), mConn(fcAND), mEnable(false)
+		{}
+
 		Filter(const wxString& val, FilterOp fo = foEq
 			, FilterConn fc = fcAND, bool enable = true)
 			:mVal(val), mOp(fo), mConn(fc), mEnable(enable)
 		{}
+
+		void Set(const wxString& val, FilterOp fo = foEq
+			, FilterConn fc = fcAND, bool enable = true)
+		{
+			mVal=val;
+			mOp=fo;
+			mConn=fc;
+			mEnable = enable;
+		}
 
 		wxString	mVal;
 		FilterOp	mOp;

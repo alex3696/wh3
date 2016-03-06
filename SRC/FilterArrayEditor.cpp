@@ -47,110 +47,49 @@ FilterArrayEditor::FilterArrayEditor(wxWindow *parent,
 }
 
 //---------------------------------------------------------------------------
-void FilterArrayEditor::SetModel(std::shared_ptr<IFieldArray>& newModel)
+void FilterArrayEditor::SetModel(std::shared_ptr<ITable>& newModel)
 {
-	if (newModel == mModel)
+	if (newModel == mMTable)
 		return;
-	mModel = newModel;
-	if (!mModel)
+	namespace ph = std::placeholders;
+
+	mConnFieldAI.disconnect();
+	mConnFieldBR.disconnect();
+	mConnFieldAC.disconnect();
+
+	mMTable = newModel;
+	if (!mMTable)
 		return;
 
-	namespace ph = std::placeholders;
-	
-	for (unsigned int i = 0; i < mModel->size(); i++)
-	{
-		auto fld = mModel->at(i);
-		if (fld)
-		{
-			const auto& fldData = fld->GetData();
-			wxPGProperty* pgp = nullptr;
-			switch (fldData.mType)
-			{
-			case ftText:	pgp = mPropGrid->Append(new wxLongStringProperty(fldData.mTitle)); break;
-			case ftName:	pgp = mPropGrid->Append(new wxStringProperty(fldData.mTitle)); break;
-			case ftLong:	
-				if (FieldEditor::Type == fldData.mEditor)
-				{
-					pgp = mPropGrid->Append(new wxPGPSmallType(fldData.mTitle));
-					auto chs = pgp->GetChoices();
-					chs.Insert(wxEmptyString, 0, -1);
-					pgp->SetChoices(chs);
-					pgp->SetChoiceSelection(-1);
-				}
-				else if (FieldEditor::Normal == fldData.mEditor)
-				{
-					pgp = mPropGrid->Append(new wxStringProperty(fldData.mTitle));
-					pgp->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-				}
-				break;
-			case ftDouble:	pgp = mPropGrid->Append(new wxFloatProperty(fldData.mTitle));  break;
-			case ftDateTime:
-			case ftTime:	
-			case ftDate:	pgp = mPropGrid->Append(new wxDateProperty(fldData.mTitle));  
-				pgp->SetAttribute(wxPG_DATE_PICKER_STYLE
-					,(long)(wxDP_DROPDOWN |
-					wxDP_SHOWCENTURY |
-					wxDP_ALLOWNONE));
-				pgp->SetAttribute(wxPG_DATE_FORMAT, wxS("%Y.%m.%d"));
-				break;
-			case ftLink:	pgp = mPropGrid->Append(new wxStringProperty(fldData.mTitle));  break;
-			case ftFile:	pgp = mPropGrid->Append(new wxStringProperty(fldData.mTitle));  break;
-			case ftJSON:	pgp = mPropGrid->Append(new wxLongStringProperty(fldData.mTitle));  break;
-			default:break;
-			}
-			if (pgp)
-				pgp->SetValueToUnspecified();
-		}
-	}
+	auto fnFieldAI = std::bind(&FilterArrayEditor::OnFieldAfterInsert, this, ph::_1, ph::_2, ph::_3);
+	auto fnFieldBR = std::bind(&FilterArrayEditor::OnFieldBeforeRemove, this, ph::_1, ph::_2);
+	auto fnFieldAC = std::bind(&FilterArrayEditor::OnFieldInfoChange, this, ph::_1, ph::_2);
+	mConnFieldAI = mMTable->mFieldVec->ConnAfterInsert(fnFieldAI);
+	mConnFieldBR = mMTable->mFieldVec->ConnectBeforeRemove(fnFieldBR);
+	mConnFieldAC = mMTable->mFieldVec->ConnectChangeSlot(fnFieldAC);
+
+	std::vector<SptrIModel> newItems;
+	for (unsigned int i = 0; i < mMTable->mFieldVec->size(); i++)
+		newItems.emplace_back(mMTable->mFieldVec->at(i));
+	OnFieldAfterInsert(*mMTable->mFieldVec, newItems, nullptr);
+
 }
 //---------------------------------------------------------------------------
 void FilterArrayEditor::OnApply(wxCommandEvent& evt)
 {
 	bool hasEmpty = false;
 
-	for (unsigned int i = 0; i < mModel->size(); ++i)
+	for (unsigned int i = 0; i < mMTable->mFieldVec->size(); ++i)
 	{
-		auto fld = mModel->at(i);
+		auto fld = mMTable->mFieldVec->at(i);
 		if (fld)
 		{
+			const wh::Field& oldFldData = fld->GetData();
 			auto fldData = fld->GetData();
-			auto pgProp = mPropGrid->GetProperty(fldData.mTitle);
-			if (pgProp)
-			{
-				wxString gui_value;
-				fldData.mFilter.clear();
-				
-				if (ftLong == fldData.mType && fldData.mEditor == FieldEditor::Type)
-				{
-					int cs = pgProp->GetChoiceSelection();
-					int ftype = pgProp->GetChoices().GetValue(cs);
-					if (-1 != ftype)
-					{
-						fldData.mFilter.emplace_back(wxString::Format("%d", ftype));
-					}
-				}
-				else if (ftName == fldData.mType || ftText == fldData.mType)
-				{
-					gui_value = pgProp->GetValueAsString().Trim().Trim(false);
-					if (!gui_value.IsEmpty())
-					{
-						fldData.mFilter.emplace_back("%" + gui_value + "%", foLike);
-					}
-				}
-				else
-				{
-					gui_value = pgProp->GetValueAsString().Trim().Trim(false);
-					if (!gui_value.IsEmpty())
-					{
-						fldData.mFilter.emplace_back(gui_value);
-						
-					}
-				}
-				const wh::Field& oldFldData = fld->GetData();
-				if (fldData != oldFldData )
-					fld->SetData(fldData);
-				
-			}//if (pgProp)
+
+			bool ok = GetFilterValue(fldData);
+			if (fldData != oldFldData )
+				fld->SetData(fldData);
 		}//if (fld)
 	}
 	wxCommandEvent refresh_evt(wxEVT_COMMAND_MENU_SELECTED, wxID_REFRESH);
@@ -161,7 +100,139 @@ void FilterArrayEditor::OnClear(wxCommandEvent& evt)
 {
 	wxPropertyGridIterator it;
 	for (it = mPropGrid->GetIterator(); !it.AtEnd(); it++)
-	{
 		(*it)->SetValueToUnspecified();
+}
+//-----------------------------------------------------------------------------
+wxPGProperty* FilterArrayEditor::MakeProperty(const wh::Field& field)
+{
+	wxPGProperty* pgp = nullptr;
+	switch (field.mType)
+	{
+	case ftText:	pgp = new wxLongStringProperty(field.mTitle); break;
+	case ftName:	pgp = new wxStringProperty(field.mTitle); break;
+	case ftLong:
+		if (FieldEditor::Type == field.mEditor)
+		{
+			pgp = new wxPGPSmallType(field.mTitle);
+			auto chs = pgp->GetChoices();
+			chs.Insert(wxEmptyString, 0, -1);
+			pgp->SetChoices(chs);
+			pgp->SetChoiceSelection(-1);
+		}
+		else if (FieldEditor::Normal == field.mEditor)
+		{
+			pgp = new wxStringProperty(field.mTitle);
+			pgp->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+		}
+		break;
+	case ftDouble:	pgp = new wxFloatProperty(field.mTitle);  break;
+	case ftDateTime:
+	case ftTime:
+	case ftDate:	pgp = new wxDateProperty(field.mTitle);
+		pgp->SetAttribute(wxPG_DATE_PICKER_STYLE
+			, (long)(wxDP_DROPDOWN |
+			wxDP_SHOWCENTURY |
+			wxDP_ALLOWNONE));
+		pgp->SetAttribute(wxPG_DATE_FORMAT, wxS("%Y.%m.%d"));
+		break;
+	case ftLink:	pgp = new wxStringProperty(field.mTitle);  break;
+	case ftFile:	pgp = new wxStringProperty(field.mTitle);  break;
+	case ftJSON:	pgp = new wxLongStringProperty(field.mTitle);  break;
+	default:break;
 	}
+	if (pgp)
+		pgp->SetValueToUnspecified();
+	return pgp;
+}
+//-----------------------------------------------------------------------------
+bool FilterArrayEditor::GetFilterValue(wh::Field& field)
+{
+	field.mFilter.clear();
+	auto pgp = mPropGrid->GetProperty(field.mTitle);
+	
+	if (!pgp || pgp->IsValueUnspecified())
+		return false;
+
+	if (ftLong == field.mType && field.mEditor == FieldEditor::Type)
+	{
+		int cs = pgp->GetChoiceSelection();
+		int ftype = pgp->GetChoices().GetValue(cs);
+		if (-1 != ftype)
+			field.mFilter.emplace_back(wxString::Format("%d", ftype));
+	}
+	else
+	{
+		wxString gui_value = pgp->GetValueAsString().Trim().Trim(false);
+		if(!gui_value.IsEmpty())
+			if (ftName == field.mType || ftText == field.mType)
+				field.mFilter.emplace_back("%" + gui_value + "%", foLike);
+			else
+				field.mFilter.emplace_back(gui_value);
+	}
+		
+	return field.mFilter.size() && !field.mFilter[0].mVal.IsEmpty();
+}
+//-----------------------------------------------------------------------------
+void FilterArrayEditor::OnFieldAfterInsert(const IModel& vec
+	, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore)
+{
+	auto field_before = std::dynamic_pointer_cast<wh::Field>(itemBefore);
+	wxPGProperty* pgp_before = nullptr;
+	if (field_before)
+		pgp_before = mPropGrid->GetProperty(field_before->mTitle);
+	
+	for (const auto& new_ifield : newItems)
+	{
+		auto new_field = std::dynamic_pointer_cast<ITableField>(new_ifield);
+		if (new_field)
+		{
+			wxPGProperty* new_pgp = MakeProperty(new_field->GetData());
+			if (new_pgp)
+			{
+				if (pgp_before)
+					pgp_before = mPropGrid->Insert(pgp_before, new_pgp);
+				else
+					mPropGrid->Append(new_pgp);
+			}
+				
+		}
+	}
+}
+//-----------------------------------------------------------------------------
+void FilterArrayEditor::OnFieldBeforeRemove(const IModel& vec
+	, const std::vector<SptrIModel>& remVec)
+{
+	for (const auto& del_ifield : remVec)
+	{
+		auto del_field = std::dynamic_pointer_cast<ITableField>(del_ifield);
+		if (del_field)
+			mPropGrid->DeleteProperty(del_field->GetData().mTitle);
+	}
+}
+//-----------------------------------------------------------------------------
+void FilterArrayEditor::OnFieldInfoChange(const IModel& newVec
+	, const std::vector<unsigned int>& itemVec)
+{
+	
+	for (const auto& pos : itemVec)
+	{
+		wxPGProperty* old_pgp = nullptr;
+		auto old_it = mPropGrid->GetVIterator(wxPG_ITERATE_PROPERTIES);
+		for (size_t i = 0; i < pos; i++)
+			old_it.Next();
+		old_pgp = old_it.GetProperty();
+		
+		auto inew_field = newVec.GetChild(pos);
+		if (inew_field)
+		{
+			auto edit_field = std::dynamic_pointer_cast<ITableField>(inew_field);
+			if (edit_field)
+			{
+				wxPGProperty* new_pgp = MakeProperty(edit_field->GetData());
+				if (new_pgp)
+					mPropGrid->ReplaceProperty(old_pgp, new_pgp);
+			}
+		}
+	}
+
 }

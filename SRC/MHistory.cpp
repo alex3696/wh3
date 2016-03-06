@@ -34,7 +34,7 @@ MLogTable::MLogTable(const char option)
 
 
 	Field filed_log_dt("Дата время", FieldType::ftDateTime, true, "log_dt");
-	filed_log_dt.mSort = 1;
+	filed_log_dt.mSort = -1;
 	fields.emplace_back(mFieldVec->CreateItem(filed_log_dt, true));
 
 	fields.emplace_back(

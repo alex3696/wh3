@@ -22,6 +22,8 @@ protected:
 	void OnColumnHeaderlClick(wxDataViewEvent &event);
 	void OnChangeVecState(ModelState state);
 
+	void SetGuiColumnSort(const wh::Field& field, wxDataViewColumn* col );
+
 	virtual bool GetAttrByRow(unsigned int row, unsigned int WXUNUSED(col)
 		, wxDataViewItemAttr &attr) const override;
 	virtual void GetValueByRow(wxVariant& val, unsigned int row
