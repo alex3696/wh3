@@ -34,6 +34,7 @@ void Cfg::DbConnect::Load()
 	cfg.Read("DbConnect/User",	&mUser);
 	cfg.Read("DbConnect/Pass",	&mPass);
 	cfg.Read("DbConnect/Role",	&mRole);
+	cfg.Read("DbConnect/StorePass", &mStorePass);
 
 }//void Load()
 //---------------------------------------------------------------------------
@@ -48,6 +49,7 @@ void Cfg::DbConnect::Save()
 	cfg.Write("DbConnect/User", mUser);
 	cfg.Write("DbConnect/Pass", mPass);
 	cfg.Write("DbConnect/Role", mRole);
+	cfg.Write("DbConnect/StorePass", mStorePass);
 	cfg.Flush();
 
 }//void Save()

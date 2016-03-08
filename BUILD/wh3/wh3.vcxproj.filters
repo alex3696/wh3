@@ -112,12 +112,6 @@
     <Filter Include="Controls\Base">
       <UniqueIdentifier>{95cc57b4-1a8a-45dd-9534-b690435e10b6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Controls\Form_Builder">
-      <UniqueIdentifier>{2c0de943-6488-4cd9-b553-2f4183a2f260}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Controls\Form_Builder\dlgLogin">
-      <UniqueIdentifier>{a7a3f226-49ab-4e2d-94eb-9c723a052dad}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Controls\PropertyGridExt">
       <UniqueIdentifier>{bbc13c25-6046-4343-a21f-67d9ce5fb900}</UniqueIdentifier>
     </Filter>
@@ -136,6 +130,9 @@
     <Filter Include="Controls\Редактор массива фильтров">
       <UniqueIdentifier>{022d129b-5c5c-4337-8475-6766717de47a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="dlgLogin">
+      <UniqueIdentifier>{a7a3f226-49ab-4e2d-94eb-9c723a052dad}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -153,11 +150,8 @@
     <ClCompile Include="..\..\SRC\wxDataViewRenderer.cpp">
       <Filter>Controls\DataViewExtension</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\INCLUDE\FB_FORMS\dlgBaseLogin.cpp">
-      <Filter>Controls\Form_Builder\dlgLogin</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\INCLUDE\FB_FORMS\whLogin.cpp">
-      <Filter>Controls\Form_Builder\dlgLogin</Filter>
+      <Filter>dlgLogin</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\whDB.cpp">
       <Filter>DataBase</Filter>
@@ -414,7 +408,7 @@
       <Filter>Controls\DataViewExtension</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\FB_FORMS\whLogin.h">
-      <Filter>Controls\Form_Builder\dlgLogin</Filter>
+      <Filter>dlgLogin</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\whDB.h">
       <Filter>DataBase</Filter>
@@ -424,9 +418,6 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\Favorites.h">
       <Filter>Панель избранного</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\FB_FORMS\dlgBaseLogin.h">
-      <Filter>Controls\Form_Builder\dlgLogin</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\BaseTable.h">
       <Filter>Controls\Base</Filter>

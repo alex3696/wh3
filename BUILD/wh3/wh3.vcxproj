@@ -229,9 +229,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_pch.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="..\..\INCLUDE\FB_FORMS\dlgBaseLogin.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\..\INCLUDE\FB_FORMS\whLogin.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
     </ClCompile>
@@ -345,7 +342,6 @@
     <ClInclude Include="..\..\INCLUDE\MainFrame.h" />
     <ClInclude Include="..\..\INCLUDE\wxDataViewRenderer.h" />
     <ClInclude Include="..\..\INCLUDE\FB_FORMS\whLogin.h" />
-    <ClInclude Include="..\..\INCLUDE\FB_FORMS\dlgBaseLogin.h" />
     <ClInclude Include="..\..\INCLUDE\whDB.h" />
   </ItemGroup>
   <ItemGroup>

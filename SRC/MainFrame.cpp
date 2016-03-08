@@ -370,13 +370,16 @@ void MainFrame::OnShowLoginWnd(wxCommandEvent& evt)
 	dbcfg.Load();
 
 	whLogin dlg(this);
+	dlg.SetCfg(dbcfg);
 
+	/*
 	dlg.SetUserName( dbcfg.mUser);
 	if( !dbcfg.mPass.IsEmpty() )
 	{
 		dlg.SetPass(dbcfg.mPass);
 		dlg.SetStorePass(true);
 	}
+	*/
 
 	if(dlg.ShowModal()==wxID_OK)
 	{
@@ -389,8 +392,7 @@ void MainFrame::OnShowLoginWnd(wxCommandEvent& evt)
 			if(tool)
 				tool->SetState(wxAUI_BUTTON_STATE_CHECKED);
 
-			dbcfg.mUser = dlg.GetUserName();
-			dbcfg.mPass = dlg.GetStorePass() ? dlg.GetPass(): wxEmptyString;
+			dbcfg = dlg.GetCfg();
 			
 			whDataMgr::GetInstance()->mCfg.Prop.Load();
 
