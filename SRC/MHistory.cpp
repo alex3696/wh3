@@ -69,6 +69,8 @@ MLogTable::MLogTable(const char option)
 
 	fields.emplace_back(
 		mFieldVec->CreateItem(Field("ÊëàññID", FieldType::ftLong, false, "mcls_id"), true));
+	fields.emplace_back(
+		mFieldVec->CreateItem(Field("ÎáúåêòID", FieldType::ftLong, false, "mobj_id"), true));
 
 
 	mFieldVec->Insert(fields);

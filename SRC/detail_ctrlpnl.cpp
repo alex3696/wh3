@@ -136,6 +136,13 @@ void CtrlPnl::SetObject(const wxString& cls_id, const wxString& obj_id, const wx
 	mAuiMgr.DetachPane(mToolBar);
 
 	auto model = std::make_shared<wh::MLogTable>();
+	auto data_cls_id = model->mFieldVec->at(12)->GetData();
+	auto data_obj_id = model->mFieldVec->at(13)->GetData();
+	data_cls_id.mFilter.emplace_back(cls_id);
+	data_obj_id.mFilter.emplace_back(obj_id);
+	model->mFieldVec->at(12)->SetData(data_cls_id);
+	model->mFieldVec->at(13)->SetData(data_obj_id);
+
 	auto vtable = new wh::VTable(this);	
 	vtable->SetRowHeight(32);
 

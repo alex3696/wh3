@@ -66,6 +66,7 @@ bool MFavProp::GetSelectQuery(wxString& query)const
 			" LEFT JOIN prop  ON prop.id = favorite_prop.prop_id "
 			" WHERE favorite_prop.user_label = CURRENT_USER "
 			" AND favorite_prop.cls_id IN(SELECT distinct(cls_id)FROM obj WHERE pid = %s)"
+			" ORDER BY prop.title"
 			, root.mObj.mId.SqlVal() );
 		return true;
 	}
@@ -77,6 +78,7 @@ bool MFavProp::GetSelectQuery(wxString& query)const
 			" LEFT JOIN prop  ON prop.id = favorite_prop.prop_id "
 			" WHERE favorite_prop.user_label = CURRENT_USER "
 			" AND favorite_prop.cls_id IN(SELECT id FROM cls WHERE pid = %s)"
+			" ORDER BY prop.title"
 			, root.mCls.mId.SqlVal() );
 		return true;
 	}

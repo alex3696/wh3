@@ -40,8 +40,6 @@ public:
 	virtual bool GetAttrByRow(unsigned int row
 		, unsigned int col, wxDataViewItemAttr &attr) const override;
 
-	std::set<unsigned long>	mClsId;
-	MLogProp				mLogProp;
 protected:
 	//std::vector<boost::property_tree::ptree> mProp;
 
@@ -54,7 +52,8 @@ protected:
 	void OnRowBeforeInsert(const IModel& vec, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore);
 	void OnRowAfterRemove(const IModel& vec, const std::vector<SptrIModel>& remVec);
 private:
-
+	std::set<unsigned long>	mClsId;
+	MLogProp				mLogProp;
 	
 
 	virtual bool LoadChildDataFromDb(std::shared_ptr<IModel>& child,

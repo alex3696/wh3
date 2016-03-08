@@ -45,6 +45,7 @@ bool MLogProp::GetSelectChildsQuery(wxString& query)const
 		"   (SELECT id FROM fn_array1_to_table('{%s}'::BIGINT[]))arr ON "
 		"   favorite_prop.cls_id = arr.id "
 		" WHERE favorite_prop.user_label = CURRENT_USER "
+		" ORDER BY title"
 		, mPropArr);
 	return true;
 }
