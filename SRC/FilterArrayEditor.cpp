@@ -92,8 +92,8 @@ void FilterArrayEditor::OnApply(wxCommandEvent& evt)
 				fld->SetData(fldData);
 		}//if (fld)
 	}
-	wxCommandEvent refresh_evt(wxEVT_COMMAND_MENU_SELECTED, wxID_REFRESH);
-	this->GetParent()->ProcessWindowEvent(refresh_evt);
+	mMTable->mPageNo->SetData(0);
+	mMTable->Load();
 }
 //---------------------------------------------------------------------------
 void FilterArrayEditor::OnClear(wxCommandEvent& evt)
@@ -230,7 +230,10 @@ void FilterArrayEditor::OnFieldInfoChange(const IModel& newVec
 			{
 				wxPGProperty* new_pgp = MakeProperty(edit_field->GetData());
 				if (new_pgp)
+				{
+					new_pgp->SetValue(old_pgp->GetValue());
 					mPropGrid->ReplaceProperty(old_pgp, new_pgp);
+				}//if (new_pgp)
 			}
 		}
 	}

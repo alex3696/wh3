@@ -70,6 +70,9 @@ void VTable::SetModel(std::shared_ptr<ITable> model)
 void VTable::OnRowAfterInsert(const IModel& vec, const std::vector<SptrIModel>& newItems
 	, const SptrIModel& itemBefore)
 {
+	wxBusyCursor			busyCursor;
+	wxWindowUpdateLocker	wndLockUpdater(this);
+
 	if (itemBefore)
 	{
 		size_t pos;
@@ -89,6 +92,9 @@ void VTable::OnRowAfterInsert(const IModel& vec, const std::vector<SptrIModel>& 
 //-----------------------------------------------------------------------------
 void VTable::OnRowBeforeRemove(const IModel& vec, const std::vector<SptrIModel>& remVec)
 {
+	wxBusyCursor			busyCursor;
+	wxWindowUpdateLocker	wndLockUpdater(this);
+	
 	if (vec.size() != remVec.size() )
 	{
 		size_t pos;
@@ -111,6 +117,9 @@ void VTable::OnRowAfterRemove(const IModel& vec, const std::vector<SptrIModel>& 
 //-----------------------------------------------------------------------------
 void VTable::OnRowAfterChange(const IModel& newVec, const std::vector<unsigned int>& itemVec)
 {
+	wxBusyCursor			busyCursor;
+	wxWindowUpdateLocker	wndLockUpdater(this);
+
 	auto changedQty = itemVec.size();
 	bool changeAll = newVec.GetChildQty() == itemVec.size();
 
@@ -157,6 +166,7 @@ void VTable::OnFieldAfterInsert(const IModel& vec, const std::vector<SptrIModel>
 {
 	if (!mModel)
 		return;
+	wxWindowUpdateLocker	wndLockUpdater(this);
 	const auto& fvec = mModel->mFieldVec;
 	for (const auto& new_item : newItems)
 	{
@@ -188,6 +198,7 @@ void VTable::OnFieldBeforeRemove(const IModel& vec, const std::vector<SptrIModel
 {
 	if (!mModel)
 		return;
+	wxWindowUpdateLocker	wndLockUpdater(this);
 	for (const auto& field : remVec)
 	{
 		size_t model_idx = 0;
@@ -206,6 +217,7 @@ void VTable::OnFieldInfoChange(const IModel& newVec, const std::vector<unsigned 
 	auto fields_array = dynamic_cast<const IFieldArray*>(&newVec);
 	if (!fields_array)
 		return;
+	wxWindowUpdateLocker	wndLockUpdater(this);
 	for (const auto& model_idx: itemVec )
 	{
 		auto field = fields_array->at(model_idx)->GetData();

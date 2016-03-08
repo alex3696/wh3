@@ -14,7 +14,7 @@
 #include "VUserCtrlPanel.h"
 
 
-#include "TableCtrl.h"
+#include "VTablePanel.h"
 #include "MProp2.h"
 #include "MHistory.h"
 
@@ -229,7 +229,7 @@ void MainFrame::ShowDevToolBar(bool show)
 		{
 			wxBusyCursor			busyCursor;
 			m_Notebook->Freeze(); //wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
-			auto wnd = new wh::TableCtrl(m_Notebook);
+			auto wnd = new wh::VTablePanel(m_Notebook);
 			auto model = std::make_shared<wh::MPropTable>();
 			m_Notebook->AddPage(wnd, "ÒÅÑÒ Ñâîéñòâà", true
 				, ResMgr::GetInstance()->m_ico_list_prop24);
@@ -246,7 +246,7 @@ void MainFrame::ShowDevToolBar(bool show)
 			wxBusyCursor			busyCursor;
 			m_Notebook->Freeze(); //wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 			auto model = std::make_shared<wh::MLogTable>();
-			auto wnd = new wh::TableCtrl(m_Notebook);
+			auto wnd = new wh::VTablePanel(m_Notebook);
 			wnd->SetRowHeight(32);
 			wnd->SetEnableSave(false);
 			wnd->SetEnableInsert(false);

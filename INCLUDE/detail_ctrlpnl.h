@@ -3,6 +3,12 @@
 
 #include "detail_model.h"
 
+#include "MHistory.h"
+#include "VTable.h"
+#include "VTableToolBar.h"
+#include "FilterArrayEditor.h"
+#include "VTableCtrl.h"
+
 namespace wh{
 namespace detail{
 namespace view{
@@ -18,9 +24,12 @@ class CtrlPnl
 	std::shared_ptr<model::Obj> mObj = std::make_shared<model::Obj>();
 
 	wxAuiManager		mAuiMgr;
-	wxAuiToolBar*		mToolBar = nullptr;
-	//wxStaticText*		mPathSring = nullptr;
-	wxPropertyGrid* mPropGrid;
+	
+	FilterArrayEditor*	mLogTableFilter;
+	VTableCtrl			mLogTableCtrl;
+	VTableToolBar*		mToolBar;
+	
+	wxPropertyGrid*		mPropGrid;
 
 
 public:

@@ -75,6 +75,12 @@ CREATE OR REPLACE VIEW log (
  ,prop
  ,log_date
  ,log_time
+
+ ,src_cid
+ ,src_oid
+
+ ,dst_cid
+ ,dst_oid
 )AS 
 
 SELECT log_move.id, log_move.timemark, log_move.username, 0::BIGINT AS act_id, 'Перемещение'::WHNAME AS act_title,'white'::VARCHAR(64) AS act_color 
@@ -88,6 +94,10 @@ SELECT log_move.id, log_move.timemark, log_move.username, 0::BIGINT AS act_id, '
      , la.prop AS curr_prop
      ,log_move.timemark::timestamptz::date  AS log_date
      ,date_trunc('second' ,log_move.timemark)::timestamptz::time AS log_time
+     ,log_move.src_path[1][1]
+     ,log_move.src_path[1][2]
+     ,log_move.dst_path[1][1]
+     ,log_move.dst_path[1][2]
   FROM log_move
   LEFT JOIN obj_name mobj ON mobj.id=obj_id
   LEFT JOIN cls mcls ON  mcls.id=mobj.cls_id
@@ -105,7 +115,10 @@ SELECT log_act.id, timemark, username, act_id, act.title , act.color
      , log_act.prop
      ,log_act.timemark::timestamptz::date  AS log_date
      ,date_trunc('second' ,log_act.timemark)::timestamptz::time AS log_time
-
+     ,log_act.src_path[1][1]
+     ,log_act.src_path[1][2]
+     ,NULL::BIGINT
+     ,NULL::BIGINT
   FROM log_act
   LEFT JOIN act ON act.id=act_id
   LEFT JOIN obj_name mobj ON mobj.id=obj_id
@@ -116,7 +129,8 @@ SELECT log_act.id, timemark, username, act_id, act.title , act.color
 
 
 
---SELECT *  FROM log;
+SELECT *  FROM log;
+
 --SELECT src_path||'->'||dst_path  FROM log;
 SELECT log_time::timestamptz::date
       ,date_trunc('second' ,log_time)::timestamptz::time

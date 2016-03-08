@@ -20,8 +20,11 @@ MLogTable::MLogTable(const char option)
 	:ITable(option)
 {
 	namespace ph = std::placeholders;
+	
 	auto fnBI = std::bind(&MLogTable::OnRowBeforeInsert, this, ph::_1, ph::_2, ph::_3);
+	auto fnAR = std::bind(&MLogTable::OnRowAfterRemove, this, ph::_1, ph::_2);
 	mConnRowBI = ConnBeforeInsert(fnBI);
+	mConnRowAR = ConnectAfterRemove(fnAR);
 
 	std::vector<SptrIModel> fields;
 
@@ -57,13 +60,15 @@ MLogTable::MLogTable(const char option)
 
 	fields.emplace_back(
 		mFieldVec->CreateItem(Field("Свойства", FieldType::ftText, false, "prop"), true));
-
+	// 10
 	fields.emplace_back(
 		mFieldVec->CreateItem(Field("Цвет", FieldType::ftLong, false, "act_color"), true));
 
 	fields.emplace_back(
 		mFieldVec->CreateItem(Field("Дата", FieldType::ftDate, false, "log_date"), true));
 
+	fields.emplace_back(
+		mFieldVec->CreateItem(Field("КлассID", FieldType::ftLong, false, "mcls_id"), true));
 
 
 	mFieldVec->Insert(fields);
@@ -120,8 +125,10 @@ void MLogTable::GetValueByRow(wxVariant& val, unsigned int row, unsigned int col
 				boost::property_tree::read_json(ss, prop_arr);
 			}
 			//const boost::property_tree::ptree& prop_arr = mProp[row];
-			const wxString& title = mFieldVec->at(col)->GetData().mTitle;
-			auto it = prop_arr.find(std::string(title.c_str()));
+			const auto prop_row = mLogProp.at(col - mStaticColumnQty);
+			const auto& prop_row_data = prop_row->GetData();
+			const wxString& id = prop_row_data.at(0);
+			auto it = prop_arr.find(std::string(id.c_str()));
 			if(it != prop_arr.not_found())
 				val = it->second.get_value<std::string>();
 		}
@@ -163,17 +170,51 @@ wxString MLogTable::GetTableName()const
 	return "log";
 }
 //-------------------------------------------------------------------------
+void MLogTable::OnRowAfterRemove(const IModel& vec, const std::vector<SptrIModel>& remVec)
+{
+	if (!vec.size())
+		mClsId.clear();
+}
+//-------------------------------------------------------------------------
+bool MLogTable::LoadChildDataFromDb(std::shared_ptr<IModel>& child,
+	std::shared_ptr<whTable>& db, const size_t pos)
+{
+	bool res = ITable::LoadChildDataFromDb(child, db, pos);
+	if (res)
+	{
+		auto mrow = std::dynamic_pointer_cast<ITableRow>(child);
+		if (mrow)
+		{
+			unsigned long val = 0;
+			if (mrow->GetData().at(12).ToCULong(&val))
+				mClsId.emplace(val);
+		}
+	}
+	return res;
+}
+//-------------------------------------------------------------------------
 void MLogTable::OnRowBeforeInsert(const IModel& vec, const std::vector<SptrIModel>& newItems
 	, const SptrIModel& itemBefore)
 {
-	//mProp.clear();
-
 	std::vector<SptrIModel> rem_fields;
 	for (auto col = mStaticColumnQty; col < mFieldVec->size(); ++col)
 		rem_fields.emplace_back(mFieldVec->at(col));
 	mFieldVec->DelChild(rem_fields);
 
-	std::set<std::string>			mPropCol;
+	mLogProp.SetLogProp(mClsId);
+	std::vector<SptrIModel> fields;
+	for (size_t i = 0; i < mLogProp.size(); ++i)
+	{
+		const wxString id = mLogProp.at(i)->GetData().at(0);
+		const wxString title = mLogProp.at(i)->GetData().at(1);
+		
+		fields.emplace_back(mFieldVec->CreateItem(
+			//Field(col_title, FieldType::ftName, true, col_title), true));
+			Field(title, FieldType::ftName, true, "prop->>'" + id + "'"), true));
+	}
+	mFieldVec->Insert(fields);
+
+
 	unsigned int row_idx = 0;
 	for (const auto& irow : newItems)
 	{
@@ -188,18 +229,7 @@ void MLogTable::OnRowBeforeInsert(const IModel& vec, const std::vector<SptrIMode
 			boost::property_tree::read_json(ss, prop_arr);
 		}
 		//mProp.emplace_back(prop_arr);
-		
-		for (const auto& col_title : prop_arr)
-			mPropCol.insert(col_title.first);
 	}
 
-	std::vector<SptrIModel> fields;
-	for (const auto& col_title : mPropCol)
-	{
-		fields.emplace_back(mFieldVec->CreateItem(
-			//Field(col_title, FieldType::ftName, true, col_title), true));
-			Field(col_title, FieldType::ftName, true, "prop->>'" + col_title + "'"), true));
-	}
-	mFieldVec->Insert(fields);
 
 }

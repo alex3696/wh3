@@ -360,16 +360,10 @@
     <ClCompile Include="..\..\SRC\MObjCatalog.cpp">
       <Filter>Каталог объектов\Основная панель\model</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SRC\MLog.cpp">
-      <Filter>История</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\MProp2.cpp">
       <Filter>Таблица Свойств</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\MTable.cpp">
-      <Filter>Таблица Свойств\Table</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\TableCtrl.cpp">
       <Filter>Таблица Свойств\Table</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\VTable.cpp">
@@ -384,8 +378,20 @@
     <ClCompile Include="..\..\SRC\PGPTypeId.cpp">
       <Filter>Controls\PropertyGridExt</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\SRC\VTableToolBar.cpp">
+      <Filter>Таблица Свойств\Table</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\VTablePanel.cpp">
+      <Filter>Таблица Свойств\Table</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\VTableCtrl.cpp">
+      <Filter>Таблица Свойств\Table</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\SRC\MHistory.cpp">
-      <Filter>Таблица Свойств</Filter>
+      <Filter>История</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MLogProp.cpp">
+      <Filter>История</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -647,15 +653,6 @@
     <ClInclude Include="..\..\INCLUDE\MObjCatalog.h">
       <Filter>Каталог объектов\Основная панель\model</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MLog.h">
-      <Filter>История</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MLogArray.h">
-      <Filter>История</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MLogFilter.h">
-      <Filter>История</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\FilterModel.h">
       <Filter>Templates</Filter>
     </ClInclude>
@@ -680,9 +677,6 @@
     <ClInclude Include="..\..\INCLUDE\MTable.h">
       <Filter>Таблица Свойств\Table</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\TableCtrl.h">
-      <Filter>Таблица Свойств\Table</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\TableRowEditor.h">
       <Filter>Таблица Свойств\Table</Filter>
     </ClInclude>
@@ -695,8 +689,20 @@
     <ClInclude Include="..\..\INCLUDE\PGPTypeId.h">
       <Filter>Controls\PropertyGridExt</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VTableToolBar.h">
+      <Filter>Таблица Свойств\Table</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VTablePanel.h">
+      <Filter>Таблица Свойств\Table</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\VTableCtrl.h">
+      <Filter>Таблица Свойств\Table</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MHistory.h">
-      <Filter>Таблица Свойств</Filter>
+      <Filter>История</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MLogProp.h">
+      <Filter>История</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

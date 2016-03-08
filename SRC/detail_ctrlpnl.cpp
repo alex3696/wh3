@@ -3,6 +3,7 @@
 #include "PGClsPid.h"
 #include "MainFrame.h"
 
+
 using namespace wh;
 using namespace wh::detail::view;
 
@@ -17,30 +18,22 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 {
 	mAuiMgr.SetManagedWindow(this);
 
-	mToolBar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-		wxAUI_TB_TEXT | wxAUI_TB_OVERFLOW);
-	
-	mToolBar->AddTool(wxID_REFRESH, "Обновить", m_ResMgr->m_ico_refresh24);
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &CtrlPnl::OnCmdReload, this, wxID_REFRESH);
+	mToolBar = new VTableToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+		wxAUI_TB_PLAIN_BACKGROUND | wxAUI_TB_TEXT);
+	mToolBar->SetEnableSave(false);
+	mToolBar->SetEnableInsert(false);
+	mToolBar->SetEnableChange(false);
+
+	//mToolBar->AddTool(wxID_REFRESH, "Обновить", m_ResMgr->m_ico_refresh24);
+	//Bind(wxEVT_COMMAND_MENU_SELECTED, &CtrlPnl::OnCmdReload, this, wxID_REFRESH);
 	
 	mToolBar->Realize();
 
 	mAuiMgr.AddPane(mToolBar, wxAuiPaneInfo().
-		Name(wxT("m_MainToolBar")).Caption(wxT("Main toolbar"))
-		.CaptionVisible(false)
-		.ToolbarPane()
-		.Top()
-		.Fixed()
-		.Dockable(false)
+		Name("ToolBarPane")
+		.ToolbarPane().Top().Floatable(false)
 		.PaneBorder(false)
-		.Layer(1)
-		.Position(1)
-		//.LeftDockable(false)
-		//.RightDockable(false)
 		);
-
-
-	
 	
 	
 	mPropGrid = new wxPropertyGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxPG_DEFAULT_STYLE | wxPG_SPLITTER_AUTO_CENTER);
@@ -54,8 +47,18 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 		//.Fixed()
 		.Dockable(true)
 		.PaneBorder(false)
-		.Layer(1)
-		.Position(1)
+		.Layer(2)
+		//.Position(1)
+		);
+
+	mLogTableFilter = new FilterArrayEditor(this);
+	mAuiMgr.AddPane(mLogTableFilter, wxAuiPaneInfo().
+		Name("FilterPane").Caption("Фильтр")
+		.Left().Layer(1)//.Position(2)
+		.MinSize(250, 200)
+		.CloseButton(false).Dockable(false).Floatable(false)
+		.Hide()
+		.PaneBorder(false)
 		);
 
 	auto pg_cls = mPropGrid->Append(new wxPropertyCategory("Свойства класса"));
@@ -90,6 +93,30 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 		std::bind(&CtrlPnl::OnObjPropBeforeRemove, this, sph::_1, sph::_2));
 	mConnObjPropChange = mObj->GetObjPropArray()->ConnectChangeSlot(
 		std::bind(&CtrlPnl::OnObjPropChange, this, sph::_1, sph::_2));
+
+
+	//Bind(wxEVT_COMMAND_MENU_SELECTED, &CtrlPnl::OnCmdReload, this, wxID_REFRESH);
+	mLogTableCtrl.fnOnCmdLoad = [this](wxCommandEvent& evt)
+	{
+		this->OnCmdReload(evt);
+		mLogTableCtrl.OnCmdLoad(evt);
+	};
+
+	mLogTableCtrl.fnOnCmdFilter = [this](wxCommandEvent& evt)
+	{
+		wxAuiPaneInfo& pi = mAuiMgr.GetPane("FilterPane");
+		if (pi.IsOk())
+		{
+			bool visible = !pi.IsShown();
+			pi.Show(visible);
+
+			wxAuiToolBarItem* tool = mToolBar->FindTool(wxID_FIND);
+			if (tool)
+				tool->SetState(visible ? wxAUI_BUTTON_STATE_CHECKED : wxAUI_BUTTON_STATE_NORMAL);
+
+			mAuiMgr.Update();
+		}//if(!pi.IsOk())	
+	};
 }
 //-----------------------------------------------------------------------------
 CtrlPnl::~CtrlPnl()
@@ -99,8 +126,37 @@ CtrlPnl::~CtrlPnl()
 //-----------------------------------------------------------------------------
 void CtrlPnl::SetObject(const wxString& cls_id, const wxString& obj_id, const wxString& obj_pid)
 {
+	wxBusyCursor			busyCursor;
+	wxWindowUpdateLocker	wndLockUpdater(this);
+	
 	mObj->SetObject(cls_id, obj_id, obj_pid);
 	OnCmdReload(wxCommandEvent());
+
+
+	mAuiMgr.DetachPane(mToolBar);
+
+	auto model = std::make_shared<wh::MLogTable>();
+	auto vtable = new wh::VTable(this);	
+	vtable->SetRowHeight(32);
+
+
+	mLogTableCtrl.SetTableViewModel(model, vtable);
+	
+	mToolBar->SetModel(model);
+	mLogTableFilter->SetModel(std::dynamic_pointer_cast<ITable>(model));
+
+	mAuiMgr.AddPane(mToolBar, wxAuiPaneInfo().
+		Name("ToolBarPane")
+		.ToolbarPane().Top().Floatable(false)
+		.PaneBorder(false)
+		);
+	
+	mAuiMgr.AddPane(vtable, wxAuiPaneInfo().
+		Name("LogPane").Caption("LogPane").
+		CenterPane().Layer(1).Position(1)
+		.CloseButton(true).MaximizeButton(true).PaneBorder(false));
+	mAuiMgr.Update();
+	vtable->SetModel(model);
 }
 //-----------------------------------------------------------------------------
 void CtrlPnl::OnCmdReload(wxCommandEvent& evt)
@@ -119,6 +175,7 @@ void CtrlPnl::OnChangeMainDetail(const IModel* model, const wh::detail::model::O
 	mPropGrid->SetPropVal("base_obj_prop", wxVariant(*(wh_rec_ObjTitle*)&main_detail.mObj));
 
 	UpdateTab();
+	UpdatePGColour();
 }
 //-----------------------------------------------------------------------------
 void CtrlPnl::UpdatePGColour()

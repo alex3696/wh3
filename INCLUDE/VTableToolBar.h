@@ -1,29 +1,27 @@
-#ifndef __TABLECTRL_H
-#define __TABLECTRL_H
+#ifndef __TABLETOOLBAR_H
+#define __TABLETOOLBAR_H
 
 #include "BaseTable.h"
-#include "TableRowEditor.h"
-#include "VTable.h"
-#include "FilterArrayEditor.h"
+#include "MTable.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
-class TableCtrl
-	: public wxPanel
-	, public ctrlWithResMgr
+
+class VTableToolBar:
+	public wxAuiToolBar
+	,public ctrlWithResMgr
+
 {
 public:
-	TableCtrl(wxWindow* parent,
+	VTableToolBar(wxWindow* parent,
 		wxWindowID id = wxID_ANY,
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
-		long style = wxTAB_TRAVERSAL,
-		const wxString& name = wxPanelNameStr);
-	~TableCtrl();
+		long style = wxAUI_TB_DEFAULT_STYLE);
+
 
 	void SetModel(std::shared_ptr<ITable> model);
-	void SetEditor(std::shared_ptr<TableRowEditor> model);
-	std::shared_ptr<TableRowEditor> GetEditor();
+	void BuildToolBar();
 
 	void SetEnableFilter(bool enable = true) { mEnableFilter = enable; }
 	void SetEnableLoad(bool enable = true) { mEnableLoad = enable; }
@@ -39,44 +37,17 @@ public:
 	bool IsEnableRemove()const { return mEnableRemove; }
 	bool IsEnableChange()const { return mEnableChange; }
 
-	bool SetRowHeight(int height) { return mTableView->SetRowHeight(height); }
-protected:
-	wxAuiManager			mAuiMgr;
-	wxAuiToolBar*			mToolBar = nullptr;
-	wxAuiToolBar*			mPageToolBar = nullptr;
-	wxStaticText*			mPageLabel = nullptr;
-	VTable*					mTableView = nullptr;
-	wxMenu					mContextMenu;
-	
-	std::shared_ptr<ITable>			mMTable;
-	FilterArrayEditor*				mFilterEditor;
-	std::shared_ptr<TableRowEditor> mEditor;
-	
-	//void OnSelectChange(wxDataViewEvent &event);
-	//void OnContextMenu(wxDataViewEvent &event);
-	//void BuildPopupMenu();
-
-	void BuildToolBar();
-	
 private:
+	wxStaticText*			mPageLabel = nullptr;
+
 	bool					mEnableFilter = true;
 	bool					mEnableLoad = true;
 	bool					mEnableSave = true;
 	bool					mEnableInsert = true;
 	bool					mEnableRemove = true;
 	bool					mEnableChange = true;
-	
-	void OnCmdLoad(wxCommandEvent& WXUNUSED(evt));
-	void OnCmdSave(wxCommandEvent& WXUNUSED(evt));
-	void OnCmdInsert(wxCommandEvent& WXUNUSED(evt));
-	void OnCmdRemove(wxCommandEvent& WXUNUSED(evt));
-	void OnCmdChange(wxCommandEvent& WXUNUSED(evt));
-	void OnCmdFind(wxCommandEvent& WXUNUSED(evt));
-	void OnCmdBackward(wxCommandEvent& WXUNUSED(evt));
-	void OnCmdForward(wxCommandEvent& WXUNUSED(evt));
 
-
-	void OnTableChangeState(const IModel& vec);
+	void OnTableChange(const IModel& vec);
 
 	sig::scoped_connection	mConnAfterInsert;
 	sig::scoped_connection	mConnAfterRemove;
@@ -84,9 +55,13 @@ private:
 	void OnAfterInsert(const IModel& vec, const std::vector<SptrIModel>& newItems, const SptrIModel& itemBefore);
 	void OnAfterRemove(const IModel& vec, const std::vector<SptrIModel>& remVec);
 	void OnAfterChange(const IModel& vec, const std::vector<unsigned int>& itemVec);
+
+	//sig::scoped_connection	mConnChangePageLimit;
+	//sig::scoped_connection	mConnChangePageNo;
+	//void OnChangePageLimit(const IModel& model);
+	//void OnChangePageNo(const IModel& model);
 };
+
 //-----------------------------------------------------------------------------
-
-
 }//namespace wh
 #endif //__*_H
