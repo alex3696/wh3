@@ -20,7 +20,7 @@ bool DetailActToolBar::ConnCmdCtrl(int cmd_id, const DetailActCtrl& ctrl)
 	auto wnd = this->GetParent();
 
 	const std::function<void(wxCommandEvent&)>* fn = ctrl.GetCmdFunction(cmd_id);
-	if (fn)
+	if (fn && (*fn))
 	{
 		std::function<void(wxCommandEvent&)> safe_fn 
 			= std::bind(SafeCallCommandEvent(), *fn, ph::_1);

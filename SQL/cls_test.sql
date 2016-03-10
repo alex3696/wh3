@@ -430,7 +430,7 @@ CREATE INDEX idx_objname__title_tgm ON obj_name USING gin (title gin_trgm_ops);
 GRANT SELECT        ON TABLE obj_name  TO "Guest";
 GRANT INSERT        ON TABLE obj_name  TO "ObjDesigner";
 GRANT DELETE        ON TABLE obj_name  TO "ObjDesigner";
-GRANT UPDATE ( title, cls_id)               ON TABLE obj_name   TO "ObjDesigner";
+GRANT UPDATE ( title) ON TABLE obj_name   TO "ObjDesigner";
 GRANT UPDATE ( move_logid, act_logid, prop) ON TABLE obj_name  TO "User";
 ---------------------------------------------------------------------------------------------------
 -- детальные сведения объект номерной

@@ -42,6 +42,8 @@ CREATE UNLOGGED TABLE lock_obj(
 
   ,path     BIGINT[]
 
+  ,logid_act  BIGINT DEFAULT NULL
+  ,logid_move BIGINT DEFAULT NULL
 
   ,CONSTRAINT lock_obj__oid_pid_pkey PRIMARY KEY (oid,pid)
 
@@ -496,6 +498,95 @@ SELECT * FROM lock_for_move(104,1);
 
 SELECT lock_reset(104,NULL);
 
+--------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS    do_move_objnum( _oid  BIGINT, _new_opid BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION do_move_objnum( _oid  BIGINT, _new_opid BIGINT) 
+  RETURNS  VOID AS $BODY$
+DECLARE
+BEGIN
+  RAISE DEBUG 'MOV obj_num  id=%  new_opid=%',_oid,_new_opid;
+  UPDATE obj_num SET pid = _new_opid WHERE id=_oid;
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE  COST 100;
+--------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS    do_move_objqtyi( IN _oid  BIGINT, IN _old_opid BIGINT,  IN _new_opid BIGINT, IN _qty NUMERIC ) CASCADE;
+CREATE OR REPLACE FUNCTION do_move_objqtyi( IN _oid  BIGINT, IN _old_opid BIGINT,  IN _new_opid BIGINT, IN _qty NUMERIC )
+  RETURNS  VOID AS $BODY$
+DECLARE
+  _src_qty NUMERIC;
+  _dst_qty NUMERIC;
+BEGIN
+  SELECT qty INTO _dst_qty FROM obj_qtyi WHERE pid=_new_opid AND id=_oid;
+  SELECT qty INTO _src_qty FROM obj_qtyi WHERE pid=_old_opid AND id=_oid;
+  RAISE DEBUG 'MOV obj_qtyi id=%  new_opid=%  _old_opid=%',_oid,_new_opid,_old_opid;
+  CASE
+    WHEN _qty < _src_qty  THEN -- div разделяем исходное количество
+      RAISE DEBUG 'DIV src.qty= (% - %) WHERE id=% AND pid=%',_src_qty, _qty,_oid,_old_opid;
+      UPDATE obj_qtyi SET qty= (_src_qty - _qty) WHERE pid = _old_opid AND id=_oid;      -- уменьшаем исходное количество
+      IF _dst_qty IS NOT NULL THEN -- если в месте назначения есть уже такой объект
+           RAISE DEBUG 'DIV dst.qty= (% + %) WHERE id=% AND pid=%',_dst_qty, _qty,_oid,_new_opid;
+           UPDATE obj_qtyi SET qty= (_dst_qty + _qty) WHERE pid = _new_opid AND id=_oid; -- добавляем (обновляем имеющееся количество)
+       ELSE -- если в месте назначения объекта нет
+         INSERT INTO obj_qtyi(id, cls_id, cls_kind, pid, qty)
+           SELECT id,cls_id,cls_kind,_new_opid,_qty FROM obj_name WHERE id=_oid;
+       END IF;
+    WHEN _qty = _src_qty THEN -- move перемещение
+        IF _dst_qty IS NOT NULL THEN -- если в месте назначения есть уже такой объект
+           UPDATE obj_qtyi SET qty= (_dst_qty + _qty) WHERE pid = _new_opid AND id=_oid;-- добавляем (обновляем имеющееся количество)
+           DELETE FROM obj_qtyi WHERE pid = _old_opid AND id=_oid;-- удаляем всё с старого местоположения
+        ELSE
+           UPDATE obj_qtyi SET pid = _new_opid WHERE pid = _old_opid AND id=_oid;
+        END IF;
+    ELSE
+        RAISE EXCEPTION 'Wrong qty or unknown error'; 
+  END CASE;
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE  COST 100;
+--------------------------------------------------------------------------------------------------
+
+DROP FUNCTION IF EXISTS    do_move_objqtyf( IN _oid  BIGINT, IN _old_opid BIGINT,  IN _new_opid BIGINT, IN _qty NUMERIC ) CASCADE;
+CREATE OR REPLACE FUNCTION do_move_objqtyf( IN _oid  BIGINT, IN _old_opid BIGINT,  IN _new_opid BIGINT, IN _qty NUMERIC )
+  RETURNS  VOID AS $BODY$
+DECLARE
+  _src_qty NUMERIC;
+  _dst_qty NUMERIC;
+BEGIN
+  SELECT qty INTO _dst_qty FROM obj_qtyf WHERE pid=_new_opid AND id=_oid;
+  SELECT qty INTO _src_qty FROM obj_qtyf WHERE pid=_old_opid AND id=_oid;
+  
+  CASE
+    WHEN _qty < _src_qty  THEN -- div разделяем исходное количество
+      RAISE DEBUG 'DIV src.qty= (% - %) WHERE id=% AND pid=%',_src_qty, _qty,_oid,_old_opid;
+      UPDATE obj_qtyf SET qty= (_src_qty - _qty) WHERE pid = _old_opid AND id=_oid;      -- уменьшаем исходное количество
+      IF _dst_qty IS NOT NULL THEN -- если в месте назначения есть уже такой объект
+           RAISE DEBUG 'DIV dst.qty= (% + %) WHERE id=% AND pid=%',_dst_qty, _qty,_oid,_new_opid;
+           UPDATE obj_qtyf SET qty= (_dst_qty + _qty) WHERE pid = _new_opid AND id=_oid; -- добавляем (обновляем имеющееся количество)
+       ELSE -- если в месте назначения объекта нет
+         INSERT INTO obj_qtyf(id, cls_id, cls_kind, pid, qty)
+           SELECT id,cls_id,cls_kind,_new_opid,_qty FROM obj_name WHERE id=_oid;
+       END IF;
+    WHEN _qty = _src_qty THEN -- move перемещение
+        IF _dst_qty IS NOT NULL THEN -- если в месте назначения есть уже такой объект
+           UPDATE obj_qtyf SET qty= (_dst_qty + _qty) WHERE pid = _new_opid AND id=_oid;-- добавляем (обновляем имеющееся количество)
+           DELETE FROM obj_qtyf WHERE pid = _old_opid AND id=_oid; -- удаляем всё с старого местоположения
+        ELSE
+           UPDATE obj_qtyf SET pid = _new_opid WHERE pid = _old_opid AND id=_oid;
+        END IF;
+    ELSE
+        RAISE EXCEPTION 'Wrong qty or unknown error'; 
+  END CASE;
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE  COST 100;
+--------------------------------------------------------------------------------------------------
+GRANT EXECUTE ON FUNCTION do_move_objnum(BIGINT,BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION do_move_objqtyi( IN _oid  BIGINT, IN _old_opid BIGINT,  IN _new_opid BIGINT, IN _qty NUMERIC ) TO "User";
+GRANT EXECUTE ON FUNCTION do_move_objqtyf( IN _oid  BIGINT, IN _old_opid BIGINT,  IN _new_opid BIGINT, IN _qty NUMERIC ) TO "User";
+--------------------------------------------------------------------------------------------------
+
+
 -------------------------------------------------------------------------------
 -- перемещение
 -------------------------------------------------------------------------------
@@ -553,33 +644,14 @@ BEGIN
 -- находим исходное количество и количество в месте назначения
   SELECT qty INTO _dst_qty FROM obj WHERE pid=_new_opid AND id=_oid;
   RAISE DEBUG ' _dst_qty=% ',_dst_qty;
-  CASE
-    WHEN _qty < _src_qty  THEN -- div разделяем исходное количество
-      RAISE DEBUG 'DIV src.qty= (% - %) WHERE id=% AND pid=%',_src_qty, _qty,_oid,_old_opid;
-      UPDATE obj SET qty= (_src_qty - _qty)
-                      WHERE pid = _old_opid AND id=_oid;      -- уменьшаем исходное количество
-      IF _dst_qty IS NOT NULL THEN                                     -- если в месте назначения есть уже такой объёкт
-           RAISE DEBUG 'DIV dst.qty= (% + %) WHERE id=% AND pid=%',_dst_qty, _qty,_oid,_new_opid;
-           UPDATE obj SET qty= (_dst_qty + _qty)
-                           WHERE pid = _new_opid AND id=_oid; -- добавляем (обновляем имеющееся количество)
-       ELSE                                                            -- если в месте назначения объекта нет
-         INSERT INTO obj(id, title, cls_id, move_logid, act_logid, prop,pid, qty)
-           SELECT id, title, cls_id, move_logid, act_logid, prop, _new_opid AS pid, _qty AS qty  
-             FROM obj_name WHERE id=_oid;
-       END IF;
-    WHEN _qty = _src_qty THEN -- move перемещение
-        IF _dst_qty IS NOT NULL THEN
-           UPDATE obj SET qty= (_dst_qty + _qty)
-                           WHERE pid = _new_opid AND id=_oid;
-           DELETE FROM obj 
-                           WHERE pid = _old_opid AND id=_oid;
-        ELSE
-           UPDATE obj SET pid = _new_opid
-                           WHERE pid = _old_opid AND id=_oid;
-        END IF;
-    ELSE
-        RAISE EXCEPTION 'Wrong qty or unknown error'; 
+
+  CASE _ckind
+   WHEN 1 THEN PERFORM do_move_objnum(_oid, _new_opid);
+   WHEN 2 THEN PERFORM do_move_objqtyi(_oid, _old_opid, _new_opid, _qty);
+   WHEN 3 THEN PERFORM do_move_objqtyf(_oid, _old_opid, _new_opid, _qty);
+   ELSE RAISE EXCEPTION 'Wrong kind or unknown error'; 
   END CASE;
+
   _move_logid := nextval('seq_log_id');
 -- обновляем ссылку на последнее действие в исходном и конечном объектах
   UPDATE obj_name SET move_logid=_move_logid  WHERE id=_oid;
@@ -598,8 +670,7 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 500;
 
-GRANT EXECUTE ON FUNCTION do_move( IN _oid  BIGINT, 
-                                    IN _old_opid BIGINT,  IN _new_opid BIGINT, IN _qty NUMERIC )  TO "User";
+GRANT EXECUTE ON FUNCTION do_move( IN _oid  BIGINT, IN _old_opid BIGINT,  IN _new_opid BIGINT, IN _qty NUMERIC )  TO "User";
 
 /*
 
@@ -644,72 +715,184 @@ PRINT '';
 --SELECT lock_reset(104,102,103);
 
 
+------------------------------------------------------------------------------------------------------------
+--
+------------------------------------------------------------------------------------------------------------
+DROP VIEW log;
+CREATE OR REPLACE VIEW log (
+ log_id
+ ,log_dt
+ ,log_user
+ ,act_id
+ ,act_title
+ ,act_color
+ ,mobj_id
+ ,mcls_id
+ ,mobj_title
+ ,mcls_title
+ ,qty
+ ,src_path
+ ,dst_path
+ ,prop
+ ,log_date
+ ,log_time
 
+ ,src_cid
+ ,src_oid
 
+ ,dst_cid
+ ,dst_oid
+)AS 
+SELECT log_move.id, log_move.timemark, log_move.username, 0::BIGINT AS act_id, 'Перемещение'::WHNAME AS act_title,'white'::VARCHAR(64) AS act_color 
+     ,log_move.obj_id 
+     ,mcls.id 
+     ,mobj.title
+     ,mcls.title
+     , qty
+     ,(SELECT path FROM tmppath_to_2id_info(log_move.src_path::TEXT,1)) 
+     ,(SELECT path FROM tmppath_to_2id_info(dst_path::TEXT,1)) 
+     , la.prop AS curr_prop
+     ,log_move.timemark::timestamptz::date  AS log_date
+     ,date_trunc('second' ,log_move.timemark)::timestamptz::time AS log_time
+     ,log_move.src_path[1][1]
+     ,log_move.src_path[1][2]
+     ,log_move.dst_path[1][1]
+     ,log_move.dst_path[1][2]
+  FROM log_move
+  LEFT JOIN obj_name mobj ON mobj.id=obj_id
+  LEFT JOIN cls mcls ON  mcls.id=mobj.cls_id
 
+  LEFT JOIN log_act la ON la.id=log_move.act_logid
+UNION ALL
+SELECT log_act.id, timemark, username, act_id, act.title , act.color
+     , obj_id
+     , mcls.id 
+     ,mobj.title
+     ,mcls.title
+     , 1::NUMERIC AS qty
+     , (SELECT path FROM tmppath_to_2id_info(src_path::TEXT,1)) 
+     , NULL::TEXT
+     , log_act.prop
+     ,log_act.timemark::timestamptz::date  AS log_date
+     ,date_trunc('second' ,log_act.timemark)::timestamptz::time AS log_time
+     ,log_act.src_path[1][1]
+     ,log_act.src_path[1][2]
+     ,NULL::BIGINT
+     ,NULL::BIGINT
+  FROM log_act
+  LEFT JOIN act ON act.id=act_id
+  LEFT JOIN obj_name mobj ON mobj.id=obj_id
+  LEFT JOIN cls mcls ON mcls.id=mobj.cls_id
 
-/**
-    SELECT *
-        FROM moverule_lockup 
-        WHERE
-                mov_cls_id = 103 -- NOT NULL
-            AND (mov_obj_pid IS NULL OR mov_obj_pid = 1)
-            AND (mov_obj_id  IS NULL OR mov_obj_id = 104)
+;
+------------------------------------------------------------------------------------------------------------
+--
+------------------------------------------------------------------------------------------------------------
+GRANT SELECT        ON log  TO "Guest";
+GRANT DELETE        ON log  TO "User";
+------------------------------------------------------------------------------------------------------------
+--
+------------------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS ftg_del_log() CASCADE;
+CREATE FUNCTION ftg_del_log() RETURNS TRIGGER AS $$
+BEGIN
+  DELETE FROM log_move WHERE id = OLD.log_id;
+  DELETE FROM log_act WHERE id = OLD.log_id;
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER tr_bd_log INSTEAD OF DELETE ON log FOR EACH ROW EXECUTE PROCEDURE ftg_del_log();
+GRANT EXECUTE ON FUNCTION ftg_del_log() TO "User";
+------------------------------------------------------------------------------------------------------------
+--
+------------------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS ftr_bd_log_act() CASCADE;
+CREATE OR REPLACE FUNCTION ftr_bd_log_act()
+  RETURNS trigger AS
+$BODY$
+DECLARE
+  prev_act_log_id BIGINT;
+  prev_prop     JSONB;
+BEGIN
+  IF OLD.timemark < CURRENT_TIMESTAMP - '3 00:00:00'::interval THEN
+    RAISE EXCEPTION ' %: can`t delete time is up log_rec=% ',TG_NAME, OLD;
+  END IF;
+  IF OLD.username <> CURRENT_USER THEN
+    RAISE EXCEPTION ' %: can`t delete wrong user log_rec=% ',TG_NAME, OLD;
+  END IF;
+  PERFORM FROM log WHERE mobj_id=OLD.obj_id AND log_dt > OLD.timemark;
+  IF FOUND THEN
+    RAISE EXCEPTION ' %: can`t delete log was updated log_rec=%',TG_NAME, OLD;
+  END IF;
 
-            AND dst_cls_id = 101 -- NOT NULL
-            AND (dst_obj_id IS NULL OR dst_obj_id = 100 )
+  prev_act_log_id:=NULL;
+  prev_prop := NULL;
 
+  SELECT id,prop INTO prev_act_log_id, prev_prop FROM log_act 
+    WHERE obj_id=OLD.obj_id AND timemark < OLD.timemark
+    ORDER BY timemark DESC LIMIT 1;
 
+  UPDATE obj_name SET act_logid = prev_act_log_id, prop = prev_prop
+    WHERE id=OLD.obj_id;
+  
+RETURN OLD;
+END;
+$BODY$
+LANGUAGE plpgsql VOLATILE  COST 100;
+CREATE TRIGGER tr_bd_log_act BEFORE DELETE ON log_act FOR EACH ROW EXECUTE PROCEDURE ftr_bd_log_act();
+GRANT EXECUTE ON FUNCTION ftr_bu_acls() TO "User";
+------------------------------------------------------------------------------------------------------------
+--
+------------------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS ftr_bd_log_move() CASCADE;
+CREATE OR REPLACE FUNCTION ftr_bd_log_move()
+  RETURNS trigger AS
+$BODY$
+DECLARE
+  _qty NUMERIC;
+  _old_opid BIGINT;
+  _new_opid BIGINT;
+  _oid BIGINT;
+  _prev_mov_log_id BIGINT;
+  _ckind SMALLINT;
+BEGIN
+  IF OLD.timemark < CURRENT_TIMESTAMP - '3 00:00:00'::interval THEN
+    RAISE EXCEPTION ' %: can`t delete time is up log_rec=% ',TG_NAME, OLD;
+  END IF;
+  IF OLD.username <> CURRENT_USER THEN
+    RAISE EXCEPTION ' %: can`t delete wrong user log_rec=% ',TG_NAME, OLD;
+  END IF;
+  PERFORM FROM log WHERE mobj_id=OLD.obj_id AND log_dt > OLD.timemark;
+  IF FOUND THEN
+    RAISE EXCEPTION ' %: can`t delete log was updated log_rec=%',TG_NAME, OLD;
+  END IF;
 
+  _oid:=OLD.obj_id;
+  _old_opid:=OLD.dst_path[1][2];
+  _new_opid:=OLD.src_path[1][2];
+  _qty := OLD.qty;
 
-    SELECT *
-        FROM moverule_lockup 
-        WHERE
-                mov_cls_id = 104 -- NOT NULL
-            AND (mov_obj_pid IS NULL OR mov_obj_pid = 1)
-            AND (mov_obj_id  IS NULL OR mov_obj_id = 102)
+  SELECT cls_kind INTO _ckind FROM obj_name WHERE id=_oid;
 
-            AND dst_cls_id = 105 -- NOT NULL
-            AND (dst_obj_id IS NULL OR dst_obj_id = 103 );
+  CASE _ckind
+   WHEN 1 THEN PERFORM do_move_objnum(_oid, _new_opid);
+   WHEN 2 THEN PERFORM do_move_objqtyi(_oid, _old_opid, _new_opid, _qty);
+   WHEN 3 THEN PERFORM do_move_objqtyf(_oid, _old_opid, _new_opid, _qty);
+   ELSE RAISE EXCEPTION 'Wrong kind or unknown error'; 
+  END CASE;
 
-SELECT * FROM w_obj WHERE cls_id=103 AND obj_pid=1 AND obj_id=104;
-*/
+  SELECT id INTO _prev_mov_log_id FROM log_move 
+    WHERE obj_id=_oid AND timemark < OLD.timemark
+    ORDER BY timemark DESC LIMIT 1;
 
+  UPDATE obj_name SET move_logid=_prev_mov_log_id WHERE id=_oid;
 
-
-/*
-SELECT dst_obj_id, dst_cls_id, dst_obj_label ,dst_obj_pid FROM 
-(
-        SELECT 
-        dst_obj_id, dst_cls_id, dst_obj_label ,dst_obj_pid,sum(perm_access_disabled)
-            FROM moverule_lockup WHERE
-                mov_cls_id = 104 -- NOT NULL
-            AND mov_obj_pid = 1
-            AND mov_obj_id = 102
-            GROUP BY dst_obj_id, dst_cls_id, dst_obj_label ,dst_obj_pid
-            )t
-            WHERE sum=0
-
-
-
-    SELECT (SELECT fn_oidarray_to_path(fget_get_oid_path(dst_obj_id))) AS dst_path, *
-        FROM moverule_lockup 
-        WHERE
-                mov_cls_id = 104 -- NOT NULL
-            AND mov_obj_pid = 1
-            AND mov_obj_id = 102
-           
-            AND mov_obj_pid <> dst_obj_id
-            
-
-            AND dst_cls_id = 105 -- NOT NULL
-            AND (dst_obj_id IS NULL OR dst_obj_id = 103 );
-
-
-*/
-
-
-
+RETURN OLD;
+END;
+$BODY$
+LANGUAGE plpgsql VOLATILE  COST 100;
+CREATE TRIGGER tr_bd_log_move BEFORE DELETE ON log_move FOR EACH ROW EXECUTE PROCEDURE ftr_bd_log_move();
+GRANT EXECUTE ON FUNCTION ftr_bd_log_move() TO "User";
 
 
 

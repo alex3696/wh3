@@ -165,29 +165,9 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 
 	};
 
-	std::function<void(wxCommandEvent&)> fn_act
-		= [this](wxCommandEvent&)
-	{
-		rec::PathItem data = mObj->GetData();
-		try
-		{
-			auto subj = std::make_shared<dlg_act::model::Obj >();
-			subj->SetData(data, true);
-			dlg_act::view::Frame dlg;
-			dlg.SetModel(subj);
-			dlg.ShowModal();
-			mObj->Load();
-			mLogModel->Load();
-		}
-		catch (...)
-		{
-			// Transaction already rollbacked, dialog was destroyed, so nothinh to do
-			wxLogError("Бла, бла - вобщем кто-то уже юзает этот объект");
-		}
-	};
 
 	mActCtrl.SetCmdFunction(whID_MOVE, fn_move);
-	mActCtrl.SetCmdFunction(whID_ACTION, fn_act);
+	
 	mActToolBar->SetCtrl(mActCtrl);
 }
 //-----------------------------------------------------------------------------
@@ -200,6 +180,35 @@ void CtrlPnl::SetObject(const wxString& cls_id, const wxString& obj_id, const wx
 {
 	mObj->SetObject(cls_id, obj_id, obj_pid);
 	mObj->Load();
+
+
+	std::function<void(wxCommandEvent&)> fn_act;
+	if (mObj->GetData().mCls.IsNumberic())
+	{
+		fn_act
+			= [this](wxCommandEvent&)
+		{
+			rec::PathItem data = mObj->GetData();
+			try
+			{
+				auto subj = std::make_shared<dlg_act::model::Obj >();
+				subj->SetData(data, true);
+				dlg_act::view::Frame dlg;
+				dlg.SetModel(subj);
+				dlg.ShowModal();
+				mObj->Load();
+				mLogModel->Load();
+			}
+			catch (...)
+			{
+				// Transaction already rollbacked, dialog was destroyed, so nothinh to do
+				wxLogError("Бла, бла - вобщем кто-то уже юзает этот объект");
+			}
+		};
+	}
+		
+	mActCtrl.SetCmdFunction(whID_ACTION, fn_act);
+	mActToolBar->SetCtrl(mActCtrl);
 
 	//mAuiMgr.DetachPane(mLogToolBar);
 
