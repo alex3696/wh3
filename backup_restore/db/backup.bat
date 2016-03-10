@@ -23,6 +23,16 @@ SET LOGFILE=%PGDATABASE% %DATETIME%.log
 SET DUMPPATH="Backup\%DUMPFILE%"
 SET LOGPATH="Backup\%LOGFILE%"
 
+SET ROLEDUMPFILE=%PGDATABASE% %DATETIME% roles.sql
+SET ROLEPATH="Backup\%ROLEDUMPFILE%"
+
+SET DUMPALLFILE=%PGDATABASE% %DATETIME% all.sql
+SET DUMPALLPATH="Backup\%DUMPALLFILE%"
+
+
+call "%PGBIN%\pg_dumpall" --roles-only -f %ROLEPATH% 2>%LOGPATH%
+call "%PGBIN%\pg_dumpall" -v -f %DUMPALLPATH% 2>%LOGPATH%
+
 REM Создание резервной копии
 IF NOT EXIST Backup MD Backup
 CALL "%PGBIN%\pg_dump.exe" --format=custom --verbose --file=%DUMPPATH% 2>%LOGPATH%
