@@ -55,8 +55,6 @@ void VTableToolBar::BuildToolBar()
 	wxAcceleratorTable accel(7, entries);
 	SetAcceleratorTable(accel);
 
-	namespace ph = std::placeholders;
-
 	ClearTools();
 	
 	if (mEnableFilter)

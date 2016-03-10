@@ -404,7 +404,7 @@ GRANT EXECUTE ON FUNCTION get_path_obj(_oid BIGINT,_opid BIGINT) TO "User";
 GRANT EXECUTE ON FUNCTION fn_array1_to_table(IN anyarray) TO "Guest";
 GRANT EXECUTE ON FUNCTION obj_arr_id_to_obj_info(IN anyarray) TO "User";
 GRANT EXECUTE ON FUNCTION fn_array2_to_table(IN anyarray) TO "Guest";
-GRANT EXECUTE ON FUNCTION tmppath_to_2id_info(IN TEXT) TO "Guest";
+GRANT EXECUTE ON FUNCTION tmppath_to_2id_info(IN TEXT,BIGINT) TO "Guest";
 
 
 ---------------------------------------------------------------------------------------------------

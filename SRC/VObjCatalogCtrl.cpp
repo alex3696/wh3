@@ -315,111 +315,11 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 	if (!mCatalogModel)
 		return;
 
-	// если обновление, то выделеный элемент будет одинаковым до и после обновления
-	// иначе выделяется 0-элемент
-	struct ClsIdx
-	{
-		ClsIdx() :mPos(0){}
-		ClsIdx(const rec::Cls& cls, unsigned int pos)
-			:mCls(cls), mPos(pos){}
-		rec::Cls		mCls;
-		unsigned int	mPos;
-	};
-
-	struct ObjIdx
-	{
-		ObjIdx() :mPos(0){}
-		ObjIdx(const rec::ObjTitle& obj, unsigned int pos)
-			:mObj(obj), mPos(pos){}
-
-		rec::ObjTitle	mObj;
-		unsigned int	mPos;
-	};
-
-	std::unique_ptr< ClsIdx >	ucls;
-	std::unique_ptr< ObjIdx >	uobj;
-
-	using namespace object_catalog;
-	
-	if (selectedItem.IsOk())
-	{
-		auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
-		auto objItem = dynamic_cast<object_catalog::MObjItem*> (modelInterface);
-		if (objItem)
-		{
-			auto obj_array = objItem->GetParent();
-			unsigned int pos = 0;
-			if (obj_array->GetItemPosition(objItem, pos))
-			{
-				const rec::ObjTitle& objData = objItem->GetData();;
-				uobj.reset(new ObjIdx(objData, pos));
-
-				auto typeItem = dynamic_cast<MTypeItem*>(obj_array->GetParent());
-				auto typeArray = typeItem->GetParent();
-				if (typeArray->GetItemPosition(typeItem, pos))
-				{
-					const rec::Cls& clsData = typeItem->GetData();;
-					ucls.reset(new ClsIdx(clsData, pos));
-				}
-			}
-		}
-		else
-		{
-			unsigned int pos = 0;
-			auto typeItem = dynamic_cast<MTypeItem*> (modelInterface);
-			auto typeArray = typeItem->GetParent();
-			if (typeArray->GetItemPosition(typeItem, pos))
-			{
-				const rec::Cls& clsData = typeItem->GetData();;
-				ucls.reset(new ClsIdx(clsData, pos));
-			}
-
-		}
-	}
-
 	mCatalogModel->Load();
 	mTableView->ExpandAll();
 
 	selectedItem = wxDataViewItem(nullptr);
-
-	if (ucls && "OnActivated" != evt.GetString() )
-	{
-		if (mCatalogModel->mTypeArray->GetChildQty() > ucls->mPos)
-		{
-			auto selCls = (mCatalogModel->mTypeArray->at(ucls->mPos));
-			if (uobj)
-			{
-				if (selCls && selCls->mObjArray->GetChildQty()>uobj->mPos)
-				{
-					auto selObj = selCls->mObjArray->at(uobj->mPos);
-					if (selObj)
-						selectedItem = wxDataViewItem(selObj.get());
-				}
-			}
-			else
-			{
-				if (selCls)
-					selectedItem = wxDataViewItem(selCls.get());
-			}
-		}
-	}
-	else
-	{
-		auto qty = mCatalogModel->mTypeArray->GetChildQty();
-		if (qty)
-		{
-			auto firstChild = mCatalogModel->mTypeArray->at(0);
-			selectedItem = wxDataViewItem(firstChild.get());
-		}
-	}
-
-	
-	if (selectedItem.IsOk())
-	{
-		mTableView->Select(selectedItem);
-		//mTableView->SetCurrentItem(selectedItem);
-	}
-
+	mTableView->Select(selectedItem);
 	UpdateToolsStates();
 }
 //-----------------------------------------------------------------------------

@@ -213,7 +213,6 @@ void FilterArrayEditor::OnFieldBeforeRemove(const IModel& vec
 void FilterArrayEditor::OnFieldInfoChange(const IModel& newVec
 	, const std::vector<unsigned int>& itemVec)
 {
-	
 	for (const auto& pos : itemVec)
 	{
 		wxPGProperty* old_pgp = nullptr;
@@ -228,10 +227,14 @@ void FilterArrayEditor::OnFieldInfoChange(const IModel& newVec
 			auto edit_field = std::dynamic_pointer_cast<ITableField>(inew_field);
 			if (edit_field)
 			{
+				const auto field_data = edit_field->GetData();
 				wxPGProperty* new_pgp = MakeProperty(edit_field->GetData());
 				if (new_pgp)
 				{
-					new_pgp->SetValue(old_pgp->GetValue());
+					wxString val;
+					if (field_data.mFilter.size())
+						val = field_data.mFilter.at(0).mVal;
+					new_pgp->SetValueFromString(val);
 					mPropGrid->ReplaceProperty(old_pgp, new_pgp);
 				}//if (new_pgp)
 			}

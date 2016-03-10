@@ -57,8 +57,8 @@ void VTable::SetModel(std::shared_ptr<ITable> model)
 				
 		OnResize(wxSizeEvent());
 		
-		if (0 == mModel->size())
-			mModel->Load();
+		//if (0 == mModel->size())
+		//	mModel->Load();
 		
 		mDataViewModel->Reset(mModel->GetChildQty());
 		OnChangeVecState(mModel->GetState());

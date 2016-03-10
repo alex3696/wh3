@@ -54,6 +54,7 @@ public:
 
 	DEF_INIT_ICO24(obj);
 	DEF_INIT_ICO24(move);
+	DEF_INIT_ICO24(movehere);
 
 	DEF_INIT_ICO24(add_obj_tab);
 	

@@ -9,6 +9,9 @@
 #include "FilterArrayEditor.h"
 #include "VTableCtrl.h"
 
+#include "DetailActToolBar.h"
+#include "DetailActCtrl.h"
+
 namespace wh{
 namespace detail{
 namespace view{
@@ -24,12 +27,17 @@ class CtrlPnl
 	std::shared_ptr<model::Obj> mObj = std::make_shared<model::Obj>();
 
 	wxAuiManager		mAuiMgr;
-	
+
+	wxPropertyGrid*		mPropGrid;
+
+	std::shared_ptr<MLogTable> mLogModel;
+	VTable*				mLogTable;
 	FilterArrayEditor*	mLogTableFilter;
 	VTableCtrl			mLogTableCtrl;
-	VTableToolBar*		mToolBar;
-	
-	wxPropertyGrid*		mPropGrid;
+	VTableToolBar*		mLogToolBar;
+
+	DetailActCtrl		mActCtrl;
+	DetailActToolBar*	mActToolBar;
 
 
 public:

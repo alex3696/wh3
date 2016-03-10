@@ -7,6 +7,47 @@
 #include "wxComboBtn.h"
 #include "favorites.h"
 
+//----------------------------------------------------------------------------
+#define whID_MOVE				5300
+#define whID_MOVE_HERE			5301
+#define whID_ACTION				5302
+//----------------------------------------------------------------------------
+#define wxID_NEW_FOLDER			1000
+#define wxID_NEW_TYPE			1001
+#define wxID_NEW_OBJECT			1002
+#define wxID_ADD_FAVORITES		1003
+// ----------------------------------------------------------------------------
+#define wxID_MKOBJ				1004
+#define wxID_MKCLS				1005
+// ----------------------------------------------------------------------------
+#define whID_CATALOG_SELECT		1100
+#define whID_CATALOG_PATH		1101
+#define whID_CATALOG_TYPE		1102
+//----------------------------------------------------------------------------
+enum ModelState
+{
+	msNull = 0,
+	msCreated,	//NEW созданная(новая) модель
+	msExist,	//модель, данные которой синхронизированы с хранилищем
+	msUpdated,	//измененная модель
+	msDeleted,	//удаленная модель
+
+};
+//----------------------------------------------------------------------------
+/// Базовые группы
+enum BaseGroup
+{
+	bgNull = 0,
+	bgGuest,
+	bgUser,
+	bgObjDesigner,
+	bgTypeDesigner,
+	bgAdmin
+};
+//----------------------------------------------------------------------------
+
+
+
 
 class MainFrame;
 
@@ -174,6 +215,24 @@ struct SafeCallEvent
 //-----------------------------------------------------------------------------
 struct SafeCallCommandEvent
 {
+	void operator()(const std::function<void(wxCommandEvent&)>& method, wxCommandEvent& evt)const
+	{
+		try
+		{
+			if (method)
+				method(evt);
+		}//try
+		catch (boost::exception & e)
+		{
+			whDataMgr::GetDB().RollBack();
+			wxLogWarning(wxString(diagnostic_information(e)));
+		}///catch(boost::exception & e)
+		catch (...)
+		{
+			wxLogWarning(wxString("Unhandled exception"));
+		}//catch(...)	
+	}
+	
 	void operator()(std::function<void(wxCommandEvent&)>& method, wxCommandEvent& evt)const
 	{
 		try

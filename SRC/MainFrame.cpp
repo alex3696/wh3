@@ -248,7 +248,7 @@ void MainFrame::ShowDevToolBar(bool show)
 			auto model = std::make_shared<wh::MLogTable>();
 			auto wnd = new wh::VTablePanel(m_Notebook);
 			wnd->SetRowHeight(32);
-			wnd->SetEnableSave(false);
+			//wnd->SetEnableSave(false);
 			wnd->SetEnableInsert(false);
 			wnd->SetEnableChange(false);
 			m_Notebook->AddPage(wnd, "История", true, ResMgr::GetInstance()->m_ico_history24);

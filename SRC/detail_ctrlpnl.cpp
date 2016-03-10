@@ -2,6 +2,8 @@
 #include "detail_ctrlpnl.h"
 #include "PGClsPid.h"
 #include "MainFrame.h"
+#include "dlg_move_view_Frame.h"
+#include "dlg_act_view_Frame.h"
 
 
 using namespace wh;
@@ -18,24 +20,31 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 {
 	mAuiMgr.SetManagedWindow(this);
 
-	mToolBar = new VTableToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+	// Создаём тулбар действий
+	mActToolBar = new DetailActToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+		wxAUI_TB_PLAIN_BACKGROUND | wxAUI_TB_TEXT);;
+	mActToolBar->Build();
+	mActToolBar->Realize();
+	mAuiMgr.AddPane(mActToolBar, wxAuiPaneInfo().
+		Name("ActToolBarPane")
+		.ToolbarPane().Top().Floatable(false)
+		.PaneBorder(false)
+		);
+
+	// Создаём тулбар истории
+	mLogToolBar = new VTableToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
 		wxAUI_TB_PLAIN_BACKGROUND | wxAUI_TB_TEXT);
-	mToolBar->SetEnableSave(false);
-	mToolBar->SetEnableInsert(false);
-	mToolBar->SetEnableChange(false);
-
-	//mToolBar->AddTool(wxID_REFRESH, "Обновить", m_ResMgr->m_ico_refresh24);
-	//Bind(wxEVT_COMMAND_MENU_SELECTED, &CtrlPnl::OnCmdReload, this, wxID_REFRESH);
-	
-	mToolBar->Realize();
-
-	mAuiMgr.AddPane(mToolBar, wxAuiPaneInfo().
+	mLogToolBar->SetEnableInsert(false);
+	mLogToolBar->SetEnableChange(false);
+	mLogToolBar->BuildToolBar();
+	mLogToolBar->Realize();
+	mAuiMgr.AddPane(mLogToolBar, wxAuiPaneInfo().
 		Name("ToolBarPane")
 		.ToolbarPane().Top().Floatable(false)
 		.PaneBorder(false)
 		);
-	
-	
+
+	// Создаём панель свойств
 	mPropGrid = new wxPropertyGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxPG_DEFAULT_STYLE | wxPG_SPLITTER_AUTO_CENTER);
 	mAuiMgr.AddPane(mPropGrid, wxAuiPaneInfo().
 		Name("ClsPropGrid").Caption("Свойства")
@@ -51,6 +60,7 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 		//.Position(1)
 		);
 
+	// Создаём панель фильтров истории
 	mLogTableFilter = new FilterArrayEditor(this);
 	mAuiMgr.AddPane(mLogTableFilter, wxAuiPaneInfo().
 		Name("FilterPane").Caption("Фильтр")
@@ -61,6 +71,16 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 		.PaneBorder(false)
 		);
 
+	// Создаём панель таблицы истории
+	mLogTable = new wh::VTable(this);
+	mLogTable->SetRowHeight(32);
+	mAuiMgr.AddPane(mLogTable, wxAuiPaneInfo().
+		Name("LogPane").Caption("LogPane").
+		CenterPane().Layer(1).Position(1)
+		.CloseButton(true).MaximizeButton(true).PaneBorder(false));
+	mAuiMgr.Update();
+
+	// прикрепляем назначаем действия при изменении свойств объёкта
 	auto pg_cls = mPropGrid->Append(new wxPropertyCategory("Свойства класса"));
 	mPropGrid->AppendIn(pg_cls, new wxClsProperty("Основные", "base_cls_prop"));
 	mPropGrid->AppendIn(pg_cls, new wxPropertyCategory("Пользовательские", "user_cls_prop"));
@@ -71,8 +91,6 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 
 	mPropGrid->SetPropertyReadOnly(pg_cls, true);
 	mPropGrid->SetPropertyReadOnly(pg_obj, true);
-
-	mAuiMgr.Update();
 
 	namespace sph = std::placeholders;
 
@@ -95,13 +113,14 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 		std::bind(&CtrlPnl::OnObjPropChange, this, sph::_1, sph::_2));
 
 
-	//Bind(wxEVT_COMMAND_MENU_SELECTED, &CtrlPnl::OnCmdReload, this, wxID_REFRESH);
+	mLogModel = std::make_shared<wh::MLogTable>();
+
+
 	mLogTableCtrl.fnOnCmdLoad = [this](wxCommandEvent& evt)
 	{
-		this->OnCmdReload(evt);
-		mLogTableCtrl.OnCmdLoad(evt);
+		mObj->Load();
+		mLogModel->Load();//mLogTableCtrl.OnCmdLoad(evt);
 	};
-
 	mLogTableCtrl.fnOnCmdFilter = [this](wxCommandEvent& evt)
 	{
 		wxAuiPaneInfo& pi = mAuiMgr.GetPane("FilterPane");
@@ -110,13 +129,66 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 			bool visible = !pi.IsShown();
 			pi.Show(visible);
 
-			wxAuiToolBarItem* tool = mToolBar->FindTool(wxID_FIND);
+			wxAuiToolBarItem* tool = mLogToolBar->FindTool(wxID_FIND);
 			if (tool)
 				tool->SetState(visible ? wxAUI_BUTTON_STATE_CHECKED : wxAUI_BUTTON_STATE_NORMAL);
 
 			mAuiMgr.Update();
 		}//if(!pi.IsOk())	
 	};
+	
+	mLogTableCtrl.SetTableViewModel(mLogModel, mLogTable);
+	mLogTableFilter->SetModel(mLogModel);
+	mLogToolBar->SetModel(mLogModel);
+	mLogTable->SetModel(mLogModel);
+	
+
+	std::function<void(wxCommandEvent&)> fn_move
+		= [this](wxCommandEvent&)
+	{
+		rec::PathItem data = mObj->GetData();
+		try
+		{
+			auto subj = std::make_shared<dlg_move::model::MovableObj>();
+			subj->SetData(data, true);
+			dlg_move::view::Frame dlg;
+			dlg.SetModel(subj);
+			dlg.ShowModal();
+			mObj->Load();
+			mLogModel->Load();
+		}
+		catch (...)
+		{
+			// Transaction already rollbacked, dialog was destroyed, so nothinh to do
+			wxLogError("Бла, бла - вобщем кто-то уже юзает этот объект");
+		}
+
+	};
+
+	std::function<void(wxCommandEvent&)> fn_act
+		= [this](wxCommandEvent&)
+	{
+		rec::PathItem data = mObj->GetData();
+		try
+		{
+			auto subj = std::make_shared<dlg_act::model::Obj >();
+			subj->SetData(data, true);
+			dlg_act::view::Frame dlg;
+			dlg.SetModel(subj);
+			dlg.ShowModal();
+			mObj->Load();
+			mLogModel->Load();
+		}
+		catch (...)
+		{
+			// Transaction already rollbacked, dialog was destroyed, so nothinh to do
+			wxLogError("Бла, бла - вобщем кто-то уже юзает этот объект");
+		}
+	};
+
+	mActCtrl.SetCmdFunction(whID_MOVE, fn_move);
+	mActCtrl.SetCmdFunction(whID_ACTION, fn_act);
+	mActToolBar->SetCtrl(mActCtrl);
 }
 //-----------------------------------------------------------------------------
 CtrlPnl::~CtrlPnl()
@@ -126,49 +198,36 @@ CtrlPnl::~CtrlPnl()
 //-----------------------------------------------------------------------------
 void CtrlPnl::SetObject(const wxString& cls_id, const wxString& obj_id, const wxString& obj_pid)
 {
-	wxBusyCursor			busyCursor;
-	wxWindowUpdateLocker	wndLockUpdater(this);
-	
 	mObj->SetObject(cls_id, obj_id, obj_pid);
-	OnCmdReload(wxCommandEvent());
+	mObj->Load();
 
+	//mAuiMgr.DetachPane(mLogToolBar);
 
-	mAuiMgr.DetachPane(mToolBar);
-
-	auto model = std::make_shared<wh::MLogTable>();
-	auto data_cls_id = model->mFieldVec->at(12)->GetData();
-	auto data_obj_id = model->mFieldVec->at(13)->GetData();
+	//auto model = std::make_shared<wh::MLogTable>();
+	auto data_cls_id = mLogModel->mFieldVec->at(12)->GetData();
+	auto data_obj_id = mLogModel->mFieldVec->at(13)->GetData();
 	data_cls_id.mFilter.emplace_back(cls_id);
 	data_obj_id.mFilter.emplace_back(obj_id);
-	model->mFieldVec->at(12)->SetData(data_cls_id);
-	model->mFieldVec->at(13)->SetData(data_obj_id);
+	mLogModel->mFieldVec->at(12)->SetData(data_cls_id);
+	mLogModel->mFieldVec->at(13)->SetData(data_obj_id);
 
-	auto vtable = new wh::VTable(this);	
-	vtable->SetRowHeight(32);
+	mLogModel->Load();
 
-
-	mLogTableCtrl.SetTableViewModel(model, vtable);
-	
-	mToolBar->SetModel(model);
-	mLogTableFilter->SetModel(std::dynamic_pointer_cast<ITable>(model));
-
-	mAuiMgr.AddPane(mToolBar, wxAuiPaneInfo().
+	/*
+	mAuiMgr.AddPane(mLogToolBar, wxAuiPaneInfo().
 		Name("ToolBarPane")
 		.ToolbarPane().Top().Floatable(false)
 		.PaneBorder(false)
 		);
 	
-	mAuiMgr.AddPane(vtable, wxAuiPaneInfo().
-		Name("LogPane").Caption("LogPane").
-		CenterPane().Layer(1).Position(1)
-		.CloseButton(true).MaximizeButton(true).PaneBorder(false));
 	mAuiMgr.Update();
-	vtable->SetModel(model);
+	*/
+	
 }
 //-----------------------------------------------------------------------------
 void CtrlPnl::OnCmdReload(wxCommandEvent& evt)
 {
-	mObj->Load();
+	
 }
 //-----------------------------------------------------------------------------
 void CtrlPnl::OnChangeMainDetail(const IModel* model, const wh::detail::model::Obj::T_Data* data)

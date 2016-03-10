@@ -142,6 +142,8 @@
     <ClCompile Include="..\..\SRC\DClsEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsMoveEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsPropEditor.cpp" />
+    <ClCompile Include="..\..\SRC\DetailActCtrl.cpp" />
+    <ClCompile Include="..\..\SRC\DetailActToolBar.cpp" />
     <ClCompile Include="..\..\SRC\detail_ctrlpnl.cpp" />
     <ClCompile Include="..\..\SRC\detail_model_ClsPropArray.cpp" />
     <ClCompile Include="..\..\SRC\detail_model_Obj.cpp" />
@@ -251,6 +253,8 @@
     <ClInclude Include="..\..\INCLUDE\DClsEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DClsMoveEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DClsPropEditor.h" />
+    <ClInclude Include="..\..\INCLUDE\DetailActCtrl.h" />
+    <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h" />
     <ClInclude Include="..\..\INCLUDE\detail_ctrlpnl.h" />
     <ClInclude Include="..\..\INCLUDE\detail_model.h" />
     <ClInclude Include="..\..\INCLUDE\DGroupEditor.h" />

@@ -387,6 +387,12 @@
     <ClCompile Include="..\..\SRC\MLogProp.cpp">
       <Filter>История</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\SRC\DetailActToolBar.cpp">
+      <Filter>Detail</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\DetailActCtrl.cpp">
+      <Filter>Detail</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\INCLUDE\_pch.h">
@@ -694,6 +700,12 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MLogProp.h">
       <Filter>История</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h">
+      <Filter>Detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DetailActCtrl.h">
+      <Filter>Detail</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

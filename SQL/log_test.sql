@@ -1,4 +1,11 @@
-﻿--SET enable_seqscan = ON;
+﻿
+SET default_transaction_isolation =serializable;
+SET client_min_messages='debug1';
+SHOW client_min_messages;
+
+
+
+--SET enable_seqscan = ON;
 --SET enable_seqscan = OFF;
 /*
 DROP VIEW IF EXISTS log;
@@ -126,9 +133,138 @@ SELECT log_act.id, timemark, username, act_id, act.title , act.color
 
 ;
 
+GRANT SELECT        ON log  TO "Guest";
+GRANT DELETE        ON log  TO "User";
+
+DROP FUNCTION IF EXISTS ftg_del_log() CASCADE;
+CREATE FUNCTION ftg_del_log() RETURNS TRIGGER AS $$
+BEGIN
+  DELETE FROM log_move WHERE id = OLD.log_id;
+  DELETE FROM log_act WHERE id = OLD.log_id;
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER tr_bd_log INSTEAD OF DELETE ON log FOR EACH ROW EXECUTE PROCEDURE ftg_del_log();
+GRANT EXECUTE ON FUNCTION ftg_del_log() TO "User";
 
 
 
+DROP FUNCTION IF EXISTS ftr_bd_log_act() CASCADE;
+CREATE OR REPLACE FUNCTION ftr_bd_log_act()
+  RETURNS trigger AS
+$BODY$
+DECLARE
+  prev_act_log_id BIGINT;
+  prev_prop     JSONB;
+BEGIN
+  IF OLD.timemark < CURRENT_TIMESTAMP - '3 00:00:00'::interval THEN
+    RAISE EXCEPTION ' %: can`t delete time is up log_rec=% ',TG_NAME, OLD;
+  END IF;
+  IF OLD.username <> CURRENT_USER THEN
+    RAISE EXCEPTION ' %: can`t delete wrong user log_rec=% ',TG_NAME, OLD;
+  END IF;
+  PERFORM FROM log WHERE mobj_id=OLD.obj_id AND log_dt > OLD.timemark;
+  IF FOUND THEN
+    RAISE EXCEPTION ' %: can`t delete log was updated log_rec=%',TG_NAME, OLD;
+  END IF;
+
+  prev_act_log_id:=NULL;
+  prev_prop := NULL;
+
+  SELECT id,prop INTO prev_act_log_id, prev_prop FROM log_act 
+    WHERE obj_id=OLD.obj_id AND timemark < OLD.timemark
+    ORDER BY timemark DESC LIMIT 1;
+
+  UPDATE obj_name SET act_logid = prev_act_log_id, prop = prev_prop
+    WHERE id=OLD.obj_id;
+  
+RETURN OLD;
+END;
+$BODY$
+LANGUAGE plpgsql VOLATILE  COST 100;
+CREATE TRIGGER tr_bd_log_act BEFORE DELETE ON log_act FOR EACH ROW EXECUTE PROCEDURE ftr_bd_log_act();
+GRANT EXECUTE ON FUNCTION ftr_bu_acls() TO "User";
+
+
+
+DROP FUNCTION IF EXISTS ftr_bd_log_move() CASCADE;
+CREATE OR REPLACE FUNCTION ftr_bd_log_move()
+  RETURNS trigger AS
+$BODY$
+DECLARE
+  _qty NUMERIC;
+  _src_qty NUMERIC;
+  _dst_qty NUMERIC;
+  _old_opid BIGINT;
+  _new_opid BIGINT;
+  _oid BIGINT;
+  _prev_mov_log_id BIGINT;
+BEGIN
+  IF OLD.timemark < CURRENT_TIMESTAMP - '3 00:00:00'::interval THEN
+    RAISE EXCEPTION ' %: can`t delete time is up log_rec=% ',TG_NAME, OLD;
+  END IF;
+  IF OLD.username <> CURRENT_USER THEN
+    RAISE EXCEPTION ' %: can`t delete wrong user log_rec=% ',TG_NAME, OLD;
+  END IF;
+  PERFORM FROM log WHERE mobj_id=OLD.obj_id AND log_dt > OLD.timemark;
+  IF FOUND THEN
+    RAISE EXCEPTION ' %: can`t delete log was updated log_rec=%',TG_NAME, OLD;
+  END IF;
+
+  _oid:=OLD.obj_id;
+  _old_opid:=OLD.dst_path[1][2];
+  _new_opid:=OLD.src_path[1][2];
+  _qty := OLD.qty;
+  
+  SELECT qty INTO _dst_qty FROM obj WHERE pid=_new_opid AND id=_oid;
+  SELECT qty INTO _src_qty FROM obj WHERE pid=_old_opid AND id=_oid;
+
+  CASE
+    WHEN _qty < _src_qty  THEN -- div разделяем исходное количество
+      RAISE DEBUG 'DIV src.qty= (% - %) WHERE id=% AND pid=%',_src_qty, _qty,_oid,_old_opid;
+      UPDATE obj SET qty= (_src_qty - _qty)
+                      WHERE pid = _old_opid AND id=_oid;      -- уменьшаем исходное количество
+      IF _dst_qty IS NOT NULL THEN                                     -- если в месте назначения есть уже такой объёкт
+           RAISE DEBUG 'DIV dst.qty= (% + %) WHERE id=% AND pid=%',_dst_qty, _qty,_oid,_new_opid;
+           UPDATE obj SET qty= (_dst_qty + _qty)
+                           WHERE pid = _new_opid AND id=_oid; -- добавляем (обновляем имеющееся количество)
+       ELSE                                                            -- если в месте назначения объекта нет
+         INSERT INTO obj(id, title, cls_id, move_logid, act_logid, prop,pid, qty)
+           SELECT id, title, cls_id, move_logid, act_logid, prop, _new_opid AS pid, _qty AS qty  
+             FROM obj_name WHERE id=_oid;
+       END IF;
+    WHEN _qty = _src_qty THEN -- move перемещение
+        IF _dst_qty IS NOT NULL THEN
+           UPDATE obj SET qty= (_dst_qty + _qty)
+                           WHERE pid = _new_opid AND id=_oid;
+           DELETE FROM obj 
+                           WHERE pid = _old_opid AND id=_oid;
+        ELSE
+           UPDATE obj SET pid = _new_opid
+                           WHERE pid = _old_opid AND id=_oid;
+        END IF;
+    ELSE
+        RAISE EXCEPTION 'Wrong qty or unknown error'; 
+  END CASE;
+
+  SELECT id INTO _prev_mov_log_id FROM log_move 
+    WHERE obj_id=_oid AND timemark < OLD.timemark
+    ORDER BY timemark DESC LIMIT 1;
+
+  UPDATE obj_name SET move_logid=_prev_mov_log_id WHERE id=_oid;
+
+RETURN OLD;
+END;
+$BODY$
+LANGUAGE plpgsql VOLATILE  COST 100;
+CREATE TRIGGER tr_bd_log_move BEFORE DELETE ON log_move FOR EACH ROW EXECUTE PROCEDURE ftr_bd_log_move();
+GRANT EXECUTE ON FUNCTION ftr_bd_log_move() TO "User";
+
+--DELETE FROM log WHERE log_id='101';
+
+
+
+/**
 SELECT *  FROM log;
 
 --SELECT src_path||'->'||dst_path  FROM log;
@@ -144,7 +280,7 @@ SELECT log_time::timestamptz::date AS ldate
 FROM log --WHERE log_time::timestamptz::date='2016.01-23'
 ORDER BY log_time;
 
-
+*/
 
 
 

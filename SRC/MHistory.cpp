@@ -144,6 +144,8 @@ void MLogTable::GetValueByRow(wxVariant& val, unsigned int row, unsigned int col
 bool MLogTable::GetAttrByRow(unsigned int row
 	, unsigned int col, wxDataViewItemAttr &attr) const 
 {
+	ITable::GetAttrByRow(row, col, attr);
+
 	auto mrow = at(row);
 	if (!mrow)
 		return false;
@@ -161,6 +163,8 @@ bool MLogTable::GetAttrByRow(unsigned int row
 		}
 	}
 	
+
+
 	//attr.SetBackgroundColour(*wxWHITE);
 	//return ITable::GetAttrByRow(row, col, attr);
 	//return true;

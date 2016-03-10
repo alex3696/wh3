@@ -16,6 +16,13 @@ public:
 		long style = wxHSCROLL,
 		const wxString& name = wxPanelNameStr);
 
+	template <class MODEL>
+	void SetModel(std::shared_ptr<MODEL>& newModel)
+	{
+		auto itable = std::dynamic_pointer_cast<ITable>(newModel);
+		if (itable)
+			SetModel(itable);
+	}
 	void SetModel(std::shared_ptr<ITable>& newModel);
 
 protected:

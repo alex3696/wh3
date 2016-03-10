@@ -3,44 +3,6 @@
 
 #include "_pch.h"
 
-
-enum ModelState
-{
-	msNull = 0,
-	msCreated,	//NEW созданная(новая) модель
-	msExist,	//модель, данные которой синхронизированы с хранилищем
-	msUpdated,	//измененная модель
-	msDeleted,	//удаленная модель
-
-};
-
-/// Базовые группы
-enum BaseGroup
-{
-	bgNull = 0,
-	bgGuest,	
-	bgUser,
-	bgObjDesigner,
-	bgTypeDesigner,
-	bgAdmin
-};
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-#define wxID_NEW_FOLDER		1000
-#define wxID_NEW_TYPE		1001
-#define wxID_NEW_OBJECT		1002
-#define wxID_ADD_FAVORITES	1003
-
-#define wxID_MKOBJ			1004
-#define wxID_MKCLS			1005
-// ----------------------------------------------------------------------------
-
-#define whID_CATALOG_SELECT		1100
-#define whID_CATALOG_PATH		1101
-#define whID_CATALOG_TYPE		1102
-
-
 //----------------------------------------------------------------------------
 class	whTable;
 typedef std::shared_ptr<whTable> whTable_shared_ptr;
