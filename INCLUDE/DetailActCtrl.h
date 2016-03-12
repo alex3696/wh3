@@ -36,8 +36,8 @@ protected:
 	DetailActToolBar*	mActToolBar = nullptr;
 
 	virtual wxAcceleratorTable GetAcceleratorTable()const override;
-	void BindCmd(wxWindow* wnd);
-	void UnbindCmd(wxWindow* wnd);
+	virtual void BindCmd(wxWindow* wnd)override;
+	virtual void UnbindCmd(wxWindow* wnd)override;
 
 };
 

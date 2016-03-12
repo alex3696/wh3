@@ -58,8 +58,8 @@ protected:
 
 	virtual wxAcceleratorTable GetAcceleratorTable()const;
 
-	void BindCmd(wxWindow* wnd);
-	void UnbindCmd(wxWindow* wnd);
+	virtual void BindCmd(wxWindow* wnd);
+	virtual void UnbindCmd(wxWindow* wnd);
 
 private:
 	wxWindow* mPanel = nullptr;;
