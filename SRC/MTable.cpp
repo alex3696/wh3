@@ -293,8 +293,11 @@ bool ITable::GetSelectChildsQuery(wxString& query)const
 			if (!filter_sql.IsEmpty())
 				filter_sql << " " << ToSqlString(filter.mConn);
 
-			filter_sql << field.mDbTitle << ToSqlString(filter.mOp)
-				<< "'" << filter.mVal << "' ";
+			filter_sql << field.mDbTitle << ToSqlString(filter.mOp);
+			if (foLike == filter.mOp || foNotLike == filter.mOp)
+				filter_sql << "'%" << filter.mVal << "%' ";
+			else
+				filter_sql << "'" << filter.mVal << "' ";
 		}
 
 		if (field.mSort > 0)

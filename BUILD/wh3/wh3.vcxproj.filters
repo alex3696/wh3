@@ -127,11 +127,11 @@
     <Filter Include="Таблица Свойств\Table">
       <UniqueIdentifier>{27388e6a-f0c3-42fe-97a7-37526630ebd7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Controls\Редактор массива фильтров">
-      <UniqueIdentifier>{022d129b-5c5c-4337-8475-6766717de47a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="dlgLogin">
       <UniqueIdentifier>{a7a3f226-49ab-4e2d-94eb-9c723a052dad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Таблица Свойств\Table\Редактор фильтров">
+      <UniqueIdentifier>{022d129b-5c5c-4337-8475-6766717de47a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -367,7 +367,7 @@
       <Filter>Таблица Свойств\Table</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\FilterArrayEditor.cpp">
-      <Filter>Controls\Редактор массива фильтров</Filter>
+      <Filter>Таблица Свойств\Table\Редактор фильтров</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\PGPTypeId.cpp">
       <Filter>Controls\PropertyGridExt</Filter>
@@ -387,11 +387,14 @@
     <ClCompile Include="..\..\SRC\MLogProp.cpp">
       <Filter>История</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SRC\DetailActToolBar.cpp">
-      <Filter>Detail</Filter>
+    <ClCompile Include="..\..\SRC\ObjDetailPGView.cpp">
+      <Filter>Detail\view</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\DetailActCtrl.cpp">
-      <Filter>Detail</Filter>
+      <Filter>Detail\view</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\DetailActToolBar.cpp">
+      <Filter>Detail\view</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -681,7 +684,7 @@
       <Filter>Таблица Свойств\Table</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\FilterArrayEditor.h">
-      <Filter>Controls\Редактор массива фильтров</Filter>
+      <Filter>Таблица Свойств\Table\Редактор фильтров</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\PGPTypeId.h">
       <Filter>Controls\PropertyGridExt</Filter>
@@ -701,11 +704,14 @@
     <ClInclude Include="..\..\INCLUDE\MLogProp.h">
       <Filter>История</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h">
-      <Filter>Detail</Filter>
+    <ClInclude Include="..\..\INCLUDE\ObjDetailPGView.h">
+      <Filter>Detail\view</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\DetailActCtrl.h">
-      <Filter>Detail</Filter>
+      <Filter>Detail\view</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h">
+      <Filter>Detail\view</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

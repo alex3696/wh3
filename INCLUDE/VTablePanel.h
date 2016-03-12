@@ -24,18 +24,19 @@ public:
 
 	bool SetRowHeight(int height) { return mTableView->SetRowHeight(height); }
 
-	void SetEnableSave(bool enable = true) { mToolBar->SetEnableSave(enable); }
-	void SetEnableInsert(bool enable = true) { mToolBar->SetEnableInsert(enable); }
-	void SetEnableChange(bool enable = true) { mToolBar->SetEnableChange(enable); }
+	VTableCtrl				mCtrl;
 protected:
 	wxAuiManager			mAuiMgr;
+	
+	std::shared_ptr<ITable>	mMTable;
+	
+	
+
 	VTableToolBar*			mToolBar;
 	VTable*					mTableView;
-	
-	std::shared_ptr<ITable>			mMTable;
-	FilterArrayEditor*				mFilterEditor;
+	FilterArrayEditor*		mFilterEditor;
 
-	VTableCtrl mCtrl;
+	
 	
 private:
 

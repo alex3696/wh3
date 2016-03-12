@@ -42,19 +42,6 @@ void VTableToolBar::SetModel(std::shared_ptr<ITable> model)
 //-----------------------------------------------------------------------------
 void VTableToolBar::BuildToolBar()
 {
-	wxWindowUpdateLocker	wndLockUpdater(this);
-
-	wxAcceleratorEntry entries[7];
-	entries[0].Set(wxACCEL_CTRL, (int) 'R', wxID_REFRESH);
-	entries[1].Set(wxACCEL_NORMAL, WXK_F5,  wxID_REFRESH);
-	entries[2].Set(wxACCEL_CTRL, (int) 'S', wxID_SAVE);
-	entries[3].Set(wxACCEL_CTRL, (int) 'N', wxID_NEW);
-	entries[4].Set(wxACCEL_NORMAL, WXK_DELETE, wxID_REMOVE);
-	entries[5].Set(wxACCEL_CTRL, (int) 'O', wxID_EDIT);
-	entries[6].Set(wxACCEL_CTRL, (int) 'F', wxID_FIND);
-	wxAcceleratorTable accel(7, entries);
-	SetAcceleratorTable(accel);
-
 	ClearTools();
 	
 	if (mEnableFilter)
@@ -114,13 +101,13 @@ void VTableToolBar::BuildToolBar()
 	AddSeparator();
 
 	AddTool(wxID_BACKWARD, "назад"
-		, wxArtProvider::GetBitmap(wxART_GO_BACK, wxART_MENU), "Предыдущая страница");
+		, wxArtProvider::GetBitmap(wxART_GO_BACK, wxART_MENU), "Предыдущая страница(PageUp)");
 	mPageLabel = new wxStaticText(this, wxID_ANY, "MyLabel");
-	mPageLabel->Wrap(-1);
+	//mPageLabel->Wrap(-1);
 
 	AddControl(mPageLabel, "Показаны строки");
 	AddTool(wxID_FORWARD, "вперёд"
-		, wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_MENU), "Следующая страница");
+		, wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_MENU), "Следующая страница(PageDown)");
 
 
 	Realize();

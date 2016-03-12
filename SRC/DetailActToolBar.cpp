@@ -14,41 +14,8 @@ DetailActToolBar::DetailActToolBar(wxWindow* parent,
 
 }
 //-----------------------------------------------------------------------------
-bool DetailActToolBar::ConnCmdCtrl(int cmd_id, const DetailActCtrl& ctrl)
-{
-	namespace ph = std::placeholders;
-	auto wnd = this->GetParent();
-
-	const std::function<void(wxCommandEvent&)>* fn = ctrl.GetCmdFunction(cmd_id);
-	if (fn && (*fn))
-	{
-		std::function<void(wxCommandEvent&)> safe_fn 
-			= std::bind(SafeCallCommandEvent(), *fn, ph::_1);
-		wnd->Bind(wxEVT_COMMAND_MENU_SELECTED, safe_fn, cmd_id);
-		return true;
-	}
-	return false;
-}
-//-----------------------------------------------------------------------------
-void DetailActToolBar::SetCtrl(const DetailActCtrl& ctrl)
-{
-	EnableTool(whID_MOVE, ConnCmdCtrl(whID_MOVE, ctrl));
-	EnableTool(whID_MOVE_HERE, ConnCmdCtrl(whID_MOVE_HERE, ctrl));
-	EnableTool(whID_ACTION, ConnCmdCtrl(whID_ACTION, ctrl));
-}
-//-----------------------------------------------------------------------------
 void DetailActToolBar::Build()
 {
-	auto parent = this->GetParent();
-	wxWindowUpdateLocker	wndLockUpdater(parent);
-
-	wxAcceleratorEntry entries[2];
-	entries[0].Set(wxACCEL_NORMAL, WXK_F6, whID_MOVE);
-	entries[0].Set(wxACCEL_CTRL, WXK_F6, whID_MOVE_HERE);
-	entries[1].Set(wxACCEL_NORMAL, WXK_F7, whID_ACTION);
-	wxAcceleratorTable accel(2, entries);
-	SetAcceleratorTable(accel);
-
 	ClearTools();
 
 	auto tool_move = AddTool(whID_MOVE, "Переместить", m_ResMgr->m_ico_move24, "Переместить(F6)");

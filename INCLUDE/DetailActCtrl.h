@@ -1,28 +1,46 @@
 #ifndef __DETAILACTCTRL_H
 #define __DETAILACTCTRL_H
 
-#include "VTable.h"
-#include "dlg_move_model_MovableObj.h"
-#include "dlg_act_model_Obj.h"
+#include "VTableCtrl.h"
+#include "DetailActToolBar.h"
+#include "detail_model.h"
+#include "ObjDetailPGView.h"
+
+
 
 namespace wh{
 //-----------------------------------------------------------------------------
 class DetailActCtrl
+	:public VTableCtrl
 {
 public:
 	DetailActCtrl();
-	
-	typedef std::function<void(wxCommandEvent&)> TCmdFn;
 
-	const TCmdFn* GetCmdFunction(int cmd_id)const;
-	void SetCmdFunction(int cmd_id, TCmdFn& cmd_fn);
+	std::function<void(wxCommandEvent&)> fnOnCmdMove;
+	std::function<void(wxCommandEvent&)> fnOnCmdMoveHere;
+	std::function<void(wxCommandEvent&)> fnOnCmdAction;
 
-private:
-	std::map<int, std::function<void(wxCommandEvent&)> > mFn;
+	void OnCmdMove(wxCommandEvent& WXUNUSED(evt));
+	void OnCmdMoveHere(wxCommandEvent& WXUNUSED(evt));
+	void OnCmdAction(wxCommandEvent& WXUNUSED(evt));
+	void OnCmdLoad(wxCommandEvent& WXUNUSED(evt));
 
-	wxWindow*		mPanel = nullptr;;
-	wxAuiToolBar*	mToolBar = nullptr;
+	void SetObjModel(std::shared_ptr<detail::model::Obj> model);
+
+	void SetObjView(detail::view::ObjDetailPGView* objview);
+	void SetActToolbar(DetailActToolBar* act_toolbar);
+protected:
+	std::shared_ptr<detail::model::Obj> mObjModel;
+
+	detail::view::ObjDetailPGView*	mObjDetailView = nullptr;
+	DetailActToolBar*	mActToolBar = nullptr;
+
+	virtual wxAcceleratorTable GetAcceleratorTable()const override;
+	void BindCmd(wxWindow* wnd);
+	void UnbindCmd(wxWindow* wnd);
+
 };
+
 
 //-----------------------------------------------------------------------------
 }//namespace wh

@@ -18,6 +18,12 @@ VTablePanel::VTablePanel(wxWindow* parent,
 	// Create AuiToolbar
 	mToolBar = new VTableToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize
 		, 0 | wxAUI_TB_PLAIN_BACKGROUND | wxAUI_TB_TEXT);
+	mAuiMgr.AddPane(mToolBar, wxAuiPaneInfo().
+		Name("ToolBarPane")
+		.ToolbarPane().Top().Floatable(false)
+		.PaneBorder(false)
+		//.BestSize(wxSize(600,50))
+		);
 
 	// Create Filter Panel
 	mFilterEditor = new FilterArrayEditor(this);
@@ -40,22 +46,6 @@ VTablePanel::VTablePanel(wxWindow* parent,
 
 	mAuiMgr.Update();
 
-	mCtrl.fnOnCmdFilter = [this](wxCommandEvent& evt)
-	{
-		wxAuiPaneInfo& pi = mAuiMgr.GetPane("FilterPane");
-		if (pi.IsOk())
-		{
-			bool visible = !pi.IsShown();
-			pi.Show(visible);
-
-			wxAuiToolBarItem* tool = mToolBar->FindTool(wxID_FIND);
-			if (tool)
-				tool->SetState(visible ? wxAUI_BUTTON_STATE_CHECKED : wxAUI_BUTTON_STATE_NORMAL);
-
-			mAuiMgr.Update();
-		}//if(!pi.IsOk())	
-	};
-
 }
 //-----------------------------------------------------------------------------
 VTablePanel::~VTablePanel()
@@ -68,18 +58,15 @@ void VTablePanel::SetModel(std::shared_ptr<ITable> model)
 	wxWindowUpdateLocker	wndLockUpdater(this);
 
 	mMTable = model;
-	mTableView->SetModel(model);
-	mFilterEditor->SetModel(model);
 
-	mAuiMgr.DetachPane(mToolBar);
-	mToolBar->SetModel(model);
-	mAuiMgr.AddPane(mToolBar, wxAuiPaneInfo().
-		Name("ToolBarPane")
-		.ToolbarPane().Top().Floatable(false)
-		.PaneBorder(false)
-		);
+	mCtrl.SetModel(model);
+	mCtrl.SetAuiMgr(&mAuiMgr);
+	mCtrl.SetViewTable(mTableView);
+	mCtrl.SetViewToolBar(mToolBar);
+	mCtrl.SetViewFilter(mFilterEditor);
+
+
+	mTableView->SetFocus();
 	mAuiMgr.Update();
-
-	mCtrl.SetTableViewModel(mMTable, mTableView);
 }
 

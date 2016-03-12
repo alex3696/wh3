@@ -231,11 +231,11 @@ void MainFrame::ShowDevToolBar(bool show)
 			m_Notebook->Freeze(); //wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 			auto wnd = new wh::VTablePanel(m_Notebook);
 			auto model = std::make_shared<wh::MPropTable>();
-			m_Notebook->AddPage(wnd, "ТЕСТ Свойства", true
-				, ResMgr::GetInstance()->m_ico_list_prop24);
+			m_Notebook->AddPage(wnd, "ТЕСТ Свойства", true , ResMgr::GetInstance()->m_ico_list_prop24);
 			m_AuiMgr.Update();
 			m_Notebook->Thaw();
 			wnd->SetModel(model);
+			model->Load();
 		};
 		Bind(wxEVT_COMMAND_MENU_SELECTED, cmdTest, CMD_DB_TEST);
 
@@ -249,12 +249,13 @@ void MainFrame::ShowDevToolBar(bool show)
 			auto wnd = new wh::VTablePanel(m_Notebook);
 			wnd->SetRowHeight(32);
 			//wnd->SetEnableSave(false);
-			wnd->SetEnableInsert(false);
-			wnd->SetEnableChange(false);
+			wnd->mCtrl.fnOnCmdInsert = nullptr;
+			wnd->mCtrl.fnOnCmdEdit = nullptr;
 			m_Notebook->AddPage(wnd, "История", true, ResMgr::GetInstance()->m_ico_history24);
 			m_AuiMgr.Update();
 			m_Notebook->Thaw();
 			wnd->SetModel(model);
+			model->Load();
 		};
 		Bind(wxEVT_COMMAND_MENU_SELECTED, cmdHistTest, CMD_MAKEHISTORYWND);
 

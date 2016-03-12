@@ -47,7 +47,7 @@ FilterArrayEditor::FilterArrayEditor(wxWindow *parent,
 }
 
 //---------------------------------------------------------------------------
-void FilterArrayEditor::SetModel(std::shared_ptr<ITable>& newModel)
+void FilterArrayEditor::SetModel(std::shared_ptr<ITable> newModel)
 {
 	if (newModel == mMTable)
 		return;
@@ -105,11 +105,14 @@ void FilterArrayEditor::OnClear(wxCommandEvent& evt)
 //-----------------------------------------------------------------------------
 wxPGProperty* FilterArrayEditor::MakeProperty(const wh::Field& field)
 {
+	const  wxString first_filter_val
+		= field.mFilter.size() ? field.mFilter.at(0).mVal : wxEmptyString;
+	
 	wxPGProperty* pgp = nullptr;
 	switch (field.mType)
 	{
-	case ftText:	pgp = new wxLongStringProperty(field.mTitle); break;
-	case ftName:	pgp = new wxStringProperty(field.mTitle); break;
+	case ftText:	pgp = new wxLongStringProperty(field.mTitle, wxPG_LABEL, first_filter_val); break;
+	case ftName:	pgp = new wxStringProperty(field.mTitle, wxPG_LABEL, first_filter_val); break;
 	case ftLong:
 		if (FieldEditor::Type == field.mEditor)
 		{
@@ -117,15 +120,20 @@ wxPGProperty* FilterArrayEditor::MakeProperty(const wh::Field& field)
 			auto chs = pgp->GetChoices();
 			chs.Insert(wxEmptyString, 0, -1);
 			pgp->SetChoices(chs);
-			pgp->SetChoiceSelection(-1);
+			unsigned long val=-1;
+			first_filter_val.ToCULong(&val);
+			pgp->SetChoiceSelection(val);
 		}
 		else if (FieldEditor::Normal == field.mEditor)
 		{
-			pgp = new wxStringProperty(field.mTitle);
+			pgp = new wxStringProperty(field.mTitle, wxPG_LABEL, first_filter_val);
 			pgp->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
 		}
 		break;
-	case ftDouble:	pgp = new wxFloatProperty(field.mTitle);  break;
+	case ftDouble:	
+		pgp = new wxFloatProperty(field.mTitle, wxPG_LABEL);  
+		pgp->SetValueFromString(first_filter_val);
+		break;
 	case ftDateTime:
 	case ftTime:
 	case ftDate:	pgp = new wxDateProperty(field.mTitle);
@@ -135,13 +143,13 @@ wxPGProperty* FilterArrayEditor::MakeProperty(const wh::Field& field)
 			wxDP_ALLOWNONE));
 		pgp->SetAttribute(wxPG_DATE_FORMAT, wxS("%Y.%m.%d"));
 		break;
-	case ftLink:	pgp = new wxStringProperty(field.mTitle);  break;
-	case ftFile:	pgp = new wxStringProperty(field.mTitle);  break;
-	case ftJSON:	pgp = new wxLongStringProperty(field.mTitle);  break;
+	case ftLink:	pgp = new wxStringProperty(field.mTitle, wxPG_LABEL, first_filter_val);  break;
+	case ftFile:	pgp = new wxStringProperty(field.mTitle, wxPG_LABEL, first_filter_val);  break;
+	case ftJSON:	pgp = new wxLongStringProperty(field.mTitle, wxPG_LABEL, first_filter_val);  break;
 	default:break;
 	}
-	if (pgp)
-		pgp->SetValueToUnspecified();
+	//if (pgp)
+	//	pgp->SetValueToUnspecified();
 	return pgp;
 }
 //-----------------------------------------------------------------------------
@@ -165,7 +173,7 @@ bool FilterArrayEditor::GetFilterValue(wh::Field& field)
 		wxString gui_value = pgp->GetValueAsString().Trim().Trim(false);
 		if(!gui_value.IsEmpty())
 			if (ftName == field.mType || ftText == field.mType)
-				field.mFilter.emplace_back("%" + gui_value + "%", foLike);
+				field.mFilter.emplace_back(gui_value, foLike);
 			else
 				field.mFilter.emplace_back(gui_value);
 	}
@@ -227,16 +235,9 @@ void FilterArrayEditor::OnFieldInfoChange(const IModel& newVec
 			auto edit_field = std::dynamic_pointer_cast<ITableField>(inew_field);
 			if (edit_field)
 			{
-				const auto field_data = edit_field->GetData();
 				wxPGProperty* new_pgp = MakeProperty(edit_field->GetData());
 				if (new_pgp)
-				{
-					wxString val;
-					if (field_data.mFilter.size())
-						val = field_data.mFilter.at(0).mVal;
-					new_pgp->SetValueFromString(val);
 					mPropGrid->ReplaceProperty(old_pgp, new_pgp);
-				}//if (new_pgp)
 			}
 		}
 	}

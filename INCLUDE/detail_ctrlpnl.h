@@ -1,16 +1,9 @@
 #ifndef __DETAIL_VIEW_CTRLPNL_H
 #define __DETAIL_VIEW_CTRLPNL_H
 
-#include "detail_model.h"
-
 #include "MHistory.h"
-#include "VTable.h"
-#include "VTableToolBar.h"
-#include "FilterArrayEditor.h"
-#include "VTableCtrl.h"
-
-#include "DetailActToolBar.h"
 #include "DetailActCtrl.h"
+
 
 namespace wh{
 namespace detail{
@@ -23,22 +16,23 @@ class CtrlPnl
 	, public ctrlWithResMgr
 
 {
-	// hold parent node 
-	std::shared_ptr<model::Obj> mObj = std::make_shared<model::Obj>();
-
-	wxAuiManager		mAuiMgr;
-
-	wxPropertyGrid*		mPropGrid;
+	DetailActCtrl			mCtrl;
 
 	std::shared_ptr<MLogTable> mLogModel;
 	VTable*				mLogTable;
 	FilterArrayEditor*	mLogTableFilter;
-	VTableCtrl			mLogTableCtrl;
 	VTableToolBar*		mLogToolBar;
 
-	DetailActCtrl		mActCtrl;
+	VTableToolBar*			mToolBar;
+	VTable*					mTableView;
+	FilterArrayEditor*		mFilterEditor;
+	
+	
+	std::shared_ptr<model::Obj> mObj;
+	ObjDetailPGView*	mObjView;
 	DetailActToolBar*	mActToolBar;
 
+	wxAuiManager		mAuiMgr;
 
 public:
 	CtrlPnl(wxWindow* parent,
@@ -50,33 +44,7 @@ public:
 	~CtrlPnl();
 	void SetObject(const wxString& cls_id, const wxString& obj_id, const wxString& obj_pid);
 
-	void UpdatePGColour();
 	void UpdateTab();
-protected:
-	void OnCmdReload(wxCommandEvent& evt);
-	
-	void OnChangeMainDetail(const IModel* model, const model::Obj::T_Data* data);
-
-	void OnClsPropAfterInsert(const IModel& vec
-		, const std::vector<SptrIModel>& newItems
-		, const SptrIModel& itemBefore);
-	void OnClsPropBeforeRemove(const IModel&, const std::vector<SptrIModel>&);
-	void OnClsPropChange(const IModel&, const std::vector<unsigned int>&);
-	void OnObjPropAfterInsert(const IModel& vec
-		, const std::vector<SptrIModel>& newItems
-		, const SptrIModel& itemBefore);
-	void OnObjPropBeforeRemove(const IModel&, const std::vector<SptrIModel>&);
-	void OnObjPropChange(const IModel&, const std::vector<unsigned int>&);
-
-
-	sig::scoped_connection		mChangeMainDetail;
-
-	sig::scoped_connection		mConnClsPropAppend;
-	sig::scoped_connection		mConnClsPropRemove;
-	sig::scoped_connection		mConnClsPropChange;
-	sig::scoped_connection		mConnObjPropAppend;
-	sig::scoped_connection		mConnObjPropRemove;
-	sig::scoped_connection		mConnObjPropChange;
 
 };
 
