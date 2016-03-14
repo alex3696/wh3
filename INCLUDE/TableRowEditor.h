@@ -9,10 +9,10 @@ class TableRowEditor
 {
 public:
 	virtual int ShowModal() = 0;
-	virtual void SetModel(std::shared_ptr<ITableRow>& model) = 0;
+	virtual void SetModel(std::shared_ptr<IModel>& model) = 0;
 };
 //-----------------------------------------------------------------------------
-	class TableRowPGDefaultEditor
+class TableRowPGDefaultEditor
 	: public wxDialog
 	, public TableRowEditor
 {
@@ -26,7 +26,7 @@ public:
 		const wxString& name = wxDialogNameStr);
 
 
-	virtual void SetModel(std::shared_ptr<ITableRow>& model)override;
+	virtual void SetModel(std::shared_ptr<IModel>& model)override;
 	virtual int ShowModal()override 
 	{ 
 		return wxDialog::ShowModal(); 

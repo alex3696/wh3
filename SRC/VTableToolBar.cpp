@@ -32,12 +32,12 @@ void VTableToolBar::SetModel(std::shared_ptr<ITable> model)
 	auto fnAR = std::bind(&VTableToolBar::OnAfterRemove, this, ph::_1, ph::_2);
 	auto fnAC = std::bind(&VTableToolBar::OnAfterChange, this, ph::_1, ph::_2);
 
-	mConnAfterInsert = model->ConnAfterInsert(fnAI);
-	mConnAfterRemove = model->ConnectAfterRemove(fnAR);
-	mConnAfterChange = model->ConnectChangeSlot(fnAC);
+	mConnAfterInsert = model->GetDataArr()->ConnAfterInsert(fnAI);
+	mConnAfterRemove = model->GetDataArr()->ConnectAfterRemove(fnAR);
+	mConnAfterChange = model->GetDataArr()->ConnectChangeSlot(fnAC);
 
 	BuildToolBar();
-	OnTableChange(*model);
+	OnTableChange(*model->GetDataArr());
 }
 //-----------------------------------------------------------------------------
 void VTableToolBar::BuildToolBar()
@@ -116,18 +116,18 @@ void VTableToolBar::BuildToolBar()
 //-----------------------------------------------------------------------------
 void VTableToolBar::OnTableChange(const IModel& vec)
 {
-	const ITable* table = dynamic_cast<const ITable*>(&vec);
+	const ITable* table = dynamic_cast<const ITable*>(vec.GetParent());
 	if (!table)
 		return;
 
-	bool exist = (msExist == table->GetState());
+	bool exist = (msExist == table->GetDataArr()->GetState());
 	EnableTool(wxID_SAVE, !exist);
 	Refresh();
 
 
 	const auto& limit = table->mPageLimit->GetData();
 	const auto& no = table->mPageNo->GetData();
-	const auto& curr_qty = table->GetChildQty();
+	const auto& curr_qty = table->GetDataArr()->GetChildQty();
 
 	wxString page_label;
 	page_label << " " << (no*limit) << " - " << (no*limit + curr_qty);

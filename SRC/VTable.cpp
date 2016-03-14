@@ -37,10 +37,10 @@ void VTable::SetModel(std::shared_ptr<ITable> model)
 		auto fnBR = std::bind(&VTable::OnRowBeforeRemove, this, ph::_1, ph::_2);
 		auto fnAR = std::bind(&VTable::OnRowAfterRemove, this, ph::_1, ph::_2);
 		auto fnAC = std::bind(&VTable::OnRowAfterChange, this, ph::_1, ph::_2);
-		mConnRowAI = mModel->ConnAfterInsert(fnAI);
-		mConnRowBR = mModel->ConnectBeforeRemove(fnBR);
-		mConnRowAR = mModel->ConnectAfterRemove(fnAR);
-		mConnRowAC = mModel->ConnectChangeSlot(fnAC);
+		mConnRowAI = mModel->GetDataArr()->ConnAfterInsert(fnAI);
+		mConnRowBR = mModel->GetDataArr()->ConnectBeforeRemove(fnBR);
+		mConnRowAR = mModel->GetDataArr()->ConnectAfterRemove(fnAR);
+		mConnRowAC = mModel->GetDataArr()->ConnectChangeSlot(fnAC);
 		
 		auto fnFieldAI = std::bind(&VTable::OnFieldAfterInsert, this, ph::_1, ph::_2, ph::_3);
 		auto fnFieldBR = std::bind(&VTable::OnFieldBeforeRemove, this, ph::_1, ph::_2);
@@ -60,7 +60,7 @@ void VTable::SetModel(std::shared_ptr<ITable> model)
 		//if (0 == mModel->size())
 		//	mModel->Load();
 		
-		mDataViewModel->Reset(mModel->GetChildQty());
+		mDataViewModel->Reset(mModel->GetDataArr()->GetChildQty());
 		OnChangeVecState(mModel->GetState());
 	}
 

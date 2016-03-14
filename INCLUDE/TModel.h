@@ -630,13 +630,14 @@ protected:
 		// загружаем детишек
 		wxString query;
 		const bool queryExist = GetSelectChildsQuery(query);
+		unsigned int rowQty = 0;
 		if (queryExist)
 		{
 			auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
 			if (table)
 			{
 				std::vector<SptrIModel> new_vec;
-				unsigned int rowQty = table->GetRowCount();
+				rowQty = table->GetRowCount();
 				
 				if (rowQty)
 				{
@@ -652,16 +653,19 @@ protected:
 					Insert(new_vec);
 				}//if (rowQty)
 
-				// загружаем каскадно детишек
-				if (rowQty && (mOption & ModelOption::CascadeLoad))
-					for (auto item : *mVec)
-						item->LoadChilds();
 			}//if(table)
-			if (enableParentNotify)// включаем уведомления родителя как было
-				mOption = mOption | ModelOption::EnableParentNotify;
-			// 3 Каскадно уведомить родителей об изменении
-			DoNotifyParent();
 		}//if (queryExist)
+		
+		// загружаем каскадно детишек
+		if (mVec && mVec->size() && (mOption & ModelOption::CascadeLoad))
+			for (auto item : *mVec)
+				item->LoadChilds();
+		if (enableParentNotify)// включаем уведомления родителя как было
+			mOption = mOption | ModelOption::EnableParentNotify;
+		// 3 Каскадно уведомить родителей об изменении
+		DoNotifyParent();
+
+
 	}
 	virtual void SaveChilds()
 	{

@@ -6,7 +6,6 @@ using namespace wh;
 //-----------------------------------------------------------------------------
 VTableCtrl::VTableCtrl()
 {
-	//fnOnCmdFilter = [](wxCommandEvent&){};
 	fnOnCmdFilter = MakeSafeFn(&VTableCtrl::OnCmdFind, wxID_FIND, this);
 	fnOnCmdLoad = MakeSafeFn(&VTableCtrl::OnCmdLoad, wxID_REFRESH, this);
 	fnOnCmdSave = MakeSafeFn(&VTableCtrl::OnCmdSave, wxID_SAVE, this);
@@ -105,13 +104,13 @@ std::shared_ptr<TableRowEditor> VTableCtrl::GetEditor()
 void VTableCtrl::OnCmdLoad(wxCommandEvent& WXUNUSED(evt))
 {
 	if (mTableModel)
-		mTableModel->Load();
+		mTableModel->GetDataArr()->Load();
 }
 //-----------------------------------------------------------------------------
 void VTableCtrl::OnCmdSave(wxCommandEvent& WXUNUSED(evt))
 {
 	if (mTableModel)
-		mTableModel->Save();
+		mTableModel->GetDataArr()->Save();
 }
 //-----------------------------------------------------------------------------
 void VTableCtrl::OnCmdInsert(wxCommandEvent& WXUNUSED(evt))
@@ -119,18 +118,18 @@ void VTableCtrl::OnCmdInsert(wxCommandEvent& WXUNUSED(evt))
 	if (!mTableModel)
 		return;
 
-	auto newItem = mTableModel->CreateItem();
+	auto newItem = mTableModel->GetDataArr()->CreateChild();
 	if (!newItem)
 		return;
 
-	mTableModel->Insert(newItem);
+	mTableModel->GetDataArr()->Insert(newItem);
 	GetEditor()->SetModel(newItem);
 
 	if (wxID_OK != GetEditor()->ShowModal())
 	{
 		auto state = newItem->GetState();
 		if (state == msCreated || state == msNull)
-			mTableModel->DelChild(newItem);
+			mTableModel->GetDataArr()->DelChild(newItem);
 	}//else if (wxID_OK == editor.ShowModal())
 }
 //-----------------------------------------------------------------------------
@@ -152,7 +151,7 @@ void VTableCtrl::OnCmdRemove(wxCommandEvent& WXUNUSED(evt))
 	for (const auto& dvItem : remArr)
 	{
 		auto row = mTableView->GetRow(dvItem);
-		auto model = mTableModel->GetChild(row);
+		auto model = mTableModel->GetDataArr()->GetChild(row);
 		ModelState state = model->GetState();
 		switch (state)
 		{
@@ -167,7 +166,7 @@ void VTableCtrl::OnCmdRemove(wxCommandEvent& WXUNUSED(evt))
 	}
 
 	for (auto item : toDelete)
-		mTableModel->DelChild(item);
+		mTableModel->GetDataArr()->DelChild(item);
 
 }
 //-----------------------------------------------------------------------------
@@ -182,7 +181,7 @@ void VTableCtrl::OnCmdChange(wxCommandEvent& WXUNUSED(evt))
 
 	auto row = mTableView->GetRow(sel);
 
-	auto updItem = mTableModel->at(row);
+	auto updItem = mTableModel->GetDataArr()->GetChild(row);
 
 	if (!updItem)
 		return;
@@ -235,7 +234,7 @@ void VTableCtrl::OnCmdBackward(wxCommandEvent& WXUNUSED(evt))
 
 	if (no > 0)
 		mTableModel->mPageNo->SetData(no - 1);
-	mTableModel->Load();
+	mTableModel->GetDataArr()->Load();
 }
 //-----------------------------------------------------------------------------
 void VTableCtrl::OnCmdForward(wxCommandEvent& WXUNUSED(evt))
@@ -245,9 +244,9 @@ void VTableCtrl::OnCmdForward(wxCommandEvent& WXUNUSED(evt))
 	const auto& limit = mTableModel->mPageLimit->GetData();
 	const auto& no = mTableModel->mPageNo->GetData();
 
-	if (mTableModel->GetChildQty() >= limit)
+	if (mTableModel->GetDataArr()->GetChildQty() >= limit)
 		mTableModel->mPageNo->SetData(no + 1);
-	mTableModel->Load();
+	mTableModel->GetDataArr()->Load();
 }
 //-----------------------------------------------------------------------------
 wxAcceleratorTable VTableCtrl::GetAcceleratorTable()const

@@ -6,25 +6,101 @@ using namespace wh;
 
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
+// MLogTableDataArr
 //-------------------------------------------------------------------------
-MLogItem::MLogItem(const char option)
-	:ITableRow(option)
+//-------------------------------------------------------------------------
+MLogTableDataArr::MLogTableDataArr(const char option)
+	:TTableDataArr<MLogItem>(option)
 {
+	namespace ph = std::placeholders;
+
+	auto fnBI = std::bind(&MLogTableDataArr::OnRowBeforeInsert, this, ph::_1, ph::_2, ph::_3);
+	auto fnAR = std::bind(&MLogTableDataArr::OnRowAfterRemove, this, ph::_1, ph::_2);
+	mConnRowBI = ConnBeforeInsert(fnBI);
+	mConnRowAR = ConnectAfterRemove(fnAR);
+
+}
+//-------------------------------------------------------------------------
+bool MLogTableDataArr::LoadChildDataFromDb(std::shared_ptr<IModel>& child,
+	std::shared_ptr<whTable>& db, const size_t pos)
+{
+	bool res = TTableDataArr<MLogItem>::LoadChildDataFromDb(child, db, pos);
+	if (res)
+	{
+		auto mrow = std::dynamic_pointer_cast<ITableRow>(child);
+		if (mrow)
+		{
+			unsigned long val = 0;
+			if (mrow->GetData().at(12).ToCULong(&val))
+				mClsId.emplace(val);
+		}
+	}
+	return res;
+}
+//-------------------------------------------------------------------------
+void MLogTableDataArr::OnRowBeforeInsert(const IModel& vec, const std::vector<SptrIModel>& newItems
+	, const SptrIModel& itemBefore)
+{
+	auto mtable = dynamic_cast<MLogTable*>(GetParent());
+	if (!mtable)
+		return;
+	
+	
+	// ףהאכÿול סעמכבצû סגמיסעג
+	std::vector<SptrIModel> rem_fields;
+	for (auto col = mtable->mStaticColumnQty; col < mtable->mFieldVec->size(); ++col)
+		rem_fields.emplace_back(mtable->mFieldVec->at(col));
+	mtable->mFieldVec->DelChild(rem_fields);
+
+	mLogProp.SetLogProp(mClsId);
+	std::vector<SptrIModel> fields;
+	for (size_t i = 0; i < mLogProp.mDataArr->size(); ++i)
+	{
+		const wxString id = mLogProp.mDataArr->at(i)->GetData().at(0);
+		const wxString title = mLogProp.mDataArr->at(i)->GetData().at(1);
+
+		fields.emplace_back(mtable->mFieldVec->CreateItem(
+			//Field(col_title, FieldType::ftName, true, col_title), true));
+			Field(title, FieldType::ftName, true, "prop->>'" + id + "'"), true));
+	}
+	mtable->mFieldVec->Insert(fields);
+
+
+	unsigned int row_idx = 0;
+	for (const auto& irow : newItems)
+	{
+		auto row = std::dynamic_pointer_cast<MLogItem>(irow);
+		const auto& data = row->GetData();
+		const wxString& col_prop = data.at(9);
+		boost::property_tree::ptree prop_arr;
+
+		if (!col_prop.IsEmpty())
+		{
+			std::stringstream ss; ss << col_prop;
+			boost::property_tree::read_json(ss, prop_arr);
+		}
+		//mProp.emplace_back(prop_arr);
+	}
 
 
 }
 //-------------------------------------------------------------------------
+void MLogTableDataArr::OnRowAfterRemove(const IModel& vec, const std::vector<SptrIModel>& remVec)
+{
+	if (!vec.size())
+		mClsId.clear();
+}
+
+
+	
+//-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
 MLogTable::MLogTable(const char option)
-	:ITable(option)
+	: TTable<MLogTableDataArr>(option)
 {
-	namespace ph = std::placeholders;
+	this->mTableName->SetData("log", true);
 	
-	auto fnBI = std::bind(&MLogTable::OnRowBeforeInsert, this, ph::_1, ph::_2, ph::_3);
-	auto fnAR = std::bind(&MLogTable::OnRowAfterRemove, this, ph::_1, ph::_2);
-	mConnRowBI = ConnBeforeInsert(fnBI);
-	mConnRowAR = ConnectAfterRemove(fnAR);
 
 	std::vector<SptrIModel> fields;
 
@@ -92,7 +168,7 @@ MLogTable::MLogTable(const char option)
 //-------------------------------------------------------------------------
 void MLogTable::GetValueByRow(wxVariant& val, unsigned int row, unsigned int col)
 {
-	auto mrow = at(row);
+	auto mrow = mDataArr->at(row);
 	if (!mrow)
 		return;
 	const auto& row_data = mrow->GetData();
@@ -127,7 +203,7 @@ void MLogTable::GetValueByRow(wxVariant& val, unsigned int row, unsigned int col
 				boost::property_tree::read_json(ss, prop_arr);
 			}
 			//const boost::property_tree::ptree& prop_arr = mProp[row];
-			const auto prop_row = mLogProp.at(col - mStaticColumnQty);
+			const auto prop_row =this->mDataArr->mLogProp.mDataArr->at(col - mStaticColumnQty);
 			const auto& prop_row_data = prop_row->GetData();
 			const wxString& id = prop_row_data.at(0);
 			auto it = prop_arr.find(std::string(id.c_str()));
@@ -146,7 +222,7 @@ bool MLogTable::GetAttrByRow(unsigned int row
 {
 	ITable::GetAttrByRow(row, col, attr);
 
-	auto mrow = at(row);
+	auto mrow = mDataArr->at(row);
 	if (!mrow)
 		return false;
 	const auto& row_data = mrow->GetData();
@@ -169,73 +245,4 @@ bool MLogTable::GetAttrByRow(unsigned int row
 	//return ITable::GetAttrByRow(row, col, attr);
 	//return true;
 	return false;
-}
-//-------------------------------------------------------------------------
-wxString MLogTable::GetTableName()const
-{
-	return "log";
-}
-//-------------------------------------------------------------------------
-void MLogTable::OnRowAfterRemove(const IModel& vec, const std::vector<SptrIModel>& remVec)
-{
-	if (!vec.size())
-		mClsId.clear();
-}
-//-------------------------------------------------------------------------
-bool MLogTable::LoadChildDataFromDb(std::shared_ptr<IModel>& child,
-	std::shared_ptr<whTable>& db, const size_t pos)
-{
-	bool res = ITable::LoadChildDataFromDb(child, db, pos);
-	if (res)
-	{
-		auto mrow = std::dynamic_pointer_cast<ITableRow>(child);
-		if (mrow)
-		{
-			unsigned long val = 0;
-			if (mrow->GetData().at(12).ToCULong(&val))
-				mClsId.emplace(val);
-		}
-	}
-	return res;
-}
-//-------------------------------------------------------------------------
-void MLogTable::OnRowBeforeInsert(const IModel& vec, const std::vector<SptrIModel>& newItems
-	, const SptrIModel& itemBefore)
-{
-	std::vector<SptrIModel> rem_fields;
-	for (auto col = mStaticColumnQty; col < mFieldVec->size(); ++col)
-		rem_fields.emplace_back(mFieldVec->at(col));
-	mFieldVec->DelChild(rem_fields);
-
-	mLogProp.SetLogProp(mClsId);
-	std::vector<SptrIModel> fields;
-	for (size_t i = 0; i < mLogProp.size(); ++i)
-	{
-		const wxString id = mLogProp.at(i)->GetData().at(0);
-		const wxString title = mLogProp.at(i)->GetData().at(1);
-		
-		fields.emplace_back(mFieldVec->CreateItem(
-			//Field(col_title, FieldType::ftName, true, col_title), true));
-			Field(title, FieldType::ftName, true, "prop->>'" + id + "'"), true));
-	}
-	mFieldVec->Insert(fields);
-
-
-	unsigned int row_idx = 0;
-	for (const auto& irow : newItems)
-	{
-		auto row = std::dynamic_pointer_cast<MLogItem>(irow);
-		const auto& data = row->GetData();
-		const wxString& col_prop = data.at(9);
-		boost::property_tree::ptree prop_arr;
-
-		if (!col_prop.IsEmpty())
-		{
-			std::stringstream ss; ss << col_prop;
-			boost::property_tree::read_json(ss, prop_arr);
-		}
-		//mProp.emplace_back(prop_arr);
-	}
-
-
 }

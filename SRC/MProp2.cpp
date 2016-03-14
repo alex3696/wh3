@@ -3,24 +3,16 @@
 
 using namespace wh;
 
-
-
-
-
-
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
-MPropItem2::MPropItem2(const char option)
-	:ITableRow(option)
-{
-
-}
-
+// MPropTable
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
 MPropTable::MPropTable(const char option)
-	:ITable(option)
+	:TTable<TTableDataArr<MPropItem2> > (option)
 {
+	this->mTableName->SetData("prop", true);
+	
 	std::vector<SptrIModel> fields;
 	
 	fields.emplace_back(mFieldVec->CreateItem(Field("Èìÿ", FieldType::ftName, true,"title"), true));
@@ -45,9 +37,12 @@ MPropTable::MPropTable(const char option)
 //-------------------------------------------------------------------------
 void MPropTable::GetValueByRow(wxVariant& val, unsigned int row, unsigned int col)
 {
-	auto mrow = at(row);
-	if (!mrow)
+	if (mDataArr->GetChildQty() <= row)
 		return;
+	auto mrow = mDataArr->at(row);
+	if (!mrow || msNull==mrow->GetState())
+		return;
+
 	const auto& row_data = mrow->GetData();
 	if (row_data.size() <= col)
 		return;
@@ -63,8 +58,3 @@ void MPropTable::GetValueByRow(wxVariant& val, unsigned int row, unsigned int co
 		break;
 	}
 }
-//-------------------------------------------------------------------------
-wxString MPropTable::GetTableName()const
-{ 
-	return "prop"; 
-};

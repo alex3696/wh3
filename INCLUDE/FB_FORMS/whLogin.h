@@ -17,14 +17,6 @@ public:
 
 	wh::Cfg::DbConnect GetCfg()const;
 	void SetCfg(const wh::Cfg::DbConnect& cfg );
-	
-	wxString	GetUserName()const	{ return m_cbxUserName->GetValue(); }
-	wxString	GetPass()const		{ return m_txtPass->GetValue(); }
-	bool		GetStorePass()const	{ return m_chkStorePass->GetValue(); }
-
-	void SetUserName(const wxString& username)	{ m_cbxUserName->SetValue(username); }
-	void SetPass(const wxString& pass)			{ m_txtPass->SetValue(pass); }
-	void SetStorePass(bool storepass)			{ m_chkStorePass->SetValue(storepass); }
 
 protected:
 	// Handlers for dlgBaseLogin events.

@@ -370,24 +370,24 @@ void MainFrame::OnShowLoginWnd(wxCommandEvent& evt)
 	wh::Cfg::DbConnect& dbcfg = whDataMgr::GetInstance()->mCfg.mConnect;
 	dbcfg.Load();
 
+
 	whLogin dlg(this);
 	dlg.SetCfg(dbcfg);
 
-	/*
-	dlg.SetUserName( dbcfg.mUser);
-	if( !dbcfg.mPass.IsEmpty() )
-	{
-		dlg.SetPass(dbcfg.mPass);
-		dlg.SetStorePass(true);
-	}
-	*/
-
 	if(dlg.ShowModal()==wxID_OK)
 	{
-		mgr->mDb.Open(dbcfg.mServer, dbcfg.mPort, dbcfg.mDB, dlg.GetUserName(),dlg.GetPass());
+		auto user_cfg = dlg.GetCfg();
+		mgr->mDb.Open(	user_cfg.mServer
+						, user_cfg.mPort
+						, user_cfg.mDB
+						, user_cfg.mUser
+						, user_cfg.mPass);
 
 		if(mgr->mDb.IsOpen())
 		{
+			dbcfg = user_cfg;
+			dbcfg.Save();
+
 			int toolId=CMD_DB_CONNECT;
 			wxAuiToolBarItem* tool=	m_MainToolBar->FindTool(toolId);
 			if(tool)
@@ -404,7 +404,7 @@ void MainFrame::OnShowLoginWnd(wxCommandEvent& evt)
 	else
 		::exit(0);
 
-	dbcfg.Save();
+	
 	
 	
 }

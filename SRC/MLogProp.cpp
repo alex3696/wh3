@@ -6,7 +6,7 @@ using namespace wh;
 
 //-------------------------------------------------------------------------
 MLogProp::MLogProp(const char option)
-	:ITable(option)
+	: TTable<MLogPropDataArr>(option)
 {
 	std::vector<SptrIModel> fields;
 
@@ -20,10 +20,7 @@ MLogProp::MLogProp(const char option)
 	mFieldVec->Insert(fields);
 }
 //-------------------------------------------------------------------------
-std::shared_ptr<IModel> MLogProp::CreateChild()
-{
-	return std::make_shared<MLogPropItem>();
-};
+
 //-------------------------------------------------------------------------
 void MLogProp::SetLogProp(const std::set<unsigned long>& prop_id)
 {
@@ -35,8 +32,13 @@ void MLogProp::SetLogProp(const std::set<unsigned long>& prop_id)
 	this->Load();
 }
 //-------------------------------------------------------------------------
-bool MLogProp::GetSelectChildsQuery(wxString& query)const 
+bool MLogPropDataArr::GetSelectChildsQuery(wxString& query)const
 {
+	auto mtable = dynamic_cast<MLogProp*>(GetParent());
+	if (!mtable)
+		return false;
+
+
 	query = wxString::Format(
 		"SELECT distinct favorite_prop.prop_id, prop.title, prop.kind "
 		" FROM favorite_prop "
@@ -46,7 +48,7 @@ bool MLogProp::GetSelectChildsQuery(wxString& query)const
 		"   favorite_prop.cls_id = arr.id "
 		" WHERE favorite_prop.user_label = CURRENT_USER "
 		" ORDER BY title"
-		, mPropArr);
+		, mtable->GetPropArr());
 	return true;
 }
 

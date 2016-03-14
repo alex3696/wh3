@@ -25,16 +25,32 @@ protected:
 
 };
 //-------------------------------------------------------------------------
+class MLogPropDataArr
+	:public TTableDataArr<MLogPropItem>
+{
+public:
+	MLogPropDataArr(const char option
+		= ModelOption::EnableParentNotify
+		| ModelOption::EnableNotifyFromChild) 
+		:TTableDataArr<MLogPropItem>(option)
+	{}
+
+	virtual bool GetSelectChildsQuery(wxString& query)const override;
+
+protected:
+	
+};
+
+//-------------------------------------------------------------------------
 class MLogProp
-	: public ITable
+	: public TTable<MLogPropDataArr>
 {
 public:
 	MLogProp(const char option = ModelOption::EnableNotifyFromChild);
 
 	void SetLogProp(const std::set<unsigned long>& prop_id);
 	
-	virtual std::shared_ptr<IModel> CreateChild()override;
-	virtual bool GetSelectChildsQuery(wxString& query)const override;
+	const wxString& GetPropArr()const { return mPropArr; }
 protected:
 	wxString mPropArr;
 };

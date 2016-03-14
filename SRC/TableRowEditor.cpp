@@ -43,7 +43,7 @@ TableRowPGDefaultEditor::TableRowPGDefaultEditor(wxWindow*		parent,
 //-----------------------------------------------------------------------------
 void TableRowPGDefaultEditor::OnCmdCancel(wxCommandEvent& evt)
 {
-	this->SetModel(std::shared_ptr<ITableRow>(nullptr));
+	this->SetModel(std::shared_ptr<IModel>(nullptr));
 	evt.Skip();
 }
 //-----------------------------------------------------------------------------
@@ -51,24 +51,32 @@ void TableRowPGDefaultEditor::OnCmdOk(wxCommandEvent& evt)
 {
 	if (mModel)
 	{
-		auto rec = mModel->GetData();
+		TableRowData rec;
+		if (msNull != mModel->GetState())
+			rec = mModel->GetData();
 		GetData(rec);
 		mModel->SetData(rec);
-		this->SetModel(std::shared_ptr<ITableRow>(nullptr));
+		
+		// обнуляем модель редактора
+		SetModel(std::shared_ptr<IModel>(nullptr));
 	}
 	evt.Skip();
 }
 
 //-----------------------------------------------------------------------------
-void TableRowPGDefaultEditor::SetModel(std::shared_ptr<ITableRow>& newModel)
+void TableRowPGDefaultEditor::SetModel(std::shared_ptr<IModel>& newModel)
 {
 	mChangeConnection.disconnect();
 	mModel = std::dynamic_pointer_cast<ITableRow>(newModel);
 	if (!mModel)
 		return;
-	auto table = dynamic_cast<ITable*>(mModel->GetParent());
+	auto data_arr = mModel->GetParent();
+	if (!data_arr)
+		return;
+	auto table = dynamic_cast<ITable*>(data_arr->GetParent());
 	if (!table)
 		return;
+
 
 	auto funcOnChange = std::bind(&TableRowPGDefaultEditor::OnChangeModel,
 		this, std::placeholders::_1, std::placeholders::_2);
@@ -113,15 +121,22 @@ void TableRowPGDefaultEditor::SetModel(std::shared_ptr<ITableRow>& newModel)
 
 	}
 	
-	OnChangeModel(dynamic_cast<IModel*>(mModel.get()), &mModel->GetData());
+	if (msNull != mModel->GetState())
+		OnChangeModel(dynamic_cast<IModel*>(mModel.get()), &mModel->GetData());
 }//SetModel
 //---------------------------------------------------------------------------
 void TableRowPGDefaultEditor::GetData(TableRowData& rec) const
 {
 	mPropGrid->CommitChangesFromEditor();
-	auto table = dynamic_cast<ITable*>(mModel->GetParent());
+	if (!mModel)
+		return;
+	auto data_arr = mModel->GetParent();
+	if (!data_arr)
+		return;
+	auto table = dynamic_cast<ITable*>(data_arr->GetParent());
 	if (!table)
 		return;
+
 	const auto& field_vec = table->mFieldVec;
 	rec.resize(field_vec->size());
 	for (unsigned int i = 0; i < field_vec->size(); ++i)
@@ -147,9 +162,15 @@ void TableRowPGDefaultEditor::GetData(TableRowData& rec) const
 void TableRowPGDefaultEditor::SetData(const TableRowData& rec)
 {
 	mPropGrid->CommitChangesFromEditor();
-	auto table = dynamic_cast<ITable*>(mModel->GetParent());
+	if (!mModel)
+		return;
+	auto data_arr = mModel->GetParent();
+	if (!data_arr)
+		return;
+	auto table = dynamic_cast<ITable*>(data_arr->GetParent());
 	if (!table)
 		return;
+
 
 	const auto& field_vec = table->mFieldVec;
 	for (unsigned int i = 0; i < field_vec->size(); ++i)

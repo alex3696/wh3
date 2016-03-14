@@ -6,7 +6,10 @@ using namespace wh;
 
 bool ITableRow::LoadThisDataFromDb(std::shared_ptr<whTable>& db, const size_t row)
 {
-	auto mtable = dynamic_cast<ITable*>(GetParent());
+	auto data_arr = GetParent();
+	if (!data_arr)
+		return false;
+	auto mtable = dynamic_cast<ITable*>(data_arr->GetParent());
 	if (!mtable)
 		return false;
 
@@ -20,10 +23,14 @@ bool ITableRow::LoadThisDataFromDb(std::shared_ptr<whTable>& db, const size_t ro
 //-------------------------------------------------------------------------
 bool ITableRow::GetSelectQuery(wxString& query)const
 {
-	auto mtable = dynamic_cast<ITable*>(GetParent());
+	auto data_arr = GetParent();
+	if (!data_arr)
+		return false;
+	auto mtable = dynamic_cast<ITable*>(data_arr->GetParent());
 	if (!mtable)
 		return false;
-	const wxString table = mtable->GetTableName();
+
+	const wxString& table = mtable->mTableName->GetData();
 	const auto& field_vec = mtable->mFieldVec;
 	const auto& stored_row_data = GetStored();
 
@@ -65,10 +72,13 @@ bool ITableRow::GetSelectQuery(wxString& query)const
 //-------------------------------------------------------------------------
 bool ITableRow::GetInsertQuery(wxString& query)const
 {
-	auto mtable = dynamic_cast<ITable*>(GetParent());
+	auto data_arr = GetParent();
+	if (!data_arr)
+		return false;
+	auto mtable = dynamic_cast<ITable*>(data_arr->GetParent());
 	if (!mtable)
 		return false;
-	const wxString table = mtable->GetTableName();
+	const wxString& table = mtable->mTableName->GetData();
 	const auto& field_vec = mtable->mFieldVec;
 
 	const auto& row_data = GetData();
@@ -110,10 +120,13 @@ bool ITableRow::GetInsertQuery(wxString& query)const
 //-------------------------------------------------------------------------
 bool ITableRow::GetUpdateQuery(wxString& query)const
 {
-	auto mtable = dynamic_cast<ITable*>(GetParent());
+	auto data_arr = GetParent();
+	if (!data_arr)
+		return false;
+	auto mtable = dynamic_cast<ITable*>(data_arr->GetParent());
 	if (!mtable)
 		return false;
-	const wxString table = mtable->GetTableName();
+	const wxString& table = mtable->mTableName->GetData();
 	const auto& field_vec = mtable->mFieldVec;
 	const auto& row_data = GetData();
 	const auto& stored_row_data = GetStored();
@@ -144,10 +157,13 @@ bool ITableRow::GetUpdateQuery(wxString& query)const
 //-------------------------------------------------------------------------
 bool ITableRow::GetDeleteQuery(wxString& query)const
 {
-	auto mtable = dynamic_cast<ITable*>(GetParent());
+	auto data_arr = GetParent();
+	if (!data_arr)
+		return false;
+	auto mtable = dynamic_cast<ITable*>(data_arr->GetParent());
 	if (!mtable)
 		return false;
-	const wxString table = mtable->GetTableName();
+	const wxString& table = mtable->mTableName->GetData();
 	const auto& field_vec = mtable->mFieldVec;
 	const auto& stored_row_data = GetStored();
 
@@ -169,115 +185,39 @@ bool ITableRow::GetDeleteQuery(wxString& query)const
 	query << "DELETE FROM "<< table <<" WHERE " << keycond;
 	return true;
 }
-
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------
-ITable::ITable(const char option)
-	:IModel(option)
-	, mFieldVec(new IFieldArray)
-	, mPageLimit(new UIntData)
-	, mPageNo(new UIntData)
-
-{
-	namespace ph = std::placeholders;
-
-	auto fnAI = std::bind(&ITable::OnFieldAfterInsert, this, ph::_1, ph::_2, ph::_3);
-	auto fnBR = std::bind(&ITable::OnFieldBeforeRemove, this, ph::_1, ph::_2);
-		
-	mFieldVec->ConnAfterInsert(fnAI);
-	mFieldVec->ConnectBeforeRemove(fnBR);
-
-	mPageLimit->SetData(100, true);
-	mPageNo->SetData(0, true);
-}
+// ITableDataArr
 //-------------------------------------------------------------------------
-bool ITable::GetFieldValue(unsigned int col, wxVariant &variant)
-{
-	return false;
-}
 //-------------------------------------------------------------------------
-std::shared_ptr<ITableRow>  ITable::CreateItem(const TableRowData& data, bool stored)const
-{
-	auto child = std::make_shared < ITableRow >();
-	child->SetData(data, stored);
-	return child;
-}
-//-------------------------------------------------------------------------
-std::shared_ptr<ITableRow> ITable::at(size_t pos)const
-{
-	return std::dynamic_pointer_cast<ITableRow>(GetChild(pos));
-}
-//-------------------------------------------------------------------------
-void ITable::GetValueByRow(wxVariant& val, unsigned int row, unsigned int col)
-{
-	auto mrow = at(row);
-	if (!mrow)
-		return;
-	const auto& row_data = mrow->GetData();
-	//col--;
-	if (row_data.size() > col)
-		val = row_data.at(col);
-}
-//-------------------------------------------------------------------------
-bool ITable::GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr &attr) const
-{
-	const ModelState state = GetChild(row)->GetState();
-
-	switch (state)
-	{
-		//msNull
-	default:  break;
-	case msCreated:
-		attr.SetBold(true);
-		attr.SetColour(*wxBLUE);
-		break;
-	case msExist:
-		attr.SetBold(false);
-		attr.SetColour(*wxBLACK);
-		break;
-	case msUpdated:
-		attr.SetBold(true);
-		attr.SetColour(wxColour(128, 64, 0));
-		break;
-	case msDeleted:
-		attr.SetBold(true);
-		attr.SetColour(*wxRED);
-		break;
-	}//switch
-	return true;
-}
-//-------------------------------------------------------------------------
-bool ITable::LoadChildDataFromDb(std::shared_ptr<IModel>& child,
-	std::shared_ptr<whTable>& table, const size_t row)
+/*
+bool TTableDataArr<class ITEM_TYPE>
+::LoadChildDataFromDb(std::shared_ptr<IModel>& child,
+		std::shared_ptr<whTable>& table, const size_t row)
 {
 	auto childModel = std::dynamic_pointer_cast<ITableRow>(child);
-	if (!childModel)
+	auto mtable = dynamic_cast<ITable*>(GetParent());
+	if (!childModel || !mtable)
 		return false;
 
 	TableRowData data;
 		
-	for (size_t col = 0; col < mFieldVec->GetChildQty(); col++)
+	for (size_t col = 0; col < mtable->mFieldVec->GetChildQty(); col++)
 		data.emplace_back(table->GetAsString(col, row));
 	childModel->SetData(data);
 	return true;
 }
 //-------------------------------------------------------------------------
-void ITable::OnFieldAfterInsert(const IModel& vec, const std::vector<SptrIModel>& newVec
-	, const SptrIModel& itemBefore)
+bool TTableDataArr<class ITEM_TYPE>
+::GetSelectChildsQuery(wxString& query)const
 {
-	//this->Clear();
-}
-//-------------------------------------------------------------------------
-void ITable::OnFieldBeforeRemove(const IModel& vec, const std::vector<SptrIModel>& remVec)
-{
-	//this->Clear();
-}
+	auto mtable = dynamic_cast<ITable*>(GetParent());
+	if (!mtable)
+		return false;
 
-//-------------------------------------------------------------------------
-bool ITable::GetSelectChildsQuery(wxString& query)const
-{
-	const wxString table = GetTableName();
-	const auto& field_vec = this->mFieldVec;
+	
+	const wxString& table = mtable->mTableName->GetData();
+	const auto& field_vec = mtable->mFieldVec;
 
 	wxString fields, filter_sql, limit_page, sort;
 	for (unsigned int i = 0; i < field_vec->size(); ++i)
@@ -313,8 +253,8 @@ bool ITable::GetSelectChildsQuery(wxString& query)const
 		sort = " ORDER BY " + sort;
 	}
 	
-	const unsigned int page_limit = mPageLimit->GetData();
-	const unsigned int page_no = mPageNo->GetData();
+	const unsigned int page_limit = mtable->mPageLimit->GetData();
+	const unsigned int page_no = mtable->mPageNo->GetData();
 	limit_page << " LIMIT " << page_limit << " OFFSET " << page_limit * page_no;
 
 	query.clear();
@@ -327,9 +267,89 @@ bool ITable::GetSelectChildsQuery(wxString& query)const
 
 	return !query.empty();
 }
+*/
+//-------------------------------------------------------------------------
+//-------------------------------------------------------------------------
+// ITable
+//-------------------------------------------------------------------------
+//-------------------------------------------------------------------------
+ITable::ITable(const char option)
+	:IModel(option)
+	, mFieldVec(new IFieldArray)
+	, mPageLimit(new UIntData)
+	, mPageNo(new UIntData)
+	, mTableName(new TModelData<wxString>)
+{
+	this->Insert(mFieldVec);
+	this->Insert(mPageLimit);
+	this->Insert(mPageNo);
+	this->Insert(mTableName);
+
+	namespace ph = std::placeholders;
+
+	auto fnAI = std::bind(&ITable::OnFieldAfterInsert, this, ph::_1, ph::_2, ph::_3);
+	auto fnBR = std::bind(&ITable::OnFieldBeforeRemove, this, ph::_1, ph::_2);
+
+	mConnAFI = mFieldVec->ConnAfterInsert(fnAI);
+	mConnAFR = mFieldVec->ConnectBeforeRemove(fnBR);
+
+
+	mPageLimit->SetData(100, true);
+	mPageNo->SetData(0, true);
+}
+//-------------------------------------------------------------------------
+void ITable::OnFieldAfterInsert(const IModel& vec, const std::vector<SptrIModel>& newVec
+	, const SptrIModel& itemBefore)
+{
+	//this->Clear();
+}
+//-------------------------------------------------------------------------
+void ITable::OnFieldBeforeRemove(const IModel& vec, const std::vector<SptrIModel>& remVec)
+{
+	//this->Clear();
+}
 
 //-------------------------------------------------------------------------
-wxString ITable::GetTableName()const
+/*
+void TTable<class DATA_ARR>
+::GetValueByRow(wxVariant& val, unsigned int row, unsigned int col)
 {
-	return wxEmptyString; 
-};
+	auto mrow = mDataArr->at(row);
+	if (!mrow)
+		return;
+	const auto& row_data = mrow->GetData();
+	//col--;
+	if (row_data.size() > col)
+		val = row_data.at(col);
+}
+
+//-------------------------------------------------------------------------
+bool TTable<class DATA_ARR>
+::GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr &attr) const
+{
+	const ModelState state = mDataArr->GetChild(row)->GetState();
+
+	switch (state)
+	{
+		//msNull
+	default:  break;
+	case msCreated:
+		attr.SetBold(true);
+		attr.SetColour(*wxBLUE);
+		break;
+	case msExist:
+		attr.SetBold(false);
+		attr.SetColour(*wxBLACK);
+		break;
+	case msUpdated:
+		attr.SetBold(true);
+		attr.SetColour(wxColour(128, 64, 0));
+		break;
+	case msDeleted:
+		attr.SetBold(true);
+		attr.SetColour(*wxRED);
+		break;
+	}//switch
+	return true;
+}
+*/
