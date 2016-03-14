@@ -181,15 +181,11 @@ wxString  wxObjParentProperty::ValueToString(wxVariant &  value, int  argFlags) 
 {
 	const auto& obj = wh_rec_ObjParentRefFromVariant(m_value);
 
-	#ifdef _DEBUG
 	return wxString::Format("[%s]%s pid=%s", 
 		obj.mCls.mLabel.toStr(),
 		obj.mObj.mLabel.toStr(), 
 		obj.mObj.mId.toStr()
 		);
-	#else
-	return wxString::Format("[%s]%s", obj.mCls.mLabel, obj.mObj.mLabel);
-	#endif
 }
 
 

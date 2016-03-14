@@ -102,14 +102,15 @@ void VObjCatalogCtrl::BuildToolbar(bool is_dlg)
 
 	if (!is_dlg)
 	{
-		mUpTool = mToolBar->AddTool(wxID_VIEW_DETAILS, "Подробно", m_ResMgr->m_ico_views24);
-		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdDetail, this, wxID_VIEW_DETAILS);
-
 		mUpTool = mToolBar->AddTool(wxID_PROPERTIES, "Выбрать свойства",
 			m_ResMgr->m_ico_favprop_select24);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdFavProp, this, wxID_PROPERTIES);
 
+		mUpTool = mToolBar->AddTool(wxID_VIEW_DETAILS, "Подробно", m_ResMgr->m_ico_views24);
+		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdDetail, this, wxID_VIEW_DETAILS);
+
 		// ---------- User кнопки ---------- 
+		/*
 		mToolBar->AddSeparator();
 
 		if ((int)currBaseGroup >= (int)bgUser)
@@ -120,6 +121,7 @@ void VObjCatalogCtrl::BuildToolbar(bool is_dlg)
 			mActTool = mToolBar->AddTool(wxID_EXECUTE, "Выполнить", m_ResMgr->m_ico_act24);
 			Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdAct, this, wxID_EXECUTE);
 		}
+		*/
 
 		// ---------- TypeDesigner кнопки ---------- 
 		mToolBar->AddSeparator();
@@ -579,6 +581,10 @@ void VObjCatalogCtrl::OnEdit(wxCommandEvent& evt)
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnDelete(wxCommandEvent& evt)
 {
+	try
+	{
+
+
 	auto subj = GetSelectedObj();
 	if (subj)
 	{
@@ -608,6 +614,16 @@ void VObjCatalogCtrl::OnDelete(wxCommandEvent& evt)
 		arr->Save();
 
 	}
+	}
+	catch (boost::exception & e)
+	{
+		whDataMgr::GetDB().RollBack();
+		wxLogWarning(wxString(diagnostic_information(e)));
+	}///catch(boost::exception & e)
+	catch (...)
+	{
+		wxLogWarning(wxString("Unhandled exception"));
+	}//catch(...)
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::SetModel(std::shared_ptr<IModel> model)

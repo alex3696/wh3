@@ -20,7 +20,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -46,8 +46,8 @@
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(BOOST);$(PGSQL)\include;c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\include;$(IncludePath)</IncludePath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(WXWIN)\lib\vc_dll;c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\lib\vc_dll;$(LibraryPath)</LibraryPath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(BOOST);C:\_prog\lib\databaselayer_src_1.8\databaselayer\include;$(PGSQL)\include;$(IncludePath)</IncludePath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(WXWIN)\lib\vc_dll;C:\_prog\lib\databaselayer_src_1.8\databaselayer\lib\vc_dll;$(LibraryPath);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(BOOST);$(PGSQL)\include;c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\include;$(IncludePath)</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\lib\vc_dll;$(WXWIN)\lib\vc_dll;$(LibraryPath);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
     <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</PreBuildEventUseInBuild>
     <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreBuildEventUseInBuild>
   </PropertyGroup>
@@ -108,6 +108,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/Zm200 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>wxcode_msw28u_databaselayer_postgresql.lib;%(AdditionalDependencies)</AdditionalDependencies>
