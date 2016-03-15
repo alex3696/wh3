@@ -531,6 +531,11 @@ CREATE TABLE log_act (
 
 );--INHERITS (log);
 CREATE INDEX idx_logact__actid ON log_act(act_id);
+CREATE INDEX idx_logact__oid ON log_act(obj_id);
+CREATE INDEX idx_logact__src_cid ON log_move   ((src_path[1][1]));
+CREATE INDEX idx_logact__src_oid ON log_move   ((src_path[1][2]));
+
+
 --CREATE INDEX idx_permmove__user ON perm_move(src_cls_id, src_obj_id);
 --CREATE INDEX idx_permmove__user ON perm_move(cls_id,     obj_id);
 --CREATE INDEX idx_permmove__user ON perm_move(dst_cls_id, dst_obj_id);
@@ -548,10 +553,7 @@ CREATE TABLE log_move (
   ,timemark      TIMESTAMPTZ NOT NULL DEFAULT now()
   ,username      NAME        NOT NULL DEFAULT CURRENT_USER REFERENCES wh_role(rolname) MATCH FULL ON UPDATE CASCADE ON DELETE NO ACTION
 
-  ,src_objnum_id BIGINT    NOT NULL REFERENCES obj_num( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
   ,src_path      BIGINT[]  
-
-  ,dst_objnum_id BIGINT    NOT NULL REFERENCES obj_num( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
   ,dst_path      BIGINT[]  
 
   ,obj_id        BIGINT    NOT NULL REFERENCES obj_name( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
@@ -560,6 +562,12 @@ CREATE TABLE log_move (
   ,act_logid     BIGINT             REFERENCES log_act( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE RESTRICT 
 );
 CREATE INDEX idx_logmove__lastactid ON log_move(act_logid);
+CREATE INDEX idx_logmove__oid ON log_act(obj_id);
+CREATE INDEX idx_logmove__src_cid ON log_move   ((src_path[1][1]));
+CREATE INDEX idx_logmove__src_oid ON log_move   ((src_path[1][2]));
+CREATE INDEX idx_logmove__dst_cid ON log_move   ((dst_path[1][1]));
+CREATE INDEX idx_logmove__dst_oid ON log_move   ((dst_path[1][2]));
+
 
 GRANT SELECT        ON TABLE log_move  TO "Guest";
 GRANT INSERT        ON TABLE log_move  TO "User";
