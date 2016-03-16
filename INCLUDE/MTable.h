@@ -36,41 +36,14 @@ protected:
 //-------------------------------------------------------------------------
 template <class ITEM_TYPE>
 class TTableDataArr
-	:public IModel
+	:public TModelArray<ITEM_TYPE>
 {
 public:
 	TTableDataArr(const char option
 		= ModelOption::EnableParentNotify
 		| ModelOption::EnableNotifyFromChild)
-		: IModel(option)
+		: TModelArray<ITEM_TYPE>(option)
 	{}
-
-	std::shared_ptr<ITEM_TYPE> at(size_t pos)const 
-	{
-		return std::dynamic_pointer_cast<ITEM_TYPE>(GetChild(pos));
-	}
-
-	virtual std::shared_ptr<IModel> CreateChild()override
-	{
-		auto child = std::make_shared <typename ITEM_TYPE>();
-		return std::dynamic_pointer_cast<IModel>(child);
-	};
-	virtual bool LoadChildDataFromDb(std::shared_ptr<IModel>& child,
-		std::shared_ptr<whTable>& table, const size_t row)override
-	{
-		auto childModel = std::dynamic_pointer_cast<ITableRow>(child);
-		auto mtable = dynamic_cast<ITable*>(GetParent());
-		if (!childModel || !mtable)
-			return false;
-
-		TableRowData data;
-
-		for (size_t col = 0; col < mtable->mFieldVec->GetChildQty(); col++)
-			data.emplace_back(table->GetAsString(col, row));
-		childModel->SetData(data);
-		return true;
-	}
-
 
 	virtual bool GetSelectChildsQuery(wxString& query)const override
 	{

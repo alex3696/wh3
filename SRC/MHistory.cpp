@@ -220,7 +220,7 @@ void MLogTable::GetValueByRow(wxVariant& val, unsigned int row, unsigned int col
 bool MLogTable::GetAttrByRow(unsigned int row
 	, unsigned int col, wxDataViewItemAttr &attr) const 
 {
-	ITable::GetAttrByRow(row, col, attr);
+	bool bg_color = false;
 
 	auto mrow = mDataArr->at(row);
 	if (!mrow)
@@ -235,14 +235,9 @@ bool MLogTable::GetAttrByRow(unsigned int row
 		if (*wxWHITE != clr)
 		{
 			attr.SetBackgroundColour(clr);
-			return true;
+			bg_color = true;
 		}
 	}
 	
-
-
-	//attr.SetBackgroundColour(*wxWHITE);
-	//return ITable::GetAttrByRow(row, col, attr);
-	//return true;
-	return false;
+	return TTable<MLogTableDataArr>::GetAttrByRow(row, col, attr) || bg_color;
 }

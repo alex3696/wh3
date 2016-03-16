@@ -6,16 +6,9 @@ using namespace wh;
 
 bool ITableRow::LoadThisDataFromDb(std::shared_ptr<whTable>& db, const size_t row)
 {
-	auto data_arr = GetParent();
-	if (!data_arr)
-		return false;
-	auto mtable = dynamic_cast<ITable*>(data_arr->GetParent());
-	if (!mtable)
-		return false;
-
 	TableRowData data;
 
-	for (size_t col = 0; col < mtable->mFieldVec->GetChildQty(); col++)
+	for (size_t col = 0; col < db->GetColumnCount(); col++)
 		data.emplace_back(db->GetAsString(col, row));
 	SetData(data);
 	return true;

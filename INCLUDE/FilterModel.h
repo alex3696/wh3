@@ -56,12 +56,10 @@ class MFilterArray
 public:
 	MFilterArray(const char option
 		= ModelOption::EnableParentNotify
-		| ModelOption::EnableNotifyFromChild
-		| ModelOption::CommitSave)
+		| ModelOption::EnableNotifyFromChild)
 		: TModelArray<MFilter>(option)
 	{}
 
-	
 	//std::shared_ptr<MFilter> AddFilter(const FilterData& fd);
 	wxString GetSqlString()const
 	{
@@ -76,7 +74,58 @@ public:
 	}
 };
 
-//-------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+
+class MConditionGroup
+	: public IModel
+{
+public:
+	MConditionGroup(const char option = ModelOption::EnableNotifyFromChild)
+		:IModel(option)
+		, mName(new TModelData<wxString>)
+		, mDesc(new TModelData<wxString>)
+		, mConn(new TModelData<FilterConn>)
+		, mReqAll(new TModelData<bool>)
+		, mConditionArr(new MFilterArray)
+	{
+		mConn->SetData(fcAND, true);
+		//mDesc->SetData("Описание", true);
+		//mName->SetData("Группа фильтров", true);
+
+		Insert(mName);
+		Insert(mDesc);
+		Insert(mConn);
+		Insert(mReqAll);
+		Insert(mConditionArr);
+	}
+protected:
+	std::shared_ptr<TModelData<wxString>>	mName;
+	std::shared_ptr<TModelData<wxString>>	mDesc;
+	std::shared_ptr<TModelData<FilterConn>>	mConn;
+	std::shared_ptr<TModelData<bool>>		mReqAll;
+	std::shared_ptr<MFilterArray>			mConditionArr;
+	
+
+};
+//-------------------------------------------------------------------------
+class MCondition
+	: public IModel
+{
+public:
+	MCondition(const char option =  ModelOption::EnableNotifyFromChild)
+		: IModel(option)
+	{}
+
+	virtual std::shared_ptr<IModel> CreateChild()override
+	{
+		auto child = std::make_shared < MConditionGroup >();
+		return child;
+	}
+	//wxString GetSqlString()const { return wxEmptyString; }
+	//void BuildByFields(fields);
+};
+
+//-------------------------------------------------------------------------
 }//namespace wh
 #endif // __*_H
