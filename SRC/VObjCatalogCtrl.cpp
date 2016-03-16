@@ -320,8 +320,8 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 	mCatalogModel->Load();
 	mTableView->ExpandAll();
 
-	selectedItem = wxDataViewItem(nullptr);
-	mTableView->Select(selectedItem);
+	//selectedItem = wxDataViewItem(nullptr);
+	//mTableView->Select(selectedItem);
 	UpdateToolsStates();
 }
 //-----------------------------------------------------------------------------

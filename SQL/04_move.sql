@@ -21,10 +21,13 @@ DROP VIEW IF EXISTS moverule_lockup CASCADE;
 DROP FUNCTION IF EXISTS    try_lock_obj(IN _oid  BIGINT, IN _pid BIGINT) CASCADE;
 DROP FUNCTION IF EXISTS    lock_reset(IN _oid  BIGINT, IN _pid BIGINT) CASCADE;
 DROP FUNCTION IF EXISTS    lock_for_act(IN _oid  BIGINT, IN _opid  BIGINT) CASCADE;
-DROP FUNCTION IF EXISTS    do_act(IN _obj_id BIGINT, _act_id INTEGER, IN _prop JSONB) CASCADE;
+DROP FUNCTION IF EXISTS    do_act(IN _obj_id BIGINT, _act_id BIGINT, IN _prop JSONB) CASCADE;
 DROP FUNCTION IF EXISTS    lock_for_move( IN _obj_id  BIGINT, IN _old_pid BIGINT) CASCADE;
 DROP FUNCTION IF EXISTS    do_move( _oid  BIGINT, IN _old_opid BIGINT,  IN _new_opid BIGINT
                                    , IN _qty NUMERIC ) CASCADE;
+DROP FUNCTION IF EXISTS    do_move_objnum( _oid  BIGINT, _new_opid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS    do_move_objqtyi( IN _oid  BIGINT, IN _old_opid BIGINT,  IN _new_opid BIGINT, IN _qty NUMERIC ) CASCADE;
+DROP FUNCTION IF EXISTS    do_move_objqtyf( IN _oid  BIGINT, IN _old_opid BIGINT,  IN _new_opid BIGINT, IN _qty NUMERIC ) CASCADE;
 
 -------------------------------------------------------------------------------
 --таблица блокировки объектов
@@ -229,9 +232,9 @@ GRANT EXECUTE ON FUNCTION lock_for_act(IN _oid  BIGINT, IN _opid  BIGINT) TO "Us
 --функция выполнения действия
 -----------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS    do_act(IN _obj_id BIGINT, _act_id INTEGER, IN _prop JSONB) CASCADE;
+DROP FUNCTION IF EXISTS    do_act(IN _obj_id BIGINT, _act_id BIGINT, IN _prop JSONB) CASCADE;
 
-CREATE OR REPLACE FUNCTION do_act(IN _obj_id BIGINT, _act_id INTEGER, IN _prop JSONB)
+CREATE OR REPLACE FUNCTION do_act(IN _obj_id BIGINT, _act_id BIGINT, IN _prop JSONB)
                   RETURNS  VOID AS 
 $BODY$
 DECLARE

@@ -11,18 +11,18 @@ enum FieldType
 	ftText = 0,
 	ftName = 1,
 
-	ftLong = 10,
-	ftDouble = 11,
+	ftLong = 100,
+	ftDouble = 101,
 
-	ftDateTime = 20,
-	ftDate = 21,
-	ftTime = 22,
+	ftDateTime = 200,
+	ftDate = 201,
+	ftTime = 202,
 
-	ftLink = 30,
+	ftLink = 300,
 
-	ftFile = 40,
+	ftFile = 400,
 
-	ftJSON = 50
+	ftJSON = 500
 	
 };
 struct FieldTypeItem

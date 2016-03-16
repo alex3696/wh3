@@ -20,7 +20,7 @@ DROP FUNCTION IF EXISTS fn_array1_to_table(anyarray);
 DROP FUNCTION IF EXISTS obj_arr_id_to_obj_info(IN anyarray);
 
 DROP FUNCTION IF EXISTS fn_array2_to_table(IN anyarray);
-DROP FUNCTION IF EXISTS tmparr_to_2id_info(IN TEXT);
+DROP FUNCTION IF EXISTS tmppath_to_2id_info(IN TEXT,BIGINT );
 -------------------------------------------------------------------------------
 -- поиск всех дочерних классов
 -------------------------------------------------------------------------------

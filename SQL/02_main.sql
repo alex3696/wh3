@@ -4,6 +4,7 @@ SET default_transaction_isolation =serializable;
 SET client_min_messages='debug1';
 SHOW client_min_messages;
 SET enable_seqscan = ON;
+DROP EXTENSION IF EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON SEQUENCES FROM public;
@@ -66,12 +67,18 @@ GRANT USAGE ON TABLE favorite_prop_id_seq  TO "User";
 -- таблицы
 ---------------------------------------------------------------------------------------------------
 -- классы
+DROP TABLE IF EXISTS acls CASCADE;
 DROP TABLE IF EXISTS cls_name CASCADE;
 DROP TABLE IF EXISTS cls_tree CASCADE;
 DROP TABLE IF EXISTS cls_real CASCADE;
 DROP TABLE IF EXISTS cls_qtyi  CASCADE;
 DROP TABLE IF EXISTS cls_qtyf  CASCADE;
 DROP TABLE IF EXISTS cls_num   CASCADE;
+
+DROP TABLE IF EXISTS lock_obj CASCADE;
+DROP TABLE IF EXISTS lock_dst CASCADE;
+DROP TABLE IF EXISTS lock_act CASCADE;
+
 
 DROP VIEW IF EXISTS cls CASCADE;
 DROP FUNCTION IF EXISTS ftg_ins_cls() CASCADE;
@@ -178,12 +185,14 @@ GRANT UPDATE        ON TABLE prop_kind  TO "Admin";
 
 INSERT INTO prop_kind (id, title) VALUES (0,  'text')
                                         ,(1,  'name')
-                                        ,(10, 'long')
-                                        ,(11, 'double')
-                                        ,(20, 'date')
-                                        ,(30, 'link')
-                                        ,(40, 'file')
-                                        ,(50, 'ftJSON');
+                                        ,(100, 'long')
+                                        ,(101, 'double')
+                                        ,(200, 'TimeStamp')
+                                        ,(201, 'Date')
+                                        ,(202, 'Time')
+                                        ,(300, 'link')
+                                        ,(400, 'file')
+                                        ,(500, 'ftJSON');
 ---------------------------------------------------------------------------------------------------
 -- основная описания свойств(переменных) действий
 ---------------------------------------------------------------------------------------------------
