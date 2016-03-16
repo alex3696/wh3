@@ -130,9 +130,9 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 500;
 
-SELECT try_lock_obj(103,100);
-SELECT try_lock_obj(100,1);
-SELECT try_lock_obj(666,664);
+--SELECT try_lock_obj(103,100);
+--SELECT try_lock_obj(100,1);
+--SELECT try_lock_obj(666,664);
 
 GRANT EXECUTE ON FUNCTION try_lock_obj(IN _oid  BIGINT, IN _pid BIGINT) TO "User";
 -------------------------------------------------------------------------------
@@ -152,9 +152,9 @@ CREATE OR REPLACE FUNCTION lock_reset(IN _oid  BIGINT, IN _pid BIGINT)
 $BODY$
   LANGUAGE sql VOLATILE  COST 500;
 
-SELECT lock_reset(100,100);
-SELECT lock_reset(666,664);
-SELECT lock_reset(103,NULL);
+--SELECT lock_reset(100,100);
+--SELECT lock_reset(666,664);
+--SELECT lock_reset(103,NULL);
 
 GRANT EXECUTE ON FUNCTION lock_reset(IN _oid  BIGINT, IN _pid BIGINT) TO "User";
 -----------------------------------------------------------------------------------------------------------------------------
@@ -221,8 +221,8 @@ $BODY$
 
 GRANT EXECUTE ON FUNCTION lock_for_act(IN _oid  BIGINT, IN _opid  BIGINT) TO "User";
 
-SELECT id, title, note, color, script  FROM lock_for_act(103, 1);
-SELECT lock_reset(103,1);
+--SELECT id, title, note, color, script  FROM lock_for_act(103, 1);
+--SELECT lock_reset(103,1);
 
 -----------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------
@@ -333,65 +333,15 @@ $BODY$
 GRANT EXECUTE ON FUNCTION do_act(IN _obj_id BIGINT, _act_id INTEGER, IN _prop JSONB) TO "User";
 
 
-SELECT id, title, note, color, script  FROM lock_for_act(103, 1);
+--SELECT id, title, note, color, script  FROM lock_for_act(103, 1);
 
-SELECT do_act(103, 100, '{"100":66,"102":"45452ergsdfgd"}');
-SELECT lock_reset(103,1);
+--SELECT do_act(103, 100, '{"100":66,"102":"45452ergsdfgd"}');
+--SELECT lock_reset(103,1);
 
 
 -------------------------------------------------------------------------------
 -- поиск всех возможных вариантов перемещения
 -------------------------------------------------------------------------------
-/*
-DROP VIEW IF EXISTS moverule_lockup CASCADE;
-CREATE OR REPLACE VIEW moverule_lockup AS 
-SELECT 
-    obj.id          AS oid
-    ,obj.title      AS otitle
-    ,obj.cls_id     AS cid
-    ,obj.cls_kind   AS ctype
-    ,obj.qty        AS oqty 
-
-    ,obj.pid         AS src_oid
-    ,perm.src_cls_id AS src_cid
-    ,perm.src_path   AS src_path
-
-    ,dst.title       AS dst_otitle
-    ,dst.id          AS dst_oid
-    ,perm.dst_cls_id AS dst_cid
-    ,perm.dst_path   AS dst_path
-    ,dstn.pid        AS dst_opid
-    
-    ,perm.id              AS perm_id
-    ,perm.access_disabled AS perm_access_disabled
-    ,perm.script_restrict AS perm_script
-
-FROM obj -- откуда + что
-
-RIGHT JOIN perm_move perm -- находим все объекты классы которых удовлетворяют правилу (которые можно перемещать)
-    ON   obj.cls_id IN (SELECT _id FROM get_childs_cls(perm.cls_id))
-    AND perm.obj_id IS NULL OR obj.id = perm.obj_id -- отсеиваем по имени
-    AND get_path_obj_arr_2id(obj.pid)::TEXT LIKE perm.src_path  -- отсеиваем по местоположению
-
-LEFT JOIN obj_name dst -- куда
-    ON perm.dst_cls_id = dst.cls_id
-    AND perm.dst_obj_id IS NULL OR  dst.id = perm.dst_obj_id -- отсеиваем по имени
-LEFT JOIN obj_num  dstn -- куда
-    ON dstn.id = dst.id
-    AND get_path_obj_arr_2id(dstn.pid)::TEXT LIKE perm.dst_path  -- отсеиваем по местоположению
-
--- group permission
-LEFT JOIN wh_role _group 
-    ON perm.access_group=_group.rolname-- определяем ИМЕНА разрешённых групп
-RIGHT JOIN    wh_auth_members membership
-    ON _group.id=membership.roleid -- определяем ИДЕНТИФИКАТОРЫ разрешённых групп
-RIGHT JOIN wh_role _user  
-    ON  _user.id=membership.member -- определяем ИДЕНТИФИКАТОРЫ разрешённых пользователей
-    AND _user.rolname=CURRENT_USER -- определяем ИМЕНА разрешённых пользователей ВКЛЮЧАЯ ТЕКУЩЕГО
-
-WHERE obj.pid <> dst.id AND dst.id>0  ;
-*/
-
 DROP VIEW IF EXISTS moverule_lockup CASCADE;
 CREATE OR REPLACE VIEW moverule_lockup AS 
   SELECT  
@@ -490,8 +440,7 @@ $BODY$
 
 GRANT EXECUTE ON FUNCTION lock_for_move( IN _obj_id  BIGINT, IN _old_pid BIGINT) TO "User";
 
-SELECT * FROM lock_for_move(104,1);
-
+--SELECT * FROM lock_for_move(104,1);
 --SELECT do_obj_act(1639, 101, '{"100":"qwe","106":55,"105":"asd"}');
 --SELECT do_obj_act(1639, 100, '{"105":"dddddddddd"}');
 
@@ -690,29 +639,6 @@ SELECT lock_reset(104,1);
 
 
 
-
-
-------------------------------------------------------------------------------------------------------------
-PRINT '';
-PRINT '- Тесты перемещения количественных объектов';
-PRINT '';
-------------------------------------------------------------------------------------------------------------
---SELECT * FROM lock_for_move(103,104,1); SELECT move_object(103,104,1,100,10); /*div to NULL*/ SELECT lock_reset(103,104,1);
---SELECT * FROM lock_for_move(103,104,1); SELECT move_object(103,104,1,100,5); /*div to 10*/ SELECT lock_reset(103,104,1);
---SELECT * FROM lock_for_move(103,104,1); SELECT move_object(103,104,1,100,5); /*mov to 15*/ SELECT lock_reset(103,104,1);
---SELECT * FROM lock_for_move(103,104,100); SELECT move_object(103,104,100,1,20); /*mov to NULL*/ SELECT lock_reset(103,104,100);
-------------------------------------------------------------------------------------------------------------
-PRINT '';
-PRINT '- Тесты перемещения номерных объектов';
-PRINT '';
-------------------------------------------------------------------------------------------------------------
---SELECT * FROM lock_for_move(104,102,1);
---SELECT move_object(104,102,1,103,1); -- mov objnum
---SELECT lock_reset(104,102,1);
-
---SELECT * FROM lock_for_move(104,102,103);
---SELECT move_object(104,102,103,1,1); -- mov objnum
---SELECT lock_reset(104,102,103);
 
 
 ------------------------------------------------------------------------------------------------------------
