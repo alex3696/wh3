@@ -58,7 +58,7 @@ bool MClsAct::GetSelectQuery(wxString& query)const
 		return false;
 	
 	const rec::Cls& cls = parentCls->GetStored();
-	if ("1" != cls.mType)
+	if (!cls.IsAbstract() && !cls.IsNumberic())
 		return false;
 	const rec::ClsActAccess& oldPerm = this->GetStored();
 
@@ -85,7 +85,7 @@ bool MClsAct::GetInsertQuery(wxString& query)const
 	if (!parentCls)
 		return false;
 	const rec::Cls& cls = parentCls->GetStored();
-	if ("1" != cls.mType)
+	if (!cls.IsAbstract() && !cls.IsNumberic())
 		return false;
 	//const rec::ClsActAccess& oldClsAct = this->GetStored();
 	const rec::ClsActAccess& newPerm = this->GetData();
@@ -147,7 +147,7 @@ bool MClsAct::GetUpdateQuery(wxString& query)const
 		return false;
 
 	const rec::Cls& cls = parentCls->GetStored();
-	if ("1" != cls.mType)
+	if (!cls.IsAbstract() && !cls.IsNumberic())
 		return false;
 	const rec::ClsActAccess& oldPerm = this->GetStored();
 	const rec::ClsActAccess& newPerm = this->GetData();
@@ -183,7 +183,7 @@ bool MClsAct::GetDeleteQuery(wxString& query)const
 		return false;
 	
 	const rec::Cls& cls = parentCls->GetStored();
-	if ("1" != cls.mType)
+	if (!cls.IsAbstract() && !cls.IsNumberic())
 		return false;
 	const rec::ClsActAccess& oldPerm = this->GetStored();
 

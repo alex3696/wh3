@@ -1,6 +1,9 @@
 ﻿--SET client_min_messages='debug1';
 --SHOW client_min_messages;
 
+SET client_min_messages = 'error';
+--SHOW client_min_messages=OFF;
+
 
 DROP TABLE IF EXISTS __cls00 CASCADE;
 CREATE TABLE __cls00
@@ -210,7 +213,29 @@ SET @konserv = INSERT INTO obj(title,cls_id,pid) VALUES ('Консервация
 SET @dremont = INSERT INTO obj(title,cls_id,pid) VALUES ('Долгосрочный ремонт',@department_area_id, @sc_departament_id )RETURNING id;
 SET @spisano = INSERT INTO obj(title,cls_id,pid) VALUES ('Списано',@department_area_id, @sc_departament_id )RETURNING id;
 
+-------------------------------------------------------------------------------
+PRINT '';
+PRINT '- добавляем действия для всей категории классов';
+PRINT '';
+-------------------------------------------------------------------------------
 
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+  VALUES ('TypeDesigner', 0, @geo_equipment_id, NULL, @act_id_chmain );
+
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+  VALUES ('Инженер по ремонту ГО', 0, @geo_equipment_id, NULL, @act_id_remont );
+
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+  VALUES ('Инженер по ремонту ГО', 0, @geo_equipment_id, NULL, @act_id_proverka );
+
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+  VALUES ('Инженер по ремонту ГО', 0, @geo_equipment_id, NULL, @act_id_prof );
+
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+  VALUES ('Инженер-метролог', 0, @geo_equipment_id, NULL, @act_id_calib );
+
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+  VALUES ('Диспетчер ГО', 0, @geo_equipment_id, NULL, @act_id_gis );
 
 -------------------------------------------------------------------------------
 -- конвертер из старой базы
@@ -230,7 +255,7 @@ DECLARE
        preios_cal_date, curr_cal_path, previos_cal_path, user_id_1, 
        user_id_2, id_priznak, id_uchastok, id_gr_part, folder_path, 
        release_date, inservice_date, use_hours, note1, note2, arhived, ts
-    FROM __obj ;
+    FROM __obj;
 
   _geo_equipment_id      BIGINT;
 
@@ -274,14 +299,14 @@ BEGIN
 --_act_cal_period_id : = INSERT INTO act (title) VALUES ('Изменить основные калибровки')RETURNING id;
 
   FOR rec IN import_cls00 LOOP
-    RAISE DEBUG 'ADD ABSTRACT CLS=% TO ROOT ',rec.title;
+    --RAISE DEBUG 'ADD ABSTRACT CLS=% TO ROOT ',rec.title;
     INSERT INTO cls(pid,title,kind) VALUES (_geo_equipment_id,rec.title,0);
   END LOOP;
 
   FOR rec IN import_cls01 LOOP
     SELECT title INTO _title FROM __cls00 WHERE id = rec.pid;
     SELECT id INTO _pid FROM acls WHERE title = _title;
-    RAISE DEBUG 'ADD ABSTRACT CLS=% TO % (%)',rec.title,_title,rec;
+    --RAISE DEBUG 'ADD ABSTRACT CLS=% TO % (%)',rec.title,_title,rec;
     INSERT INTO cls(pid,title,kind) VALUES (_pid,rec.title,0) ;
   END LOOP;
 
@@ -290,35 +315,10 @@ BEGIN
   FOR rec IN import_cls LOOP
     SELECT title INTO _title FROM __cls01 WHERE id = rec.pid;
     SELECT id INTO _pid FROM acls WHERE title = _title;
-    RAISE DEBUG 'ADD NUMERIC CLS=% (period=%) TO % (%)',rec.title,rec.period,_title,rec;
+    --RAISE DEBUG 'ADD NUMERIC CLS=% (period=%) TO % (%)',rec.title,rec.period,_title,rec;
     INSERT INTO cls(pid,title,kind,measure) VALUES (_pid,rec.title,1,'ед') RETURNING id INTO _cls_id ;
     INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (_cls_id , 1, _prop_cal_period_id, rec.period);
     INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (_cls_id , 1, _prop_desc_id, NULL);
-
-
-    INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
-      VALUES ('TypeDesigner', 0, _cls_id, NULL, _curr_aid );
-
-    INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_path)
-      VALUES ('Инженер по ремонту ГО', 0, _cls_id, NULL, (SELECT id FROM ACT WHERE title='Ремонт' )
-      ,(SELECT '{'||cls_id||','||id||',%}' FROM obj_name WHERE title='Ремонт'));
-      
-    INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_path)
-      VALUES ('Инженер по ремонту ГО', 0, _cls_id, NULL, (SELECT id FROM ACT WHERE title='Проверка' )
-      ,(SELECT '{'||cls_id||','||id||',%}' FROM obj_name WHERE title='Ремонт'));
-      
-    INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_path)
-      VALUES ('Инженер по ремонту ГО', 0, _cls_id, NULL, (SELECT id FROM ACT WHERE title='Профилактика' )
-      ,(SELECT '{'||cls_id||','||id||',%}' FROM obj_name WHERE title='Ремонт'));
-      
-    INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_path)
-      VALUES ('Инженер-метролог', 0, _cls_id, NULL, (SELECT id FROM ACT WHERE title='Калибровка' )
-      ,(SELECT '{'||cls_id||','||id||',%}' FROM obj_name WHERE title='Метрология'));
-      
-    INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_path)
-      VALUES ('Диспетчер ГО', 0, _cls_id, NULL, (SELECT id FROM ACT WHERE title='ГИС' )
-      ,(SELECT '{'||cls_id||','||id||',%}' FROM obj_name WHERE title='Пункт проката'));
-
   END LOOP;
 
   SELECT id INTO _prid_note FROM prop WHERE title='Примечание' ;
@@ -334,19 +334,15 @@ BEGIN
   FOR rec IN import_obj LOOP
     SELECT title INTO _title FROM __cls WHERE id = rec.cls_id;
     SELECT id INTO _cls_id FROM acls WHERE title = _title;
-    RAISE DEBUG 'ADD OBJECT [%]% ', _title,rec.title;
+    --RAISE DEBUG 'ADD OBJECT [%]% ', _title,rec.title;
     INSERT INTO obj(title,cls_id,pid) VALUES (rec.title, _cls_id, 1 )RETURNING id INTO _curr_oid;
 
 
     rec.pasport_path := replace(rec.pasport_path, '\', '\\\\');
     rec.curr_cal_path := replace(rec.curr_cal_path, '\', '\\\\');
     rec.folder_path := replace(rec.folder_path, '\', '\\\\');
-
     rec.note1 := replace(rec.note1, '"', '\\"');
     rec.note2 := replace(rec.note2, '"', '\\"');
-
-    RAISE DEBUG 'rec.pasport_path=%', rec.pasport_path;
-    RAISE DEBUG 'rec.pasport_path=%', rec.pasport_path;
 
     _prop_val := format('{"%s":"%s","%s":"%s","%s":"%s","%s":"%s","%s":"%s","%s":"%s","%s":"%s","%s":%s}', 
       _prid_note, COALESCE(rec.note1,'')||' '||COALESCE(rec.note2,''),
@@ -358,7 +354,7 @@ BEGIN
       _prid_indate, rec.inservice_date,
       _prid_usehours, COALESCE(rec.use_hours,'0') );
 
-    RAISE DEBUG 'DO ACT: oid=% aid=% prop=%', _curr_oid, _curr_aid, _prop_val;
+    --RAISE DEBUG 'DO ACT: oid=% aid=% prop=%', _curr_oid, _curr_aid, _prop_val;
     PERFORM lock_for_act(_curr_oid, 1);
     PERFORM do_act(_curr_oid, _curr_aid, _prop_val);
     PERFORM lock_reset(_curr_oid, 1);

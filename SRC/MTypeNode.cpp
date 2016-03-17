@@ -56,7 +56,7 @@ void MTypeItem::LoadChilds()
 	if (!catalog)
 		return;
 
-	if (catalog->IsObjEnabled())
+	if (catalog->mAutoLoadObj->GetData() && catalog->IsObjEnabled())
 		mObjArray->Load();
 	
 }

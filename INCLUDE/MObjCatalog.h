@@ -37,7 +37,7 @@ public:
 
 
 
-	
+	std::shared_ptr<TModelData<bool>> mAutoLoadObj;
 	std::shared_ptr<MTypeArray>		mTypeArray;
 	std::shared_ptr<MFavProp>		mFavProps;
 	std::shared_ptr<model::MPath>	mPath;

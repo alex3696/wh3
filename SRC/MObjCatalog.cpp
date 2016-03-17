@@ -14,8 +14,14 @@ MObjCatalog::MObjCatalog(const char option)
 	, mFavProps(new MFavProp)
 	, mFilter(new MFilterArray)
 	, mFilterCat(new MFilter)
+	, mAutoLoadObj(new TModelData<bool>)
 	
 {
+
+	mAutoLoadObj->SetData(true, true);
+	Insert(mAutoLoadObj);
+
+
 	this->Insert(mPath);
 	this->Insert(mTypeArray);
 	this->Insert(mFavProps);

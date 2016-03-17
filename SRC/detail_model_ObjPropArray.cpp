@@ -43,7 +43,7 @@ bool ObjPropArray::GetSelectChildsQuery(wxString& query)const
 		"  FROM ref_cls_act "
 		"  INNER JOIN ref_act_prop ON ref_act_prop.act_id = ref_cls_act.act_id "
 		"  LEFT JOIN prop ON prop.id = ref_act_prop.prop_id "
-		"  WHERE ref_cls_act.cls_id = %s " 
+		"  WHERE ref_cls_act.cls_id IN (SELECT id FROM get_path_cls_info(%s, 0))" 
 		, data.mCls.mId.SqlVal() );
 	return true;
 }

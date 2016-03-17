@@ -119,6 +119,10 @@ void DClsEditor::SetModel(std::shared_ptr<IModel>& newModel)
 					mClsNode->GetClsActArray()->Load();
 					mClsNode->GetClsMoveArray()->Load();
 				}
+				else if (cls.IsAbstract())
+				{
+					mClsNode->GetClsActArray()->Load();
+				}
 			}
 
 			
@@ -187,6 +191,8 @@ void DClsEditor::OnChangeModel(const IModel* model,
 			mNotebook->AddPage(mClsPropPanel, "Свойства", false, 1);
 			break;
 		case ctAbstract:
+			mClsActPanel->Show(true);
+			mNotebook->AddPage(mClsActPanel, "Действия", false, 3);
 		default:break;
 		}//switch
 

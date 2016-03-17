@@ -172,18 +172,15 @@ CREATE OR REPLACE FUNCTION lock_for_act(IN _oid  BIGINT, IN _opid  BIGINT)
 DECLARE
     _acts CURSOR(_curr_path TEXT, _cls_id BIGINT) IS
     SELECT act.* from (
-    SELECT perm.cls_id,perm.obj_id,perm.act_id,perm.src_path, sum(access_disabled) 
+    SELECT perm.act_id , sum(access_disabled) 
         FROM perm_act perm
-        LEFT JOIN wh_role _group ON perm.access_group=_group.rolname-- определяем ИМЕНА разрешённых групп
-        RIGHT JOIN    wh_auth_members membership ON _group.id=membership.roleid -- определяем ИДЕНТИФИКАТОРЫ разрешённых групп
-        RIGHT JOIN wh_role _user ON _user.id=membership.member -- определяем ИДЕНТИФИКАТОРЫ разрешённых пользователей
-          AND _user.rolname=CURRENT_USER -- определяем ИМЕНА разрешённых пользователей ВКЛЮЧАЯ ТЕКУЩЕГО
+        --RIGHT JOIN wh_membership ON groupname=perm.access_group AND wh_membership.username=CURRENT_USER
       WHERE
-        perm.cls_id = _cls_id -- 100
-        AND (obj_id IS NULL OR obj_id = _oid) -- 101)
-        --AND (src_path IS NULL OR _curr_path LIKE src_path::TEXT)
+        perm.cls_id IN(SELECT id FROM get_path_cls_info(_cls_id,0))
+        AND (obj_id IS NULL OR obj_id = _oid)
         AND _curr_path LIKE src_path
-      GROUP BY cls_id,obj_id,act_id, src_path
+        AND perm.access_group IN (SELECT groupname FROM wh_membership WHERE username=CURRENT_USER)
+      GROUP BY act_id
       ) t 
       LEFT JOIN act ON t.act_id= act.id 
       WHERE t.sum=0;
@@ -261,10 +258,10 @@ SELECT distinct( ref_act_prop.prop_id) as id, pold.value
              FROM  ref_cls_act
              RIGHT JOIN ref_act_prop  ON ref_act_prop.act_id  = ref_cls_act.act_id
              LEFT JOIN (select key::BIGINT, value::TEXT from jsonb_each(_prop)) pnew ON pnew.key=ref_act_prop.prop_id
-             WHERE ref_cls_act.cls_id=_cls_id AND ref_cls_act.act_id=_act_id
+             WHERE ref_cls_act.cls_id IN (SELECT id FROM get_path_cls_info(_cls_id)) AND ref_cls_act.act_id=_act_id
              AND ref_act_prop.prop_id IS NOT NULL 
             ) all_new ON all_new.id=ref_act_prop.prop_id
-  WHERE ref_cls_act.cls_id=_cls_id 
+  WHERE ref_cls_act.cls_id IN (SELECT id FROM get_path_cls_info(_cls_id)) 
   AND ( (all_new.id IS NOT NULL AND all_new.value IS NOT NULL) OR (all_new.id IS NULL  AND pold.value IS NOT NULL)) ;
 
 BEGIN
@@ -293,15 +290,13 @@ BEGIN
     SELECT sum INTO _perm_sum FROM (
     SELECT perm.act_id , sum(access_disabled) 
         FROM perm_act perm
-        LEFT  JOIN wh_role _group ON perm.access_group=_group.rolname-- определяем ИМЕНА разрешённых групп
-        RIGHT JOIN wh_auth_members membership ON _group.id=membership.roleid -- определяем ИДЕНТИФИКАТОРЫ разрешённых групп
-        RIGHT JOIN wh_role _user ON _user.id=membership.member -- определяем ИДЕНТИФИКАТОРЫ разрешённых пользователей
-          AND _user.rolname=CURRENT_USER -- определяем ИМЕНА разрешённых пользователей ВКЛЮЧАЯ ТЕКУЩЕГО
-      WHERE perm.cls_id = _cls_id
+        RIGHT JOIN wh_membership ON groupname=perm.access_group AND wh_membership.username=CURRENT_USER
+      WHERE 
+        perm.cls_id IN(SELECT id FROM get_path_cls_info(_cls_id,0))
         AND perm.act_id = _act_id
         AND  (perm.obj_id IS NULL OR perm.obj_id = _obj_id)
-        --AND  (perm.src_path IS NULL OR _curr_pathid::TEXT LIKE src_path::TEXT)
         AND  _curr_pathid::TEXT LIKE perm.src_path
+        --AND perm.access_group IN (SELECT groupname FROM wh_membership WHERE username=CURRENT_USER)
       GROUP BY act_id
       ) t 
       WHERE t.sum=0;
@@ -309,7 +304,7 @@ BEGIN
    RAISE DEBUG '_perm_sum: %',COALESCE(_perm_sum,-1);
 
   IF _perm_sum IS NULL OR _perm_sum>0 THEN
-    RAISE EXCEPTION ' Path was changed for obj_id=% , try again ', _obj_id;
+    RAISE EXCEPTION ' Path was changed for obj_id=% _cls_id=% _act_id=% try again ', _obj_id,_cls_id,_act_id;
   END IF;
 
   FOR rec IN _chk_props LOOP
@@ -333,7 +328,7 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 100;
 
-GRANT EXECUTE ON FUNCTION do_act(IN _obj_id BIGINT, _act_id INTEGER, IN _prop JSONB) TO "User";
+GRANT EXECUTE ON FUNCTION do_act(IN _obj_id BIGINT, _act_id BIGINT, IN _prop JSONB) TO "User";
 
 
 --SELECT id, title, note, color, script  FROM lock_for_act(103, 1);

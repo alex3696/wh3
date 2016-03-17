@@ -65,9 +65,11 @@ bool MFavProp::GetSelectQuery(wxString& query)const
 			" FROM favorite_prop "
 			" LEFT JOIN prop  ON prop.id = favorite_prop.prop_id "
 			" WHERE favorite_prop.user_label = CURRENT_USER "
-			" AND favorite_prop.cls_id IN(SELECT distinct(cls_id)FROM obj WHERE pid = %s)"
+			" AND (favorite_prop.cls_id IN (SELECT distinct(upcls.id) FROM "
+			"                                 (SELECT distinct(obj.cls_id) FROM obj WHERE obj.pid = %s) downcls, "
+			"                                  LATERAL(SELECT * FROM get_path_cls_info(downcls.cls_id)) upcls)) "
 			" ORDER BY prop.title"
-			, root.mObj.mId.SqlVal() );
+		    , root.mObj.mId.SqlVal() );
 		return true;
 	}
 	else
@@ -77,9 +79,11 @@ bool MFavProp::GetSelectQuery(wxString& query)const
 			" FROM favorite_prop "
 			" LEFT JOIN prop  ON prop.id = favorite_prop.prop_id "
 			" WHERE favorite_prop.user_label = CURRENT_USER "
-			" AND favorite_prop.cls_id IN(SELECT id FROM cls WHERE pid = %s)"
+			" AND (favorite_prop.cls_id IN(SELECT id FROM cls WHERE pid = %s)"
+			"     OR favorite_prop.cls_id IN(SELECT id FROM get_path_cls_info(%s, 0))) "
 			" ORDER BY prop.title"
-			, root.mCls.mId.SqlVal() );
+			, root.mCls.mId.SqlVal()
+		    , root.mCls.mId.SqlVal() );
 		return true;
 	}
 	

@@ -268,7 +268,7 @@ DROP TABLE IF EXISTS ref_cls_act CASCADE;
 CREATE TABLE ref_cls_act ( 
     id        BIGINT   NOT NULL DEFAULT nextval('seq_ref_cls_act_id')
     ,cls_id   INTEGER  NOT NULL
-    ,cls_kind SMALLINT NOT NULL DEFAULT 1 CHECK (cls_kind=1)
+    ,cls_kind SMALLINT NOT NULL DEFAULT 1 CHECK (cls_kind=1 OR cls_kind=0)
     ,act_id   INTEGER  NOT NULL
 
 ,CONSTRAINT pk_refclsact__id    PRIMARY KEY ( id )
@@ -681,7 +681,7 @@ BEGIN
         PERFORM * FROM ref_cls_act WHERE cls_id = NEW.cls_id AND act_id = NEW.act_id;
         -- если не нашлось, то добавляем 
         IF NOT FOUND THEN
-            INSERT INTO ref_cls_act(cls_id, act_id) VALUES (NEW.cls_id, NEW.act_id);
+            INSERT INTO ref_cls_act(cls_id, act_id,cls_kind) VALUES (NEW.cls_id, NEW.act_id,(SELECT kind FROM acls WHERE id=NEW.cls_id));
         END IF;
   END IF;
 

@@ -88,7 +88,7 @@ bool FavPropItem::GetUpdateQuery(wxString& query)const
 		" SELECT distinct(ref_act_prop.prop_id), ref_cls_act.cls_id, ref_cls_act.act_id "
 		"  FROM ref_cls_act "
 		"  INNER JOIN ref_act_prop ON ref_act_prop.act_id = ref_cls_act.act_id "
-		"  WHERE ref_cls_act.cls_id = %s "
+		"  WHERE ref_cls_act.cls_id IN(SELECT id FROM get_path_cls_info(%s, 0)) "
 		"  AND ref_act_prop.prop_id = %s "
 		"  ) "
 		" INSERT INTO favorite_prop(prop_id, cls_id, act_id) "
@@ -98,10 +98,12 @@ bool FavPropItem::GetUpdateQuery(wxString& query)const
 	else
 		query = wxString::Format(
 		"DELETE FROM favorite_prop "
-		" WHERE cls_id = %s AND prop_id = %s AND user_label = CURRENT_USER "
+		" WHERE cls_id IN (SELECT id FROM get_path_cls_info(%s, 0)) "
+		" AND prop_id = %s AND user_label = CURRENT_USER "
 		, cls.mId.SqlVal()
 		, prop_data.mId.SqlVal());
 	
+
 	return true;
 }
 
@@ -152,11 +154,11 @@ bool FavPropArray::GetSelectChildsQuery(wxString& query)const
 		"    SELECT distinct(ref_act_prop.prop_id) "
 		"      FROM ref_cls_act "
 		"      INNER JOIN ref_act_prop ON ref_act_prop.act_id = ref_cls_act.act_id "
-		"      WHERE ref_cls_act.cls_id = %s "
+		"      WHERE ref_cls_act.cls_id IN(SELECT id FROM get_path_cls_info(%s,0)) "
 		"  ) all_prop "
 		"  LEFT JOIN( "
 		"    SELECT distinct(favorite_prop.prop_id) FROM favorite_prop "
-		"      WHERE favorite_prop.cls_id = %s "
+		"      WHERE favorite_prop.cls_id IN(SELECT id FROM get_path_cls_info(%s,0)) "
 		"      AND favorite_prop.user_label = CURRENT_USER "
 		"  ) favprop "
 		"  ON favprop.prop_id = all_prop.prop_id "
