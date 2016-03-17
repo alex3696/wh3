@@ -78,6 +78,8 @@ public:
 	void BuildToolbar(bool is_dlg = false);
 
 	void OnActivated(wxDataViewEvent &evt);
+	void OnExpanding(wxDataViewEvent &evt);
+	
 
 	void SetModel(std::shared_ptr<IModel> model);
 	void GetSelected(std::vector<unsigned int>& selected);

@@ -371,8 +371,8 @@ DECLARE
 BEGIN
     path:='';
     FOR rec IN _unpackpath LOOP
-        arr_2title := arr_2title || ARRAY[ ARRAY[rec.cls_title,rec.obj_title] ];
-        arr_2id := arr_2id || ARRAY[ ARRAY[rec.cls_id,rec.obj_id]::BIGINT[] ]::BIGINT[];
+        arr_2title := ARRAY[ ARRAY[rec.cls_title,rec.obj_title] ] || arr_2title;
+        arr_2id :=  ARRAY[ ARRAY[rec.cls_id,rec.obj_id]::BIGINT[] ]::BIGINT[] || arr_2id;
         path:=  path || '/['||COALESCE(rec.cls_title,'')||']'||COALESCE(rec.obj_title,'');
     END LOOP;
     RETURN next;

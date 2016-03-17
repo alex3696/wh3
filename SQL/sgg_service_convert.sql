@@ -217,25 +217,25 @@ SET @spisano = INSERT INTO obj(title,cls_id,pid) VALUES ('Списано',@depar
 PRINT '';
 PRINT '- добавляем действия для всей категории классов';
 PRINT '';
--------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
   VALUES ('TypeDesigner', 0, @geo_equipment_id, NULL, @act_id_chmain );
 
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
-  VALUES ('Инженер по ремонту ГО', 0, @geo_equipment_id, NULL, @act_id_remont );
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_path)
+  VALUES ('Инженер по ремонту ГО', 0, @geo_equipment_id, NULL, @act_id_remont, format('{{%s,%s},%%}',@department_area_id,@remont) );
 
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
-  VALUES ('Инженер по ремонту ГО', 0, @geo_equipment_id, NULL, @act_id_proverka );
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_path)
+  VALUES ('Инженер по ремонту ГО', 0, @geo_equipment_id, NULL, @act_id_proverka, format('{{%s,%s},%%}',@department_area_id,@remont) ); 
 
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
-  VALUES ('Инженер по ремонту ГО', 0, @geo_equipment_id, NULL, @act_id_prof );
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_path)
+  VALUES ('Инженер по ремонту ГО', 0, @geo_equipment_id, NULL, @act_id_prof, format('{{%s,%s},%%}',@department_area_id,@remont) ); 
 
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
-  VALUES ('Инженер-метролог', 0, @geo_equipment_id, NULL, @act_id_calib );
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_path)
+  VALUES ('Инженер-метролог', 0, @geo_equipment_id, NULL, @act_id_calib, format('{{%s,%s},%%}',@department_area_id,@metrolog) );
 
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
-  VALUES ('Диспетчер ГО', 0, @geo_equipment_id, NULL, @act_id_gis );
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_path)
+  VALUES ('Диспетчер ГО', 0, @geo_equipment_id, NULL, @act_id_gis, format('{{%s,%s},%%}',@department_area_id,@pp) ); 
 
 -------------------------------------------------------------------------------
 -- конвертер из старой базы
@@ -275,6 +275,8 @@ DECLARE
 
   _curr_oid      BIGINT;
   _curr_aid      BIGINT;
+
+  _curr_pid      BIGINT;
 
 
   _prid_note BIGINT;
@@ -330,12 +332,14 @@ BEGIN
   SELECT id INTO _prid_indate FROM prop WHERE title='Дата ввода в эксплуатацию' ;
   SELECT id INTO _prid_usehours FROM prop WHERE title='Наработка(ч.)' ;
 
+  SELECT id INTO _curr_pid FROM obj WHERE title='Пункт проката';
+
   
   FOR rec IN import_obj LOOP
     SELECT title INTO _title FROM __cls WHERE id = rec.cls_id;
     SELECT id INTO _cls_id FROM acls WHERE title = _title;
     --RAISE DEBUG 'ADD OBJECT [%]% ', _title,rec.title;
-    INSERT INTO obj(title,cls_id,pid) VALUES (rec.title, _cls_id, 1 )RETURNING id INTO _curr_oid;
+    INSERT INTO obj(title,cls_id,pid) VALUES (rec.title, _cls_id, _curr_pid )RETURNING id INTO _curr_oid;
 
 
     rec.pasport_path := replace(rec.pasport_path, '\', '\\\\');
@@ -355,9 +359,9 @@ BEGIN
       _prid_usehours, COALESCE(rec.use_hours,'0') );
 
     --RAISE DEBUG 'DO ACT: oid=% aid=% prop=%', _curr_oid, _curr_aid, _prop_val;
-    PERFORM lock_for_act(_curr_oid, 1);
+    PERFORM lock_for_act(_curr_oid, _curr_pid);
     PERFORM do_act(_curr_oid, _curr_aid, _prop_val);
-    PERFORM lock_reset(_curr_oid, 1);
+    PERFORM lock_reset(_curr_oid, _curr_pid);
     
   END LOOP;
 
@@ -368,23 +372,8 @@ $BODY$ LANGUAGE plpgsql;
 SELECT sgg_sc_import();
 
 
-SELECT * FROM prop;
-
-SELECT format('{"%s":"%s"}', '123','qwe')::JSONB;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+DROP FUNCTION IF EXISTS sgg_sc_import() CASCADE;
+DROP TABLE IF EXISTS __cls00 CASCADE;
+DROP TABLE IF EXISTS __cls01 CASCADE;
+DROP TABLE IF EXISTS __cls CASCADE;
+DROP TABLE IF EXISTS __obj CASCADE;

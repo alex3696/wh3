@@ -18,7 +18,7 @@ MObjCatalog::MObjCatalog(const char option)
 	
 {
 
-	mAutoLoadObj->SetData(true, true);
+	mAutoLoadObj->SetData(false, true);
 	Insert(mAutoLoadObj);
 
 

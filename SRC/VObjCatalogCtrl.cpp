@@ -46,6 +46,7 @@ VObjCatalogCtrl::VObjCatalogCtrl(wxWindow* parent,
 	Bind(wxEVT_COMMAND_DATAVIEW_SELECTION_CHANGED, &VObjCatalogCtrl::OnSelect, this);
 	Bind(wxEVT_MENU, &VObjCatalogCtrl::OnCmdUp, this, wxID_BACKWARD);
 	Bind(wxEVT_COMMAND_DATAVIEW_ITEM_ACTIVATED, &VObjCatalogCtrl::OnActivated, this);
+	Bind(wxEVT_COMMAND_DATAVIEW_ITEM_EXPANDING, &VObjCatalogCtrl::OnExpanding, this);
 	
 	AppendBitmapMenu(&mCatalogToolMenu, whID_CATALOG_TYPE, "по &типу"
 		, m_ResMgr->m_ico_folder_type24);
@@ -228,7 +229,7 @@ void VObjCatalogCtrl::UpdateToolsStates()
 			default://ctAbstract
 				mToolDisable[wxID_REPLACE] += 1;
 				mToolDisable[wxID_EXECUTE] += 1;
-				mToolDisable[wxID_PROPERTIES] += 1;
+				//mToolDisable[wxID_PROPERTIES] += 1;
 				break;
 			}
 		}
@@ -721,6 +722,19 @@ void VObjCatalogCtrl::OnActivated(wxDataViewEvent& evt)
 		} //if (IsObjCatalog)
 		
 	}//if (selectedItem.IsOk())
+}
+//---------------------------------------------------------------------------
+void VObjCatalogCtrl::OnExpanding(wxDataViewEvent &evt)
+{
+	wxDataViewItem selectedItem = evt.GetItem();
+
+	if (selectedItem.IsOk())
+	{
+		auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
+		auto typeItem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
+		if (typeItem)
+			typeItem->mObjArray->Load();
+	}
 }
 //---------------------------------------------------------------------------
 const IModel* VObjCatalogCtrl::GetSelectedItem()const

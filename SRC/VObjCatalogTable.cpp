@@ -248,8 +248,9 @@ void VObjCatalogTable::ExpandAll()
 
 	//std::for_each(itemArray.begin(), itemArray.end(),
 	//	std::bind(&VObjCatalogTable::Expand, this, std::placeholders::_1) );
-	for (const auto& item : itemArray)
-		Expand(item);
+	
+	//for (const auto& item : itemArray)
+	//	Expand(item);
 
 }
 
