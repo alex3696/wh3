@@ -103,7 +103,7 @@ void DetailActCtrl::OnCmdAction(wxCommandEvent& WXUNUSED(evt))
 	if (!mObjModel || !mTableModel)
 		return;
 
-	if (!mObjModel->GetData().mCls.IsNumberic())
+	if (mObjModel->GetData().mCls.IsAbstract() )
 		return;
 
 	rec::PathItem data = mObjModel->GetData();

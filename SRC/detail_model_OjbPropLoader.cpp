@@ -29,7 +29,7 @@ bool ObjPropValLoader::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const
 		return false;
 
 	const auto& obj_data = obj->GetData();
-	if (!obj_data.mCls.IsNumberic())
+	if (obj_data.mCls.IsAbstract())
 		return false;
 
 	auto propArray = obj->GetObjPropArray();
@@ -56,7 +56,7 @@ bool ObjPropValLoader::GetSelectQuery(wxString& query)const
 		return false;
 
 	const auto& obj_data = obj->GetData();
-	if (!obj_data.mCls.IsNumberic())
+	if (obj_data.mCls.IsAbstract())
 		return false;
 
 	auto propArray = obj->GetObjPropArray();
