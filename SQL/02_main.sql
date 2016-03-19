@@ -1,4 +1,4 @@
-﻿
+
 
 SET default_transaction_isolation =serializable;
 SET client_min_messages='debug1';
@@ -422,19 +422,19 @@ CREATE TABLE obj_name (
 ,act_logid  BIGINT   UNIQUE
 ,prop       JSONB
 
-,CONSTRAINT pk_obj__id               PRIMARY KEY(id)
-,CONSTRAINT uk_obj__idclsid          UNIQUE (id, cls_id,cls_kind)
-,CONSTRAINT uk_obj__title_clsid      UNIQUE (title, cls_id)
-,CONSTRAINT uk_obj__movelogid     UNIQUE (move_logid) 
+,CONSTRAINT pk_objname__id               PRIMARY KEY(id)
+,CONSTRAINT uk_objname__id_cid_ckind     UNIQUE (id, cls_id,cls_kind)
+,CONSTRAINT uk_objname__title_cid      UNIQUE (title, cls_id)
+,CONSTRAINT uk_objname__movelogid        UNIQUE (move_logid) 
 
 ,CONSTRAINT fk_obj__cls         FOREIGN KEY (cls_id,cls_kind)
     REFERENCES                  acls    ( id, kind )
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
---CREATE INDEX idx_objname__clsid ON obj_name ("cls_id") ;
 CREATE INDEX idx_objname__prop  ON obj_name USING gin ("prop") ;
 CREATE INDEX idx_objname__title_vpo ON obj_name (title varchar_pattern_ops) ;
 CREATE INDEX idx_objname__title_tgm ON obj_name USING gin (title gin_trgm_ops);
+--CREATE INDEX idx_objname__cid_ckind ON obj_name (cls_id,cls_kind);
 
 GRANT SELECT        ON TABLE obj_name  TO "Guest";
 GRANT INSERT        ON TABLE obj_name  TO "ObjDesigner";
@@ -453,15 +453,14 @@ CREATE TABLE obj_num (
      REFERENCES obj_num( id )       MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
 
  ,CONSTRAINT pk_objnum__id          PRIMARY KEY(id)
- ,CONSTRAINT uk_objnum__idclsid          UNIQUE (id,cls_id,cls_kind)
+ ,CONSTRAINT uk_objnum__id_cid      UNIQUE (id,cls_id)
  ,CONSTRAINT fk_objnum__idclsid     FOREIGN KEY (id,cls_id,cls_kind)
     REFERENCES                          obj_name(id,cls_id,cls_kind)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 
 
 );-- INHERITS (obj);
---CREATE INDEX idx_objnum_pid ON obj_num (pid) ;
-CREATE INDEX idx_objnum__id_pid ON obj_num (id ,pid) ;
+CREATE INDEX idx_objnum_pid ON obj_num (pid) ;
 
 GRANT SELECT        ON TABLE obj_num  TO "Guest";
 GRANT INSERT        ON TABLE obj_num  TO "ObjDesigner";
@@ -481,13 +480,12 @@ CREATE TABLE obj_qtyi (
  ,qty        NUMERIC(20,0) NOT NULL CHECK (qty>=0)
  ,CONSTRAINT uk_obj_qtyi__id_pid UNIQUE ( id, pid )   
 
- ,CONSTRAINT fk_objqtyi__idclsid     FOREIGN KEY (id,cls_id,cls_kind)
+ ,CONSTRAINT fk_objqtyi__id_cid_ckind  FOREIGN KEY (id,cls_id,cls_kind)
    REFERENCES                            obj_name(id,cls_id,cls_kind)
    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
---CREATE INDEX idx_objqtyi_id ON obj_qtyi("id") ;
---CREATE INDEX idx_objqtyi_pid ON obj_qtyi("pid") ;
---CREATE INDEX idx_objqtyi__id_clsid_cls_kind ON obj_qtyi (id,cls_id,cls_kind) ;
+CREATE INDEX idx_objqtyi_pid ON obj_qtyi (pid) ;
+CREATE INDEX idx_objqtyi_id_cid ON obj_qtyi (id, cls_id);
 
 GRANT SELECT        ON TABLE obj_qtyi  TO "Guest";
 GRANT INSERT        ON TABLE obj_qtyi  TO "User";
@@ -508,13 +506,12 @@ CREATE TABLE obj_qtyf (
  ,qty        NUMERIC NOT NULL CHECK (qty>=0)
  ,CONSTRAINT uk_obj_qtyf__id_pid UNIQUE ( id, pid )   
 
-  ,CONSTRAINT fk_objqtyf__idclsid     FOREIGN KEY (id,cls_id,cls_kind)
+  ,CONSTRAINT fk_objqtyf__id_cid_ckind FOREIGN KEY (id,cls_id,cls_kind)
    REFERENCES                             obj_name(id,cls_id,cls_kind)
    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
---CREATE INDEX idx_objqtyf_id ON obj_qtyf("id") ;
---CREATE INDEX idx_objqtyf_pid ON obj_qtyf("pid") ;
---CREATE INDEX idx_objqtyf__id_clsid_cls_kind ON obj_qtyf (id,cls_id,cls_kind) ;
+CREATE INDEX idx_objqtyf_pid ON obj_qtyf (pid) ;
+CREATE INDEX idx_objqtyf_id_cid ON obj_qtyf (id, cls_id);
 
 GRANT SELECT        ON TABLE obj_qtyf  TO "Guest";
 GRANT INSERT        ON TABLE obj_qtyf  TO "User";
@@ -653,13 +650,13 @@ GRANT UPDATE        ON cls  TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 DROP VIEW IF EXISTS obj CASCADE;
 CREATE VIEW obj AS
-SELECT id, pid, title, cls_id, prop, qty, move_logid, act_logid,cls_kind FROM
+SELECT id, pid, title, cdif.cls_id, prop, qty, move_logid, act_logid,cdif.cls_kind FROM
 (
-SELECT id, pid,1::NUMERIC AS qty FROM obj_num
+SELECT id, pid,1::NUMERIC AS qty,cls_id,cls_kind FROM obj_num
 UNION ALL
-SELECT id, pid, qty FROM obj_qtyi
+SELECT id, pid, qty,cls_id,cls_kind FROM obj_qtyi
 UNION ALL
-SELECT id, pid, qty FROM obj_qtyf
+SELECT id, pid, qty,cls_id,cls_kind FROM obj_qtyf
 ) cdif
 LEFT JOIN obj_name USING (id);
 

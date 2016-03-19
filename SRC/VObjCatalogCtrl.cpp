@@ -732,6 +732,8 @@ void VObjCatalogCtrl::OnActivated(wxDataViewEvent& evt)
 //---------------------------------------------------------------------------
 void VObjCatalogCtrl::OnExpanding(wxDataViewEvent &evt)
 {
+	wxBusyCursor			busyCursor;
+
 	wxDataViewItem selectedItem = evt.GetItem();
 
 	if (selectedItem.IsOk())

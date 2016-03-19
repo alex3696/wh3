@@ -1,4 +1,39 @@
-﻿
+-------------------------------------------------------------------------------
+PRINT '';
+PRINT '- функция транслитерации';
+PRINT '';
+------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION iris_translit(p_string character varying)
+  RETURNS character varying AS
+$BODY$
+--Транслитерация
+--Отличие от ГОСТ 7.79-2000
+--ё = e, а не yo
+--ы = y`, а не y'
+select 
+replace(
+replace(
+replace(
+replace(
+replace(
+replace(
+replace(
+replace(
+replace(
+translate(lower($1), 
+'абвгдеёзийклмнопрстуфхць', 'abvgdeezijklmnoprstufхc`'),
+'ж', 'zh'),
+'ч', 'ch'),
+'ш', 'sh'),
+'щ', 'shh'),
+'ъ', '``'),
+'ы', 'y`'),
+'э', 'e`'),
+'ю', 'yu'),
+'я', 'ya');
+$BODY$
+  LANGUAGE sql IMMUTABLE
+  COST 100;
 --SET client_min_messages='debug1';
 --SHOW client_min_messages;
 
@@ -196,7 +231,6 @@ PRINT '';
 -------------------------------------------------------------------------------
 DECLARE @prid_calp,@prid_desc,@prid_remdesc,@prid_note,@prid_invn,@prid_pasp,@prid_calfile,@prid_objfolder;
 DECLARE @prid_reldate,@prid_indate,@prid_usehours,@prid_depth,@prid_press,@prid_temp;
-
 SET @prid_calp = INSERT INTO prop(title, kind)VALUES('Период калибровки(мес.)', 100)RETURNING id;
 SET @prid_desc =INSERT INTO prop(title, kind)VALUES('Описание', 0)RETURNING id;
 SET @prid_remdesc =INSERT INTO prop(title, kind)VALUES('Описание ремонта', 0)RETURNING id;
@@ -261,8 +295,6 @@ PRINT '';
 PRINT '- добавляем основные классы';
 PRINT '';
 -------------------------------------------------------------------------------
-DECLARE @cid_personal;
-SET @cid_personal = INSERT INTO cls(pid,title,kind,measure) VALUES (1,'Персонал',1,'чел.') RETURNING id;
 
 DECLARE @struct_units_id, @geo_equipment_id;
 SET @struct_units_id = INSERT INTO cls(pid,title,kind) VALUES (1,'Структурные подразделения',0) RETURNING id;
@@ -318,6 +350,91 @@ INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
   VALUES ('TypeDesigner', 0, @department_id, NULL, @aid_chfndep );
 
 SELECT sgg_sc_import_departament();
+-------------------------------------------------------------------------------
+PRINT '';
+PRINT '- импортируем работников';
+PRINT '';
+------------------------------------------------------------------------------
+DECLARE @cid_personal;
+SET @cid_personal = INSERT INTO cls(pid,title,kind,measure) VALUES (1,'Персонал',1,'чел.') RETURNING id;
+
+DECLARE @pid_fam,@pid_nm,@pid_ot;
+SET @pid_fam = INSERT INTO prop(title, kind)VALUES('Фамилия', 0)RETURNING id;
+SET @pid_nm = INSERT INTO prop(title, kind)VALUES('Имя', 0)RETURNING id;
+SET @pid_ot = INSERT INTO prop(title, kind)VALUES('Отчество', 0)RETURNING id;
+
+SET @aid_ch_worker_info =   INSERT INTO act (title) VALUES ('Изменить сведения о работнике')RETURNING id;
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@aid_ch_worker_info, @pid_fam);
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@aid_ch_worker_info, @pid_nm);
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@aid_ch_worker_info, @pid_ot);
+
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+  VALUES ('TypeDesigner', 0, @cid_personal, NULL, @aid_ch_worker_info );
+
+
+DROP FUNCTION IF EXISTS sgg_sc_import_worker() CASCADE;
+CREATE OR REPLACE FUNCTION sgg_sc_import_worker()
+ RETURNS VOID  AS
+$BODY$
+DECLARE
+  import_worker CURSOR IS SELECT id, fam, im, oth, dep_id FROM __worker;
+  _cid_personal BIGINT;
+  _dep_title TEXT;
+  _oid_dep BIGINT;
+  _user_title TEXT;
+  _user_title_idx INTEGER;
+  
+  _oid BIGINT;
+  
+
+_pid_fam BIGINT;
+_pid_nm BIGINT;
+_pid_ot BIGINT;
+
+  _aid_ch_worker_info BIGINT;
+  _prop_val JSONB;
+BEGIN
+  SELECT id INTO _cid_personal FROM cls WHERE title='Персонал';
+
+  SELECT id INTO _pid_fam FROM prop WHERE title='Фамилия';
+  SELECT id INTO _pid_nm FROM prop WHERE title='Имя';
+  SELECT id INTO _pid_ot FROM prop WHERE title='Отчество';
+
+  SELECT id INTO _aid_ch_worker_info FROM act WHERE title='Изменить сведения о работнике' ;
+
+  
+
+  FOR rec IN import_worker LOOP
+    SELECT title INTO _dep_title FROM __departament WHERE id=rec.dep_id;
+    SELECT id INTO _oid_dep FROM obj WHERE title=_dep_title;
+
+    _user_title:= substring(rec.im from 1 for 1) || '.' || rec.fam;
+    --_user_title:= iris_translit(_user_title);
+    _user_title_idx = 0;
+    LOOP
+      PERFORM FROM obj WHERE cls_id=_cid_personal AND title=_user_title;
+      IF FOUND THEN
+       _user_title:= substring(rec.im from 1 for 1) ||_user_title_idx ||'.' || rec.fam;
+       _user_title_idx:=_user_title_idx+1;
+      ELSE 
+        EXIT;
+      END IF;
+    END LOOP;
+    
+    INSERT INTO obj(title,cls_id,pid) VALUES (_user_title,_cid_personal, _oid_dep ) RETURNING id INTO _oid;
+
+    _prop_val := format('{"%s":"%s","%s":"%s","%s":"%s"}',_pid_fam,rec.fam, _pid_nm, rec.im,_pid_ot, rec.oth );
+    PERFORM lock_for_act(_oid, _oid_dep);
+    PERFORM do_act(_oid, _aid_ch_worker_info, _prop_val);
+    PERFORM lock_reset(_oid, _oid_dep);
+    
+  END LOOP;
+  
+RETURN;
+END; 
+$BODY$ LANGUAGE plpgsql;
+
+SELECT sgg_sc_import_worker();
 -------------------------------------------------------------------------------
 -- добавляем участки СЦ
 -------------------------------------------------------------------------------
@@ -587,42 +704,7 @@ SELECT sgg_sc_import();
 
 
 
--------------------------------------------------------------------------------
-PRINT '';
-PRINT '- функция транслитерации';
-PRINT '';
-------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION iris_translit(p_string character varying)
-  RETURNS character varying AS
-$BODY$
---Транслитерация
---Отличие от ГОСТ 7.79-2000
---ё = e, а не yo
---ы = y`, а не y'
-select 
-replace(
-replace(
-replace(
-replace(
-replace(
-replace(
-replace(
-replace(
-replace(
-translate(lower($1), 
-'абвгдеёзийклмнопрстуфхць', 'abvgdeezijklmnoprstufхc`'),
-'ж', 'zh'),
-'ч', 'ch'),
-'ш', 'sh'),
-'щ', 'shh'),
-'ъ', '``'),
-'ы', 'y`'),
-'э', 'e`'),
-'ю', 'yu'),
-'я', 'ya');
-$BODY$
-  LANGUAGE sql IMMUTABLE
-  COST 100;
+
 
 
 
