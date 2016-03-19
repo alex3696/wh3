@@ -19,7 +19,7 @@ class Obj
 public:
 	Obj(const char option = ModelOption::EnableNotifyFromChild);
 
-	void SetObject(const wxString& cls_id, const wxString& obj_id, const wxString& obj_pid);
+	void SetObject(const rec::ObjInfo& oi);
 
 	std::shared_ptr<ClsPropArray>	GetClsPropArray()const { return mClsProp; }
 	std::shared_ptr<ObjPropArray>	GetObjPropArray()const { return mObjProp; }

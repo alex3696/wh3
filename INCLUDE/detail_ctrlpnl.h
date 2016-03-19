@@ -42,7 +42,7 @@ public:
 		long style = wxTAB_TRAVERSAL,
 		const wxString& name = wxPanelNameStr);
 	~CtrlPnl();
-	void SetObject(const wxString& cls_id, const wxString& obj_id, const wxString& obj_pid);
+	void SetObject(const rec::ObjInfo& oi);
 
 	void UpdateTab();
 

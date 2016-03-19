@@ -604,12 +604,12 @@ BEGIN
   UPDATE obj_name SET move_logid=_move_logid  WHERE id=_oid;
 
   INSERT INTO log_move( id,act_logid
-                       ,src_objnum_id, src_path
-                       ,dst_objnum_id, dst_path
+                       , src_path
+                       , dst_path
                        ,obj_id, qty )
                VALUES (_move_logid, _act_logid
-                       ,_old_opid, _curr_path
-                       ,_new_opid, _dst_path
+                       , _curr_path
+                       , _dst_path
                        ,_oid, _qty );
     
 

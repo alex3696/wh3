@@ -35,7 +35,7 @@ bool ObjPropArray::GetSelectChildsQuery(wxString& query)const
 	if (!parentCls)
 		return false;
 	const auto& data = parentCls->GetData();
-	if (data.mCls.IsAbstract())
+	if (data.mCls.mType.IsNull() || data.mCls.IsAbstract())
 		return false;
 	
 	query = wxString::Format(

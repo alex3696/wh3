@@ -45,6 +45,8 @@ public:
 	void SetModel(std::shared_ptr<IModel>& model);
 	void SetModel(std::shared_ptr<model::MovableObj>& model);
 
+	std::shared_ptr<model::MovableObj> GetModel(){ return mMovable; }
+
 };
 
 

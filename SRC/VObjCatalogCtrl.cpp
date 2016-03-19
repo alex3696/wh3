@@ -356,12 +356,18 @@ void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 	if (!main_farame)
 		return;
 
-	const auto& obj_data = objItem->GetData();
-	const auto& cls_data = typeItem->GetData();
+
+	rec::ObjInfo oi;
+	oi.mCls = typeItem->GetData();
+	oi.mObj = objItem->GetData();
+
+	//const rec::Obj& obj_data = objItem->GetData();
+	//const rec::Cls& cls_data = typeItem->GetData();
 
 	detail::view::CtrlPnl* pnl = new detail::view::CtrlPnl(notebook);
 	main_farame->AddTab(pnl);
-	pnl->SetObject(cls_data.mId, obj_data.mId, obj_data.mParent.mId);
+	//pnl->SetObject(cls_data.mId, obj_data.mId, obj_data.mParent.mId);
+	pnl->SetObject(oi);
 	
 }
 //-----------------------------------------------------------------------------

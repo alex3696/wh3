@@ -56,7 +56,7 @@ bool ObjPropValLoader::GetSelectQuery(wxString& query)const
 		return false;
 
 	const auto& obj_data = obj->GetData();
-	if (obj_data.mCls.IsAbstract())
+	if (obj_data.mCls.mType.IsNull() || obj_data.mCls.IsAbstract())
 		return false;
 
 	auto propArray = obj->GetObjPropArray();

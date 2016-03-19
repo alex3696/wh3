@@ -16,18 +16,12 @@ Obj::Obj(const char option)
 	this->Insert(mObjPropValLoader);
 }
 //-----------------------------------------------------------------------------
-void Obj::SetObject(const wxString& cls_id, const wxString& obj_id, const wxString& obj_pid)
+void Obj::SetObject(const rec::ObjInfo& oi)
 {
-	T_Data data;
-
-	data.mCls.mId = cls_id;
-	data.mObj.mId = obj_id;
-	data.mObj.mParent.mId = obj_pid;
-
 	mClsProp->Clear();
 	mObjProp->Clear();
 
-	SetData(data,true);
+	SetData(oi, true);
 
 }
 //-----------------------------------------------------------------------------
@@ -57,7 +51,12 @@ bool Obj::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 bool Obj::GetSelectQuery(wxString& query)const
 {
 	const auto& data = GetData();
-	if (data.mCls.mId.IsNull() || data.mObj.mId.IsNull() || data.mObj.mParent.mId.IsNull())
+
+	if (data.mCls.mId.IsNull() || data.mObj.mId.IsNull() )
+		return false;
+	
+	if (data.mCls.mType.IsNull() 
+		|| (data.mCls.IsQuantity() && data.mObj.mParent.mId.IsNull()))
 		return false;
 	
 	query = wxString::Format(
@@ -67,11 +66,13 @@ bool Obj::GetSelectQuery(wxString& query)const
 		" FROM obj o "
 		" LEFT JOIN cls co      ON co.id = o.cls_id "
 		" LEFT JOIN cls cparent ON co.pid = cparent.id "
-		" WHERE o.cls_id=%s  AND o.id=%s AND o.pid=%s "
+		" WHERE o.cls_id=%s  AND o.id=%s " 
 		, data.mCls.mId.SqlVal()
 		, data.mObj.mId.SqlVal()
-		, data.mObj.mParent.mId.SqlVal()
 		);
+
+	if (data.mCls.IsQuantity())
+		query += wxString::Format("AND o.pid=%s ", data.mObj.mParent.mId.SqlVal());
 
 	return true;
 

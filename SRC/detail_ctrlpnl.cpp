@@ -97,9 +97,9 @@ CtrlPnl::~CtrlPnl()
 	mAuiMgr.UnInit();
 }
 //-----------------------------------------------------------------------------
-void CtrlPnl::SetObject(const wxString& cls_id, const wxString& obj_id, const wxString& obj_pid)
+void CtrlPnl::SetObject(const rec::ObjInfo& oi)
 {
-	mObj->SetObject(cls_id, obj_id, obj_pid);
+	mObj->SetObject(oi);
 
 	mCtrl.OnCmdLoad(wxCommandEvent(wxID_REFRESH));
 	UpdateTab();

@@ -1,10 +1,26 @@
-﻿--SET client_min_messages='debug1';
+﻿
+--SET client_min_messages='debug1';
 --SHOW client_min_messages;
 
 SET client_min_messages = 'error';
 --SHOW client_min_messages=OFF;
-
-
+-------------------------------------------------------------------------------
+PRINT '';
+PRINT '- удаляем все записи классы/свойства';
+PRINT '';
+-------------------------------------------------------------------------------
+ALTER TABLE IF EXISTS log_act DISABLE TRIGGER ALL;
+ALTER TABLE IF EXISTS log_move DISABLE TRIGGER ALL;
+DELETE FROM log_act;
+DELETE FROM log_move;
+ALTER TABLE IF EXISTS log_act ENABLE TRIGGER ALL;
+ALTER TABLE IF EXISTS log_move ENABLE TRIGGER ALL;
+DELETE FROM acls WHERE id > 99;
+DELETE FROM prop CASCADE;
+DELETE FROM act CASCADE;
+DELETE FROM perm_act CASCADE;
+DELETE FROM perm_move CASCADE;
+-------------------------------------------------------------------------------
 DROP TABLE IF EXISTS __cls00 CASCADE;
 CREATE TABLE __cls00
 (
@@ -67,6 +83,71 @@ CREATE TABLE __obj
   ,ts text
 );
 COPY __obj FROM 'c:\_SAV\tmp\__obj.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
+
+-------------------------------------------------------------------------------
+PRINT '';
+PRINT '- история операций';
+PRINT '';
+-------------------------------------------------------------------------------
+DROP TABLE IF EXISTS __hist CASCADE;
+CREATE TABLE __hist
+(
+  hid          BIGINT NOT NULL
+  ,hcls_id      BIGINT NOT NULL
+
+  ,hinput_date  DATE
+  ,hfrom_user    TEXT
+
+  ,hrepair_date DATE
+  ,hrepair_user TEXT
+
+  ,hmetrdate    DATE
+  ,hmetr_user   TEXT
+
+  ,hto_pp_date  DATE
+  ,hfrom_pp_date DATE
+
+  ,hto_user_from_pp TEXT
+
+  ,husetime     TEXT
+  ,hresult     TEXT 
+
+  ,h_drepair_date DATE
+  ,hdepth     TEXT
+  ,hpress     TEXT
+  ,htemp     TEXT
+);
+COPY __hist FROM 'c:\_SAV\tmp\__hist.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
+
+
+-------------------------------------------------------------------------------
+PRINT '';
+PRINT '- загрузка отделов';
+PRINT '';
+-------------------------------------------------------------------------------
+DROP TABLE IF EXISTS __departament CASCADE;
+CREATE TABLE __departament
+(
+  id             BIGINT NOT NULL
+  ,title         TEXT
+  ,note          TEXT
+ );
+ COPY __departament FROM 'c:\_SAV\tmp\__departament.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
+-------------------------------------------------------------------------------
+PRINT '';
+PRINT '- загрузка пользователей';
+PRINT '';
+-------------------------------------------------------------------------------
+DROP TABLE IF EXISTS __worker CASCADE;
+CREATE TABLE __worker
+(
+  id      BIGINT NOT NULL
+  ,fam    TEXT
+  ,im     TEXT
+  ,oth    TEXT
+  ,dep_id BIGINT
+ );
+ COPY __worker FROM 'c:\_SAV\tmp\__worker.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
 -------------------------------------------------------------------------------
 PRINT '';
 PRINT '- удаляем ерунду';
@@ -75,14 +156,7 @@ PRINT '';
 DELETE FROM __cls WHERE title ~~* '%нет данных%';
 DELETE FROM __cls01 WHERE title ~~* '%нет данных%';
 DELETE FROM __cls00 WHERE title ~~* '%нет данных%';
--------------------------------------------------------------------------------
-PRINT '';
-PRINT '- удаляем все записи классы/свойства';
-PRINT '';
--------------------------------------------------------------------------------
-DELETE FROM acls WHERE id > 99;
-DELETE FROM prop CASCADE;
-DELETE FROM act CASCADE;
+DELETE FROM __departament WHERE title ~~* '%нет данных%';
 -------------------------------------------------------------------------------
 PRINT '';
 PRINT '- удаляем из имён запрещённые символы';
@@ -92,6 +166,7 @@ UPDATE __cls00  SET title=replace(title, '/', '|');
 UPDATE __cls01  SET title=replace(title, '/', '|');
 UPDATE __cls  SET title=replace(title, '/', '|');
 UPDATE __obj  SET title=replace(title, '/', '|');
+UPDATE __departament  SET title=replace(title, '/', '|');
 -------------------------------------------------------------------------------
 PRINT '';
 PRINT '- переименовываем одинаковые типы';
@@ -107,8 +182,9 @@ PRINT '';
 -------------------------------------------------------------------------------
 ALTER TABLE __cls ALTER COLUMN title TYPE whname;
 ALTER TABLE __obj ALTER COLUMN title TYPE whname;
+ALTER TABLE __departament ALTER COLUMN title TYPE whname;
 -------------------------------------------------------------------------------
--- заполняем и настраиваем базовую структуру
+-- заполняем группы пользователей
 -------------------------------------------------------------------------------
 INSERT INTO wh_role (rolname, rolcanlogin, rolcreaterole) VALUES ('Инженер по ремонту ГО',false, false);
 INSERT INTO wh_role (rolname, rolcanlogin, rolcreaterole) VALUES ('Инженер-метролог',false, false);
@@ -176,6 +252,9 @@ INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_gis, @prid_depth);
 INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_gis, @prid_press);
 INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_gis, @prid_temp);
 
+DECLARE @aid_chfndep;
+SET @aid_chfndep = INSERT INTO act (title) VALUES ('Изменить описание')RETURNING id;
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@aid_chfndep, @prid_desc);
 
 -------------------------------------------------------------------------------
 PRINT '';
@@ -197,11 +276,58 @@ SET @department_area_id = INSERT INTO cls(pid,title,kind,measure) VALUES (@struc
 DECLARE @sgg_company_id;
 SET @sgg_company_id = INSERT INTO obj(title,cls_id,pid) VALUES ('Севергазгеофизика',@company_id, 1 )RETURNING id;
 
-DECLARE @sc_departament_id,@sc_dep_kontr_id,@sc_dep_bur_id,@sc_dep_gti_id;
-SET @sc_departament_id = INSERT INTO obj(title,cls_id,pid) VALUES ('СЦ',@department_id, @sgg_company_id )RETURNING id;
-SET @sc_dep_kontr_id = INSERT INTO obj(title,cls_id,pid) VALUES ('ПГЭ Контроль',@department_id, @sgg_company_id )RETURNING id;
-SET @sc_dep_bur_id = INSERT INTO obj(title,cls_id,pid) VALUES ('ПГЭ Бурение',@department_id, @sgg_company_id )RETURNING id;
-SET @sc_dep_gti_id = INSERT INTO obj(title,cls_id,pid) VALUES ('ПГЭ ГТИ',@department_id, @sgg_company_id )RETURNING id;
+-------------------------------------------------------------------------------
+PRINT '';
+PRINT '- импортируем отделы';
+PRINT '';
+------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS sgg_sc_import_departament() CASCADE;
+CREATE OR REPLACE FUNCTION sgg_sc_import_departament()
+ RETURNS VOID  AS
+$BODY$
+DECLARE
+  import_dep CURSOR IS SELECT id, title,note FROM __departament;
+  sgg_company_oid BIGINT;
+  department_cid BIGINT;
+  _oid BIGINT;
+  _pid_desc BIGINT;
+  _aid_chfndep BIGINT;
+  _prop_val JSONB;
+BEGIN
+  SELECT id INTO sgg_company_oid FROM obj WHERE title='Севергазгеофизика';
+  SELECT id INTO department_cid FROM cls WHERE title='Отдел';
+  SELECT id INTO _pid_desc FROM prop WHERE title='Описание';
+  SELECT id INTO _aid_chfndep FROM act WHERE title='Изменить описание' ;
+
+  
+
+  FOR rec IN import_dep LOOP
+    INSERT INTO obj(title,cls_id,pid) VALUES (rec.title,department_cid, sgg_company_oid ) RETURNING id INTO _oid;
+    _prop_val := format('{"%s":"%s"}',_pid_desc, rec.note );
+    PERFORM lock_for_act(_oid, sgg_company_oid);
+    PERFORM do_act(_oid, _aid_chfndep, _prop_val);
+    PERFORM lock_reset(_oid, sgg_company_oid);
+    --INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (_cid, 1, _pid_fndep, rec.note);
+  END LOOP;
+  
+RETURN;
+END; 
+$BODY$ LANGUAGE plpgsql;
+
+INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+  VALUES ('TypeDesigner', 0, @department_id, NULL, @aid_chfndep );
+
+SELECT sgg_sc_import_departament();
+-------------------------------------------------------------------------------
+-- добавляем участки СЦ
+-------------------------------------------------------------------------------
+DECLARE @sc_departament_id;
+SET @sc_departament_id = SELECT id FROM obj WHERE title='Сервисный центр';
+--DECLARE @sc_departament_id,@sc_dep_kontr_id,@sc_dep_bur_id,@sc_dep_gti_id;
+--SET @sc_departament_id = INSERT INTO obj(title,cls_id,pid) VALUES ('СЦ',@department_id, @sgg_company_id )RETURNING id;
+--SET @sc_dep_kontr_id = INSERT INTO obj(title,cls_id,pid) VALUES ('ПГЭ Контроль',@department_id, @sgg_company_id )RETURNING id;
+--SET @sc_dep_bur_id = INSERT INTO obj(title,cls_id,pid) VALUES ('ПГЭ Бурение',@department_id, @sgg_company_id )RETURNING id;
+--SET @sc_dep_gti_id = INSERT INTO obj(title,cls_id,pid) VALUES ('ПГЭ ГТИ',@department_id, @sgg_company_id )RETURNING id;
 
 
 DECLARE @remont,@metrolog,@pp,@sklad,@konserv,@dremont,@spisano;
@@ -213,9 +339,10 @@ SET @konserv = INSERT INTO obj(title,cls_id,pid) VALUES ('Консервация
 SET @dremont = INSERT INTO obj(title,cls_id,pid) VALUES ('Долгосрочный ремонт',@department_area_id, @sc_departament_id )RETURNING id;
 SET @spisano = INSERT INTO obj(title,cls_id,pid) VALUES ('Списано',@department_area_id, @sc_departament_id )RETURNING id;
 
+
 -------------------------------------------------------------------------------
 PRINT '';
-PRINT '- добавляем действия для всей категории классов';
+PRINT '- добавляем действия для всей категории импортированых классов';
 PRINT '';
 ------------------------------------------------------------------------------
 
@@ -236,6 +363,89 @@ INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_p
 
 INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_path)
   VALUES ('Диспетчер ГО', 0, @geo_equipment_id, NULL, @act_id_gis, format('{{%s,%s},%%}',@department_area_id,@pp) ); 
+
+
+
+-------------------------------------------------------------------------------
+PRINT '';
+PRINT '- добавляем перемещения для всей категории импортированых классов';
+PRINT '';
+------------------------------------------------------------------------------
+
+INSERT INTO perm_move( access_group, access_disabled
+                      ,cls_id, obj_id
+                      ,src_cls_id, src_obj_id, src_path
+                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+                     ( 'Инженер по ремонту ГО', 0
+                       ,@geo_equipment_id, NULL                   -- what [ФЭУ-geo_equipment]%
+                       ,@department_area_id, @remont, '{%}'       -- from [remont]%
+                       ,@department_area_id, @metrolog, '{%}'     -- to   [СРК2М]% 
+                      );
+INSERT INTO perm_move( access_group, access_disabled
+                      ,cls_id, obj_id
+                      ,src_cls_id, src_obj_id, src_path
+                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+                     ( 'Инженер по ремонту ГО', 0
+                       ,@geo_equipment_id, NULL                   -- what [ФЭУ-geo_equipment]%
+                       ,@department_area_id, @remont, '{%}'       -- from [remont]%
+                       ,@department_area_id, @pp, '{%}'           -- to   [СРК2М]% 
+                      );
+INSERT INTO perm_move( access_group, access_disabled
+                      ,cls_id, obj_id
+                      ,src_cls_id, src_obj_id, src_path
+                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+                     ( 'Инженер по ремонту ГО', 0
+                       ,@geo_equipment_id, NULL       -- what [ФЭУ-geo_equipment]%
+                       ,@department_area_id, @remont, '{%}'       -- from [remont]%
+                       ,@department_area_id, @dremont, '{%}'           -- to   [СРК2М]% 
+                      );
+INSERT INTO perm_move( access_group, access_disabled
+                      ,cls_id, obj_id
+                      ,src_cls_id, src_obj_id, src_path
+                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+                     ( 'Инженер по ремонту ГО', 0
+                       ,@geo_equipment_id, NULL       -- what [ФЭУ-geo_equipment]%
+                       ,@department_area_id, @dremont, '{%}'       -- from [remont]%
+                       ,@department_area_id, @remont, '{%}'           -- to   [СРК2М]% 
+                      );
+INSERT INTO perm_move( access_group, access_disabled
+                      ,cls_id, obj_id
+                      ,src_cls_id, src_obj_id, src_path
+                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+                     ( 'Инженер-метролог', 0
+                       ,@geo_equipment_id, NULL       -- what [ФЭУ-geo_equipment]%
+                       ,@department_area_id, @metrolog, '{%}'       -- from [remont]%
+                       ,@department_area_id, @remont, '{%}'           -- to   [СРК2М]% 
+                      );
+INSERT INTO perm_move( access_group, access_disabled
+                      ,cls_id, obj_id
+                      ,src_cls_id, src_obj_id, src_path
+                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+                     ( 'Инженер-метролог', 0
+                       ,@geo_equipment_id, NULL       -- what [ФЭУ-geo_equipment]%
+                       ,@department_area_id, @metrolog, '{%}'       -- from [remont]%
+                       ,@department_area_id, @pp, '{%}'           -- to   [СРК2М]% 
+                      );
+INSERT INTO perm_move( access_group, access_disabled
+                      ,cls_id, obj_id
+                      ,src_cls_id, src_obj_id, src_path
+                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+                     ( 'Диспетчер ГО', 0
+                       ,@geo_equipment_id, NULL       -- what [ФЭУ-geo_equipment]%
+                       ,@department_area_id, @pp, '{%}'       -- from [remont]%
+                       ,@department_area_id, @metrolog, '{%}'           -- to   [СРК2М]% 
+                      );
+INSERT INTO perm_move( access_group, access_disabled
+                      ,cls_id, obj_id
+                      ,src_cls_id, src_obj_id, src_path
+                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+                     ( 'Диспетчер ГО', 0
+                       ,@geo_equipment_id, NULL       -- what [ФЭУ-geo_equipment]%
+                       ,@department_area_id, @pp, '{%}'       -- from [remont]%
+                       ,@department_area_id, @remont, '{%}'           -- to   [СРК2М]% 
+                      );
+
+
 
 -------------------------------------------------------------------------------
 -- конвертер из старой базы
@@ -372,8 +582,97 @@ $BODY$ LANGUAGE plpgsql;
 SELECT sgg_sc_import();
 
 
+
+
+
+
+
+-------------------------------------------------------------------------------
+PRINT '';
+PRINT '- функция транслитерации';
+PRINT '';
+------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION iris_translit(p_string character varying)
+  RETURNS character varying AS
+$BODY$
+--Транслитерация
+--Отличие от ГОСТ 7.79-2000
+--ё = e, а не yo
+--ы = y`, а не y'
+select 
+replace(
+replace(
+replace(
+replace(
+replace(
+replace(
+replace(
+replace(
+replace(
+translate(lower($1), 
+'абвгдеёзийклмнопрстуфхць', 'abvgdeezijklmnoprstufхc`'),
+'ж', 'zh'),
+'ч', 'ch'),
+'ш', 'sh'),
+'щ', 'shh'),
+'ъ', '``'),
+'ы', 'y`'),
+'э', 'e`'),
+'ю', 'yu'),
+'я', 'ya');
+$BODY$
+  LANGUAGE sql IMMUTABLE
+  COST 100;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+
+
+DROP FUNCTION IF EXISTS iris_translit(p_string character varying) CASCADE;
 DROP FUNCTION IF EXISTS sgg_sc_import() CASCADE;
+DROP TABLE IF EXISTS __departament CASCADE;
+DROP TABLE IF EXISTS __worker CASCADE;
+
 DROP TABLE IF EXISTS __cls00 CASCADE;
 DROP TABLE IF EXISTS __cls01 CASCADE;
 DROP TABLE IF EXISTS __cls CASCADE;
 DROP TABLE IF EXISTS __obj CASCADE;
+DROP TABLE IF EXISTS __hist CASCADE;
+
+
+*/

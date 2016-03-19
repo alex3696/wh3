@@ -9,9 +9,9 @@ using namespace wh::dlg_move::model;
 MovableObj::MovableObj()
 	:TModelData<DataType>(ModelOption::CommitLoad)
 	, mDstTypes(new DstTypeArray)
+	, mQty(new TModelData<wxString>)
 {
 	this->Insert(std::dynamic_pointer_cast<IModel>(mDstTypes));
-
 }
 
 //-----------------------------------------------------------------------------
@@ -45,6 +45,9 @@ void MovableObj::Unlock()
 void MovableObj::Move(std::shared_ptr<wh::dlg_move::model::DstObj> dst, 
 	const wxString& qty)
 {
+	mDstObj.reset();
+	mQty->SetData(wxEmptyString);
+	
 	whDataMgr::GetDB().BeginTransaction();
 
 	const rec::PathItem& movable = GetData();
@@ -59,13 +62,14 @@ void MovableObj::Move(std::shared_ptr<wh::dlg_move::model::DstObj> dst,
 		);
 	whDataMgr::GetDB().Exec(query);
 
-
 	query = wxString::Format(
 		"SELECT lock_reset(%s,%s)"
 		, movable.mObj.mId.SqlVal()
 		, movable.mObj.mParent.mId.SqlVal() );
 	whDataMgr::GetDB().Exec(query);
 
-
 	whDataMgr::GetDB().Commit();
+
+	mDstObj = dst;
+	mQty->SetData(qty);
 }

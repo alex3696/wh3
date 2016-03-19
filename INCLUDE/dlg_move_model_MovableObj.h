@@ -59,8 +59,14 @@ public:
 
 	void Unlock();
 	void Move(std::shared_ptr<model::DstObj> dst, const wxString& qty = "1");
+
+	std::shared_ptr<DstObj> GetDstObj(){ return mDstObj; }
+	std::shared_ptr<TModelData<wxString>> GetQty(){ return mQty; }
+	
 protected:
-	std::shared_ptr<DstTypeArray>	mDstTypes;
+	std::shared_ptr<DstTypeArray>			mDstTypes;
+	std::shared_ptr<DstObj>					mDstObj;
+	std::shared_ptr<TModelData<wxString>>	mQty;
 	
 	virtual void LoadChilds()override;
 

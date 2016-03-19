@@ -82,7 +82,24 @@ void DetailActCtrl::OnCmdMove(wxCommandEvent& WXUNUSED(evt))
 		subj->SetData(data, true);
 		dlg_move::view::Frame dlg;
 		dlg.SetModel(subj);
-		dlg.ShowModal();
+		if (wxID_OK == dlg.ShowModal())
+		{
+			
+			auto movable = dlg.GetModel();
+			auto dst = movable->GetDstObj();
+			auto qty = movable->GetQty();
+
+			const auto& movable_data = movable->GetData();
+			const auto& dstobj_data = dst->GetData();
+			const auto& qty_data = qty->GetData();
+			
+			if (movable_data.mObj.mQty.toStr() == qty_data)
+			{
+				auto odata = mObjModel->GetData();
+				odata.mObj.mParent.mId = dstobj_data.mId;
+			}
+		}
+		
 		mObjModel->Load();
 		mTableModel->Load();
 	}
