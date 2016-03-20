@@ -439,6 +439,9 @@ public:
 		SptrIModel& before = SptrIModel(nullptr))
 	{
 		DoSigBeforeInsert(newItems, before);
+		if (!mVec)
+			mVec.reset(new BaseStore);
+		mVec->reserve(newItems.size() + mVec->size());
 		unsigned int qty_inserted = 0;
 		for (const auto& curr : newItems)
 		{
@@ -641,6 +644,7 @@ protected:
 				
 				if (rowQty)
 				{
+					new_vec.reserve(rowQty);
 					for (unsigned int i = 0; i < rowQty; ++i)
 					{
 						std::shared_ptr<IModel> child = CreateChild();

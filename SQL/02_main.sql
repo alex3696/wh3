@@ -540,6 +540,7 @@ CREATE INDEX idx_logact__actid   ON log_act  (act_id);
 CREATE INDEX idx_logact__oid     ON log_act  (obj_id);
 CREATE INDEX idx_logact__src_cid ON log_act  ((src_path[1][1]));
 CREATE INDEX idx_logact__src_oid ON log_act  ((src_path[1][2]));
+CREATE INDEX idx_logact__timemark ON log_act   (timemark DESC);
 
 
 --CREATE INDEX idx_permmove__user ON perm_move(src_cls_id, src_obj_id);
@@ -573,7 +574,7 @@ CREATE INDEX idx_logmove__src_cid   ON log_move   ((src_path[1][1]));
 CREATE INDEX idx_logmove__src_oid   ON log_move   ((src_path[1][2]));
 CREATE INDEX idx_logmove__dst_cid   ON log_move   ((dst_path[1][1]));
 CREATE INDEX idx_logmove__dst_oid   ON log_move   ((dst_path[1][2]));
-
+CREATE INDEX idx_logmove__timemark  ON log_move   (timemark DESC);
 
 GRANT SELECT        ON TABLE log_move  TO "Guest";
 GRANT INSERT        ON TABLE log_move  TO "User";
