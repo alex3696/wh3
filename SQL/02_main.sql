@@ -424,7 +424,7 @@ CREATE TABLE obj_name (
 
 ,CONSTRAINT pk_objname__id               PRIMARY KEY(id)
 ,CONSTRAINT uk_objname__id_cid_ckind     UNIQUE (id, cls_id,cls_kind)
-,CONSTRAINT uk_objname__title_cid      UNIQUE (title, cls_id)
+,CONSTRAINT uk_objname__title_cid        UNIQUE (title, cls_id)
 ,CONSTRAINT uk_objname__movelogid        UNIQUE (move_logid) 
 
 ,CONSTRAINT fk_obj__cls         FOREIGN KEY (cls_id,cls_kind)
@@ -434,7 +434,8 @@ CREATE TABLE obj_name (
 CREATE INDEX idx_objname__prop  ON obj_name USING gin ("prop") ;
 CREATE INDEX idx_objname__title_vpo ON obj_name (title varchar_pattern_ops) ;
 CREATE INDEX idx_objname__title_tgm ON obj_name USING gin (title gin_trgm_ops);
---CREATE INDEX idx_objname__cid_ckind ON obj_name (cls_id,cls_kind);
+CREATE INDEX idx_objname__cid  ON obj_name (cls_id);
+
 
 GRANT SELECT        ON TABLE obj_name  TO "Guest";
 GRANT INSERT        ON TABLE obj_name  TO "ObjDesigner";

@@ -118,6 +118,10 @@ CREATE TABLE __obj
   ,ts text
 );
 COPY __obj FROM 'c:\_SAV\tmp\__obj.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
+ALTER TABLE __obj ADD COLUMN wh3_oid bigint;
+ALTER TABLE __obj ADD COLUMN wh3_cid bigint;
+CREATE INDEX idx__obj_oid ON __obj (obj_id);
+
 
 -------------------------------------------------------------------------------
 PRINT '';
@@ -128,10 +132,10 @@ DROP TABLE IF EXISTS __hist CASCADE;
 CREATE TABLE __hist
 (
   hid          BIGINT NOT NULL
-  ,hcls_id      BIGINT NOT NULL
+  ,sc_oid      BIGINT NOT NULL
 
   ,hinput_date  DATE
-  ,hfrom_user    TEXT
+  ,hfrom_user   BIGINT
 
   ,hrepair_date DATE
   ,hrepair_user TEXT
@@ -150,10 +154,26 @@ CREATE TABLE __hist
   ,h_drepair_date DATE
   ,hdepth     TEXT
   ,hpress     TEXT
-  ,htemp     TEXT
+  ,htemp      TEXT
 );
+
 COPY __hist FROM 'c:\_SAV\tmp\__hist.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
 
+UPDATE __hist  SET husetime= NULLIF(REPLACE (REGEXP_REPLACE(husetime,'([^[:digit:],.$])','','g'),',','.') ,'');
+UPDATE __hist  SET hdepth=   NULLIF(REPLACE (REGEXP_REPLACE(hdepth,'([^[:digit:],.$])','','g'),',','.') ,'');
+UPDATE __hist  SET hpress=   NULLIF(REPLACE (REGEXP_REPLACE(hpress,'([^[:digit:],.$])','','g'),',','.') ,'');
+UPDATE __hist  SET htemp=    NULLIF(REPLACE (REGEXP_REPLACE(htemp,'([^[:digit:],.$])','','g'),',','.') ,'');
+UPDATE __hist  SET hresult= replace(hresult, '\\', '\\\\');
+UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '\r\n', '\\r\\n','g') ,'');
+UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '"', '\"','g') ,'');
+
+
+
+
+ALTER TABLE __hist ALTER COLUMN husetime TYPE NUMERIC USING husetime::numeric;
+ALTER TABLE __hist ALTER COLUMN hdepth TYPE NUMERIC USING hdepth::numeric;
+ALTER TABLE __hist ALTER COLUMN hpress TYPE NUMERIC USING hpress::numeric;
+ALTER TABLE __hist ALTER COLUMN htemp TYPE NUMERIC USING htemp::numeric;
 
 -------------------------------------------------------------------------------
 PRINT '';
@@ -183,6 +203,10 @@ CREATE TABLE __worker
   ,dep_id BIGINT
  );
  COPY __worker FROM 'c:\_SAV\tmp\__worker.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
+ALTER TABLE __worker ADD COLUMN wh3_oid bigint;
+ALTER TABLE __worker ADD COLUMN wh3_cid bigint;
+CREATE INDEX idx__worker_oid ON __worker (id);
+
 -------------------------------------------------------------------------------
 PRINT '';
 PRINT '- удаляем ерунду';
@@ -245,8 +269,8 @@ SET @prid_indate =INSERT INTO prop(title, kind)VALUES('Дата ввода в э
 SET @prid_usehours =INSERT INTO prop(title, kind)VALUES('Наработка(ч.)', 101)RETURNING id;
 
 SET @prid_depth =INSERT INTO prop(title, kind)VALUES('Глубина(м.)', 101)RETURNING id;
-SET @prid_press =INSERT INTO prop(title, kind)VALUES('Давление(ч.)', 101)RETURNING id;
-SET @prid_temp =INSERT INTO prop(title, kind)VALUES('Температура(ч.)', 101)RETURNING id;
+SET @prid_press =INSERT INTO prop(title, kind)VALUES('Давление(МПа)', 101)RETURNING id;
+SET @prid_temp =INSERT INTO prop(title, kind)VALUES('Температура(град.С)', 101)RETURNING id;
 
 -------------------------------------------------------------------------------
 PRINT '';
@@ -422,6 +446,7 @@ BEGIN
     END LOOP;
     
     INSERT INTO obj(title,cls_id,pid) VALUES (_user_title,_cid_personal, _oid_dep ) RETURNING id INTO _oid;
+    UPDATE __worker SET wh3_oid = _oid, wh3_cid=_cid_personal WHERE  id=rec.id;
 
     _prop_val := format('{"%s":"%s","%s":"%s","%s":"%s"}',_pid_fam,rec.fam, _pid_nm, rec.im,_pid_ot, rec.oth );
     PERFORM lock_for_act(_oid, _oid_dep);
@@ -689,7 +714,9 @@ BEGIN
     PERFORM lock_for_act(_curr_oid, _curr_pid);
     PERFORM do_act(_curr_oid, _curr_aid, _prop_val);
     PERFORM lock_reset(_curr_oid, _curr_pid);
-    
+
+    UPDATE __obj SET wh3_oid = _curr_oid, wh3_cid=_cls_id WHERE  obj_id=rec.obj_id;
+
   END LOOP;
 
 RETURN;
@@ -701,38 +728,169 @@ SELECT sgg_sc_import();
 
 
 
+-------------------------------------------------------------------------------
+-- конвертер из старой базы
+-------------------------------------------------------------------------------
+--SET client_min_messages='debug1';
+--SHOW client_min_messages;
+DROP FUNCTION IF EXISTS sgg_import_hist() CASCADE;
+CREATE OR REPLACE FUNCTION sgg_import_hist()
+ RETURNS VOID  AS
+$BODY$
+DECLARE
+  import_hist CURSOR IS SELECT * FROM __hist; -- LIMIT 1000;
+
+  _oid_obj BIGINT;
+  _cid_obj BIGINT;
+  
+  _oid_user BIGINT;
+  _cid_user BIGINT;
+
+  _oid_pp BIGINT;
+  _cid_pp BIGINT;
+
+
+  _src_path TEXT;
+  _dst_path TEXT;
+
+  _aid_gis  BIGINT;
+  _pid_note BIGINT;
+  _pid_usehours BIGINT;
+  _pid_depth BIGINT;
+  _pid_press BIGINT;
+  _pid_temp BIGINT;
+  
+  _gis_note TEXT;
+
+  _gis_act_logid BIGINT;
+  _prop TEXT;
+  _lid BIGINT;
+BEGIN
+  SELECT id,cls_id  INTO _oid_pp,_cid_pp FROM obj_name WHERE title='Пункт проката';
+
+  SELECT id INTO _aid_gis FROM act WHERE title='ГИС';
+
+  SELECT id INTO _pid_note FROM prop WHERE title='Примечание';
+  SELECT id INTO _pid_usehours FROM prop WHERE title='Наработка(ч.)';
+  SELECT id INTO _pid_depth FROM prop WHERE title='Глубина(м.)';
+  SELECT id INTO _pid_press FROM prop WHERE title='Давление(МПа)';
+  SELECT id INTO _pid_temp FROM prop WHERE title='Температура(град.С)';
+
+  FOR rec IN import_hist LOOP
+
+  --RAISE DEBUG 'HISTREC: %', rec;
+
+  SELECT wh3_oid,wh3_cid INTO _oid_obj, _cid_obj FROM __obj WHERE  obj_id=rec.sc_oid;
+  SELECT wh3_oid,wh3_cid INTO _oid_user,_cid_user FROM __worker WHERE  id=rec.hfrom_user;
+
+  IF _cid_user IS NOT NULL THEN
+    _src_path:=format('{{%s,%s},{2,1}}',_cid_user,_oid_user);
+  END IF;
+  _dst_path:=format('{{%s,%s},{2,1}}',_cid_pp,_oid_pp);
+
+  _gis_act_logid:=NULL;
+  _gis_note:=substring(rec.hresult from '%входной_контроль#"%#"ремонт_прибора%' for '#');
+
+  IF(_gis_note ILIKE '%ГИС%')OR(rec.hdepth IS NOT NULL AND rec.hdepth>0 ) THEN
+    _prop:=format('{"%s":"%s","%s":"%s","%s":%s,"%s":%s,"%s":%s}', 
+      _pid_note, _gis_note,
+      _pid_usehours, COALESCE(rec.husetime,0),
+      _pid_depth, COALESCE(rec.hdepth,0),
+      _pid_press, COALESCE(rec.hpress,0),
+      _pid_temp,  COALESCE(rec.htemp,0)   );
+    RAISE DEBUG 'REC % ', rec;
+    RAISE DEBUG 'PROP % ', _prop;
+    INSERT INTO log_act(timemark, src_path, obj_id, act_id, prop)
+      VALUES (rec.hinput_date, _src_path::BIGINT[], _oid_obj, _aid_gis, _prop::JSONB)
+      RETURNING id INTO _gis_act_logid;
+  END IF;
+  
+
+  INSERT INTO log_move(timemark, src_path, dst_path, obj_id, qty, act_logid)
+    VALUES (rec.hinput_date, _src_path::BIGINT[], _dst_path::BIGINT[], _oid_obj, 1,_gis_act_logid);
+    
+  END LOOP;
+
+
+RETURN;
+END; 
+$BODY$ LANGUAGE plpgsql;
+
+SELECT sgg_import_hist();
+
+--UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '\\', '\\\\','g') ,'');
+--SELECT hresult FROM __hist  WHERE hresult ILIKE '%Н=1500 м. р-р 1,22%'
+
+
+
+/*
+
+SELECT log_id,log_dt,log_user,act_title,mcls_title,mobj_title,qty
+      ,(SELECT path FROM tmppath_to_2id_info(src_ipath::TEXT, 1))
+      ,(SELECT path FROM tmppath_to_2id_info(dst_ipath::TEXT, 1))
+      ,prop,act_color
+      ,log_dt::timestamptz::date AS log_date
+      ,mcls_id,mobj_id 
+      FROM (SELECT * FROM LOG)hist ORDER BY log_dt DESC LIMIT 24 OFFSET 0
+
+SET enable_seqscan = ON;
+SELECT *
+,(SELECT path FROM tmppath_to_2id_info(src_ipath::TEXT,1)) --AS src_path
+,(SELECT path FROM tmppath_to_2id_info(dst_ipath::TEXT,1)) --AS dst_path
+ FROM (
+  SELECT * FROM log ORDER BY log_dt DESC LIMIT 24 OFFSET 0) hist;
+
+SELECT * FROM log WHERE act_title ~~* '%пере%' LIMIT 24 OFFSET 0
+
+
+SELECT * FROM log_move ORDER BY timemark DESC LIMIT 24 OFFSET 10
 
 
 
 
+--SELECT substring('входной_контроль ГИС ремонт_прибора' from '%входной_контроль#"%#"ремонт_прибора%' for '#')
+--SELECT substring('входной_контроль ГИС ремонт_прибора' from '%ремонт_прибора#"%#"калибровка_прибора%' for '#')
+--SELECT substring('входной_контроль ГИС ремонт_прибора' from '%калибровка_прибора#"%#"пункт_проката%' for '#')
+--SELECT substring('входной_контроль ГИС ремонт_прибора' from '%пункт_проката#"%#"%' for '#')
+
+                       
+--1 move from user to PP
+
+--2 move from PP to Repair
+
+--3 move from Repair to Metrology
+
+--4 move from Metrology to PP
+
+--5 move from PP to User
 
 
+/*
+  hid          BIGINT NOT NULL
+  ,hcls_id      BIGINT NOT NULL
 
+  ,hinput_date  DATE
+  ,hfrom_user    TEXT
 
+  ,hrepair_date DATE
+  ,hrepair_user TEXT
 
+  ,hmetrdate    DATE
+  ,hmetr_user   TEXT
 
+  ,hto_pp_date  DATE
+  ,hfrom_pp_date DATE
 
+  ,hto_user_from_pp TEXT
 
+  ,husetime     TEXT
+  ,hresult     TEXT 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  ,h_drepair_date DATE
+  ,hdepth     TEXT
+  ,hpress     TEXT
+  ,htemp     TEXT
+  */
 
 
 
