@@ -565,7 +565,7 @@ CREATE TABLE log_detail_move (
   ,prop_lid BIGINT             REFERENCES log_detail_act(id) MATCH FULL ON UPDATE RESTRICT ON DELETE SET NULL 
   ,CONSTRAINT pk_logmovdet__id UNIQUE (id)
 ) ;
-CREATE INDEX idx_logmovdet__prop_lid  ON log_detail_move (id);
+CREATE INDEX idx_logmovdet__prop_lid  ON log_detail_move (prop_lid);
 CREATE INDEX idx_logmovdet__dst_cid   ON log_detail_move ((dst_path[1][1]));
 CREATE INDEX idx_logmovdet__dst_oid   ON log_detail_move ((dst_path[1][2]));
 GRANT SELECT        ON TABLE log_detail_move  TO "Guest";

@@ -70,6 +70,8 @@ public:
 	ObjPropArray(const char option
 		= ModelOption::EnableParentNotify
 		| ModelOption::EnableNotifyFromChild);
+
+	void SetPropArray(const wxString& prop_str);
 protected:
 	virtual bool GetSelectChildsQuery(wxString& query)const override;
 };

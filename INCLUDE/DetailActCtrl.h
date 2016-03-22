@@ -16,14 +16,16 @@ class DetailActCtrl
 public:
 	DetailActCtrl();
 
-	std::function<void(wxCommandEvent&)> fnOnCmdMove;
-	std::function<void(wxCommandEvent&)> fnOnCmdMoveHere;
-	std::function<void(wxCommandEvent&)> fnOnCmdAction;
+	std::function<void(wxCommandEvent&)>	fnOnCmdMove;
+	std::function<void(wxCommandEvent&)>	fnOnCmdMoveHere;
+	std::function<void(wxCommandEvent&)>	fnOnCmdAction;
+	std::function<void(wxDataViewEvent&)>	fnDvSelect;
 
 	void OnCmdMove(wxCommandEvent& WXUNUSED(evt));
 	void OnCmdMoveHere(wxCommandEvent& WXUNUSED(evt));
 	void OnCmdAction(wxCommandEvent& WXUNUSED(evt));
 	void OnCmdLoad(wxCommandEvent& WXUNUSED(evt));
+	void OnDvSelect(wxDataViewEvent& WXUNUSED(evt));
 
 	void SetObjModel(std::shared_ptr<detail::model::Obj> model);
 

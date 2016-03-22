@@ -180,13 +180,30 @@ void ObjDetailPGView::OnObjPropAfterInsert(const IModel& vec
 	{
 		auto item = dynamic_pointer_cast<model::ObjProp>(curr);
 		const auto& data = item->GetData();
-		propCategory->AppendChild(new wxStringProperty(
-			data.mProp.mLabel
-			, wxString::Format("ObjProp_%s", data.mProp.mLabel.SqlVal())
-			, data.mVal));
+		wxPGProperty* pgp = nullptr;
+		const wxString& pgp_title = data.mProp.mLabel;
+		const wxString  pgp_name = wxString::Format("ObjProp_%s", data.mProp.mLabel.SqlVal());
+
+		switch (data.mProp.mType)
+		{
+		case ftText:	pgp = new wxLongStringProperty(pgp_title, pgp_name); break;
+		case ftName:	pgp = new wxStringProperty(pgp_title, pgp_name); break;
+		case ftLong:
+				pgp = new wxStringProperty(pgp_title, pgp_name);
+				pgp->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+			break;
+		case ftDouble:	pgp = new wxFloatProperty(pgp_title, pgp_name);  break;
+		case ftDate:	pgp = new wxDateProperty(pgp_title, pgp_name);  break;
+		case ftLink:	pgp = new wxStringProperty(pgp_title, pgp_name);  break;
+		case ftFile:	pgp = new wxStringProperty(pgp_title, pgp_name);  break;
+		case ftJSON:	pgp = new wxLongStringProperty(pgp_title, pgp_name);  break;
+		default:break;
+		}
+		pgp->SetValueFromString(data.mVal);
+		propCategory->AppendChild(pgp);
 	}
 
-	SetPropertyReadOnly(propCategory, true);
+	//SetPropertyReadOnly(propCategory, true);
 
 	if (!propCategory->GetChildCount())
 		propCategory->Hide(true);

@@ -45,9 +45,9 @@ PRINT '- удаляем все записи классы/свойства';
 PRINT '';
 -------------------------------------------------------------------------------
 ALTER TABLE IF EXISTS log_main DISABLE TRIGGER ALL;
-DELETE FROM log_main;
-DELETE FROM log_detail_act;
-DELETE FROM log_detail_move;
+TRUNCATE log_main CASCADE;
+TRUNCATE log_detail_act CASCADE;
+TRUNCATE log_detail_move CASCADE;
 ALTER TABLE IF EXISTS log_main ENABLE TRIGGER ALL;
 DELETE FROM acls WHERE id > 99;
 DELETE FROM prop CASCADE;
@@ -137,15 +137,15 @@ CREATE TABLE __hist
   ,hfrom_user   BIGINT
 
   ,hrepair_date DATE
-  ,hrepair_user TEXT
+  ,hrepair_user BIGINT
 
   ,hmetrdate    DATE
-  ,hmetr_user   TEXT
+  ,hmetr_user   BIGINT
 
   ,hto_pp_date  DATE
   ,hfrom_pp_date DATE
 
-  ,hto_user_from_pp TEXT
+  ,hto_user_from_pp BIGINT
 
   ,husetime     TEXT
   ,hresult     TEXT 
@@ -155,6 +155,7 @@ CREATE TABLE __hist
   ,hpress     TEXT
   ,htemp      TEXT
 );
+CREATE INDEX idx__hist_oid ON __hist (sc_oid);
 
 COPY __hist FROM 'c:\_SAV\tmp\__hist.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
 
@@ -163,11 +164,11 @@ UPDATE __hist  SET hdepth=   NULLIF(REPLACE (REGEXP_REPLACE(hdepth,'([^[:digit:]
 UPDATE __hist  SET hpress=   NULLIF(REPLACE (REGEXP_REPLACE(hpress,'([^[:digit:],.$])','','g'),',','.') ,'');
 UPDATE __hist  SET htemp=    NULLIF(REPLACE (REGEXP_REPLACE(htemp,'([^[:digit:],.$])','','g'),',','.') ,'');
 UPDATE __hist  SET hresult= replace(hresult, '\\', '\\\\');
+UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '\t', '\\t','g') ,'');
+UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '\r', '\\r','g') ,'');
+UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '\n', '\\n','g') ,'');
 UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '\r\n', '\\r\\n','g') ,'');
 UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '"', '\"','g') ,'');
-
-
-
 
 ALTER TABLE __hist ALTER COLUMN husetime TYPE NUMERIC USING husetime::numeric;
 ALTER TABLE __hist ALTER COLUMN hdepth TYPE NUMERIC USING hdepth::numeric;
@@ -312,6 +313,11 @@ INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_gis, @prid_temp);
 DECLARE @aid_chfndep;
 SET @aid_chfndep = INSERT INTO act (title) VALUES ('Изменить описание')RETURNING id;
 INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@aid_chfndep, @prid_desc);
+
+DECLARE @aid_chnote;
+SET @aid_chnote = INSERT INTO act (title) VALUES ('Изменить примечание')RETURNING id;
+INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@aid_chnote, @prid_note);
+
 
 -------------------------------------------------------------------------------
 PRINT '';
@@ -738,82 +744,199 @@ CREATE OR REPLACE FUNCTION sgg_import_hist()
 $BODY$
 DECLARE
   import_hist CURSOR IS SELECT * FROM __hist; -- LIMIT 1000;
+  _oid_pp BIGINT;
+  _cid_pp BIGINT;
+  _oid_repair BIGINT;
+  _cid_repair BIGINT;
+  _oid_metr BIGINT;
+  _cid_metr BIGINT;
+  _oid_drepair BIGINT;
+  _cid_drepair BIGINT;
+
+  _aid_gis    BIGINT;
+  _aid_chnote BIGINT;
+  _aid_kalibr BIGINT;
+  _aid_repair BIGINT;
+  
+  _pid_note BIGINT;
+  _pid_usehours BIGINT;
+  _pid_depth BIGINT;
+  _pid_press BIGINT;
+  _pid_temp BIGINT;
+  _pid_repairnote BIGINT;
+  _pid_kalfile BIGINT;
+
+  _src_path TEXT;
+  _dst_path TEXT;
 
   _oid_obj BIGINT;
   _cid_obj BIGINT;
   
   _oid_user BIGINT;
   _cid_user BIGINT;
-
-  _oid_pp BIGINT;
-  _cid_pp BIGINT;
-
-
-  _src_path TEXT;
-  _dst_path TEXT;
-
-  _aid_gis  BIGINT;
-  _pid_note BIGINT;
-  _pid_usehours BIGINT;
-  _pid_depth BIGINT;
-  _pid_press BIGINT;
-  _pid_temp BIGINT;
   
-  _gis_note TEXT;
+  _note TEXT;
 
-  _gis_act_logid BIGINT;
+  _act_lid_previos BIGINT;
+
   _prop TEXT;
   _lid BIGINT;
+  _date TIMESTAMP;
+
+  
 BEGIN
   SELECT id,cls_id  INTO _oid_pp,_cid_pp FROM obj_name WHERE title='Пункт проката';
+  SELECT id,cls_id  INTO _oid_repair,_cid_repair FROM obj_name WHERE title='Ремонт';
+  SELECT id,cls_id  INTO _oid_metr,_cid_metr FROM obj_name WHERE title='Метрология';
+  SELECT id,cls_id  INTO _oid_drepair,_cid_drepair FROM obj_name WHERE title='Долгосрочный ремонт';
 
   SELECT id INTO _aid_gis FROM act WHERE title='ГИС';
-
+  SELECT id INTO _aid_chnote FROM act WHERE title='Изменить примечание';
+  SELECT id INTO _aid_repair FROM act WHERE title='Ремонт';
+  SELECT id INTO _aid_kalibr FROM act WHERE title='Калибровка';
+  
+  
   SELECT id INTO _pid_note FROM prop WHERE title='Примечание';
   SELECT id INTO _pid_usehours FROM prop WHERE title='Наработка(ч.)';
   SELECT id INTO _pid_depth FROM prop WHERE title='Глубина(м.)';
   SELECT id INTO _pid_press FROM prop WHERE title='Давление(МПа)';
   SELECT id INTO _pid_temp FROM prop WHERE title='Температура(град.С)';
+  SELECT id INTO _pid_repairnote FROM prop WHERE title='Описание ремонта';
+  SELECT id INTO _pid_kalfile FROM prop WHERE title='Файл калибровки';
+
 
   FOR rec IN import_hist LOOP
+    SELECT wh3_oid,wh3_cid INTO _oid_obj, _cid_obj FROM __obj WHERE  obj_id=rec.sc_oid;
+    SELECT wh3_oid,wh3_cid INTO _oid_user,_cid_user FROM __worker WHERE  id=rec.hfrom_user;
 
-  --RAISE DEBUG 'HISTREC: %', rec;
+    IF _cid_user IS NOT NULL THEN
+      _src_path:=format('{{%s,%s},{2,1}}',_cid_user,_oid_user);
+    END IF;
 
-  SELECT wh3_oid,wh3_cid INTO _oid_obj, _cid_obj FROM __obj WHERE  obj_id=rec.sc_oid;
-  SELECT wh3_oid,wh3_cid INTO _oid_user,_cid_user FROM __worker WHERE  id=rec.hfrom_user;
+    _note:=substring(rec.hresult from '%входной_контроль#"%#"ремонт_прибора%' for '#');
+    _note:=trim(both from _note);
+    _note:=NULLIF(_note,'');
+    RAISE DEBUG 'REC % ', rec;
+    _date:=rec.hinput_date;
 
-  IF _cid_user IS NOT NULL THEN
-    _src_path:=format('{{%s,%s},{2,1}}',_cid_user,_oid_user);
-  END IF;
-  _dst_path:=format('{{%s,%s},{2,1}}',_cid_pp,_oid_pp);
-
-  _gis_act_logid:=NULL;
-  _gis_note:=substring(rec.hresult from '%входной_контроль#"%#"ремонт_прибора%' for '#');
-  RAISE DEBUG '_gis_note=% ', _gis_note;
-
-  IF(_gis_note ILIKE '%ГИС%')OR(rec.hdepth IS NOT NULL AND rec.hdepth>0 ) THEN
-    _prop:=format('{"%s":"%s","%s":"%s","%s":%s,"%s":%s,"%s":%s}', 
-      _pid_note, _gis_note,
+    RAISE DEBUG 'GIS/NOTE';
+    IF(_note IS NOT NULL AND _note ILIKE '%ГИС%')OR(rec.hdepth IS NOT NULL AND rec.hdepth>0 ) THEN
+      _prop:=format('{"%s":"%s","%s":"%s","%s":%s,"%s":%s,"%s":%s}', 
+      _pid_note, _note,
       _pid_usehours, COALESCE(rec.husetime,0),
       _pid_depth, COALESCE(rec.hdepth,0),
       _pid_press, COALESCE(rec.hpress,0),
       _pid_temp,  COALESCE(rec.htemp,0)   );
-    RAISE DEBUG 'REC % ', rec;
-    RAISE DEBUG 'PROP % ', _prop;
-    INSERT INTO log_main(timemark, src_path, obj_id)
-      VALUES (rec.hinput_date, _src_path::BIGINT[], _oid_obj) RETURNING id INTO _lid;
-    INSERT INTO log_detail_act(id, act_id, prop) 
-      VALUES (_lid,_aid_gis, _prop::JSONB)RETURNING id INTO _gis_act_logid;
-    --INSERT INTO log_act(timemark, src_path, obj_id, act_id, prop)
-    --  VALUES (rec.hinput_date, _src_path::BIGINT[], _oid_obj, _aid_gis, _prop::JSONB)
-    --  RETURNING id INTO _gis_act_logid;
-  END IF;
-    INSERT INTO log_main(timemark, src_path, obj_id)
-      VALUES (rec.hinput_date, _src_path::BIGINT[], _oid_obj) RETURNING id INTO _lid;
-    INSERT INTO log_detail_move(id, dst_path, qty, prop_lid)
-      VALUES (_lid,  _dst_path::BIGINT[], 1, _gis_act_logid);
-  --INSERT INTO log_move(timemark, src_path, dst_path, obj_id, qty, act_logid)
-  --  VALUES (rec.hinput_date, _src_path::BIGINT[], _dst_path::BIGINT[], _oid_obj, 1,_gis_act_logid);
+      --RAISE DEBUG 'PROP % ', _prop;
+      INSERT INTO log_main(timemark, src_path, obj_id)
+        VALUES (_date, _src_path::BIGINT[], _oid_obj) RETURNING id INTO _lid;
+      INSERT INTO log_detail_act(id, act_id, prop) 
+        VALUES (_lid,_aid_gis, _prop::JSONB)RETURNING id INTO _act_lid_previos;
+    ELSE
+      --ставим примечание
+      _prop:=format('{"%s":"%s"}', _pid_note, _note );
+      INSERT INTO log_main(timemark, src_path, obj_id)
+        VALUES (_date, _src_path::BIGINT[], _oid_obj) RETURNING id INTO _lid;
+      INSERT INTO log_detail_act(id, act_id, prop) 
+        VALUES (_lid,_aid_chnote, _prop::JSONB)RETURNING id INTO _act_lid_previos;
+    END IF;
+
+    -- импортируем ремонт/ профилактику / проверку
+    RAISE DEBUG 'REPAIR';
+    -- если есть дата ремонта то перемещаем в ремонт
+    IF(rec.hrepair_date IS NOT NULL ) THEN 
+      _date:=COALESCE (rec.hrepair_date,rec.hinput_date) +'02:00:00'::INTERVAL;
+      _dst_path:=format('{{%s,%s},{2,1}}',_cid_repair,_oid_repair);
+      INSERT INTO log_main(timemark, src_path, obj_id)
+        VALUES (_date, _src_path::BIGINT[], _oid_obj) RETURNING id INTO _lid;
+      INSERT INTO log_detail_move(id, dst_path, qty, prop_lid)
+        VALUES (_lid,  _dst_path::BIGINT[], 1, _act_lid_previos);
+      _src_path:=_dst_path;
+      UPDATE obj_num SET pid = _oid_repair WHERE id=_oid_obj;
+
+      _note:=substring(rec.hresult from '%ремонт_прибора#"%#"калибровка_прибора%' for '#');
+      _note:=trim(both from _note);
+      _note:=NULLIF(_note,'');
+      SELECT wh3_oid,wh3_cid INTO _oid_user,_cid_user FROM __worker WHERE id=rec.hrepair_user;
+      -- если есть ремонтник или описание - выполняем ремонт
+      IF(rec.hrepair_user<>-1 OR _note IS  NOT NULL ) THEN 
+        _date:=COALESCE (rec.hrepair_date,rec.hinput_date) +'03:00:00'::INTERVAL;
+        _prop:=format('{"%s":"%s"}', _pid_repairnote, _note );
+        INSERT INTO log_main(timemark, src_path, obj_id)
+          VALUES (_date, _src_path::BIGINT[], _oid_obj) RETURNING id INTO _lid;
+        INSERT INTO log_detail_act(id, act_id, prop) 
+          VALUES (_lid,_aid_repair, _prop::JSONB)RETURNING id INTO _act_lid_previos;
+      END IF;
+    END IF;
+
+    -- импортируем калибровку
+    RAISE DEBUG 'METROLOGY';
+    -- если есть дата калибровки то перемещаем в метрологию
+    IF(rec.hmetrdate IS NOT NULL ) THEN
+      _date:=COALESCE (rec.hmetrdate,rec.hinput_date) +'04:00:00'::INTERVAL;
+      _dst_path:=format('{{%s,%s},{2,1}}',_cid_metr,_oid_metr);
+      INSERT INTO log_main(timemark, src_path, obj_id)
+        VALUES (_date, _src_path::BIGINT[], _oid_obj) RETURNING id INTO _lid;
+      INSERT INTO log_detail_move(id, dst_path, qty, prop_lid)
+        VALUES (_lid,  _dst_path::BIGINT[], 1, _act_lid_previos);
+      _src_path:=_dst_path;
+      UPDATE obj_num SET pid = _oid_metr WHERE id=_oid_obj;
+      
+      _note:=substring(rec.hresult from '%калибровка_прибора#"%#"пункт_проката%' for '#');
+      _note:=trim(both from _note);
+      _note:=NULLIF(_note,'');
+      -- если есть метролог или описание - выполняем калибровку
+      IF(rec.hmetr_user<>-1 OR _note IS NOT NULL ) THEN 
+        _date:=COALESCE (rec.hmetrdate,rec.hinput_date) +'05:00:00'::INTERVAL;
+        _prop:=format('{"%s":"%s"}', _pid_note, _note );
+        INSERT INTO log_main(timemark, src_path, obj_id)
+          VALUES (_date, _src_path::BIGINT[], _oid_obj) RETURNING id INTO _lid;
+        INSERT INTO log_detail_act(id, act_id, prop) 
+          VALUES (_lid,_aid_kalibr, _prop::JSONB)RETURNING id INTO _act_lid_previos;
+      END IF;
+    END IF;
+    
+
+    --ставим примечание ПП
+    RAISE DEBUG 'PP NOTE';
+    _note:=substring(rec.hresult from '%пункт_проката#"%#"%' for '#');
+    _note:=trim(both from _note);
+    _note:=NULLIF(_note,'');
+    IF(_note IS  NOT NULL ) THEN
+      _date:=COALESCE (rec.hto_pp_date,rec.hinput_date) +'06:00:00'::INTERVAL;
+      _prop:=format('{"%s":"%s"}', _pid_note, _note );
+      INSERT INTO log_main(timemark, src_path, obj_id)
+        VALUES (_date, _src_path::BIGINT[], _oid_obj) RETURNING id INTO _lid;
+      INSERT INTO log_detail_act(id, act_id, prop) 
+        VALUES (_lid,_aid_chnote, _prop::JSONB)RETURNING id INTO _act_lid_previos;
+    END IF;
+
+    -- перемещаем в ПП
+    RAISE DEBUG 'MOVE TO PP';
+    IF(rec.hto_pp_date IS NOT NULL) THEN
+      _date:=COALESCE (rec.hto_pp_date,rec.hinput_date) +'07:00:00'::INTERVAL;
+      _dst_path:=format('{{%s,%s},{2,1}}',_cid_pp,_oid_pp);
+      INSERT INTO log_main(timemark, src_path, obj_id)
+        VALUES (_date, _src_path::BIGINT[], _oid_obj) RETURNING id INTO _lid;
+      INSERT INTO log_detail_move(id, dst_path, qty, prop_lid)
+        VALUES (_lid,  _dst_path::BIGINT[], 1, _act_lid_previos);
+      _src_path:=_dst_path;
+      UPDATE obj_num SET pid = _oid_pp WHERE id=_oid_obj;
+    END IF;
+
+    -- Выдаём из ПП
+    RAISE DEBUG 'MOVE TO USER';
+    SELECT wh3_oid,wh3_cid INTO _oid_user,_cid_user FROM __worker WHERE  id=rec.hto_user_from_pp;
+    IF FOUND THEN
+      _date:=COALESCE (rec.hfrom_pp_date,rec.hinput_date) +'08:00:00'::INTERVAL;
+      _dst_path:=format('{{%s,%s},{2,1}}',_cid_user,_oid_user);
+      INSERT INTO log_main(timemark, src_path, obj_id)
+        VALUES (_date, _src_path::BIGINT[], _oid_obj) RETURNING id INTO _lid;
+      INSERT INTO log_detail_move(id, dst_path, qty, prop_lid)
+        VALUES (_lid,  _dst_path::BIGINT[], 1, _act_lid_previos);
+      _src_path:=_dst_path;
+      UPDATE obj_num SET pid = _oid_user WHERE id=_oid_obj;
+    END IF;
     
   END LOOP;
 
@@ -824,9 +947,13 @@ $BODY$ LANGUAGE plpgsql;
 
 SELECT sgg_import_hist();
 
+--SELECT ('2015.01.26'::DATE +'06:00:00'::INTERVAL)::DATE
+
 --UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '\\', '\\\\','g') ,'');
 --SELECT hresult FROM __hist  WHERE hresult ILIKE '%Н=1500 м. р-р 1,22%'
-
+--SELECT * FROM __hist  WHERE h_drepair_date IS NOT NULL LIMIT 100
+--SELECT * FROM __hist  WHERE hrepair_user::INTEGER=-1 LIMIT 100
+--SELECT * FROM __hist  WHERE hrepair_date IS NULL  AND hrepair_user::INTEGER=-1  LIMIT 10000
 
 
 /*
@@ -857,7 +984,7 @@ SELECT * FROM log_move ORDER BY timemark DESC LIMIT 24 OFFSET 10
 --SELECT substring('входной_контроль ГИС ремонт_прибора' from '%входной_контроль#"%#"ремонт_прибора%' for '#')
 --SELECT substring('входной_контроль ГИС ремонт_прибора' from '%ремонт_прибора#"%#"калибровка_прибора%' for '#')
 --SELECT substring('входной_контроль ГИС ремонт_прибора' from '%калибровка_прибора#"%#"пункт_проката%' for '#')
---SELECT substring('входной_контроль ГИС ремонт_прибора' from '%пункт_проката#"%#"%' for '#')
+--SELECT substring('пункт_проката ГИС ремонт_прибора' from '%пункт_проката#"%#"%' for '#')
 
                        
 --1 move from user to PP

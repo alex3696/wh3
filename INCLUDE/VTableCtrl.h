@@ -42,19 +42,21 @@ public:
 protected:
 	wxAuiManager*			mAuiMgr = nullptr;
 	std::shared_ptr<ITable> mTableModel = nullptr;
+	VTable*					mTableView = nullptr;
 	
-	template <class CLASS>
-	std::function<void(wxCommandEvent&)> MakeSafeFn
-		(void (CLASS::*method)(wxCommandEvent &), int cmd_id, CLASS* cls)
+	template <class CLASS, class EVENT>
+	std::function<void(EVENT&)> MakeSafeFn
+		(void (CLASS::*method)(EVENT &), CLASS* cls)
 	{
 		namespace ph = std::placeholders;
 
-		std::function<void(wxCommandEvent&)>
+		std::function<void(EVENT&)>
 			fn = std::bind(method, cls, ph::_1);
 		auto safe_fn = std::bind(SafeCallCommandEvent(), fn, ph::_1);
 		return safe_fn;
 
 	}
+
 
 	virtual wxAcceleratorTable GetAcceleratorTable()const;
 
@@ -64,9 +66,6 @@ protected:
 private:
 	wxWindow* mPanel = nullptr;;
 	
-	
-	
-	VTable*					mTableView = nullptr;
 	VTableToolBar*			mToolBarView = nullptr;
 	FilterArrayEditor*		mFilterView = nullptr;
 	

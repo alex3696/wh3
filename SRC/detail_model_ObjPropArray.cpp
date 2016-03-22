@@ -29,6 +29,44 @@ ObjPropArray::ObjPropArray(const char option)
 {
 }
 //-----------------------------------------------------------------------------
+void ObjPropArray::SetPropArray(const wxString& prop_str)
+{
+	auto obj = dynamic_cast<Obj*>(GetParent());
+	if (!obj)
+		return;
+	const auto& obj_data = obj->GetData();
+	if (obj_data.mCls.IsAbstract())
+		return;
+
+	boost::property_tree::ptree prop_arr;
+	if (!prop_str.IsEmpty())
+	{
+		std::stringstream ss; ss << prop_str;
+		boost::property_tree::read_json(ss, prop_arr);
+	}
+	
+	auto prop_qty = this->GetChildQty();
+	for (size_t i = 0; i < prop_qty; ++i)
+	{
+		auto prop = std::dynamic_pointer_cast<ObjProp>(GetChild(i));
+		if (prop)
+		{
+			auto prop_data = prop->GetData();
+			const std::string pid_str = prop_data.mProp.mId.toStr().c_str();
+			auto it = prop_arr.find(pid_str);
+			if (it != prop_arr.not_found())
+			{
+				prop_data.mVal = it->second.get_value<std::string>();
+			}
+			else
+				prop_data.mVal.SetNull();
+			prop->SetData(prop_data);
+		}
+
+	}
+
+}
+//-----------------------------------------------------------------------------
 bool ObjPropArray::GetSelectChildsQuery(wxString& query)const
 {
 	auto parentCls = dynamic_cast<Obj*>(GetParent());

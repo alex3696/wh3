@@ -12,11 +12,12 @@ DetailActCtrl::DetailActCtrl()
 	fnOnCmdInsert = nullptr;
 	fnOnCmdEdit = nullptr;
 
-	fnOnCmdMove = MakeSafeFn(&DetailActCtrl::OnCmdMove, whID_MOVE,this);
+	fnOnCmdMove = MakeSafeFn(&DetailActCtrl::OnCmdMove,this);
 	//fnOnCmdMoveHere = MakeSafeFn(&DetailActCtrl::OnCmdCmdMoveHere, whID_MOVE_HERE,this);
-	fnOnCmdAction = MakeSafeFn(&DetailActCtrl::OnCmdAction, whID_ACTION, this);
+	fnOnCmdAction = MakeSafeFn(&DetailActCtrl::OnCmdAction, this);
+	fnOnCmdLoad = MakeSafeFn(&DetailActCtrl::OnCmdLoad, this);
+	fnDvSelect = std::bind(&DetailActCtrl::OnDvSelect, this, std::placeholders::_1);
 
-	fnOnCmdLoad = MakeSafeFn(&DetailActCtrl::OnCmdLoad, wxID_REFRESH, this);
 }
 //-----------------------------------------------------------------------------
 void DetailActCtrl::SetObjModel(std::shared_ptr<wh::detail::model::Obj> model)
@@ -159,6 +160,25 @@ void DetailActCtrl::OnCmdLoad(wxCommandEvent& evt)
 	VTableCtrl::OnCmdLoad(evt);
 }
 //-----------------------------------------------------------------------------
+void DetailActCtrl::OnDvSelect(wxDataViewEvent& evt)
+{
+	auto item = evt.GetItem();
+	if (!item.IsOk() || !this->mTableView || !mObjModel)
+		return;
+	
+	auto row = this->mTableView->GetRow(item);
+
+	auto mrow = std::dynamic_pointer_cast<ITableRow>(
+		mTableModel->GetDataArr()->GetChild(row));
+
+	if (!mrow)
+		return;
+
+	mObjModel->GetObjPropArray()->SetPropArray(mrow->GetData().at(9));
+
+
+}
+//-----------------------------------------------------------------------------
 wxAcceleratorTable DetailActCtrl::GetAcceleratorTable()const
 {
 	wxAcceleratorEntry entries[12];
@@ -183,6 +203,7 @@ void DetailActCtrl::BindCmd(wxWindow* wnd)
 	wnd->Bind(wxEVT_COMMAND_MENU_SELECTED, fnOnCmdMove, whID_MOVE);
 	wnd->Bind(wxEVT_COMMAND_MENU_SELECTED, fnOnCmdMoveHere, whID_MOVE_HERE);
 	wnd->Bind(wxEVT_COMMAND_MENU_SELECTED, fnOnCmdAction, whID_ACTION);
+	wnd->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, fnDvSelect);
 
 	VTableCtrl::BindCmd(wnd);
 }
@@ -193,4 +214,5 @@ void DetailActCtrl::UnbindCmd(wxWindow* wnd)
 	wnd->Unbind(wxEVT_COMMAND_MENU_SELECTED, fnOnCmdMove, whID_MOVE);
 	wnd->Unbind(wxEVT_COMMAND_MENU_SELECTED, fnOnCmdMoveHere, whID_MOVE_HERE);
 	wnd->Unbind(wxEVT_COMMAND_MENU_SELECTED, fnOnCmdAction, whID_ACTION);
+	wnd->Unbind(wxEVT_DATAVIEW_SELECTION_CHANGED, fnDvSelect);
 }

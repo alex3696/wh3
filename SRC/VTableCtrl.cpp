@@ -6,14 +6,15 @@ using namespace wh;
 //-----------------------------------------------------------------------------
 VTableCtrl::VTableCtrl()
 {
-	fnOnCmdFilter = MakeSafeFn(&VTableCtrl::OnCmdFind, wxID_FIND, this);
-	fnOnCmdLoad = MakeSafeFn(&VTableCtrl::OnCmdLoad, wxID_REFRESH, this);
-	fnOnCmdSave = MakeSafeFn(&VTableCtrl::OnCmdSave, wxID_SAVE, this);
-	fnOnCmdInsert = MakeSafeFn(&VTableCtrl::OnCmdInsert, wxID_NEW, this);
-	fnOnCmdRemove = MakeSafeFn(&VTableCtrl::OnCmdRemove, wxID_REMOVE, this);
-	fnOnCmdEdit = MakeSafeFn(&VTableCtrl::OnCmdChange, wxID_EDIT, this);
-	fnOnCmdBackward = MakeSafeFn(&VTableCtrl::OnCmdBackward, wxID_BACKWARD, this);
-	fnOnCmdForward = MakeSafeFn(&VTableCtrl::OnCmdForward, wxID_FORWARD, this);
+	fnOnCmdFilter = MakeSafeFn(&VTableCtrl::OnCmdFind, this);
+	fnOnCmdLoad = MakeSafeFn(&VTableCtrl::OnCmdLoad, this);
+	fnOnCmdSave = MakeSafeFn(&VTableCtrl::OnCmdSave, this);
+	fnOnCmdInsert = MakeSafeFn(&VTableCtrl::OnCmdInsert, this);
+	fnOnCmdRemove = MakeSafeFn(&VTableCtrl::OnCmdRemove, this);
+	fnOnCmdEdit = MakeSafeFn(&VTableCtrl::OnCmdChange, this);
+	fnOnCmdBackward = MakeSafeFn(&VTableCtrl::OnCmdBackward, this);
+	fnOnCmdForward = MakeSafeFn(&VTableCtrl::OnCmdForward, this);
+
 }
 //-----------------------------------------------------------------------------
 void VTableCtrl::SetModel(std::shared_ptr<ITable> model)
