@@ -1,4 +1,4 @@
-﻿
+
 SET client_min_messages='debug1';
 
 -------------------------------------------------------------------------------
@@ -314,15 +314,11 @@ BEGIN
   _prop_str:='{'||_prop_str||'}';
   RAISE DEBUG '_prop_str: %',_prop_str;
 
-  _last_log_id := nextval('seq_log_id');
-
-  
-
+  INSERT INTO log_main(src_path, obj_id)
+    VALUES ( _curr_pathid, _obj_id) RETURNING id INTO _last_log_id;
+  INSERT INTO log_detail_act(id, act_id, prop) 
+    VALUES (_last_log_id,_act_id, _prop_str::JSONB);
   UPDATE obj_name SET act_logid=_last_log_id, prop=_prop_str::JSONB WHERE id=_obj_id;
-
-  INSERT INTO log_act(id,  act_id, prop,   obj_id,  src_path)
-    VALUES (_last_log_id, _act_id, _prop_str::JSONB, _obj_id,_curr_pathid);
-
 
 END;
 $BODY$
@@ -599,19 +595,16 @@ BEGIN
    ELSE RAISE EXCEPTION 'Wrong kind or unknown error'; 
   END CASE;
 
-  _move_logid := nextval('seq_log_id');
+  
+
+  
+
+  INSERT INTO log_main(src_path, obj_id)
+      VALUES (_curr_path, _oid) RETURNING id INTO _move_logid;
+  INSERT INTO log_detail_move(id, dst_path, qty, prop_lid)
+      VALUES (_move_logid,  _dst_path, _qty, _act_logid);
 -- обновляем ссылку на последнее действие в исходном и конечном объектах
   UPDATE obj_name SET move_logid=_move_logid  WHERE id=_oid;
-
-  INSERT INTO log_move( id,act_logid
-                       , src_path
-                       , dst_path
-                       ,obj_id, qty )
-               VALUES (_move_logid, _act_logid
-                       , _curr_path
-                       , _dst_path
-                       ,_oid, _qty );
-    
 
 END;
 $BODY$
@@ -633,82 +626,68 @@ SELECT lock_reset(104,1);
 
 --SELECT * FROM lock_dst WHERE oid=104 AND pid=100 AND dst_path = _dst_path ;
 
-
-
-
-
-
-
 ------------------------------------------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------------------------------------------
-DROP VIEW log;
-CREATE OR REPLACE VIEW log (
- log_id
- ,log_dt
- ,log_user
- ,act_id
- ,act_title
- ,act_color
- ,mobj_id
- ,mcls_id
- ,mobj_title
- ,mcls_title
- ,qty
- ,src_path
- ,dst_path
- ,prop
- ,log_date
- ,log_time
+DROP VIEW IF EXISTS log;
+CREATE OR REPLACE VIEW log AS 
+ SELECT 
+  lm.id       AS log_id
+ ,lm.timemark AS log_dt
+ ,lm.username AS log_user
+ ,det.act_id  AS act_id
+ ,act.title   AS act_title
+ ,act.color   AS act_color
+ ,lm.obj_id   AS mobj_id
+ ,mobj.cls_id AS mcls_id
+ ,mobj.title  AS mobj_title
+ ,mcls.title  AS mcls_title
+ ,det.qty     AS qty
+ --,(SELECT path FROM tmppath_to_2id_info(lm.src_path::TEXT,1)) AS src_path
+ --,(SELECT path FROM tmppath_to_2id_info(det.dst_path::TEXT,1)) AS dst_path
+ ,det.prop    AS prop
+ ,lm.timemark::timestamptz::date  AS log_date
+ ,date_trunc('second' ,lm.timemark)::timestamptz::time AS log_time
+ ,lm.src_path[1][1]  AS src_cid
+ ,lm.src_path[1][2]  AS src_oid
+ ,det.dst_path[1][1] AS dst_cid
+ ,det.dst_path[1][2] AS dst_oid
+ ,lm.src_path        AS src_ipath
+ ,det.dst_path       AS dst_ipath
+ --,src.path AS src_path
+ --,dst.path AS dst_path
+ ,path.src AS src_path
+ ,path.dst AS dst_path
+  FROM log_main lm
+  LEFT JOIN
+  ( SELECT lad.id
+                ,lad.act_id
+                ,lad.prop
+                ,NULL::BIGINT[] AS dst_path
+                ,1::NUMERIC     AS qty
+                ,lad.id         AS prop_lid
+           FROM log_detail_act lad
+        UNION ALL
+         SELECT lmd.id
+               ,NULL::BIGINT AS act_id
+               ,NULL::JSONB  AS prop
+               ,lmd.dst_path AS dst_path
+               ,lmd.qty      AS qty
+               ,lmd.prop_lid AS prop_lid
+           FROM log_detail_move lmd
+           
+  ) det ON lm.id=det.id
+  LEFT JOIN act ON act.id=det.act_id
+  LEFT JOIN obj_name mobj ON mobj.id=lm.obj_id
+  LEFT JOIN cls      mcls ON mcls.id=mobj.cls_id
+  --LEFT JOIN LATERAL tmppath_to_2id_info(lm.src_path::TEXT,1) src ON true 
+  --LEFT JOIN LATERAL tmppath_to_2id_info(det.dst_path::TEXT,1) dst ON true 
+  LEFT JOIN LATERAL (SELECT 
+                       (SELECT path FROM tmppath_to_2id_info(lm.src_path::TEXT,1)) as src,
+                       (SELECT path FROM tmppath_to_2id_info(det.dst_path::TEXT,1)) as dst )path 
+       ON TRUE
 
- ,src_cid
- ,src_oid
-
- ,dst_cid
- ,dst_oid
-)AS 
-SELECT log_move.id, log_move.timemark, log_move.username, 0::BIGINT AS act_id, 'Перемещение'::WHNAME AS act_title,'white'::VARCHAR(64) AS act_color 
-     ,log_move.obj_id 
-     ,mcls.id 
-     ,mobj.title
-     ,mcls.title
-     , qty
-     ,(SELECT path FROM tmppath_to_2id_info(log_move.src_path::TEXT,1)) 
-     ,(SELECT path FROM tmppath_to_2id_info(dst_path::TEXT,1)) 
-     , la.prop AS curr_prop
-     ,log_move.timemark::timestamptz::date  AS log_date
-     ,date_trunc('second' ,log_move.timemark)::timestamptz::time AS log_time
-     ,log_move.src_path[1][1]
-     ,log_move.src_path[1][2]
-     ,log_move.dst_path[1][1]
-     ,log_move.dst_path[1][2]
-  FROM log_move
-  LEFT JOIN obj_name mobj ON mobj.id=obj_id
-  LEFT JOIN cls mcls ON  mcls.id=mobj.cls_id
-
-  LEFT JOIN log_act la ON la.id=log_move.act_logid
-UNION ALL
-SELECT log_act.id, timemark, username, act_id, act.title , act.color
-     , obj_id
-     , mcls.id 
-     ,mobj.title
-     ,mcls.title
-     , 1::NUMERIC AS qty
-     , (SELECT path FROM tmppath_to_2id_info(src_path::TEXT,1)) 
-     , NULL::TEXT
-     , log_act.prop
-     ,log_act.timemark::timestamptz::date  AS log_date
-     ,date_trunc('second' ,log_act.timemark)::timestamptz::time AS log_time
-     ,log_act.src_path[1][1]
-     ,log_act.src_path[1][2]
-     ,NULL::BIGINT
-     ,NULL::BIGINT
-  FROM log_act
-  LEFT JOIN act ON act.id=act_id
-  LEFT JOIN obj_name mobj ON mobj.id=obj_id
-  LEFT JOIN cls mcls ON mcls.id=mobj.cls_id
-
-;
+  ;
 ------------------------------------------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------------------------------------------
@@ -720,8 +699,7 @@ GRANT DELETE        ON log  TO "User";
 DROP FUNCTION IF EXISTS ftg_del_log() CASCADE;
 CREATE FUNCTION ftg_del_log() RETURNS TRIGGER AS $$
 BEGIN
-  DELETE FROM log_move WHERE id = OLD.log_id;
-  DELETE FROM log_act WHERE id = OLD.log_id;
+  DELETE FROM log_main WHERE id = OLD.log_id;
   RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
@@ -730,55 +708,24 @@ GRANT EXECUTE ON FUNCTION ftg_del_log() TO "User";
 ------------------------------------------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS ftr_bd_log_act() CASCADE;
-CREATE OR REPLACE FUNCTION ftr_bd_log_act()
+DROP FUNCTION IF EXISTS ftr_bd_log_main() CASCADE;
+CREATE OR REPLACE FUNCTION ftr_bd_log_main()
   RETURNS trigger AS
 $BODY$
 DECLARE
-  prev_act_log_id BIGINT;
-  prev_prop     JSONB;
-BEGIN
-  IF OLD.timemark < CURRENT_TIMESTAMP - '3 00:00:00'::interval THEN
-    RAISE EXCEPTION ' %: can`t delete time is up log_rec=% ',TG_NAME, OLD;
-  END IF;
-  IF OLD.username <> CURRENT_USER THEN
-    RAISE EXCEPTION ' %: can`t delete wrong user log_rec=% ',TG_NAME, OLD;
-  END IF;
-  PERFORM FROM log WHERE mobj_id=OLD.obj_id AND log_dt > OLD.timemark;
-  IF FOUND THEN
-    RAISE EXCEPTION ' %: can`t delete log was updated log_rec=%',TG_NAME, OLD;
-  END IF;
+  _rec_detail_act  RECORD;
+  prev_act_log_id  BIGINT;
+  prev_prop        JSONB;
 
-  prev_act_log_id:=NULL;
-  prev_prop := NULL;
-
-  SELECT id,prop INTO prev_act_log_id, prev_prop FROM log_act 
-    WHERE obj_id=OLD.obj_id AND timemark < OLD.timemark
-    ORDER BY timemark DESC LIMIT 1;
-
-  UPDATE obj_name SET act_logid = prev_act_log_id, prop = prev_prop
-    WHERE id=OLD.obj_id;
-  
-RETURN OLD;
-END;
-$BODY$
-LANGUAGE plpgsql VOLATILE  COST 100;
-CREATE TRIGGER tr_bd_log_act BEFORE DELETE ON log_act FOR EACH ROW EXECUTE PROCEDURE ftr_bd_log_act();
-GRANT EXECUTE ON FUNCTION ftr_bu_acls() TO "User";
-------------------------------------------------------------------------------------------------------------
---
-------------------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS ftr_bd_log_move() CASCADE;
-CREATE OR REPLACE FUNCTION ftr_bd_log_move()
-  RETURNS trigger AS
-$BODY$
-DECLARE
-  _qty NUMERIC;
-  _old_opid BIGINT;
-  _new_opid BIGINT;
-  _oid BIGINT;
+  _old_detail_move RECORD;
+  _ckind           SMALLINT;
+  _oid             BIGINT;
+  _old_opid        BIGINT;
+  _new_opid        BIGINT;
+  _qty             NUMERIC;
   _prev_mov_log_id BIGINT;
-  _ckind SMALLINT;
+  
+  
 BEGIN
   IF OLD.timemark < CURRENT_TIMESTAMP - '3 00:00:00'::interval THEN
     RAISE EXCEPTION ' %: can`t delete time is up log_rec=% ',TG_NAME, OLD;
@@ -786,40 +733,50 @@ BEGIN
   IF OLD.username <> CURRENT_USER THEN
     RAISE EXCEPTION ' %: can`t delete wrong user log_rec=% ',TG_NAME, OLD;
   END IF;
-  PERFORM FROM log WHERE mobj_id=OLD.obj_id AND log_dt > OLD.timemark;
+  PERFORM FROM log_main WHERE obj_id=OLD.obj_id AND timemark > OLD.timemark;
   IF FOUND THEN
     RAISE EXCEPTION ' %: can`t delete log was updated log_rec=%',TG_NAME, OLD;
   END IF;
 
-  _oid:=OLD.obj_id;
-  _old_opid:=OLD.dst_path[1][2];
-  _new_opid:=OLD.src_path[1][2];
-  _qty := OLD.qty;
+  SELECT * INTO _rec_detail_act FROM log_detail_act WHERE id=OLD.id;
+  IF FOUND THEN
+    SELECT log_main.id, log_detail_act.prop INTO prev_act_log_id, prev_prop 
+      FROM log_main
+      INNER JOIN log_detail_act USING (id)
+      WHERE obj_id=OLD.obj_id AND timemark < OLD.timemark
+      ORDER BY timemark DESC LIMIT 1;
 
-  SELECT cls_kind INTO _ckind FROM obj_name WHERE id=_oid;
+    UPDATE obj_name SET act_logid = prev_act_log_id, prop = prev_prop
+      WHERE id=OLD.obj_id;
+  END IF;
 
-  CASE _ckind
-   WHEN 1 THEN PERFORM do_move_objnum(_oid, _new_opid);
-   WHEN 2 THEN PERFORM do_move_objqtyi(_oid, _old_opid, _new_opid, _qty);
-   WHEN 3 THEN PERFORM do_move_objqtyf(_oid, _old_opid, _new_opid, _qty);
-   ELSE RAISE EXCEPTION 'Wrong kind or unknown error'; 
-  END CASE;
-
-  SELECT id INTO _prev_mov_log_id FROM log_move 
-    WHERE obj_id=_oid AND timemark < OLD.timemark
-    ORDER BY timemark DESC LIMIT 1;
-
-  UPDATE obj_name SET move_logid=_prev_mov_log_id WHERE id=_oid;
+  SELECT * INTO _old_detail_move FROM log_detail_move WHERE id=OLD.id;
+  IF FOUND THEN
+    _oid:=OLD.obj_id;
+    _old_opid:=_old_detail_move.dst_path[1][2];
+    _new_opid:=OLD.src_path[1][2];
+    _qty := _old_detail_move.qty;
+    SELECT cls_kind INTO _ckind FROM obj_name WHERE id=_oid;
+    CASE _ckind
+      WHEN 1 THEN PERFORM do_move_objnum(_oid, _new_opid);
+      WHEN 2 THEN PERFORM do_move_objqtyi(_oid, _old_opid, _new_opid, _qty);
+      WHEN 3 THEN PERFORM do_move_objqtyf(_oid, _old_opid, _new_opid, _qty);
+      ELSE RAISE EXCEPTION 'Wrong kind or unknown error'; 
+    END CASE;
+    SELECT id INTO _prev_mov_log_id 
+      FROM log_main
+      INNER JOIN log_detail_move USING (id)
+      WHERE obj_id=_oid AND timemark < OLD.timemark
+      ORDER BY timemark DESC LIMIT 1;
+    UPDATE obj_name SET move_logid=_prev_mov_log_id WHERE id=_oid;
+  END IF;
 
 RETURN OLD;
 END;
 $BODY$
 LANGUAGE plpgsql VOLATILE  COST 100;
-CREATE TRIGGER tr_bd_log_move BEFORE DELETE ON log_move FOR EACH ROW EXECUTE PROCEDURE ftr_bd_log_move();
-GRANT EXECUTE ON FUNCTION ftr_bd_log_move() TO "User";
-
-
-
+CREATE TRIGGER tr_bd_log_main BEFORE DELETE ON log_main FOR EACH ROW EXECUTE PROCEDURE ftr_bd_log_main();
+GRANT EXECUTE ON FUNCTION ftr_bd_log_main() TO "User";
 
 
 

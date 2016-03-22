@@ -44,12 +44,11 @@ PRINT '';
 PRINT '- удаляем все записи классы/свойства';
 PRINT '';
 -------------------------------------------------------------------------------
-ALTER TABLE IF EXISTS log_act DISABLE TRIGGER ALL;
-ALTER TABLE IF EXISTS log_move DISABLE TRIGGER ALL;
-DELETE FROM log_act;
-DELETE FROM log_move;
-ALTER TABLE IF EXISTS log_act ENABLE TRIGGER ALL;
-ALTER TABLE IF EXISTS log_move ENABLE TRIGGER ALL;
+ALTER TABLE IF EXISTS log_main DISABLE TRIGGER ALL;
+DELETE FROM log_main;
+DELETE FROM log_detail_act;
+DELETE FROM log_detail_move;
+ALTER TABLE IF EXISTS log_main ENABLE TRIGGER ALL;
 DELETE FROM acls WHERE id > 99;
 DELETE FROM prop CASCADE;
 DELETE FROM act CASCADE;
@@ -790,6 +789,7 @@ BEGIN
 
   _gis_act_logid:=NULL;
   _gis_note:=substring(rec.hresult from '%входной_контроль#"%#"ремонт_прибора%' for '#');
+  RAISE DEBUG '_gis_note=% ', _gis_note;
 
   IF(_gis_note ILIKE '%ГИС%')OR(rec.hdepth IS NOT NULL AND rec.hdepth>0 ) THEN
     _prop:=format('{"%s":"%s","%s":"%s","%s":%s,"%s":%s,"%s":%s}', 
@@ -800,14 +800,20 @@ BEGIN
       _pid_temp,  COALESCE(rec.htemp,0)   );
     RAISE DEBUG 'REC % ', rec;
     RAISE DEBUG 'PROP % ', _prop;
-    INSERT INTO log_act(timemark, src_path, obj_id, act_id, prop)
-      VALUES (rec.hinput_date, _src_path::BIGINT[], _oid_obj, _aid_gis, _prop::JSONB)
-      RETURNING id INTO _gis_act_logid;
+    INSERT INTO log_main(timemark, src_path, obj_id)
+      VALUES (rec.hinput_date, _src_path::BIGINT[], _oid_obj) RETURNING id INTO _lid;
+    INSERT INTO log_detail_act(id, act_id, prop) 
+      VALUES (_lid,_aid_gis, _prop::JSONB)RETURNING id INTO _gis_act_logid;
+    --INSERT INTO log_act(timemark, src_path, obj_id, act_id, prop)
+    --  VALUES (rec.hinput_date, _src_path::BIGINT[], _oid_obj, _aid_gis, _prop::JSONB)
+    --  RETURNING id INTO _gis_act_logid;
   END IF;
-  
-
-  INSERT INTO log_move(timemark, src_path, dst_path, obj_id, qty, act_logid)
-    VALUES (rec.hinput_date, _src_path::BIGINT[], _dst_path::BIGINT[], _oid_obj, 1,_gis_act_logid);
+    INSERT INTO log_main(timemark, src_path, obj_id)
+      VALUES (rec.hinput_date, _src_path::BIGINT[], _oid_obj) RETURNING id INTO _lid;
+    INSERT INTO log_detail_move(id, dst_path, qty, prop_lid)
+      VALUES (_lid,  _dst_path::BIGINT[], 1, _gis_act_logid);
+  --INSERT INTO log_move(timemark, src_path, dst_path, obj_id, qty, act_logid)
+  --  VALUES (rec.hinput_date, _src_path::BIGINT[], _dst_path::BIGINT[], _oid_obj, 1,_gis_act_logid);
     
   END LOOP;
 

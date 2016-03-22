@@ -98,9 +98,9 @@ DROP FUNCTION IF EXISTS ftg_upd_obj() CASCADE;
 
 
 
-
-DROP TABLE IF EXISTS log_act CASCADE;
-DROP TABLE IF EXISTS log_move CASCADE;
+DROP TABLE IF EXISTS log_main CASCADE;
+DROP TABLE IF EXISTS log_detail_act CASCADE;
+DROP TABLE IF EXISTS log_detail_move CASCADE;
 
 DROP TABLE IF EXISTS perm_act CASCADE;
 DROP TABLE IF EXISTS perm_move CASCADE;
@@ -435,6 +435,7 @@ CREATE INDEX idx_objname__prop  ON obj_name USING gin ("prop") ;
 CREATE INDEX idx_objname__title_vpo ON obj_name (title varchar_pattern_ops) ;
 CREATE INDEX idx_objname__title_tgm ON obj_name USING gin (title gin_trgm_ops);
 CREATE INDEX idx_objname__cid  ON obj_name (cls_id);
+CREATE UNIQUE INDEX idx_objname__id_cid  ON obj_name(id,cls_id);
 
 
 GRANT SELECT        ON TABLE obj_name  TO "Guest";
@@ -522,65 +523,54 @@ GRANT UPDATE (pid, qty)
 
 
 ---------------------------------------------------------------------------------------------------
+-- таблица общих сведений действий объектов
+---------------------------------------------------------------------------------------------------
+DROP TABLE IF EXISTS log_main CASCADE;
+CREATE TABLE log_main (
+   id       BIGINT   NOT NULL DEFAULT nextval('seq_log_id') PRIMARY KEY
+  ,timemark TIMESTAMPTZ NOT NULL DEFAULT now()
+  ,username NAME NOT NULL DEFAULT CURRENT_USER REFERENCES wh_role(rolname) MATCH FULL ON UPDATE CASCADE ON DELETE RESTRICT
+  ,src_path BIGINT[] 
+  ,obj_id   BIGINT   NOT NULL REFERENCES obj_name( id ) MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE 
+);
+CREATE INDEX idx_logmain__timemark ON log_main  (timemark DESC);
+CREATE INDEX idx_logmain__src_cid  ON log_main  ((src_path[1][1]));
+CREATE INDEX idx_logmain__src_oid  ON log_main  ((src_path[1][2]));
+CREATE INDEX idx_logmain__oid      ON log_main  (obj_id);
+GRANT SELECT        ON TABLE log_main  TO "Guest";
+GRANT INSERT        ON TABLE log_main  TO "User";
+GRANT DELETE        ON TABLE log_main  TO "User";
+---------------------------------------------------------------------------------------------------
 -- таблица логов действий номерных объектов
 ---------------------------------------------------------------------------------------------------
-DROP TABLE IF EXISTS log_act CASCADE;
-CREATE TABLE log_act (
-   id        BIGINT   NOT NULL DEFAULT nextval('seq_log_id') PRIMARY KEY
-  ,timemark  TIMESTAMPTZ NOT NULL DEFAULT now()
-  ,username  NAME NOT NULL DEFAULT CURRENT_USER REFERENCES wh_role(rolname) MATCH FULL ON UPDATE CASCADE ON DELETE NO ACTION
-
-  ,src_path  BIGINT[] 
-
-  ,obj_id    BIGINT   NOT NULL REFERENCES obj_name( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
-  ,act_id    BIGINT   NOT NULL REFERENCES act( id )     MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE 
-  ,prop      JSONB
-
-);--INHERITS (log);
-CREATE INDEX idx_logact__actid   ON log_act  (act_id);
-CREATE INDEX idx_logact__oid     ON log_act  (obj_id);
-CREATE INDEX idx_logact__src_cid ON log_act  ((src_path[1][1]));
-CREATE INDEX idx_logact__src_oid ON log_act  ((src_path[1][2]));
-CREATE INDEX idx_logact__timemark ON log_act   (timemark DESC);
-
-
---CREATE INDEX idx_permmove__user ON perm_move(src_cls_id, src_obj_id);
---CREATE INDEX idx_permmove__user ON perm_move(cls_id,     obj_id);
---CREATE INDEX idx_permmove__user ON perm_move(dst_cls_id, dst_obj_id);
-
-GRANT SELECT        ON TABLE log_act  TO "Guest";
-GRANT INSERT        ON TABLE log_act  TO "User";
-GRANT DELETE        ON TABLE log_act  TO "User";
-                    
+DROP TABLE IF EXISTS log_detail_act CASCADE;
+CREATE TABLE log_detail_act (
+   id      BIGINT   NOT NULL REFERENCES log_main(id)  MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE 
+  ,act_id  BIGINT   NOT NULL REFERENCES act( id )     MATCH FULL ON UPDATE RESTRICT ON DELETE RESTRICT 
+  ,prop    JSONB
+  ,CONSTRAINT pk_logactdet__id UNIQUE (id)
+);
+CREATE INDEX idx_logactdet__aid   ON log_detail_act  (act_id);
+GRANT SELECT        ON TABLE log_detail_act  TO "Guest";
+GRANT INSERT        ON TABLE log_detail_act  TO "User";
+GRANT DELETE        ON TABLE log_detail_act  TO "User";
 ---------------------------------------------------------------------------------------------------
 -- таблица логов перемещения номерных объектов
 ---------------------------------------------------------------------------------------------------
-DROP TABLE IF EXISTS log_move CASCADE;
-CREATE TABLE log_move (
-   id            BIGINT      NOT NULL DEFAULT nextval('seq_log_id') PRIMARY KEY 
-  ,timemark      TIMESTAMPTZ NOT NULL DEFAULT now()
-  ,username      NAME        NOT NULL DEFAULT CURRENT_USER REFERENCES wh_role(rolname) MATCH FULL ON UPDATE CASCADE ON DELETE NO ACTION
-
-  ,src_path      BIGINT[]  
-  ,dst_path      BIGINT[]  
-
-  ,obj_id        BIGINT    NOT NULL REFERENCES obj_name( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE CASCADE 
-  ,qty           NUMERIC   NOT NULL 
-  -- state
-  ,act_logid     BIGINT             REFERENCES log_act( id ) MATCH SIMPLE ON UPDATE RESTRICT ON DELETE RESTRICT 
-);
-CREATE INDEX idx_logmove__lastactid ON log_move(act_logid);
-CREATE INDEX idx_logmove__oid       ON log_move(obj_id);
-CREATE INDEX idx_logmove__src_cid   ON log_move   ((src_path[1][1]));
-CREATE INDEX idx_logmove__src_oid   ON log_move   ((src_path[1][2]));
-CREATE INDEX idx_logmove__dst_cid   ON log_move   ((dst_path[1][1]));
-CREATE INDEX idx_logmove__dst_oid   ON log_move   ((dst_path[1][2]));
-CREATE INDEX idx_logmove__timemark  ON log_move   (timemark DESC);
-
-GRANT SELECT        ON TABLE log_move  TO "Guest";
-GRANT INSERT        ON TABLE log_move  TO "User";
-GRANT DELETE        ON TABLE log_move  TO "User";
-
+DROP TABLE IF EXISTS log_detail_move CASCADE;
+CREATE TABLE log_detail_move (
+   id       BIGINT    NOT NULL REFERENCES log_main(id) MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE 
+  ,dst_path BIGINT[]  
+  ,qty      NUMERIC   NOT NULL 
+  ,prop_lid BIGINT             REFERENCES log_detail_act(id) MATCH FULL ON UPDATE RESTRICT ON DELETE SET NULL 
+  ,CONSTRAINT pk_logmovdet__id UNIQUE (id)
+) ;
+CREATE INDEX idx_logmovdet__prop_lid  ON log_detail_move (id);
+CREATE INDEX idx_logmovdet__dst_cid   ON log_detail_move ((dst_path[1][1]));
+CREATE INDEX idx_logmovdet__dst_oid   ON log_detail_move ((dst_path[1][2]));
+GRANT SELECT        ON TABLE log_detail_move  TO "Guest";
+GRANT INSERT        ON TABLE log_detail_move  TO "User";
+GRANT DELETE        ON TABLE log_detail_move  TO "User";
 -----------------------------------------------------------------------------------------------------------------------------
 -- таблица избранных свойст объектов отображаемых при просмотре пользователем каталога объектов по типу или по местоположению
 -----------------------------------------------------------------------------------------------------------------------------

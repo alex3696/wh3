@@ -1,4 +1,4 @@
-﻿
+
 SET client_min_messages='debug1';
 
 
@@ -21,6 +21,9 @@ DROP FUNCTION IF EXISTS obj_arr_id_to_obj_info(IN anyarray);
 
 DROP FUNCTION IF EXISTS fn_array2_to_table(IN anyarray);
 DROP FUNCTION IF EXISTS tmppath_to_2id_info(IN TEXT,BIGINT );
+
+DROP FUNCTION IF EXISTS ftr_bu_acls() CASCADE;
+DROP FUNCTION IF EXISTS ftr_bu_any_obj() CASCADE;
 -------------------------------------------------------------------------------
 -- поиск всех дочерних классов
 -------------------------------------------------------------------------------
