@@ -670,12 +670,12 @@ CREATE OR REPLACE VIEW log AS
         UNION ALL
          SELECT lmd.id
                ,NULL::BIGINT AS act_id
-               ,NULL::JSONB  AS prop
+               ,lad.prop     AS prop
                ,lmd.dst_path AS dst_path
                ,lmd.qty      AS qty
                ,lmd.prop_lid AS prop_lid
            FROM log_detail_move lmd
-           
+           LEFT JOIN log_detail_act lad ON lad.id=lmd.prop_lid
   ) det ON lm.id=det.id
   LEFT JOIN act ON act.id=det.act_id
   LEFT JOIN obj_name mobj ON mobj.id=lm.obj_id
