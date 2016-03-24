@@ -955,6 +955,7 @@ BEGIN
     _date:=_date+'01:00:00'::INTERVAL;
     INSERT INTO log_main(timemark, src_path, obj_id) VALUES (_date, _src_path, _oid_obj) RETURNING id INTO _lid;
     INSERT INTO log_detail_act(id, act_id, prop)     VALUES (_lid, _aid_maininfo, _prop)      RETURNING id INTO _act_lid_previos;
+    UPDATE obj_name SET prop = _prop WHERE id=_oid_obj;
 
 
   END LOOP; --FOR impobj IN import_obj LOOP

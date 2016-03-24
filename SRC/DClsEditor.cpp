@@ -117,12 +117,12 @@ void DClsEditor::SetModel(std::shared_ptr<IModel>& newModel)
 				else if (cls.IsQuantity())
 				{
 					mClsNode->GetClsActArray()->Load();
-					mClsNode->GetClsMoveArray()->Load();
+					//mClsNode->GetClsMoveArray()->Load();
 				}
 				else if (cls.IsAbstract())
 				{
 					mClsNode->GetClsActArray()->Load();
-					mClsNode->GetClsMoveArray()->Load();
+					//mClsNode->GetClsMoveArray()->Load();
 				}
 			}
 

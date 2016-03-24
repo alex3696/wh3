@@ -31,7 +31,7 @@ public:
 		= ModelOption::EnableParentNotify
 		| ModelOption::EnableNotifyFromChild);
 
-	std::set<unsigned long>	mClsId;
+	std::set<unsigned long>	mActId;
 	MLogProp				mLogProp;
 	
 

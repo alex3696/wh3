@@ -31,8 +31,8 @@ bool MLogTableDataArr::LoadChildDataFromDb(std::shared_ptr<IModel>& child,
 		if (mrow)
 		{
 			unsigned long val = 0;
-			if (mrow->GetData().at(12).ToCULong(&val))
-				mClsId.emplace(val);
+			if (mrow->GetData().at(14).ToCULong(&val))
+				mActId.emplace(val);
 		}
 	}
 	return res;
@@ -52,12 +52,13 @@ void MLogTableDataArr::OnRowBeforeInsert(const IModel& vec, const std::vector<Sp
 		rem_fields.emplace_back(mtable->mFieldVec->at(col));
 	mtable->mFieldVec->DelChild(rem_fields);
 
-	mLogProp.SetLogProp(mClsId);
+	mLogProp.SetLogProp(mActId);
 	std::vector<SptrIModel> fields;
 	for (size_t i = 0; i < mLogProp.mDataArr->size(); ++i)
 	{
 		const wxString id = mLogProp.mDataArr->at(i)->GetData().at(0);
 		const wxString title = mLogProp.mDataArr->at(i)->GetData().at(1);
+		const wxString fav = mLogProp.mDataArr->at(i)->GetData().at(4);
 
 		fields.emplace_back(mtable->mFieldVec->CreateItem(
 			//Field(col_title, FieldType::ftName, true, col_title), true));
@@ -88,7 +89,7 @@ void MLogTableDataArr::OnRowBeforeInsert(const IModel& vec, const std::vector<Sp
 void MLogTableDataArr::OnRowAfterRemove(const IModel& vec, const std::vector<SptrIModel>& remVec)
 {
 	if (!vec.size())
-		mClsId.clear();
+		mActId.clear();
 }
 
 
@@ -148,6 +149,9 @@ MLogTable::MLogTable(const char option)
 	fields.emplace_back(
 		mFieldVec->CreateItem(Field("ОбъектID", FieldType::ftLong, false, "mobj_id"), true));
 
+	fields.emplace_back(
+		mFieldVec->CreateItem(Field("ActID", FieldType::ftLong, false, "act_id"), true));
+
 
 	mFieldVec->Insert(fields);
 
@@ -195,20 +199,51 @@ void MLogTable::GetValueByRow(wxVariant& val, unsigned int row, unsigned int col
 	default:
 		if (col>=mStaticColumnQty)
 		{
-			boost::property_tree::ptree prop_arr;
-			const wxString& json_prop = row_data.at(9);
-			if (!json_prop.IsEmpty())
-			{
-				std::stringstream ss; ss << json_prop;
-				boost::property_tree::read_json(ss, prop_arr);
-			}
-			//const boost::property_tree::ptree& prop_arr = mProp[row];
-			const auto prop_row =this->mDataArr->mLogProp.mDataArr->at(col - mStaticColumnQty);
+			// получаем столбец с свойством 
+
+			const auto prop_row = mDataArr->mLogProp.mDataArr->at(col - mStaticColumnQty);
 			const auto& prop_row_data = prop_row->GetData();
-			const wxString& id = prop_row_data.at(0);
-			auto it = prop_arr.find(std::string(id.c_str()));
-			if(it != prop_arr.not_found())
-				val = it->second.get_value<std::string>();
+			const wxString& pid_str = prop_row_data.at(0);// получаем идентификатор свойства
+
+			long act_id, prop_id;
+			if (row_data.at(14).ToLong(&act_id) && pid_str.ToLong(&prop_id))
+			{
+				const auto& pa = this->mDataArr->mLogProp.mDataArr->mPropAct;
+				auto it = pa.find(prop_id);
+				if (it != pa.end())
+				{
+					const MLogPropDataArr::PropSet& ps = it->second;
+
+					MLogPropDataArr::PropSet::const_iterator
+						itp = ps.find(act_id);
+					if (itp != ps.end())
+					{
+						const auto& as = *itp;
+						if (!as.second->GetData().at(4).IsEmpty())
+						{
+							boost::property_tree::ptree prop_arr;
+							const wxString& json_prop = row_data.at(9);
+							if (!json_prop.IsEmpty())
+							{
+								std::stringstream ss; ss << json_prop;
+								boost::property_tree::read_json(ss, prop_arr);
+							}
+
+							auto it = prop_arr.find(std::string(pid_str.c_str()));
+							if (it != prop_arr.not_found())
+								val = it->second.get_value<std::string>();
+						}
+					}
+				}
+			}
+
+
+
+
+
+
+
+
 		}
 		else
 			val = row_data.at(col);
