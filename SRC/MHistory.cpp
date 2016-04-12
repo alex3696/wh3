@@ -45,7 +45,6 @@ void MLogTableDataArr::OnRowBeforeInsert(const IModel& vec, const std::vector<Sp
 	if (!mtable)
 		return;
 	
-	
 	// ףהאכÿול סעמכבצû סגמיסעג
 	std::vector<SptrIModel> rem_fields;
 	for (auto col = mtable->mStaticColumnQty; col < mtable->mFieldVec->size(); ++col)
@@ -64,25 +63,8 @@ void MLogTableDataArr::OnRowBeforeInsert(const IModel& vec, const std::vector<Sp
 			//Field(col_title, FieldType::ftName, true, col_title), true));
 			Field(title, FieldType::ftName, true, "prop->>'" + id + "'"), true));
 	}
+	// המבאגכÿול סעמכבצû סגמיסעג
 	mtable->mFieldVec->Insert(fields);
-
-
-	unsigned int row_idx = 0;
-	for (const auto& irow : newItems)
-	{
-		auto row = std::dynamic_pointer_cast<MLogItem>(irow);
-		const auto& data = row->GetData();
-		const wxString& col_prop = data.at(9);
-		boost::property_tree::ptree prop_arr;
-
-		if (!col_prop.IsEmpty())
-		{
-			std::stringstream ss; ss << col_prop;
-			boost::property_tree::read_json(ss, prop_arr);
-		}
-		//mProp.emplace_back(prop_arr);
-	}
-
 
 }
 //-------------------------------------------------------------------------

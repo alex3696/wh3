@@ -448,7 +448,7 @@ BEGIN
 	ELSE
 		RAISE NOTICE '-Role don`t exist in wh_role INSERTING'; 
 		INSERT INTO wh_role(rolname,rolcanlogin, rolcreaterole,rolcomment)	
-		VALUES(_role,false,false,'встроенная группа гостей, позволяет просматривать все типы, объекты и правила');
+		VALUES(_role,false,false,_comment);
 	END IF;
 
 

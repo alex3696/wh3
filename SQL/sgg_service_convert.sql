@@ -54,6 +54,8 @@ DELETE FROM prop CASCADE;
 DELETE FROM act CASCADE;
 DELETE FROM perm_act CASCADE;
 DELETE FROM perm_move CASCADE;
+
+SELECT whgrant_grouptouser('TypeDesigner',  'postgres');
 -------------------------------------------------------------------------------
 DROP TABLE IF EXISTS __cls00 CASCADE;
 CREATE TABLE __cls00
