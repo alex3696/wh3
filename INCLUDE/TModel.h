@@ -640,6 +640,7 @@ protected:
 			if (table)
 			{
 				std::vector<SptrIModel> new_vec;
+				SptrIModel child;
 				rowQty = table->GetRowCount();
 				
 				if (rowQty)
@@ -647,7 +648,7 @@ protected:
 					new_vec.reserve(rowQty);
 					for (unsigned int i = 0; i < rowQty; ++i)
 					{
-						std::shared_ptr<IModel> child = CreateChild();
+						child = CreateChild();
 						if (child && LoadChildDataFromDb(child, table, i))
 						{
 							child->MarkSaved();
@@ -823,6 +824,24 @@ public:
 	}
 
 
+	void SetData(std::shared_ptr<T_Data> curr_ptr, bool stored = false, bool notify=true)
+	{
+		switch (GetState())
+		{
+		default: case msDeleted: break;
+		case msNull: case msUpdated: case msCreated: case msExist:
+			mCurrent = curr_ptr;
+			if (stored)
+				mStored = mCurrent;
+			if (notify)
+			{
+				DoSignal(moAfterUpdate, this, curr_ptr.get());
+				DoNotifyParent();
+			}
+			break;
+		}
+	}
+	
 	void SetData(const T_Data& current, bool stored=false)
 	{
 		switch (GetState())

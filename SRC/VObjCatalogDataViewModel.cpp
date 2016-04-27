@@ -376,8 +376,8 @@ void VObjCatalogDataViewModel::OnClsAfterInsert(const IModel& vec
 		wxDataViewItem typeItem(clsModel.get());
 		typeItemArray.Add(typeItem);
 
-		mConnAddObj[typeItem] = clsModel->mObjArray->ConnAfterInsert(
-			std::bind(&VObjCatalogDataViewModel::OnObjAfterInsert, this, sph::_1, sph::_2, sph::_3));
+		//mConnAddObj[typeItem] = clsModel->mObjArray->ConnAfterInsert(
+		//	std::bind(&VObjCatalogDataViewModel::OnObjAfterInsert, this, sph::_1, sph::_2, sph::_3));
 
 		mConnDelObj[typeItem] = clsModel->mObjArray->ConnectBeforeRemove(
 			std::bind(&VObjCatalogDataViewModel::OnObjBeforeRemove, this, sph::_1, sph::_2));

@@ -16,8 +16,9 @@ MObjItem::MObjItem(const char option)
 //-------------------------------------------------------------------------
 bool MObjItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t row)
 {
-	//" SELECT id, pid, obj_label, class_label, class_type, qty, last_log_id "
-	T_Data data;
+	auto data_ptr = std::make_shared<T_Data>();
+	T_Data& data = *data_ptr.get();
+	//T_Data data;
 
 	unsigned int col = 0;
 
@@ -26,20 +27,20 @@ bool MObjItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t 
 	data.mLabel = table->GetAsString(col++, row);
 	data.mQty = table->GetAsString(col++, row);
 	data.mLastMoveLogId = table->GetAsString(col++, row);
-	mPath = table->GetAsString(col++, row);
-	data.mParent.mLabel = table->GetAsString(col++, row);
+	table->GetAsString(col++, row, mPath);
+	//data.mParent.mLabel = table->GetAsString(col++, row);
 
-	//data.mProp = table->GetAsString(col++, row);
-	
-	while (col < table->GetColumnCount())
+	const auto prp_qty = table->GetColumnCount();
+	data.mProp.resize(prp_qty-col);
+	for (unsigned int i = col; i < prp_qty; ++i)
 	{
-		wxString str_data;
-		table->GetAsString(col, row, str_data);
-		data.mProp.emplace_back(str_data);
-		col++;
+		if (!table->IsFieldNull(i, row))
+			table->GetAsString(i, row, data.mProp[i - col]);
 	}
 
-	SetData(data);
+	SetData(data_ptr, true, false);
+	//SetData(data, true);
+
 	return true;
 };
 //-------------------------------------------------------------------------
@@ -222,11 +223,11 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 			query = wxString::Format(
 				" SELECT o.id, o.pid, o.title, o.qty "
 				" , o.move_logid, NULL AS path "
-				" , parent.title "
+				//" , parent.title "
 				"   %s "
 				" FROM obj o "
 				" %s "
-				" LEFT JOIN obj_name parent ON parent.id = o.id "
+				//" LEFT JOIN obj_name parent ON parent.id = o.pid "
 				" WHERE o.id>0 AND o.pid = %s AND o.cls_id = %s "
 				, fields
 				, leftJoin
@@ -240,11 +241,11 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 			query = wxString::Format(
 				"SELECT o.id, o.pid, o.title, o.qty "
 				" , o.move_logid, get_path_obj(o.pid,1)  AS path "
-				" , parent.title "
+				//" , parent.title "
 				"   %s "
 				" FROM obj o "
 				" %s "
-				" LEFT JOIN obj_name parent ON parent.id = o.id "
+				//" LEFT JOIN obj_name parent ON parent.id = o.pid "
 				" WHERE o.id>0 AND o.cls_id = %s "
 				, fields
 				, leftJoin
