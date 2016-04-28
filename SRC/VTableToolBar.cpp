@@ -102,7 +102,7 @@ void VTableToolBar::BuildToolBar()
 
 	AddTool(wxID_BACKWARD, "назад"
 		, wxArtProvider::GetBitmap(wxART_GO_BACK, wxART_MENU), "Предыдущая страница(PageUp)");
-	mPageLabel = new wxStaticText(this, wxID_ANY, "MyLabel");
+	mPageLabel = new wxStaticText(this, wxID_ANY, "00000 - 00000", wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
 	//mPageLabel->Wrap(-1);
 
 	AddControl(mPageLabel, "Показаны строки");

@@ -635,6 +635,42 @@ CREATE OR REPLACE VIEW log AS
   lm.id       AS log_id
  ,lm.timemark AS log_dt
  ,lm.username AS log_user
+ ,CASE WHEN lad.act_id IS NOT NULL THEN lad.act_id ELSE NULL::BIGINT END AS act_id --,det.act_id  AS act_id
+ ,act.title   AS act_title
+ ,act.color   AS act_color
+ ,lm.obj_id   AS mobj_id
+ ,mobj.cls_id AS mcls_id
+ ,mobj.title  AS mobj_title
+ ,mcls.title  AS mcls_title
+ ,CASE WHEN lad.act_id IS NOT NULL THEN 1::NUMERIC ELSE lmd.qty END AS qty --,det.qty     AS qty
+ ,CASE WHEN lad.act_id IS NOT NULL THEN lad.prop ELSE NULL::JSONB END AS prop --,det.prop    AS prop
+ ,lm.timemark::timestamptz::date  AS log_date
+ ,date_trunc('second' ,lm.timemark)::timestamptz::time AS log_time
+ ,lm.src_path[1][1]  AS src_cid
+ ,lm.src_path[1][2]  AS src_oid
+ ,CASE WHEN lad.act_id IS NOT NULL THEN NULL ELSE lmd.dst_path[1][1] END AS dst_cid -- ,det.dst_path[1][1] AS dst_cid
+ ,CASE WHEN lad.act_id IS NOT NULL THEN NULL ELSE lmd.dst_path[1][2] END AS dst_oid -- ,det.dst_path[1][2] AS dst_oid
+ ,lm.src_path        AS src_ipath
+ ,CASE WHEN lad.act_id IS NOT NULL THEN NULL ELSE lmd.dst_path END AS dst_ipath --,det.dst_path       AS dst_ipath
+ ,(SELECT path FROM tmppath_to_2id_info(lm.src_path::TEXT,1)) AS src_path
+ ,(SELECT path FROM tmppath_to_2id_info(lmd.dst_path::TEXT,1)) AS dst_path
+
+FROM log_main lm
+  LEFT JOIN log_detail_act  lad ON lad.id=lm.id
+  LEFT JOIN log_detail_move lmd ON lmd.id=lm.id
+
+  LEFT JOIN act ON act.id=lad.act_id
+  LEFT JOIN obj_name mobj ON mobj.id=lm.obj_id
+  LEFT JOIN cls      mcls ON mcls.id=mobj.cls_id
+  ;
+  
+------------------------------------------------------------------------------------------------------------
+DROP VIEW IF EXISTS log2;
+CREATE OR REPLACE VIEW log2 AS 
+ SELECT 
+  lm.id       AS log_id
+ ,lm.timemark AS log_dt
+ ,lm.username AS log_user
  ,det.act_id  AS act_id
  ,act.title   AS act_title
  ,act.color   AS act_color
