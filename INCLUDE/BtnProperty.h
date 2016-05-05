@@ -49,6 +49,8 @@ public:
 	{
 		// Create and populate buttons-subwindow
 		wxPGMultiButton* buttons = new wxPGMultiButton(propGrid, sz);
+		if (property->GetFlags() & wxPG_PROP_READONLY)
+			buttons->Disable();
 		// Add two regular buttons
 		buttons->Add("...");
 		// Create the 'primary' editor control (textctrl in this case)

@@ -48,6 +48,7 @@ Frame::Frame(wxWindow* parent,
 	pg_mainInfo->AppendChild(new wxStringProperty(L"ID", wxPG_LABEL))->Enable(false);
 
 	mPGParent = new wxPGPBaseProperty("Местоположение");
+	mPropGrid->SetPropertyReadOnly(mPGParent, true);
 
 	auto parent_obj_cat = std::make_shared<MCat>();
 	parent_obj_cat->SetCfg(rec::catObj, false, true);
@@ -123,12 +124,10 @@ void Frame::OnChangeModel(const IModel* model, const object_catalog::MObjItem::T
 		SetTitle("Создание объекта");
 		mPropGrid->SetPropertyValue(mPGParent,
 			WXVARIANT(catalog->IsObjTree() ? catalog->GetRoot().mObj : cls_data.mDefaultObj));
-		mPGParent->Enable(true);
 		break;
 	case msExist: case msUpdated:	
 		SetTitle("Редактирование объекта");
 		mPropGrid->SetPropertyValue(mPGParent, WXVARIANT(obj_data.mParent));
-		mPGParent->Enable(false);
 		break;
 	}
 }
