@@ -216,7 +216,7 @@ BEGIN
     
     INSERT INTO cls(pid,title,kind,measure,dobj) VALUES (cid_parent,sta_title,rec.kind,rec.mess,oid_zayavka2016) RETURNING id INTO cid_curr ;
     INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_mtr_id, rec.mtr_id);
-    INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_desc, NULL);
+    INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_desc, COALESCE(rec.title,'')||' '||COALESCE(rec.description,''));
     INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_uname, NULL);
 
     INSERT INTO obj(title,cls_id,pid,qty) VALUES ('заявка 2016', cid_curr, oid_zayavka2016,rec.qty );
