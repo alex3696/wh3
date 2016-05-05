@@ -235,10 +235,25 @@ void FilterArrayEditor::OnFieldInfoChange(const IModel& newVec
 			auto edit_field = std::dynamic_pointer_cast<ITableField>(inew_field);
 			if (edit_field)
 			{
-				wxPGProperty* new_pgp = MakeProperty(edit_field->GetData());
-				if (new_pgp)
-					mPropGrid->ReplaceProperty(old_pgp, new_pgp);
-			}
+				const auto& new_field_data = edit_field->GetData();
+				
+				bool name_change = new_field_data.mTitle != old_pgp->GetName();
+				bool val_change = new_field_data.mFilter.size() ?
+					new_field_data.mFilter[0] != old_pgp->GetValueAsString()
+					: !old_pgp->GetValueAsString().IsEmpty();
+				if (name_change || val_change)
+				{
+					wxPGProperty* new_pgp = MakeProperty(new_field_data);
+					if (new_pgp)
+					{
+						mPropGrid->ReplaceProperty(old_pgp, new_pgp);
+						if (new_field_data.mFilter.size())
+							new_pgp->SetValueFromString(new_field_data.mFilter[0].mVal);
+					}
+						
+				}
+			
+			}//if (edit_field)
 		}
 	}
 
