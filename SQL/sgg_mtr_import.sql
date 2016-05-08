@@ -120,8 +120,8 @@ BEGIN
   SELECT id INTO cid_sta FROM cls WHERE title = 'ЗИП';
   IF FOUND THEN 
     DELETE from acls WHERE id IN (SELECT _id FROM get_childs_cls(cid_sta));
-    INSERT INTO cls(pid,title,kind) VALUES (1,'ЗИП',0) RETURNING id INTO cid_sta ; 
   END IF;
+  INSERT INTO cls(pid,title,kind) VALUES (1,'ЗИП',0) RETURNING id INTO cid_sta ; 
   RAISE DEBUG 'cid_sta %',cid_sta;
 
 
@@ -213,13 +213,20 @@ BEGIN
       END IF;
     END LOOP;
 
-    
-    INSERT INTO cls(pid,title,kind,measure,dobj) VALUES (cid_parent,sta_title,rec.kind,rec.mess,oid_zayavka2016) RETURNING id INTO cid_curr ;
-    INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_mtr_id, rec.mtr_id);
-    INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_desc, COALESCE(rec.title,'')||' '||COALESCE(rec.description,''));
-    INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_uname, NULL);
+    SELECT id INTO cid_curr FROM cls WHERE title=sta_title;
+    IF NOT FOUND THEN
+      INSERT INTO cls(pid,title,kind,measure,dobj) VALUES (cid_parent,sta_title,rec.kind,rec.mess,oid_zayavka2016) 
+      RETURNING id INTO cid_curr;
+      INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_mtr_id, rec.mtr_id);
+      INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_desc, COALESCE(rec.title,'')||' '||COALESCE(rec.description,''));
+      INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_uname, NULL);
+    END IF;
 
-    INSERT INTO obj(title,cls_id,pid,qty) VALUES ('заявка 2016', cid_curr, oid_zayavka2016,rec.qty );
+    PERFORM FROM obj WHERE cls_id=cid_curr AND title='заявка 2016' AND pid=oid_zayavka2016;
+    IF NOT FOUND THEN
+      INSERT INTO obj(title,cls_id,pid,qty) VALUES ('заявка 2016', cid_curr, oid_zayavka2016,rec.qty );
+    END IF;
+
     
   END LOOP;
   
