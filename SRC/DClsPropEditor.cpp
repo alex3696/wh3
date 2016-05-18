@@ -67,7 +67,7 @@ DClsPropEditor::DClsPropEditor(wxWindow*		parent,
 
 	BtnProperty* btnProp = new BtnProperty("Свойство");
 	btnProp->SetOnClickButonFunc(selectProp);
-	btnProp->ChangeFlag(wxPG_PROP_READONLY, true);
+	//btnProp->ChangeFlag(wxPG_PROP_READONLY, true);
 	mPropGrid->Append(btnProp);
 
 	mPropGrid->Append(new wxStringProperty(L"Значение", wxPG_LABEL));

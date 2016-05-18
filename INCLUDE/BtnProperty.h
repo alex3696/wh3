@@ -47,14 +47,19 @@ public:
 		const wxPoint& pos,
 		const wxSize& sz) const override
 	{
+		bool is_read_only = (property->GetFlags() & wxPG_PROP_READONLY)!=0;
+		
 		// Create and populate buttons-subwindow
 		wxPGMultiButton* buttons = new wxPGMultiButton(propGrid, sz);
-		if (property->GetFlags() & wxPG_PROP_READONLY)
+		if (is_read_only)
 			buttons->Disable();
-		// Add two regular buttons
-		buttons->Add("...");
+		buttons->Add("...");// Add one regular buttons
+		
 		// Create the 'primary' editor control (textctrl in this case)
+		property->ChangeFlag(wxPG_PROP_READONLY, true);  // wxPG_EDITABLE_VALUE
 		wxPGWindowList wndList = wxPGTextCtrlEditor::CreateControls(propGrid, property, pos, buttons->GetPrimarySize());
+		property->ChangeFlag(wxPG_PROP_READONLY, is_read_only);
+		
 		// Finally, move buttons-subwindow to correct position and make sure returned wxPGWindowList contains our custom button list.
 		buttons->Finalize(propGrid, pos);
 		wndList.SetSecondary(buttons);
