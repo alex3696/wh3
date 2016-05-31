@@ -18,7 +18,7 @@ whLogin::whLogin(wxWindow* parent, wxWindowID id, const wxString& title
 	wxStaticText* lblInfo;
 	lblInfo = new wxStaticText(this, wxID_ANY, wxT("Подключение к базе данных"), wxDefaultPosition, wxDefaultSize, 0);
 	lblInfo->Wrap(-1);
-	szrMain->Add(lblInfo, 0, wxALL | wxALIGN_CENTER_VERTICAL, 10);
+	szrMain->Add(lblInfo, 0, wxALL | wxALIGN_CENTER, 10);
 
 	wxFlexGridSizer* szrGrid;
 	szrGrid = new wxFlexGridSizer(4, 2, 0, 50);
@@ -99,7 +99,7 @@ whLogin::whLogin(wxWindow* parent, wxWindowID id, const wxString& title
 	szrButtons->Add(m_btnParam, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
 
 
-	szrButtons->Add(50, 0, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL, 5);
+	szrButtons->Add(50, 0, 1, wxEXPAND, 5);
 
 	m_btnOK = new wxButton(this, wxID_OK, wxT("Войти"), wxDefaultPosition, wxDefaultSize, 0);
 	m_btnOK->SetDefault();

@@ -98,7 +98,8 @@ void VTableToolBar::BuildToolBar()
 		//Bind(wxEVT_COMMAND_MENU_SELECTED, fnChange, wxID_EDIT);
 	}
 
-	AddSeparator();
+	if (mEnableInsert || mEnableRemove || mEnableChange)
+		AddSeparator();
 
 	AddTool(wxID_BACKWARD, "назад"
 		, wxArtProvider::GetBitmap(wxART_GO_BACK, wxART_MENU), "Предыдущая страница(PageUp)");

@@ -47,7 +47,7 @@ public:
 		const wxPoint& pos,
 		const wxSize& sz) const override
 	{
-		bool is_read_only = (property->GetFlags() & wxPG_PROP_READONLY)!=0;
+		bool is_read_only = property->HasFlag(wxPG_PROP_READONLY)!=0;//(property->GetFlags() & wxPG_PROP_READONLY)!=0;
 		
 		// Create and populate buttons-subwindow
 		wxPGMultiButton* buttons = new wxPGMultiButton(propGrid, sz);

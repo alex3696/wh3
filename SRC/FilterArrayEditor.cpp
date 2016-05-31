@@ -121,8 +121,10 @@ wxPGProperty* FilterArrayEditor::MakeProperty(const wh::Field& field)
 			chs.Insert(wxEmptyString, 0, -1);
 			pgp->SetChoices(chs);
 			unsigned long val=-1;
-			first_filter_val.ToCULong(&val);
-			pgp->SetChoiceSelection(val);
+			if (first_filter_val.ToCULong(&val))
+				pgp->SetChoiceSelection(val);
+			else
+				pgp->SetValueToUnspecified();
 		}
 		else if (FieldEditor::Normal == field.mEditor)
 		{

@@ -42,6 +42,9 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 {
 	m_AuiMgr.SetManagedWindow(this);
 
+	auto face_colour = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
+	m_AuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, face_colour);
+
 	BuildMenu();
 	BuildToolbar();
 	BuildStatusbar();
@@ -150,13 +153,13 @@ void MainFrame::BuildMenu()
 //---------------------------------------------------------------------------
 void MainFrame::BuildToolbar()
 {
-	m_MainToolBar = new wxAuiToolBar(this, 555, wxDefaultPosition, wxDefaultSize,
-		wxAUI_TB_DEFAULT_STYLE
+	long main_toolbar_style = wxAUI_TB_DEFAULT_STYLE
 		//| wxAUI_TB_OVERFLOW
 		//| wxAUI_TB_TEXT
 		//| wxAUI_TB_HORZ_TEXT
-		| wxAUI_TB_GRIPPER
-		);
+		| wxAUI_TB_GRIPPER;
+	
+	m_MainToolBar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, main_toolbar_style);
 
 	m_MainToolBar->AddTool(CMD_DB_CONNECT, "Подключиться к БД", m_ResMgr->m_ico_connect24, "Подключиться к БД", wxITEM_RADIO);
 	m_MainToolBar->AddTool(CMD_DB_DISCONNECT, "Отключиться от БД", m_ResMgr->m_ico_disconnect24, "Отключиться от БД", wxITEM_RADIO);
@@ -166,13 +169,6 @@ void MainFrame::BuildToolbar()
 
 	m_MainToolBar->AddTool(CMD_MAKEOBJWND, "Открыть каталог объектов", m_ResMgr->m_ico_add_obj_tab24, "Открыть каталог объектов");
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::DoMenuPreferences, this, wxID_PREFERENCES);
-
-
-
-
-
-
-
 
 	m_MainToolBar->Realize();
 
@@ -231,6 +227,15 @@ void MainFrame::ShowDevToolBar(bool show)
 			m_Notebook->Freeze(); //wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 			auto wnd = new wh::VTablePanel(m_Notebook);
 			auto model = std::make_shared<wh::MPropTable>();
+			const auto currBaseGroup = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+			if ((int)currBaseGroup <= (int)bgUser)
+			{
+				wnd->mCtrl.fnOnCmdSave = nullptr; //wnd->SetEnableSave(false);
+				wnd->mCtrl.fnOnCmdInsert = nullptr;
+				wnd->mCtrl.fnOnCmdEdit = nullptr;
+				wnd->mCtrl.fnOnCmdRemove = nullptr;
+			}
+
 			m_Notebook->AddPage(wnd, "ТЕСТ Свойства", true , ResMgr::GetInstance()->m_ico_list_prop24);
 			m_AuiMgr.Update();
 			m_Notebook->Thaw();
@@ -248,7 +253,7 @@ void MainFrame::ShowDevToolBar(bool show)
 			auto model = std::make_shared<wh::MLogTable>();
 			auto wnd = new wh::VTablePanel(m_Notebook);
 			wnd->SetRowHeight(32);
-			//wnd->SetEnableSave(false);
+			wnd->mCtrl.fnOnCmdSave = nullptr; //wnd->SetEnableSave(false);
 			wnd->mCtrl.fnOnCmdInsert = nullptr;
 			wnd->mCtrl.fnOnCmdEdit = nullptr;
 			m_Notebook->AddPage(wnd, "История", true, ResMgr::GetInstance()->m_ico_history24);
@@ -338,9 +343,8 @@ void MainFrame::CreateObjCatalog(const wxString& _objclass,const wxString& _objn
 
 	obj_cat->SetModel(mcat);
 
-
-	m_Notebook->AddPage(obj_cat, "каталог объектов");
-	obj_cat->SetFocus();
+	m_Notebook->AddPage(obj_cat, "каталог объектов", true, ResMgr::GetInstance()->m_ico_type_abstract24 );
+	
 	m_AuiMgr.Update();	
 
 

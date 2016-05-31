@@ -14,6 +14,8 @@ VTablePanel::VTablePanel(wxWindow* parent,
 {
 	// Create Aui
 	mAuiMgr.SetManagedWindow(this);
+	auto face_colour = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
+	mAuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, face_colour);
 
 	// Create AuiToolbar
 	mToolBar = new VTableToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize
