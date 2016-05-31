@@ -38,12 +38,22 @@ void ObjPropArray::SetPropArray(const wxString& prop_str)
 	if (obj_data.mCls.IsAbstract())
 		return;
 
-	boost::property_tree::ptree prop_arr;
+	namespace pt = boost::property_tree;
+	pt::wptree prop_arr;
 	if (!prop_str.IsEmpty())
 	{
-		std::stringstream ss; ss << prop_str;
-		boost::property_tree::read_json(ss, prop_arr);
-	}
+		std::wstringstream ss;
+		ss << prop_str;//ss << prop_str.ToUTF8();
+		try
+		{
+			pt::read_json(ss, prop_arr);
+		}
+		catch (const pt::ptree_error &e)
+		{
+			wxString err= e.what() ;
+			wxLogError(err + " JSON: " + prop_str);
+		}
+	} //if (!prop_str.IsEmpty())
 	
 	auto prop_qty = this->GetChildQty();
 	for (size_t i = 0; i < prop_qty; ++i)
@@ -52,11 +62,12 @@ void ObjPropArray::SetPropArray(const wxString& prop_str)
 		if (prop)
 		{
 			auto prop_data = prop->GetData();
-			const std::string pid_str = prop_data.mProp.mId.toStr().c_str();
+			const std::wstring pid_str = prop_data.mProp.mId.toStr().wc_str();
 			auto it = prop_arr.find(pid_str);
-			if (it != prop_arr.not_found())
+			if (it != prop_arr.not_found() )
 			{
-				prop_data.mVal = it->second.get_value<std::string>();
+				prop_data.mVal = it->second.get_value<std::wstring>();
+				//prop_data.mVal = wxString::FromUTF8(it->second.get_value<std::string>().c_str());
 			}
 			else
 				prop_data.mVal.SetNull();
