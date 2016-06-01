@@ -203,17 +203,17 @@ void MLogTable::GetValueByRow(wxVariant& val, unsigned int row, unsigned int col
 						const auto& as = *itp;
 						if (!as.second->GetData().at(4).IsEmpty())
 						{
-							boost::property_tree::ptree prop_arr;
+							boost::property_tree::wptree prop_arr;
 							const wxString& json_prop = row_data.at(9);
 							if (!json_prop.IsEmpty())
 							{
-								std::stringstream ss; ss << json_prop;
+								std::wstringstream ss; ss << json_prop;
 								boost::property_tree::read_json(ss, prop_arr);
 							}
 
-							auto it = prop_arr.find(std::string(pid_str.c_str()));
+							auto it = prop_arr.find(std::wstring(pid_str.wc_str()));
 							if (it != prop_arr.not_found())
-								val = it->second.get_value<std::string>();
+								val = it->second.get_value<std::wstring>();
 						}
 					}
 				}
