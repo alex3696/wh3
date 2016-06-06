@@ -116,6 +116,8 @@ DECLARE
   sta_whtitle WHNAME;
   sta_title_idx INTEGER;
 BEGIN
+  RAISE DEBUG 'Start impotr MTR script';
+  
   --SELECT id FROM cls WHERE title = 'ЗИП';
   SELECT id INTO cid_sta FROM cls WHERE title = 'ЗИП';
   IF FOUND THEN 
