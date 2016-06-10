@@ -342,8 +342,8 @@ PRINT '';
 -------------------------------------------------------------------------------
 
 DECLARE @struct_units_id, @geo_equipment_id;
-SET @struct_units_id = INSERT INTO acls(pid,title,kind) VALUES (1,'Структурные подразделения',0) RETURNING id;
-SET @geo_equipment_id = INSERT INTO acls(pid,title,kind) VALUES (1,'Геофизическое оборудование',0) RETURNING id;
+SET @struct_units_id = INSERT INTO acls(pid,title,kind,dobj) VALUES (1,'Структурные подразделения',0,NULL) RETURNING id;
+SET @geo_equipment_id = INSERT INTO acls(pid,title,kind,dobj) VALUES (1,'Геофизическое оборудование',0,NULL) RETURNING id;
 
 DECLARE @company_id, @department_id, @department_area_id;
 SET @company_id = INSERT INTO acls(pid,title,kind,measure) VALUES (@struct_units_id,'Предприятие',1,'ед.') RETURNING id;
@@ -653,14 +653,14 @@ BEGIN
 
   FOR rec IN import_cls00 LOOP
     --RAISE DEBUG 'ADD ABSTRACT CLS=% TO ROOT ',rec.title;
-    INSERT INTO acls(pid,title,kind) VALUES (_geo_equipment_id,rec.title,0);
+    INSERT INTO acls(pid,title,kind,dobj) VALUES (_geo_equipment_id,rec.title,0,NULL);
   END LOOP;
 
   FOR rec IN import_cls01 LOOP
     SELECT title INTO _title FROM __cls00 WHERE id = rec.pid;
     SELECT id INTO _pid FROM acls WHERE title = _title;
     --RAISE DEBUG 'ADD ABSTRACT CLS=% TO % (%)',rec.title,_title,rec;
-    INSERT INTO acls(pid,title,kind) VALUES (_pid,rec.title,0) ;
+    INSERT INTO acls(pid,title,kind,dobj) VALUES (_pid,rec.title,0,NULL) ;
   END LOOP;
 
   SELECT id INTO _curr_aid FROM ACT WHERE title='Изменить основные свойства' ;
@@ -968,6 +968,7 @@ $BODY$ LANGUAGE plpgsql;
 
 SELECT sgg_import_hist();
 
+COMMIT;
 
 --SELECT COALESCE(NULL,now()) 
 

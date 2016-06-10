@@ -123,7 +123,7 @@ BEGIN
   IF FOUND THEN 
     DELETE from acls WHERE id IN (SELECT _id FROM get_childs_cls(cid_sta));
   END IF;
-  INSERT INTO acls(pid,title,kind) VALUES (1,'ЗИП',0) RETURNING id INTO cid_sta ; 
+  INSERT INTO acls(pid,title,kind,dobj) VALUES (1,'ЗИП',0,NULL) RETURNING id INTO cid_sta ; 
   RAISE DEBUG 'cid_sta %',cid_sta;
 
 
@@ -142,13 +142,13 @@ BEGIN
 
     --RAISE DEBUG 'rec.id % -->%.%.%  cid_previos %',rec.id,sta_category1,sta_category2,sta_category3,cid_previos;
     
-    INSERT INTO acls(pid,title,kind) VALUES (cid_previos,rec.id||' '||rec.title,0);
+    INSERT INTO acls(pid,title,kind,dobj) VALUES (cid_previos,rec.id||' '||rec.title,0,NULL);
   END LOOP;
 
   FOR rec IN import_subcat LOOP
     SELECT id INTO cid_previos FROM acls WHERE title LIKE rec.mtr_id||'%';
     
-    INSERT INTO acls(pid,title,kind) VALUES (cid_previos,rec.title,0);
+    INSERT INTO acls(pid,title,kind,dobj) VALUES (cid_previos,rec.title,0,NULL);
 
   END LOOP;
 
@@ -238,7 +238,8 @@ END$$;
 
 
 
-
+COMMIT;
+VACUUM FULL ANALYZE;
 
 
 

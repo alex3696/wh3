@@ -111,7 +111,8 @@ bool MObjItem::GetInsertQuery(wxString& query)const
 	{
 		query = wxString::Format(
 			"INSERT INTO obj( title, cls_id, pid, qty )"
-			" VALUES(%s, %s, %s, %s)"
+			" VALUES(%s, %s, %s, %s) "
+			" RETURNING id, pid, title, qty, NULL, NULL"
 			, newObj.mLabel.SqlVal()
 			, cls.mId.SqlVal()
 			, pid

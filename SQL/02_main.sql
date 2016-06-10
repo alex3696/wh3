@@ -144,7 +144,7 @@ CREATE TABLE acls (
   ,kind    SMALLINT NOT NULL  CHECK ( kind BETWEEN 0 AND 3 )
   ,pkind   SMALLINT NOT NULL DEFAULT 0 CHECK ( pkind=0 )
   
-  ,dobj    BIGINT   NOT NULL DEFAULT 1
+  ,dobj    BIGINT            DEFAULT 1
   ,measure WHNAME            DEFAULT NULL
   --,path    ltree    NOT NULL 
   --,guipath VARCHAR  --NOT NULL
@@ -160,6 +160,8 @@ CREATE TABLE acls (
                                OR(id>1 AND pid>0 AND id<>pid)   ) -- other
 ,CONSTRAINT ck_acls_mess CHECK(  (kind=0 AND measure IS NULL)
                                OR(kind>0 AND measure IS NOT NULL) ) --если нет единиц измерения класс должен быть абстрактным
+,CONSTRAINT ck_acls_dobj CHECK(  (kind=0 AND dobj IS NULL)
+                               OR(kind>0 AND measure IS NOT NULL) )
 );
 CREATE INDEX idx_acls__pid   ON acls(pid);
 CREATE UNIQUE INDEX uidx_acls__title_vcharops ON acls(title varchar_pattern_ops);
@@ -806,8 +808,8 @@ PRINT '- Вставка базовых классов и объектов';
 PRINT '';
 ---------------------------------------------------------------------------------------------------
 
-INSERT INTO acls(id,pid,title,kind) VALUES (0,0,'nullClsRoot',0);
-INSERT INTO acls(id,pid,title,kind) VALUES (1,0,'ClsRoot',0);
+INSERT INTO acls(id,pid,title,kind,dobj) VALUES (0,0,'nullClsRoot',0,NULL);
+INSERT INTO acls(id,pid,title,kind,dobj) VALUES (1,0,'ClsRoot',0,NULL);
 INSERT INTO acls(id,pid,title,kind,measure) VALUES (2,1,'RootNumType',1,'шт.');
 
 INSERT INTO obj(id,pid,title,cls_id)VALUES (0,0,'nullNumRoot',2);

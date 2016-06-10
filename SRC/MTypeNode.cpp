@@ -131,6 +131,17 @@ bool MTypeItem::GetInsertQuery(wxString& query)const
 	const auto& cls = GetData();
 
 	const wxString parent = cls.mParent.mId.IsNull() ? wxString("1") : cls.mParent.mId;
+	wxString doid;
+	if (!cls.mType.IsNull() && cls.mType.operator long()>0)
+	{
+		doid = cls.mDefaultObj.mId.IsNull() ? wxString("1") : cls.mDefaultObj.mId.SqlVal();
+	}
+	else
+	{
+		doid = "NULL";
+	}
+	
+	
 
 	query = wxString::Format(
 		"INSERT INTO acls "
@@ -142,7 +153,7 @@ bool MTypeItem::GetInsertQuery(wxString& query)const
 		, cls.mType.IsNull() ? "0" : cls.mType.SqlVal()
 		, cls.mMeasure.SqlVal()
 		, parent
-		, cls.mDefaultObj.mId.SqlVal()
+		, doid
 		);
 	return true;
 }
