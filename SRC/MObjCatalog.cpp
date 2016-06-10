@@ -31,7 +31,7 @@ MObjCatalog::MObjCatalog(const char option)
 	{
 		FilterData fd;
 		fd.mConn = fcAND;
-		fd.mFieldName = "cls.kind";
+		fd.mFieldName = "acls.kind";
 		fd.mOp = foEq;
 		fd.mVal = wxString::Format("%d", (int)ctAbstract);
 		fd.mFieldType = ftLong;
@@ -42,7 +42,7 @@ MObjCatalog::MObjCatalog(const char option)
 	// 1
 	mFilter->Insert(
 		mFilter->CreateItem(
-			FilterData("0", "cls.id", ftLong, foEq, fcAND, false), true));
+			FilterData("0", "acls.id", ftLong, foEq, fcAND, false), true));
 
 }
 //-------------------------------------------------------------------------
@@ -176,7 +176,7 @@ void MObjCatalog::DoUp()
 void MObjCatalog::SetFilterClsKind(ClsType ct, FilterOp fo, bool enable)
 {
 	FilterData fd(wxString::Format("%d", (int)ct)
-		, "cls.kind", ftLong, fo, fcAND, enable);
+		, "acls.kind", ftLong, fo, fcAND, enable);
 	mFilter->at(0)->SetData(fd, true);
 }
 //-------------------------------------------------------------------------
@@ -189,7 +189,7 @@ const FilterData& MObjCatalog::GetFilterClsKind()const
 void MObjCatalog::SetFilterClsId(long id, FilterOp fo, bool enable)
 {
 	FilterData fd(wxString::Format("%d", id)
-		, "cls.id", ftLong, fo, fcAND, enable);
+		, "acls.id", ftLong, fo, fcAND, enable);
 
 	mFilter->at(1)->SetData(fd, true);
 }
@@ -230,7 +230,7 @@ void MObjCatalog::SetCatFilter(long pid, bool enable)
 	switch (cfg.mCatType)
 	{
 	case rec::catCls:
-		mFilterCat->SetData(FilterData(pidStr, "cls.pid", ftLong, foEq, fcAND, enable));
+		mFilterCat->SetData(FilterData(pidStr, "acls.pid", ftLong, foEq, fcAND, enable));
 		break;
 	case rec::catObj:
 		mFilterCat->SetData(FilterData(pidStr, "obj.pid", ftLong, foEq, fcAND, enable));

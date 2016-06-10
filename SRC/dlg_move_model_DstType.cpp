@@ -70,11 +70,11 @@ bool DstTypeArray::GetSelectChildsQuery(wxString& query)const
 	const rec::PathItem& movable = movableModel->GetData();
 
 	query = wxString::Format(
-		" SELECT _dst_cls_id, cls.title as dst_cls_label "
+		" SELECT _dst_cls_id, acls.title as dst_cls_label "
 		", _dst_obj_id, _dst_obj_label "
 		", get_path_obj(_dst_obj_pid) AS DST_PATH "
 		" FROM lock_for_move(%s,%s) "
-		" LEFT JOIN cls cls ON cls.id = _dst_cls_id "
+		" LEFT JOIN acls ON acls.id = _dst_cls_id "
 		" ORDER BY _dst_cls_id "
 		, movable.mObj.mId.SqlVal()
 		, movable.mObj.mParent.mId.SqlVal()

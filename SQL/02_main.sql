@@ -4,7 +4,7 @@ SET default_transaction_isolation =serializable;
 SET client_min_messages='debug1';
 SHOW client_min_messages;
 SET enable_seqscan = ON;
-DROP EXTENSION IF EXISTS pg_trgm;
+--DROP EXTENSION IF EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON SEQUENCES FROM public;
@@ -19,7 +19,8 @@ DROP DOMAIN IF EXISTS WHNAME CASCADE;
 DROP DOMAIN IF EXISTS TMPPATH CASCADE; 
 
 CREATE DOMAIN WHNAME AS VARCHAR
-   CHECK (VALUE ~ '^([[:alnum:][:space:]''"!()*+,-.:;<=>^_|№])+$') ;
+   -- CHECK (VALUE ~ '^([[:alnum:][:space:]''"!()*+,-.:;<=>^_|№])+$') 
+   ;
 
    
 CREATE DOMAIN TMPPATH AS VARCHAR
@@ -124,7 +125,11 @@ DROP TABLE IF EXISTS ref_act_prop CASCADE;
 DROP FUNCTION IF EXISTS ftr_aud_perm_act() CASCADE;
 DROP FUNCTION IF EXISTS ftr_biu_perm_act() CASCADE;
 
+DROP FUNCTION IF EXISTS ftr_bu_acls() CASCADE;
+DROP FUNCTION IF EXISTS ftr_bu_any_obj() CASCADE;
 
+DROP FUNCTION IF EXISTS ftg_del_log() CASCADE;
+DROP FUNCTION IF EXISTS ftr_bd_log_main() CASCADE;
 
 
 ---------------------------------------------------------------------------------------------------
@@ -605,32 +610,6 @@ GRANT UPDATE (user_label, cls_id, act_id, prop_id )
 
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
-DROP VIEW IF EXISTS cls CASCADE;
-CREATE VIEW cls AS
-SELECT id, pid, measure, kind, title, note,dobj FROM acls;
-/*
-DROP VIEW IF EXISTS cls CASCADE;
-CREATE VIEW cls AS
-SELECT id, pid, measure, kind, title, note,default_objid FROM
-(
-SELECT id, pid, NULL::WHNAME AS measure, 0::SMALLINT AS kind,NULL::BIGINT AS default_objid  FROM cls_tree
-UNION ALL
-SELECT id, pid, measure,1::SMALLINT AS kind,default_objid FROM cls_num LEFT JOIN cls_real USING (id)
-UNION ALL
-SELECT id, pid, measure,2::SMALLINT AS kind,default_objid FROM cls_qtyi LEFT JOIN cls_real USING (id)
-UNION ALL
-SELECT id, pid, measure,3::SMALLINT AS kind,default_objid FROM cls_qtyf LEFT JOIN cls_real USING (id)
-) cdif
-LEFT JOIN cls_name USING (id);
-*/
-GRANT SELECT        ON cls  TO "Guest";
-GRANT INSERT        ON cls  TO "TypeDesigner";
-GRANT DELETE        ON cls  TO "Admin";
-GRANT UPDATE        ON cls  TO "TypeDesigner";
-
-
-
-
 
 
 
@@ -703,70 +682,6 @@ CREATE TRIGGER tr_aud_perm_act AFTER DELETE OR UPDATE ON perm_act FOR EACH ROW E
 GRANT EXECUTE ON FUNCTION ftr_aud_perm_act() TO "TypeDesigner";
 
 
-
----------------------------------------------------------------------------------------------------
--- тригер создания класса
----------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS ftg_ins_cls() CASCADE;
-CREATE FUNCTION ftg_ins_cls() RETURNS TRIGGER AS $$
-BEGIN
-  NEW.id := COALESCE(NEW.id,nextval('seq_cls_id'));
-  NEW.dobj := COALESCE(NEW.dobj,1);
-    
-
-  IF NEW.kind=0 THEN
-    NEW.measure=NULL;
-  END IF;
-  
-  INSERT INTO acls (id, title, note, kind, pid, dobj,measure) 
-            VALUES ( NEW.id, NEW.title, NEW.note,NEW.kind,NEW.pid, NEW.dobj, NEW.measure);
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-CREATE TRIGGER tr_ii_cls INSTEAD OF INSERT ON cls FOR EACH ROW EXECUTE PROCEDURE ftg_ins_cls();
-
-GRANT EXECUTE ON FUNCTION ftg_ins_cls() TO "TypeDesigner";
----------------------------------------------------------------------------------------------------
--- тригер редактирования класса
----------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS ftg_upd_cls() CASCADE;
-CREATE FUNCTION ftg_upd_cls() RETURNS TRIGGER AS $$
-BEGIN
-  IF NEW.id<>OLD.id OR NEW.kind<>OLD.kind THEN
-    RAISE EXCEPTION ' %: can`t change id and kind',TG_NAME;
-  END IF;
-  UPDATE acls SET title=NEW.title, note=NEW.note
-       , pid=NEW.pid, dobj=NEW.dobj, measure=NEW.measure
-   WHERE id=NEW.id;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-CREATE TRIGGER tr_iu_cls INSTEAD OF UPDATE ON cls FOR EACH ROW EXECUTE PROCEDURE ftg_upd_cls();
-
-GRANT EXECUTE ON FUNCTION ftg_upd_cls() TO "TypeDesigner";
----------------------------------------------------------------------------------------------------
--- тригер удаления класса
----------------------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS ftg_del_cls() CASCADE;
-CREATE FUNCTION ftg_del_cls() RETURNS TRIGGER AS $$
-BEGIN
-  DELETE FROM acls WHERE id = OLD.id;
-  RETURN OLD;
-END;
-$$ LANGUAGE plpgsql;
-CREATE TRIGGER tr_id_cls INSTEAD OF DELETE ON cls FOR EACH ROW EXECUTE PROCEDURE ftg_del_cls();
-
-GRANT EXECUTE ON FUNCTION ftg_upd_cls() TO "Admin";
-/*
-DROP RULE rl_id_cls_tree ON cls_tree;
-CREATE RULE rl_id_cls_tree AS 
- ON DELETE TO cls_tree
- DO INSTEAD
- DELETE FROM cls WHERE id = OLD.id;
-*/
-
-
-
 ---------------------------------------------------------------------------------------------------
 -- тригер создания объекта
 ---------------------------------------------------------------------------------------------------
@@ -775,7 +690,7 @@ CREATE FUNCTION ftg_ins_obj() RETURNS TRIGGER AS $body$
 DECLARE
   _kind SMALLINT;
 BEGIN
-  SELECT kind INTO _kind FROM cls WHERE id=NEW.cls_id;-- _kind находим сами не пользуя NEW.kind
+  SELECT kind INTO _kind FROM acls WHERE id=NEW.cls_id;-- _kind находим сами не пользуя NEW.kind
   IF NOT FOUND THEN
     RAISE EXCEPTION ' %: cls.id=% not present in cls table',TG_NAME, NEW.cls_id ;
   END IF;
@@ -811,7 +726,7 @@ CREATE FUNCTION ftg_upd_obj() RETURNS TRIGGER AS $body$
 DECLARE
   _kind SMALLINT;
 BEGIN
-  SELECT kind INTO _kind FROM cls WHERE id=NEW.cls_id;-- _kind находим сами не пользуя NEW.kind
+  SELECT kind INTO _kind FROM acls WHERE id=NEW.cls_id;-- _kind находим сами не пользуя NEW.kind
   IF NOT FOUND THEN
     RAISE EXCEPTION ' %: cls.id=% not present in cls_real',TG_NAME, NEW.cls_id ;
   END IF;
@@ -858,7 +773,7 @@ CREATE FUNCTION ftg_del_obj() RETURNS TRIGGER AS $body$
 DECLARE
   _kind SMALLINT;
 BEGIN
-  SELECT kind INTO _kind FROM cls WHERE id=OLD.cls_id;-- _kind находим сами не пользуя NEW.kind
+  SELECT kind INTO _kind FROM acls WHERE id=OLD.cls_id;-- _kind находим сами не пользуя NEW.kind
   IF NOT FOUND THEN
     RAISE EXCEPTION ' %: cls.id=% not present in cls_real',TG_NAME, OLD.cls_id ;
   END IF;
@@ -891,9 +806,9 @@ PRINT '- Вставка базовых классов и объектов';
 PRINT '';
 ---------------------------------------------------------------------------------------------------
 
-INSERT INTO cls(id,pid,title,kind) VALUES (0,0,'nullClsRoot',0);
-INSERT INTO cls(id,pid,title,kind) VALUES (1,0,'ClsRoot',0);
-INSERT INTO cls(id,pid,title,kind,measure) VALUES (2,1,'RootNumType',1,'шт.');
+INSERT INTO acls(id,pid,title,kind) VALUES (0,0,'nullClsRoot',0);
+INSERT INTO acls(id,pid,title,kind) VALUES (1,0,'ClsRoot',0);
+INSERT INTO acls(id,pid,title,kind,measure) VALUES (2,1,'RootNumType',1,'шт.');
 
 INSERT INTO obj(id,pid,title,cls_id)VALUES (0,0,'nullNumRoot',2);
 INSERT INTO obj(id,pid,title,cls_id)VALUES (1,0,'ObjRoot',2);

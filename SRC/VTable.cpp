@@ -185,7 +185,7 @@ void VTable::OnFieldAfterInsert(const IModel& vec, const std::vector<SptrIModel>
 				class wxDataViewMLTextRenderer : public wxDataViewTextRenderer
 				{
 				public:
-					wxDataViewMLTextRenderer(const wxString &  varianttype = GetDefaultType(),//wxT("string")
+					wxDataViewMLTextRenderer(const wxString &  varianttype = wxT("string"), //GetDefaultType(),
 						wxDataViewCellMode  mode = wxDATAVIEW_CELL_INERT,
 						int  align = wxDVR_DEFAULT_ALIGNMENT )
 						:wxDataViewTextRenderer(varianttype, mode, align)

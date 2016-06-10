@@ -118,12 +118,12 @@ DECLARE
 BEGIN
   RAISE DEBUG 'Start impotr MTR script';
   
-  --SELECT id FROM cls WHERE title = 'ЗИП';
-  SELECT id INTO cid_sta FROM cls WHERE title = 'ЗИП';
+  --SELECT id FROM acls WHERE title = 'ЗИП';
+  SELECT id INTO cid_sta FROM acls WHERE title = 'ЗИП';
   IF FOUND THEN 
     DELETE from acls WHERE id IN (SELECT _id FROM get_childs_cls(cid_sta));
   END IF;
-  INSERT INTO cls(pid,title,kind) VALUES (1,'ЗИП',0) RETURNING id INTO cid_sta ; 
+  INSERT INTO acls(pid,title,kind) VALUES (1,'ЗИП',0) RETURNING id INTO cid_sta ; 
   RAISE DEBUG 'cid_sta %',cid_sta;
 
 
@@ -133,26 +133,26 @@ BEGIN
     sta_category3:=substring (REGEXP_REPLACE(rec.id,'([^[:digit:],.$])','','g') from '%.%.#"%#"' for '#');
 
     IF (0 < sta_category3::NUMERIC ) THEN
-      SELECT id INTO cid_previos FROM cls WHERE title LIKE sta_category1||'.'||sta_category2||'.%';
+      SELECT id INTO cid_previos FROM acls WHERE title LIKE sta_category1||'.'||sta_category2||'.%';
     ELSEIF (0 < sta_category2::NUMERIC ) THEN
-      SELECT id INTO cid_previos FROM cls WHERE title LIKE sta_category1||'.%';
+      SELECT id INTO cid_previos FROM acls WHERE title LIKE sta_category1||'.%';
     ELSE 
       cid_previos:=cid_sta;
     END IF;
 
     --RAISE DEBUG 'rec.id % -->%.%.%  cid_previos %',rec.id,sta_category1,sta_category2,sta_category3,cid_previos;
     
-    INSERT INTO cls(pid,title,kind) VALUES (cid_previos,rec.id||' '||rec.title,0);
+    INSERT INTO acls(pid,title,kind) VALUES (cid_previos,rec.id||' '||rec.title,0);
   END LOOP;
 
   FOR rec IN import_subcat LOOP
-    SELECT id INTO cid_previos FROM cls WHERE title LIKE rec.mtr_id||'%';
+    SELECT id INTO cid_previos FROM acls WHERE title LIKE rec.mtr_id||'%';
     
-    INSERT INTO cls(pid,title,kind) VALUES (cid_previos,rec.title,0);
+    INSERT INTO acls(pid,title,kind) VALUES (cid_previos,rec.title,0);
 
   END LOOP;
 
-  INSERT INTO cls(pid,title,kind,measure) VALUES (cid_sta,'Заказ',1,'шт.') RETURNING id INTO cid_sta_zayavka ; 
+  INSERT INTO acls(pid,title,kind,measure) VALUES (cid_sta,'Заказ',1,'шт.') RETURNING id INTO cid_sta_zayavka ; 
   INSERT INTO obj(title,cls_id,pid) VALUES ('заявка СЦ',cid_sta_zayavka, 1 ) RETURNING id INTO oid_zayavka2016;
 
   SELECT id INTO prid_desc FROM prop WHERE title = 'Описание';
@@ -182,9 +182,9 @@ BEGIN
   
   FOR rec IN import_mtr LOOP
     IF(rec.category_parent IS NOT NULL) THEN
-      SELECT id INTO cid_parent FROM cls WHERE kind=0 AND title=rec.title;
+      SELECT id INTO cid_parent FROM acls WHERE kind=0 AND title=rec.title;
     ELSEIF (rec.mtr_id IS NOT NULL AND rec.mtr_id<>'') THEN
-      SELECT id INTO cid_parent FROM cls WHERE kind=0 AND title LIKE rec.mtr_id||'%';
+      SELECT id INTO cid_parent FROM acls WHERE kind=0 AND title LIKE rec.mtr_id||'%';
     ELSE
       cid_parent:=cid_sta;
     END IF;
@@ -206,7 +206,7 @@ BEGIN
 
     sta_title_idx:=0;
     LOOP
-      PERFORM FROM cls WHERE title=sta_title;
+      PERFORM FROM acls WHERE title=sta_title;
       IF FOUND THEN
        sta_title:= sta_title||'_'||sta_title_idx;
        sta_title_idx:=sta_title_idx+1;
@@ -215,9 +215,9 @@ BEGIN
       END IF;
     END LOOP;
 
-    SELECT id INTO cid_curr FROM cls WHERE title=sta_title;
+    SELECT id INTO cid_curr FROM acls WHERE title=sta_title;
     IF NOT FOUND THEN
-      INSERT INTO cls(pid,title,kind,measure,dobj) VALUES (cid_parent,sta_title,rec.kind,rec.mess,oid_zayavka2016) 
+      INSERT INTO acls(pid,title,kind,measure,dobj) VALUES (cid_parent,sta_title,rec.kind,rec.mess,oid_zayavka2016) 
       RETURNING id INTO cid_curr;
       INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_mtr_id, rec.mtr_id);
       INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_desc, COALESCE(rec.title,'')||' '||COALESCE(rec.description,''));

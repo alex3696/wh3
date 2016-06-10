@@ -44,14 +44,14 @@ RETURN QUERY(
     SELECT id,  title, kind, pid,  note, measure,dobj
            ,ARRAY[id]                            AS exist
            ,FALSE                                AS cycle
-    FROM cls
+    FROM acls
     WHERE id = _obj_id
     UNION ALL
         SELECT t.id, t.title, t.kind, t.pid, t.note, t.measure, t.dobj
                ,exist || t.id 
                ,t.id = ANY(exist)
         FROM children AS c, 
-             cls  AS t
+             acls  AS t
         WHERE t.pid = c.id AND 
               NOT cycle 
               --AND array_length(exist, 1) < 1000 -- глубина дерева
@@ -94,7 +94,7 @@ RETURN QUERY
           , ARRAY[c.title]::NAME[] AS arr_title
           , '/'||c.title AS path
           ,FALSE AS cycle
-       FROM cls c
+       FROM acls c
        WHERE --c.id=333 
         _cid IS NOT NULL AND _cid>0 AND c.id = _cid 
        UNION ALL
@@ -190,7 +190,7 @@ RETURN QUERY
           , '/['||c.title||']'||o.title AS path
           , FALSE AS CYCLE
         FROM obj AS o
-        LEFT JOIN cls c ON c.id=o.cls_id
+        LEFT JOIN acls c ON c.id=o.cls_id
           WHERE _oid IS NOT NULL AND o.id = _oid AND o.id>0
      UNION ALL
      SELECT o.id, o.pid 
@@ -422,8 +422,12 @@ CREATE OR REPLACE FUNCTION ftr_bu_acls()  RETURNS trigger AS
 $body$
 DECLARE
 BEGIN
--- Если произошло изменение родителя узла
-  IF NEW.pid IS NOT NULL AND (NEW.pid <> OLD.pid OR OLD.pid IS NULL) THEN
+  -- Проверяем, что никто не пытается изменить тип класса или идентификатор
+  IF NEW.id<>OLD.id OR NEW.kind<>OLD.kind THEN
+    RAISE EXCEPTION ' %: can`t change id and kind',TG_NAME;
+  END IF;
+  -- Если произошло изменение родителя узла
+  IF NEW.pid <> OLD.pid THEN
   -- Пытаемся найти в родителькой ветки нового родителя текущий узел
     PERFORM FROM get_path_cls_info(NEW.pid) WHERE id = OLD.id;
     IF FOUND THEN

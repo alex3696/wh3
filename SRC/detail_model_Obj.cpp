@@ -64,8 +64,8 @@ bool Obj::GetSelectQuery(wxString& query)const
 		"      , co.id, co.title, co.kind, co.measure, NULL as defaultPid "
 		"      , cparent.id, cparent.title "
 		" FROM obj o "
-		" LEFT JOIN cls co      ON co.id = o.cls_id "
-		" LEFT JOIN cls cparent ON co.pid = cparent.id "
+		" LEFT JOIN acls co      ON co.id = o.cls_id "
+		" LEFT JOIN acls cparent ON co.pid = cparent.id "
 		" WHERE o.cls_id=%s  AND o.id=%s " 
 		, data.mCls.mId.SqlVal()
 		, data.mObj.mId.SqlVal()

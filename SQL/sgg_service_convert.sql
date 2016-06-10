@@ -342,13 +342,13 @@ PRINT '';
 -------------------------------------------------------------------------------
 
 DECLARE @struct_units_id, @geo_equipment_id;
-SET @struct_units_id = INSERT INTO cls(pid,title,kind) VALUES (1,'Структурные подразделения',0) RETURNING id;
-SET @geo_equipment_id = INSERT INTO cls(pid,title,kind) VALUES (1,'Геофизическое оборудование',0) RETURNING id;
+SET @struct_units_id = INSERT INTO acls(pid,title,kind) VALUES (1,'Структурные подразделения',0) RETURNING id;
+SET @geo_equipment_id = INSERT INTO acls(pid,title,kind) VALUES (1,'Геофизическое оборудование',0) RETURNING id;
 
 DECLARE @company_id, @department_id, @department_area_id;
-SET @company_id = INSERT INTO cls(pid,title,kind,measure) VALUES (@struct_units_id,'Предприятие',1,'ед.') RETURNING id;
-SET @department_id = INSERT INTO cls(pid,title,kind,measure) VALUES (@struct_units_id,'Отдел',1,'ед.') RETURNING id;
-SET @department_area_id = INSERT INTO cls(pid,title,kind,measure) VALUES (@struct_units_id,'Участок СЦ',1,'ед.') RETURNING id;
+SET @company_id = INSERT INTO acls(pid,title,kind,measure) VALUES (@struct_units_id,'Предприятие',1,'ед.') RETURNING id;
+SET @department_id = INSERT INTO acls(pid,title,kind,measure) VALUES (@struct_units_id,'Отдел',1,'ед.') RETURNING id;
+SET @department_area_id = INSERT INTO acls(pid,title,kind,measure) VALUES (@struct_units_id,'Участок СЦ',1,'ед.') RETURNING id;
 
 DECLARE @sgg_company_id;
 SET @sgg_company_id = INSERT INTO obj(title,cls_id,pid) VALUES ('Севергазгеофизика',@company_id, 1 )RETURNING id;
@@ -372,7 +372,7 @@ DECLARE
   _prop_val JSONB;
 BEGIN
   SELECT id INTO sgg_company_oid FROM obj WHERE title='Севергазгеофизика';
-  SELECT id INTO department_cid FROM cls WHERE title='Отдел';
+  SELECT id INTO department_cid FROM acls WHERE title='Отдел';
   SELECT id INTO _pid_desc FROM prop WHERE title='Описание';
   SELECT id INTO _aid_chfndep FROM act WHERE title='Изменить описание' ;
 
@@ -401,7 +401,7 @@ PRINT '- импортируем работников';
 PRINT '';
 ------------------------------------------------------------------------------
 DECLARE @cid_personal;
-SET @cid_personal = INSERT INTO cls(pid,title,kind,measure) VALUES (1,'Персонал',1,'чел.') RETURNING id;
+SET @cid_personal = INSERT INTO acls(pid,title,kind,measure) VALUES (1,'Персонал',1,'чел.') RETURNING id;
 
 DECLARE @pid_fam,@pid_nm,@pid_ot;
 SET @pid_fam = INSERT INTO prop(title, kind)VALUES('Фамилия', 0)RETURNING id;
@@ -439,7 +439,7 @@ _pid_ot BIGINT;
   _aid_ch_worker_info BIGINT;
   _prop_val JSONB;
 BEGIN
-  SELECT id INTO _cid_personal FROM cls WHERE title='Персонал';
+  SELECT id INTO _cid_personal FROM acls WHERE title='Персонал';
 
   SELECT id INTO _pid_fam FROM prop WHERE title='Фамилия';
   SELECT id INTO _pid_nm FROM prop WHERE title='Имя';
@@ -653,14 +653,14 @@ BEGIN
 
   FOR rec IN import_cls00 LOOP
     --RAISE DEBUG 'ADD ABSTRACT CLS=% TO ROOT ',rec.title;
-    INSERT INTO cls(pid,title,kind) VALUES (_geo_equipment_id,rec.title,0);
+    INSERT INTO acls(pid,title,kind) VALUES (_geo_equipment_id,rec.title,0);
   END LOOP;
 
   FOR rec IN import_cls01 LOOP
     SELECT title INTO _title FROM __cls00 WHERE id = rec.pid;
     SELECT id INTO _pid FROM acls WHERE title = _title;
     --RAISE DEBUG 'ADD ABSTRACT CLS=% TO % (%)',rec.title,_title,rec;
-    INSERT INTO cls(pid,title,kind) VALUES (_pid,rec.title,0) ;
+    INSERT INTO acls(pid,title,kind) VALUES (_pid,rec.title,0) ;
   END LOOP;
 
   SELECT id INTO _curr_aid FROM ACT WHERE title='Изменить основные свойства' ;
@@ -669,7 +669,7 @@ BEGIN
     SELECT title INTO _title FROM __cls01 WHERE id = rec.pid;
     SELECT id INTO _pid FROM acls WHERE title = _title;
     --RAISE DEBUG 'ADD NUMERIC CLS=% (period=%) TO % (%)',rec.title,rec.period,_title,rec;
-    INSERT INTO cls(pid,title,kind,measure) VALUES (_pid,rec.title,1,'ед') RETURNING id INTO _cls_id ;
+    INSERT INTO acls(pid,title,kind,measure) VALUES (_pid,rec.title,1,'ед') RETURNING id INTO _cls_id ;
     INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (_cls_id , 1, _prop_cal_period_id, rec.period);
     INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (_cls_id , 1, _prop_desc_id, NULL);
   END LOOP;

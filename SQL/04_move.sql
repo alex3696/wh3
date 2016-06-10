@@ -661,7 +661,7 @@ FROM log_main lm
 
   LEFT JOIN act ON act.id=lad.act_id
   LEFT JOIN obj_name mobj ON mobj.id=lm.obj_id
-  LEFT JOIN cls      mcls ON mcls.id=mobj.cls_id
+  LEFT JOIN acls     mcls ON mcls.id=mobj.cls_id
   ;
   
 ------------------------------------------------------------------------------------------------------------
@@ -715,7 +715,7 @@ CREATE OR REPLACE VIEW log2 AS
   ) det ON lm.id=det.id
   LEFT JOIN act ON act.id=det.act_id
   LEFT JOIN obj_name mobj ON mobj.id=lm.obj_id
-  LEFT JOIN cls      mcls ON mcls.id=mobj.cls_id
+  LEFT JOIN acls     mcls ON mcls.id=mobj.cls_id
   --LEFT JOIN LATERAL tmppath_to_2id_info(lm.src_path::TEXT,1) src ON true 
   --LEFT JOIN LATERAL tmppath_to_2id_info(det.dst_path::TEXT,1) dst ON true 
   LEFT JOIN LATERAL (SELECT 

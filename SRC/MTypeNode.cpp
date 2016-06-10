@@ -133,7 +133,7 @@ bool MTypeItem::GetInsertQuery(wxString& query)const
 	const wxString parent = cls.mParent.mId.IsNull() ? wxString("1") : cls.mParent.mId;
 
 	query = wxString::Format(
-		"INSERT INTO cls "
+		"INSERT INTO acls "
 		" (title, note, kind, measure, pid, dobj) VALUES "
 		" (%s, %s, %s, %s, %s, %s) "
 		" RETURNING title, id, kind, measure, 0"
@@ -154,7 +154,7 @@ bool MTypeItem::GetUpdateQuery(wxString& query)const
 	wxString parent = cls.mParent.mId.IsNull() ? wxString("1") : cls.mParent.mId;
 
 	query = wxString::Format(
-		"UPDATE cls SET "
+		"UPDATE acls SET "
 		" title=%s, note=%s, kind=%s, measure=%s, pid=%s, dobj=%s "
 		" WHERE id = %s "
 		, cls.mLabel.SqlVal()
@@ -171,7 +171,7 @@ bool MTypeItem::GetDeleteQuery(wxString& query)const
 {
 	const auto& cls = GetData();
 	query = wxString::Format(
-		"DELETE FROM cls WHERE id = %s ",
+		"DELETE FROM acls WHERE id = %s ",
 		cls.mId.SqlVal() );
 	return true;
 }
@@ -209,12 +209,12 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 		wxString objFilter = catalog->GetFilterObj();
 
 		query = wxString::Format(
-			"SELECT cls.title, cls.id, cls.kind, cls.measure, osum.qty, cls.dobj, ob.title "
+			"SELECT acls.title, acls.id, acls.kind, acls.measure, osum.qty, acls.dobj, ob.title "
 			" FROM (SELECT COALESCE(SUM(qty), 0) AS qty, cls_id FROM obj "
 			"       WHERE obj.id > 0 %s %s GROUP BY obj.cls_id) osum "
-			" LEFT JOIN cls ON osum.cls_id = cls.id "
-			" LEFT JOIN obj_name ob ON ob.id = cls.dobj "
-			" WHERE cls.id > 0 %s "
+			" LEFT JOIN acls ON osum.cls_id = acls.id "
+			" LEFT JOIN obj_name ob ON ob.id = acls.dobj "
+			" WHERE acls.id > 0 %s "
 			, catFilter
 			, objFilter
 			, clsFilter);
@@ -228,12 +228,12 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 		wxString objFilter = catalog->GetFilterObj();
 
 		query = wxString::Format(
-			"SELECT cls.title, cls.id, cls.kind, cls.measure "
-			" ,(SELECT COALESCE(SUM(qty), 0) FROM obj WHERE obj.id > 0 AND obj.cls_id=cls.id %s GROUP BY o.cls_id)  AS qty "
+			"SELECT acls.title, acls.id, acls.kind, acls.measure "
+			" ,(SELECT COALESCE(SUM(qty), 0) FROM obj WHERE obj.id > 0 AND obj.cls_id=acls.id %s GROUP BY o.cls_id)  AS qty "
 			" ,dobj AS doid, o.title AS dotitle"
-			" FROM cls "
-			" LEFT JOIN obj_name o ON o.id = cls.dobj "
-			" WHERE cls.id > 0 %s %s"
+			" FROM acls "
+			" LEFT JOIN obj_name o ON o.id =acls.dobj "
+			" WHERE acls.id > 0 %s %s"
 			/*
 			"SELECT t.title, osum.qty, t.id, t.kind, t.measure "
 			" FROM cls_tree t "
