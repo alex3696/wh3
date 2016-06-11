@@ -157,6 +157,7 @@ void MainFrame::BuildToolbar()
 		//| wxAUI_TB_OVERFLOW
 		//| wxAUI_TB_TEXT
 		//| wxAUI_TB_HORZ_TEXT
+		| wxAUI_TB_PLAIN_BACKGROUND
 		| wxAUI_TB_GRIPPER;
 	
 	m_MainToolBar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, main_toolbar_style);
@@ -205,7 +206,9 @@ void MainFrame::ShowDevToolBar(bool show)
 	if (!m_DevToolBar)
 	{ 
 		m_DevToolBar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-			wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_GRIPPER);
+			wxAUI_TB_DEFAULT_STYLE 
+			| wxAUI_TB_PLAIN_BACKGROUND
+			| wxAUI_TB_GRIPPER);
 
 		m_DevToolBar->AddTool(CMD_PNLSHOWGROUP, "Групп",
 			m_ResMgr->m_ico_usergroup24, wxEmptyString, wxITEM_NORMAL);
@@ -253,7 +256,7 @@ void MainFrame::ShowDevToolBar(bool show)
 			auto model = std::make_shared<wh::MLogTable>();
 			auto wnd = new wh::VTablePanel(m_Notebook);
 			wnd->SetRowHeight(32);
-			wnd->mCtrl.fnOnCmdSave = nullptr; //wnd->SetEnableSave(false);
+			//wnd->mCtrl.fnOnCmdSave = nullptr; //wnd->SetEnableSave(false);
 			wnd->mCtrl.fnOnCmdInsert = nullptr;
 			wnd->mCtrl.fnOnCmdEdit = nullptr;
 			m_Notebook->AddPage(wnd, "История", true, ResMgr::GetInstance()->m_ico_history24);

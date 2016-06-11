@@ -1,23 +1,25 @@
---SET client_min_messages = 'error';
-SET client_min_messages = 'debug';
+BEGIN TRANSACTION;
 
-ALTER DOMAIN whname
-    DROP CONSTRAINT IF EXISTS  whname_check;
+--SET client_min_messages = 'error';
+--SET client_min_messages = 'debug';
+SET client_min_messages = 'NOTICE';
 --SHOW client_min_messages=OFF;
--------------------------------------------------------------------------------
---PRINT '';
---PRINT '- удаляем все записи классы/свойства';
---PRINT '';
--------------------------------------------------------------------------------
+
+--ALTER DOMAIN whname DROP CONSTRAINT IF EXISTS  whname_check;
+
 --SELECT whgrant_grouptouser('TypeDesigner',  'postgres');
+
 -------------------------------------------------------------------------------
+-- импортируем корневой перечень мтр
+-------------------------------------------------------------------------------
+
 DROP TABLE IF EXISTS __mtr_group CASCADE;
 CREATE TABLE __mtr_group
 (
   id text NOT NULL,
   title text NOT NULL
 );
-COPY __mtr_group FROM 'c:\_SAV\tmp\__MTR_GROUP.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
+
 --CREATE UNIQUE INDEX idxu__mtr_group_id ON __mtr_group (id);
 --CREATE UNIQUE INDEX idxu__mtr_group_title ON __mtr_group (title);
 
@@ -38,7 +40,34 @@ CREATE TABLE __mtr
   ,summ text
   ,note text
 );
-COPY __mtr FROM 'c:\_SAV\tmp\__MTR_SC.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
+
+-------------------------------------------------------------------------------
+-- загружаем данные из файлов
+-------------------------------------------------------------------------------
+
+DO $$
+DECLARE 
+  home_dir TEXT;
+BEGIN
+  RAISE NOTICE 'SERVER version %', version();
+  
+  IF(version() ILIKE '%linux%') THEN
+    home_dir:='/home/alex/wh3_data/';
+  ELSE
+    home_dir:='c:\_SAV\tmp\';
+  END IF;
+
+  RAISE NOTICE 'DATA DIR %', home_dir;
+
+  EXECUTE 'COPY __mtr_group FROM '''||home_dir||'__MTR_GROUP.csv'' WITH CSV HEADER DELIMITER '';'' ENCODING ''WIN866'' ';
+  EXECUTE 'COPY __mtr       FROM '''||home_dir||'__MTR_SC.csv''    WITH CSV HEADER DELIMITER '';'' ENCODING ''WIN866'' ';
+
+END$$;  
+
+-------------------------------------------------------------------------------
+-- обрабатываем загруженые таблички
+-------------------------------------------------------------------------------
+
 DELETE FROM __mtr WHERE qty IS NULL OR qty='';
 UPDATE __mtr SET mess=trim(both ' ' FROM mess);
 UPDATE __mtr SET mess='шт.' WHERE mess IS NULL OR mess='';
@@ -116,7 +145,7 @@ DECLARE
   sta_whtitle WHNAME;
   sta_title_idx INTEGER;
 BEGIN
-  RAISE DEBUG 'Start impotr MTR script';
+  RAISE NOTICE 'Start impotr MTR script';
   
   --SELECT id FROM acls WHERE title = 'ЗИП';
   SELECT id INTO cid_sta FROM acls WHERE title = 'ЗИП';
@@ -237,11 +266,8 @@ END$$;
 
 
 
+DROP TABLE IF EXISTS __mtr_group CASCADE;
+DROP TABLE IF EXISTS __mtr CASCADE;
 
-COMMIT;
-VACUUM FULL ANALYZE;
-
-
-
-
---DROP TABLE IF EXISTS __mtr_group CASCADE;
+COMMIT TRANSACTION;
+--ANALYZE;
