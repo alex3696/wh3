@@ -1,35 +1,25 @@
-
-
 SET default_transaction_isolation =serializable;
-SET client_min_messages='debug1';
+
+BEGIN TRANSACTION;
+
+--SET client_min_messages = 'error';
+SET client_min_messages = 'warning';
+--SET client_min_messages = 'notice';
+--SET client_min_messages = 'debug';
+--SHOW client_min_messages;
 SHOW client_min_messages;
-SET enable_seqscan = ON;
---DROP EXTENSION IF EXISTS pg_trgm;
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
-ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON SEQUENCES FROM public;
-ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON TABLES FROM public;
-ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON FUNCTIONS FROM public;
-
-SELECT whgrant_grouptouser('Admin','postgres');
+--SET enable_seqscan = ON;
 ---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+-- очистка
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+-- расширения
+DROP EXTENSION IF EXISTS pg_trgm CASCADE;
 -- домены
----------------------------------------------------------------------------------------------------
 DROP DOMAIN IF EXISTS WHNAME CASCADE; 
 DROP DOMAIN IF EXISTS TMPPATH CASCADE; 
-
-CREATE DOMAIN WHNAME AS VARCHAR
-   -- CHECK (VALUE ~ '^([[:alnum:][:space:]''"!()*+,-.:;<=>^_|№])+$') 
-   ;
-
-   
-CREATE DOMAIN TMPPATH AS VARCHAR
-   COLLATE pg_catalog."C"
-   CHECK (VALUE ~ '^{((((%*)|({(%|[[:digit:]]+),(%|[[:digit:]]+)})),?)+)}$') ;
-
----------------------------------------------------------------------------------------------------
 -- идентификаторы
----------------------------------------------------------------------------------------------------
 DROP SEQUENCE IF EXISTS seq_cls_id CASCADE;
 DROP SEQUENCE IF EXISTS seq_act_id CASCADE;
 DROP SEQUENCE IF EXISTS seq_prop_id CASCADE;
@@ -40,7 +30,117 @@ DROP SEQUENCE IF EXISTS seq_obj_id CASCADE;
 DROP SEQUENCE IF EXISTS seq_log_id CASCADE;
 DROP SEQUENCE IF EXISTS seq_perm_id CASCADE;
 DROP SEQUENCE IF EXISTS favorite_prop_id_seq CASCADE;
+-- таблицы(вьюшки) + их триггеры
+  -- классы
+  DROP TABLE IF EXISTS acls CASCADE;
+    DROP FUNCTION IF EXISTS ftg_ins_cls() CASCADE;
+    DROP FUNCTION IF EXISTS ftg_del_cls() CASCADE;
+    DROP FUNCTION IF EXISTS ftg_upd_cls() CASCADE;
+    DROP FUNCTION IF EXISTS ftr_bu_acls() CASCADE;
+  -- объекты
+  DROP TABLE IF EXISTS obj_name CASCADE;
+  DROP TABLE IF EXISTS obj_num CASCADE;
+  DROP TABLE IF EXISTS obj_qtyi  CASCADE;
+  DROP TABLE IF EXISTS obj_qtyf  CASCADE;
 
+  DROP VIEW IF EXISTS obj CASCADE;
+    DROP FUNCTION IF EXISTS ftg_ins_obj() CASCADE;
+    DROP FUNCTION IF EXISTS ftg_del_obj() CASCADE;
+    DROP FUNCTION IF EXISTS ftg_upd_obj() CASCADE;
+  -- свойства
+  DROP TABLE IF EXISTS prop CASCADE;
+  DROP TABLE IF EXISTS prop_cls CASCADE;
+  DROP TABLE IF EXISTS prop_kind CASCADE;
+  DROP TABLE IF EXISTS favorite_prop CASCADE;
+
+-- действия
+  DROP TABLE IF EXISTS act CASCADE;
+
+  -- разрешения действий
+  DROP TABLE IF EXISTS perm_act CASCADE;
+    DROP FUNCTION IF EXISTS ftr_aud_perm_act() CASCADE;
+    DROP FUNCTION IF EXISTS ftr_biu_perm_act() CASCADE;
+
+  -- разрешения перемещений
+  DROP TABLE IF EXISTS perm_move CASCADE;
+
+  -- связывающие таблицы
+  DROP TABLE IF EXISTS ref_cls_act CASCADE;
+  DROP TABLE IF EXISTS ref_act_prop CASCADE;
+
+  -- история
+  DROP TABLE IF EXISTS log_main CASCADE;
+    DROP FUNCTION IF EXISTS ftr_bd_log_main() CASCADE;
+  DROP TABLE IF EXISTS log_detail_act CASCADE;
+  DROP TABLE IF EXISTS log_detail_move CASCADE;
+
+  DROP VIEW IF EXISTS log CASCADE;
+    DROP FUNCTION IF EXISTS ftg_del_log() CASCADE;
+    DROP FUNCTION IF EXISTS ftr_bu_any_obj() CASCADE;
+
+  -- бизнес блокировки
+  DROP TABLE IF EXISTS lock_obj CASCADE;
+  DROP TABLE IF EXISTS lock_dst CASCADE;
+  DROP TABLE IF EXISTS lock_act CASCADE;
+  
+  DROP VIEW IF EXISTS moverule_lockup CASCADE;
+
+  DROP FUNCTION IF EXISTS    try_lock_obj(IN _oid  BIGINT, IN _pid BIGINT) CASCADE;
+  DROP FUNCTION IF EXISTS    lock_reset(IN _oid  BIGINT, IN _pid BIGINT) CASCADE;
+  DROP FUNCTION IF EXISTS    lock_for_act(IN _oid  BIGINT, IN _opid  BIGINT) CASCADE;
+  DROP FUNCTION IF EXISTS    do_act(IN _obj_id BIGINT, _act_id BIGINT, IN _prop JSONB) CASCADE;
+  DROP FUNCTION IF EXISTS    lock_for_move( IN _obj_id  BIGINT, IN _old_pid BIGINT) CASCADE;
+  DROP FUNCTION IF EXISTS    do_move( _oid  BIGINT, IN _old_opid BIGINT,  IN _new_opid BIGINT
+                                   , IN _qty NUMERIC ) CASCADE;
+  DROP FUNCTION IF EXISTS    do_move_objnum( _oid  BIGINT, _new_opid BIGINT) CASCADE;
+  DROP FUNCTION IF EXISTS    do_move_objqtyi( IN _oid  BIGINT, IN _old_opid BIGINT,  IN _new_opid BIGINT, IN _qty NUMERIC ) CASCADE;
+  DROP FUNCTION IF EXISTS    do_move_objqtyf( IN _oid  BIGINT, IN _old_opid BIGINT,  IN _new_opid BIGINT, IN _qty NUMERIC ) CASCADE;
+
+
+-- вспомогательные функции
+DROP FUNCTION IF EXISTS get_childs_cls(IN _cid BIGINT) CASCADE;
+
+DROP FUNCTION IF EXISTS get_path_cls_info(_cid BIGINT,_cpid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_cls_arr_id(_cid BIGINT,_cpid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_cls_arr_title(_cid BIGINT,_cpid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_cls(_cid BIGINT,_cpid BIGINT) CASCADE;
+
+
+DROP FUNCTION IF EXISTS get_path_obj_info(_oid BIGINT,_opid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_obj_arr_id(_oid BIGINT,_opid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_obj_arr_2id(_oid BIGINT,_opid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_obj_arr_2title(_oid BIGINT,_opid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_obj(_oid BIGINT,_opid BIGINT) CASCADE;
+
+DROP FUNCTION IF EXISTS fn_array1_to_table(anyarray);
+DROP FUNCTION IF EXISTS obj_arr_id_to_obj_info(IN anyarray);
+
+DROP FUNCTION IF EXISTS fn_array2_to_table(IN anyarray);
+DROP FUNCTION IF EXISTS tmppath_to_2id_info(IN TEXT,BIGINT );
+
+DROP FUNCTION IF EXISTS ftr_bu_acls() CASCADE;
+DROP FUNCTION IF EXISTS ftr_bu_any_obj() CASCADE;
+
+
+---------------------------------------------------------------------------------------------------
+-- создание основных элементов
+---------------------------------------------------------------------------------------------------
+ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON SEQUENCES FROM public;
+ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON TABLES FROM public;
+ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON FUNCTIONS FROM public;
+SELECT whgrant_grouptouser('Admin','postgres');
+-- расширения
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+-- домены
+CREATE DOMAIN WHNAME AS VARCHAR
+   -- CHECK (VALUE ~ '^([[:alnum:][:space:]''"!()*+,-.:;<=>^_|№])+$') 
+   ;
+
+CREATE DOMAIN TMPPATH AS VARCHAR
+   COLLATE pg_catalog."C"
+   CHECK (VALUE ~ '^{((((%*)|({(%|[[:digit:]]+),(%|[[:digit:]]+)})),?)+)}$') ;
+
+-- идентификаторы
 CREATE SEQUENCE seq_cls_id  INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
 CREATE SEQUENCE seq_act_id  INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
 CREATE SEQUENCE seq_prop_id INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
@@ -62,75 +162,6 @@ GRANT USAGE ON TABLE seq_obj_id  TO "ObjDesigner";
 GRANT USAGE ON TABLE seq_log_id  TO "User";
 GRANT USAGE ON TABLE seq_perm_id TO "TypeDesigner";
 GRANT USAGE ON TABLE favorite_prop_id_seq  TO "User";
-
-
----------------------------------------------------------------------------------------------------
--- таблицы
----------------------------------------------------------------------------------------------------
--- классы
-DROP TABLE IF EXISTS acls CASCADE;
-DROP TABLE IF EXISTS cls_name CASCADE;
-DROP TABLE IF EXISTS cls_tree CASCADE;
-DROP TABLE IF EXISTS cls_real CASCADE;
-DROP TABLE IF EXISTS cls_qtyi  CASCADE;
-DROP TABLE IF EXISTS cls_qtyf  CASCADE;
-DROP TABLE IF EXISTS cls_num   CASCADE;
-
-DROP TABLE IF EXISTS lock_obj CASCADE;
-DROP TABLE IF EXISTS lock_dst CASCADE;
-DROP TABLE IF EXISTS lock_act CASCADE;
-
-
-DROP VIEW IF EXISTS cls CASCADE;
-DROP FUNCTION IF EXISTS ftg_ins_cls() CASCADE;
-DROP FUNCTION IF EXISTS ftg_del_cls() CASCADE;
-DROP FUNCTION IF EXISTS ftg_upd_cls() CASCADE;
-
--- объекты
-DROP TABLE IF EXISTS obj_name CASCADE;
-DROP TABLE IF EXISTS obj_num CASCADE;
-DROP TABLE IF EXISTS obj_qtyi  CASCADE;
-DROP TABLE IF EXISTS obj_qtyf  CASCADE;
-
-DROP VIEW IF EXISTS obj CASCADE;
-DROP FUNCTION IF EXISTS ftg_ins_obj() CASCADE;
-DROP FUNCTION IF EXISTS ftg_del_obj() CASCADE;
-DROP FUNCTION IF EXISTS ftg_upd_obj() CASCADE;
-
-
-
-DROP TABLE IF EXISTS log_main CASCADE;
-DROP TABLE IF EXISTS log_detail_act CASCADE;
-DROP TABLE IF EXISTS log_detail_move CASCADE;
-
-DROP TABLE IF EXISTS perm_act CASCADE;
-DROP TABLE IF EXISTS perm_move CASCADE;
-
-DROP TABLE IF EXISTS prop CASCADE;
-DROP TABLE IF EXISTS prop_cls CASCADE;
-DROP TABLE IF EXISTS prop_kind CASCADE;
-DROP TABLE IF EXISTS favorite_prop CASCADE;
-
-DROP TABLE IF EXISTS act CASCADE;
-DROP TABLE IF EXISTS ref_cls_act CASCADE;
-DROP TABLE IF EXISTS ref_act_prop CASCADE;
-
-
-
----------------------------------------------------------------------------------------------------
--- функции
----------------------------------------------------------------------------------------------------
-
-
-DROP FUNCTION IF EXISTS ftr_aud_perm_act() CASCADE;
-DROP FUNCTION IF EXISTS ftr_biu_perm_act() CASCADE;
-
-DROP FUNCTION IF EXISTS ftr_bu_acls() CASCADE;
-DROP FUNCTION IF EXISTS ftr_bu_any_obj() CASCADE;
-
-DROP FUNCTION IF EXISTS ftg_del_log() CASCADE;
-DROP FUNCTION IF EXISTS ftr_bd_log_main() CASCADE;
-
 
 ---------------------------------------------------------------------------------------------------
 -- перечень всех классов
@@ -803,9 +834,7 @@ GRANT EXECUTE ON FUNCTION ftg_del_obj() TO "User";
 
 
 ---------------------------------------------------------------------------------------------------
-PRINT '';
-PRINT '- Вставка базовых классов и объектов';
-PRINT '';
+-- Вставка базовых классов и объектов
 ---------------------------------------------------------------------------------------------------
 
 INSERT INTO acls(id,pid,title,kind,dobj) VALUES (0,0,'nullClsRoot',0,NULL);
@@ -822,17 +851,4 @@ ALTER TABLE acls
       ON UPDATE RESTRICT ON DELETE SET DEFAULT;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+COMMIT TRANSACTION;

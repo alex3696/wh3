@@ -67,6 +67,15 @@ PRINT '';
 PRINT '--- Уничтожаем все таблицы безопасности';
 DROP TABLE IF EXISTS  wh_role CASCADE;
 DROP TABLE IF EXISTS wh_auth_members CASCADE;
+
+DROP FUNCTION IF EXISTS ftr_bd_wh_auth_members();
+DROP FUNCTION IF EXISTS ftr_bd_wh_role();
+DROP FUNCTION IF EXISTS ftr_bi_wh_auth_members();
+DROP FUNCTION IF EXISTS ftr_bi_wh_role();
+DROP FUNCTION IF EXISTS ftr_bu_wh_auth_members();
+DROP FUNCTION IF EXISTS ftr_bu_wh_role();
+
+DROP FUNCTION IF EXISTS whGrant_GroupToUser(IN _role NAME,IN _user NAME) ;
 ------------------------------------------------------------------------------------------------------------
 
 
@@ -296,20 +305,22 @@ CREATE OR REPLACE FUNCTION whGrant_GroupToUser(IN _role NAME,IN _user NAME)
 	RETURNS void AS 
 $body$	
 DECLARE
-	_role_id INTEGER;
-	_user_id INTEGER;
-BEGIN	
-	--RAISE NOTICE USING MESSAGE = 'IN_role='||_role||'  IN_user='||_user;
-	SELECT id INTO _role_id FROM wh_role WHERE wh_role.rolname=_role;
-	SELECT id INTO _user_id FROM wh_role WHERE wh_role.rolname=_user;
-	IF _role_id IS NOT NULL AND _user_id IS NOT NULL
-		THEN
-		--RAISE NOTICE USING MESSAGE = 'INSERT INTO wh_auth_members(roleid,member)VALUES('||CAST(_role_id AS NAME)||','||CAST(_user_id AS NAME)||')';
-		RAISE NOTICE 'Добавление пользователя %[%] в группу %[%]',_user,_user_id,_role,_role_id;
-		INSERT INTO wh_auth_members(roleid,member)VALUES(_role_id,_user_id);
-		
-		
-	END IF;
+  _role_id INTEGER;
+  _user_id INTEGER;
+BEGIN
+  --RAISE NOTICE USING MESSAGE = 'IN_role='||_role||'  IN_user='||_user;
+  SELECT id INTO _role_id FROM wh_role WHERE wh_role.rolname=_role;
+  SELECT id INTO _user_id FROM wh_role WHERE wh_role.rolname=_user;
+
+  PERFORM FROM wh_auth_members WHERE roleid=_role_id AND member=_user_id;
+  IF NOT FOUND THEN
+    IF _role_id IS NOT NULL AND _user_id IS NOT NULL THEN
+      RAISE NOTICE 'Add User %[%] to group %[%]',_user,_user_id,_role,_role_id;
+      INSERT INTO wh_auth_members(roleid,member)VALUES(_role_id,_user_id);
+    END IF;
+  ELSE
+    RAISE NOTICE 'User % already in group %',_user,_role;
+  END IF;
 
 END;
 $body$
@@ -446,10 +457,21 @@ BEGIN
 				WHERE rolname = _role;
 			
 	ELSE
-		RAISE NOTICE '-Role don`t exist in wh_role INSERTING'; 
-		INSERT INTO wh_role(rolname,rolcanlogin, rolcreaterole,rolcomment)	
-		VALUES(_role,false,false,_comment);
-	END IF;
+        PERFORM FROM pg_authid WHERE rolname=_role; 
+        IF NOT FOUND THEN
+          RAISE NOTICE '-Role don`t exist in wh_role INSERTING'; 
+          INSERT INTO wh_role(rolname,rolcanlogin, rolcreaterole,rolcomment)
+            VALUES(_role,false,false,_comment);
+        ELSE
+          UPDATE wh_role SET rolcanlogin=false,
+                             rolcreaterole=false,
+                             rolconnlimit=-1,
+                             rolpassword=NULL,
+                             rolvaliduntil=NULL,
+                             rolcomment=_comment
+                             WHERE rolname = _role;
+        END IF;
+    END IF;
 
 
 	EXECUTE 'REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA PUBLIC FROM GROUP '||quote_ident(_role);

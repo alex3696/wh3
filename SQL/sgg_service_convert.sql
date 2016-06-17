@@ -1,7 +1,54 @@
+--BEGIN TRANSACTION;
+
+--SET client_min_messages = 'error';
+--SET client_min_messages = 'debug';
+SET client_min_messages = 'NOTICE';
+--SHOW client_min_messages=OFF;
+
+SELECT whgrant_grouptouser('TypeDesigner',  'postgres');
 -------------------------------------------------------------------------------
-PRINT '';
-PRINT '- функция транслитерации';
-PRINT '';
+-- удаляем все записи классы/свойства';
+-------------------------------------------------------------------------------
+ALTER TABLE IF EXISTS log_main DISABLE TRIGGER ALL;
+TRUNCATE log_main CASCADE;
+TRUNCATE log_detail_act CASCADE;
+TRUNCATE log_detail_move CASCADE;
+ALTER TABLE IF EXISTS log_main ENABLE TRIGGER ALL;
+DELETE FROM acls WHERE id > 99;
+DELETE FROM prop CASCADE;
+DELETE FROM act CASCADE;
+DELETE FROM perm_act CASCADE;
+DELETE FROM perm_move CASCADE;
+
+DROP FUNCTION IF EXISTS sgg_drop_temporary_items() CASCADE;
+CREATE OR REPLACE FUNCTION sgg_drop_temporary_items()
+ RETURNS VOID  AS $BODY$
+DECLARE 
+
+BEGIN
+  DROP TABLE IF EXISTS __cls00 CASCADE;
+  DROP TABLE IF EXISTS __cls01 CASCADE;
+  DROP TABLE IF EXISTS __cls CASCADE;
+  DROP TABLE IF EXISTS __obj CASCADE;
+  DROP TABLE IF EXISTS __hist CASCADE;
+  DROP TABLE IF EXISTS __departament CASCADE;
+  DROP TABLE IF EXISTS __worker CASCADE;
+
+  DROP FUNCTION IF EXISTS sgg_load_tables() CASCADE;
+  
+  DROP FUNCTION IF EXISTS sgg_sc_import_departament();
+  DROP FUNCTION IF EXISTS sgg_sc_import_worker();
+
+  DROP FUNCTION IF EXISTS sgg_import_cls();
+  DROP FUNCTION IF EXISTS sgg_import_hist();
+
+  DROP FUNCTION IF EXISTS iris_translit(p_string character varying);
+
+END $BODY$ LANGUAGE plpgsql;
+
+  SELECT sgg_drop_temporary_items();
+-------------------------------------------------------------------------------
+-- функция транслитерации';
 ------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION iris_translit(p_string character varying)
   RETURNS character varying AS
@@ -34,70 +81,36 @@ translate(lower($1),
 $BODY$
   LANGUAGE sql IMMUTABLE
   COST 100;
---SET client_min_messages='debug1';
---SHOW client_min_messages;
 
-SET client_min_messages = 'error';
---SHOW client_min_messages=OFF;
--------------------------------------------------------------------------------
-PRINT '';
-PRINT '- удаляем все записи классы/свойства';
-PRINT '';
--------------------------------------------------------------------------------
-ALTER TABLE IF EXISTS log_main DISABLE TRIGGER ALL;
-TRUNCATE log_main CASCADE;
-TRUNCATE log_detail_act CASCADE;
-TRUNCATE log_detail_move CASCADE;
-ALTER TABLE IF EXISTS log_main ENABLE TRIGGER ALL;
-DELETE FROM acls WHERE id > 99;
-DELETE FROM prop CASCADE;
-DELETE FROM act CASCADE;
-DELETE FROM perm_act CASCADE;
-DELETE FROM perm_move CASCADE;
-
-SELECT whgrant_grouptouser('TypeDesigner',  'postgres');
 -------------------------------------------------------------------------------
 DROP TABLE IF EXISTS __cls00 CASCADE;
-CREATE TABLE __cls00
-(
+CREATE TABLE __cls00 (
   id bigint NOT NULL,
   title text NOT NULL
 );
-COPY __cls00 FROM 'c:\_SAV\tmp\__cls00.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
-CREATE UNIQUE INDEX idxu__cls00_id ON __cls00 (id);
-CREATE UNIQUE INDEX idxu__cls00_title ON __cls00 (title);
 
 -------------------------------------------------------------------------------
 DROP TABLE IF EXISTS __cls01 CASCADE;
-CREATE TABLE __cls01
-(
+CREATE TABLE __cls01 (
   id bigint NOT NULL,
   title text NOT NULL,
-  pid bigint NOT NULL REFERENCES __cls00(id)
+  pid bigint NOT NULL 
 );
-COPY __cls01 FROM 'c:\_SAV\tmp\__cls01.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
-CREATE UNIQUE INDEX idxu__cls01_id ON __cls01 (id);
-CREATE UNIQUE INDEX idxu__cls01_title ON __cls01 (title);
 
 -------------------------------------------------------------------------------
 DROP TABLE IF EXISTS __cls CASCADE;
-CREATE TABLE __cls
-(
+CREATE TABLE __cls (
   id bigint NOT NULL,
   title text NOT NULL,
   period integer,
-  pid bigint NOT NULL REFERENCES __cls01(id)
+  pid bigint NOT NULL 
 );
-COPY __cls FROM 'c:\_SAV\tmp\__cls.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
-CREATE UNIQUE INDEX idxu__cls_id ON __cls(id);
-CREATE UNIQUE INDEX idxu__cls_title ON __cls(title);
-ALTER TABLE __cls ADD COLUMN wh3_cid bigint;
+
 -------------------------------------------------------------------------------
 DROP TABLE IF EXISTS __obj CASCADE;
-CREATE TABLE __obj
-(
+CREATE TABLE __obj (
   obj_id bigint NOT NULL
-  ,cls_id bigint NOT NULL REFERENCES __cls(id)
+  ,cls_id bigint NOT NULL
   ,title text NOT NULL
   ,invtitle text
   ,pasport_path text
@@ -119,28 +132,10 @@ CREATE TABLE __obj
   ,arhived text
   ,ts text
 );
-COPY __obj FROM 'c:\_SAV\tmp\__obj.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
-ALTER TABLE __obj ADD COLUMN wh3_oid bigint;
-ALTER TABLE __obj ADD COLUMN wh3_cid bigint;
-CREATE INDEX idx__obj_oid ON __obj (obj_id);
 
-UPDATE __obj  SET pasport_path= replace(pasport_path, '\\', '\\\\');
-UPDATE __obj  SET curr_cal_path= replace(curr_cal_path, '\\', '\\\\');
-UPDATE __obj  SET folder_path= replace(folder_path, '\\', '\\\\');
-UPDATE __obj  SET note1= replace(note1, '\\', '\\\\');
-UPDATE __obj  SET note2= replace(note2, '\\', '\\\\');
-UPDATE __obj  SET note1= replace(note1, '"', '\\"');
-UPDATE __obj  SET note2= replace(note2, '"', '\\"');
-
-
--------------------------------------------------------------------------------
-PRINT '';
-PRINT '- история операций';
-PRINT '';
 -------------------------------------------------------------------------------
 DROP TABLE IF EXISTS __hist CASCADE;
-CREATE TABLE __hist
-(
+CREATE TABLE __hist (
   hid          BIGINT NOT NULL
   ,sc_oid      BIGINT NOT NULL
 
@@ -166,102 +161,333 @@ CREATE TABLE __hist
   ,hpress     TEXT
   ,htemp      TEXT
 );
-CREATE INDEX idx__hist_oid ON __hist (sc_oid);
 
-COPY __hist FROM 'c:\_SAV\tmp\__hist.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
-
-UPDATE __hist  SET husetime= NULLIF(REPLACE (REGEXP_REPLACE(husetime,'([^[:digit:],.$])','','g'),',','.') ,'');
-UPDATE __hist  SET hdepth=   NULLIF(REPLACE (REGEXP_REPLACE(hdepth,'([^[:digit:],.$])','','g'),',','.') ,'');
-UPDATE __hist  SET hpress=   NULLIF(REPLACE (REGEXP_REPLACE(hpress,'([^[:digit:],.$])','','g'),',','.') ,'');
-UPDATE __hist  SET htemp=    NULLIF(REPLACE (REGEXP_REPLACE(htemp,'([^[:digit:],.$])','','g'),',','.') ,'');
-UPDATE __hist  SET hresult= replace(hresult, '\\', '\\\\');
-UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '\t', '\\t','g') ,'');
-UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '\r', '\\r','g') ,'');
-UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '\n', '\\n','g') ,'');
-UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '\r\n', '\\r\\n','g') ,'');
-UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '"', '\"','g') ,'');
-
-ALTER TABLE __hist ALTER COLUMN husetime TYPE NUMERIC USING husetime::numeric;
-ALTER TABLE __hist ALTER COLUMN hdepth TYPE NUMERIC USING hdepth::numeric;
-ALTER TABLE __hist ALTER COLUMN hpress TYPE NUMERIC USING hpress::numeric;
-ALTER TABLE __hist ALTER COLUMN htemp TYPE NUMERIC USING htemp::numeric;
-
--------------------------------------------------------------------------------
-PRINT '';
-PRINT '- загрузка отделов';
-PRINT '';
 -------------------------------------------------------------------------------
 DROP TABLE IF EXISTS __departament CASCADE;
-CREATE TABLE __departament
-(
+CREATE TABLE __departament (
   id             BIGINT NOT NULL
   ,title         TEXT
   ,note          TEXT
  );
- COPY __departament FROM 'c:\_SAV\tmp\__departament.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
--------------------------------------------------------------------------------
-PRINT '';
-PRINT '- загрузка пользователей';
-PRINT '';
+ 
 -------------------------------------------------------------------------------
 DROP TABLE IF EXISTS __worker CASCADE;
-CREATE TABLE __worker
-(
+CREATE TABLE __worker (
   id      BIGINT NOT NULL
   ,fam    TEXT
   ,im     TEXT
   ,oth    TEXT
   ,dep_id BIGINT
  );
- COPY __worker FROM 'c:\_SAV\tmp\__worker.csv'  WITH CSV HEADER DELIMITER ';' ENCODING 'WIN866' ;
-ALTER TABLE __worker ADD COLUMN wh3_oid bigint;
-ALTER TABLE __worker ADD COLUMN wh3_cid bigint;
-CREATE INDEX idx__worker_oid ON __worker (id);
+
+-------------------------------------------------------------------------------
+--DO $$
+DROP FUNCTION IF EXISTS sgg_load_tables() CASCADE;
+CREATE OR REPLACE FUNCTION sgg_load_tables()
+ RETURNS VOID  AS $BODY$
+
+DECLARE 
+  home_dir TEXT;
+BEGIN
+
+  
+  RAISE NOTICE 'SERVER version %', version();
+  
+  IF(version() ILIKE '%linux%') THEN
+    home_dir:='/home/alex/wh3_data/';
+  ELSE
+    home_dir:='c:\_SAV\tmp\';
+  END IF;
+
+  RAISE NOTICE 'Import data from directory %', home_dir;
+  EXECUTE 'COPY __cls00       FROM '''||home_dir||'__cls00.csv''       WITH CSV HEADER DELIMITER '';'' ENCODING ''WIN866'' ';
+  EXECUTE 'COPY __cls01       FROM '''||home_dir||'__cls01.csv''       WITH CSV HEADER DELIMITER '';'' ENCODING ''WIN866'' ';
+  EXECUTE 'COPY __cls         FROM '''||home_dir||'__cls.csv''         WITH CSV HEADER DELIMITER '';'' ENCODING ''WIN866'' ';
+  EXECUTE 'COPY __obj         FROM '''||home_dir||'__obj.csv''         WITH CSV HEADER DELIMITER '';'' ENCODING ''WIN866'' ';
+  EXECUTE 'COPY __hist        FROM '''||home_dir||'__hist.csv''        WITH CSV HEADER DELIMITER '';'' ENCODING ''WIN866'' ';
+
+  EXECUTE 'COPY __departament FROM '''||home_dir||'__departament.csv'' WITH CSV HEADER DELIMITER '';'' ENCODING ''WIN866'' ';
+  EXECUTE 'COPY __worker      FROM '''||home_dir||'__worker.csv''      WITH CSV HEADER DELIMITER '';'' ENCODING ''WIN866'' ';
+  
+  RAISE NOTICE 'Processing __cls00';
+  CREATE UNIQUE INDEX idxu__cls00_id ON __cls00 (id);
+  CREATE UNIQUE INDEX idxu__cls00_title ON __cls00 (title);
+  DELETE FROM __cls WHERE title ~~* '%нет данных%';
+
+  RAISE NOTICE 'Processing __cls01';
+  CREATE UNIQUE INDEX idxu__cls01_id ON __cls01 (id);
+  CREATE UNIQUE INDEX idxu__cls01_title ON __cls01 (title);
+  ALTER TABLE __cls01 ADD CONSTRAINT fk_cls01__cls00_id FOREIGN KEY (pid)
+    REFERENCES __cls00 (id) MATCH FULL ON UPDATE RESTRICT ON DELETE RESTRICT;
+  DELETE FROM __cls01 WHERE title ~~* '%нет данных%';
+  
+  RAISE NOTICE 'Processing __cls';
+  ALTER TABLE __cls ADD CONSTRAINT fk_cls__cls01_id FOREIGN KEY (pid)
+    REFERENCES __cls01 (id) MATCH FULL ON UPDATE RESTRICT ON DELETE RESTRICT;
+  CREATE UNIQUE INDEX idxu__cls_id ON __cls(id);
+  CREATE UNIQUE INDEX idxu__cls_title ON __cls(title);
+  ALTER TABLE __cls ADD COLUMN wh3_cid bigint;
+  DELETE FROM __cls00 WHERE title ~~* '%нет данных%';
+
+  RAISE NOTICE 'Processing __obj';
+  ALTER TABLE __obj ADD CONSTRAINT fk_obj_cid__cls_id FOREIGN KEY (cls_id)
+    REFERENCES __cls (id) MATCH FULL ON UPDATE RESTRICT ON DELETE RESTRICT;
+  ALTER TABLE __obj ADD COLUMN wh3_oid bigint;
+  ALTER TABLE __obj ADD COLUMN wh3_cid bigint;
+  CREATE INDEX idx__obj_oid ON __obj (obj_id);
+  UPDATE __obj  SET pasport_path  = NULLIF(substring(to_json(pasport_path)::TEXT from '"~"%~""' FOR '~' ),'')
+                   ,curr_cal_path = NULLIF(substring(to_json(curr_cal_path)::TEXT from '"~"%~""' FOR '~' ),'')
+                   ,folder_path   = NULLIF(substring(to_json(folder_path)::TEXT from '"~"%~""' FOR '~' ),'')
+                   ,note1   = NULLIF(substring(to_json(note1)::TEXT from '"~"%~""' FOR '~' ),'')
+                   ,note2   = NULLIF(substring(to_json(note2)::TEXT from '"~"%~""' FOR '~' ),'');
+  --UPDATE __obj  SET pasport_path= replace(pasport_path, '\\', '\\\\');
+  --UPDATE __obj  SET curr_cal_path= replace(curr_cal_path, '\\', '\\\\');
+  --UPDATE __obj  SET folder_path= replace(folder_path, '\\', '\\\\');
+  --UPDATE __obj  SET note1= replace(note1, '\\', '\\\\');
+  --UPDATE __obj  SET note2= replace(note2, '\\', '\\\\');
+  --UPDATE __obj  SET note1= replace(note1, '"', '\\"');
+  --UPDATE __obj  SET note2= replace(note2, '"', '\\"');
+  --SELECT NULLIF(trim(both '"' from to_json('dgfdg dfg\dfg\d fgdgdfg'::TEXT)::TEXT),'');
+
+  RAISE NOTICE 'Processing __hist';
+  CREATE INDEX idx__hist_oid ON __hist (sc_oid);
+  UPDATE __hist  SET husetime= NULLIF(REPLACE (REGEXP_REPLACE(husetime,'([^[:digit:],.$])','','g'),',','.') ,'')
+                    ,hdepth=   NULLIF(REPLACE (REGEXP_REPLACE(hdepth,'([^[:digit:],.$])','','g'),',','.') ,'')
+                    ,hpress=   NULLIF(REPLACE (REGEXP_REPLACE(hpress,'([^[:digit:],.$])','','g'),',','.') ,'')
+                    ,htemp=    NULLIF(REPLACE (REGEXP_REPLACE(htemp,'([^[:digit:],.$])','','g'),',','.') ,'')
+                    ,hresult   = NULLIF(substring(to_json(hresult)::TEXT from '"~"%~""' FOR '~' ),'');
+  --UPDATE __hist  SET husetime= NULLIF(REPLACE (REGEXP_REPLACE(husetime,'([^[:digit:],.$])','','g'),',','.') ,'');
+  --UPDATE __hist  SET hdepth=   NULLIF(REPLACE (REGEXP_REPLACE(hdepth,'([^[:digit:],.$])','','g'),',','.') ,'');
+  --UPDATE __hist  SET hpress=   NULLIF(REPLACE (REGEXP_REPLACE(hpress,'([^[:digit:],.$])','','g'),',','.') ,'');
+  --UPDATE __hist  SET htemp=    NULLIF(REPLACE (REGEXP_REPLACE(htemp,'([^[:digit:],.$])','','g'),',','.') ,'');
+  --UPDATE __hist  SET hresult= replace(hresult, '\\', '\\\\');
+  --UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '\t', '\\t','g') ,'');
+  --UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '\r', '\\r','g') ,'');
+  --UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '\n', '\\n','g') ,'');
+  --UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '\r\n', '\\r\\n','g') ,'');
+  --UPDATE __hist  SET hresult= NULLIF(REGEXP_REPLACE(hresult, '"', '\"','g') ,'');
+
+  ALTER TABLE __hist ALTER COLUMN husetime TYPE NUMERIC USING husetime::numeric;
+  ALTER TABLE __hist ALTER COLUMN hdepth TYPE NUMERIC USING hdepth::numeric;
+  ALTER TABLE __hist ALTER COLUMN hpress TYPE NUMERIC USING hpress::numeric;
+  ALTER TABLE __hist ALTER COLUMN htemp TYPE NUMERIC USING htemp::numeric;
+
+  RAISE NOTICE 'Processing __departament';
+  DELETE FROM __departament WHERE title ~~* '%нет данных%';
+
+  RAISE NOTICE 'Processing __worker';
+  ALTER TABLE __worker ADD COLUMN wh3_oid bigint;
+  ALTER TABLE __worker ADD COLUMN wh3_cid bigint;
+  CREATE INDEX idx__worker_oid ON __worker (id);
+
+  RAISE NOTICE 'переименовываем одинаковые типы';
+  --UPDATE __cls00  SET title=title || '_0';
+  UPDATE __cls01  SET title=title || '_1' WHERE title IN (SELECT title FROM __cls00);
+  UPDATE __cls  SET title=title || '_2' WHERE title IN (SELECT title FROM __cls01) OR title IN (SELECT title FROM __cls00);
+
+  --RAISE NOTICE 'удаляем из имён запрещённые символы';
+  --UPDATE __cls00  SET title=replace(title, '/', '|');
+  --UPDATE __cls01  SET title=replace(title, '/', '|');
+  --UPDATE __cls  SET title=replace(title, '/', '|');
+  --UPDATE __obj  SET title=replace(title, '/', '|');
+  --UPDATE __departament  SET title=replace(title, '/', '|');
+
+  --RAISE NOTICE 'проверяем имена';
+  --ALTER TABLE __cls ALTER COLUMN title TYPE whname;
+  --ALTER TABLE __obj ALTER COLUMN title TYPE whname;
+  --ALTER TABLE __departament ALTER COLUMN title TYPE whname;
+
+  RAISE NOTICE 'заполняем группы пользователей';
+  PERFORM FROM wh_role WHERE rolname='Инженер по ремонту ГО';
+  IF NOT FOUND THEN
+    INSERT INTO wh_role (rolname, rolcanlogin, rolcreaterole) VALUES ('Инженер по ремонту ГО',false, false);
+  ELSE
+    UPDATE wh_role SET rolcanlogin=FALSE, rolcreaterole=FALSE WHERE rolname='Инженер по ремонту ГО';
+  END IF;
+  PERFORM FROM wh_role WHERE rolname='Инженер-метролог';
+  IF NOT FOUND THEN
+    INSERT INTO wh_role (rolname, rolcanlogin, rolcreaterole) VALUES ('Инженер-метролог',false, false);
+  ELSE
+    UPDATE wh_role SET rolcanlogin=FALSE, rolcreaterole=FALSE WHERE rolname='Инженер-метролог';
+  END IF;
+  PERFORM FROM wh_role WHERE rolname='Диспетчер ГО';
+  IF NOT FOUND THEN
+    INSERT INTO wh_role (rolname, rolcanlogin, rolcreaterole) VALUES ('Диспетчер ГО',false, false);
+  ELSE
+    UPDATE wh_role SET rolcanlogin=FALSE, rolcreaterole=FALSE WHERE rolname='Диспетчер ГО';
+  END IF;
+
+--END$$;  
+END $BODY$ LANGUAGE plpgsql;
+
+SELECT sgg_load_tables();
+
+-------------------------------------------------------------------------------
+-- добавляем свойства
+-- добавляем действия
+-------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS sgg_add_prop_and_act() CASCADE;
+CREATE OR REPLACE FUNCTION sgg_add_prop_and_act()
+ RETURNS VOID  AS $BODY$
+DECLARE 
+ prid_calp BIGINT;
+ prid_desc BIGINT;
+ prid_remdesc BIGINT;
+ prid_note BIGINT;
+ prid_invn BIGINT;
+ prid_pasp BIGINT;
+ prid_calfile BIGINT;
+ prid_objfolder BIGINT;
+ prid_reldate BIGINT;
+ prid_indate BIGINT;
+ prid_usehours BIGINT;
+ prid_depth BIGINT; 
+ prid_press BIGINT; 
+ prid_temp BIGINT; 
+ pid_desc_profil BIGINT; 
+ pid_desc_kalibr BIGINT; 
+
+ aid_chmain BIGINT;
+ aid_remont BIGINT;
+ aid_proverka BIGINT;
+ aid_prof BIGINT;
+ aid_gis BIGINT;
+ aid_calib BIGINT; 
+ aid_change_desc BIGINT; 
+ aid_change_note BIGINT; 
+
+ cid_struct_unit BIGINT;
+ cid_geo_equipment BIGINT;
+ cid_company BIGINT;
+ cid_department BIGINT;
+ cid_sector_sc BIGINT;
+
+ oid_company_sgg BIGINT;
+ oid_department_sc BIGINT;
+ oid_sector_sc_repair BIGINT;
+ oid_sector_sc_repair_wait BIGINT;
+ oid_sector_sc_metrology BIGINT;
+ oid_sector_sc_pp BIGINT;
+ oid_sector_sc_warehouse BIGINT;
+ oid_sector_sc_conservation BIGINT;
+ oid_sector_sc_utilize BIGINT;
+
+BEGIN
+  RAISE NOTICE 'Вставляем свойства, если уже есть с такими названиями - обновляем';
+  INSERT INTO prop(title, kind)VALUES('Период калибровки(мес.)', 100) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO prid_calp;
+  INSERT INTO prop(title, kind)VALUES('Описание', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO prid_desc;
+  INSERT INTO prop(title, kind)VALUES('Описание ремонта', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO prid_remdesc;
+  INSERT INTO prop(title, kind)VALUES('Примечание', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO prid_note;
+  INSERT INTO prop(title, kind)VALUES('Инвентарный номер', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO prid_invn;
+  INSERT INTO prop(title, kind)VALUES('Паспорт', 300) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO prid_pasp;
+  INSERT INTO prop(title, kind)VALUES('Файл калибровки', 300) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO prid_calfile;
+  INSERT INTO prop(title, kind)VALUES('Папка прибора', 300) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO prid_objfolder;
+  INSERT INTO prop(title, kind)VALUES('Дата выпуска', 201) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO prid_reldate;
+  INSERT INTO prop(title, kind)VALUES('Дата ввода в эксплуатацию', 201) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO prid_indate;
+  INSERT INTO prop(title, kind)VALUES('Наработка(ч.)', 101) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO prid_usehours;
+  INSERT INTO prop(title, kind)VALUES('Глубина(м.)', 101) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO prid_depth;
+  INSERT INTO prop(title, kind)VALUES('Давление(МПа)', 101) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO prid_press;
+  INSERT INTO prop(title, kind)VALUES('Температура(град.С)', 101) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO prid_temp;
+  INSERT INTO prop(title, kind)VALUES('Описание проверки|профилактики', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO pid_desc_profil;
+  INSERT INTO prop(title, kind)VALUES('Описание калибровки', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO pid_desc_kalibr;
+
+  INSERT INTO act (title) VALUES ('Изменить основные свойства') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
+    RETURNING id INTO aid_chmain;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_note)
+                                                 ,(aid_chmain, prid_invn)
+
+   ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_invn) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_pasp) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_calfile) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_objfolder) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_reldate) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_indate) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_usehours) ON CONFLICT (act_id, prop_id) DO NOTHING;
+
+  INSERT INTO act (title) VALUES ('Ремонт') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
+    RETURNING id INTO aid_remont;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_remont, prid_note) ON CONFLICT (act_id, prop_id) DO NOTHING;
+
+  INSERT INTO act (title) VALUES ('Проверка') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
+    RETURNING id INTO aid_proverka;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_proverka, pid_desc_profil) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_proverka, prid_usehours) ON CONFLICT (act_id, prop_id) DO NOTHING;
+
+  INSERT INTO act (title) VALUES ('Профилактика') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
+    RETURNING id INTO aid_prof;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_prof, pid_desc_profil) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_prof, prid_usehours) ON CONFLICT (act_id, prop_id) DO NOTHING;
+
+  INSERT INTO act (title) VALUES ('Калибровка') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
+    RETURNING id INTO aid_calib;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_calib, pid_desc_kalibr) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_calib, prid_calfile) ON CONFLICT (act_id, prop_id) DO NOTHING;
+
+  INSERT INTO act (title) VALUES ('ГИС') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
+    RETURNING id INTO aid_gis;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_gis, prid_note) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_gis, prid_usehours) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_gis, prid_depth) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_gis, prid_press) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_gis, prid_temp) ON CONFLICT (act_id, prop_id) DO NOTHING;
+
+  INSERT INTO act (title) VALUES ('Изменить описание') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
+    RETURNING id INTO aid_change_desc;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_change_desc, prid_desc) ON CONFLICT (act_id, prop_id) DO NOTHING;
+
+  INSERT INTO act (title) VALUES ('Изменить примечание') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
+    RETURNING id INTO aid_change_note;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_change_note, prid_note) ON CONFLICT (act_id, prop_id) DO NOTHING;
+
+  RAISE NOTICE 'добавляем основные классы';
+  INSERT INTO acls(pid,title,kind,dobj) VALUES (1,'Структурные подразделения',0,NULL) RETURNING id INTO cid_struct_unit;
+  INSERT INTO acls(pid,title,kind,dobj) VALUES (1,'Геофизическое оборудование',0,NULL) RETURNING id INTO cid_geo_equipment;
+  INSERT INTO acls(pid,title,kind,measure) VALUES (cid_struct_unit,'Предприятие',1,'ед.') RETURNING id INTO cid_company;
+  INSERT INTO acls(pid,title,kind,measure) VALUES (cid_struct_unit,'Отдел',1,'ед.') RETURNING id INTO cid_department;
+  INSERT INTO acls(pid,title,kind,measure) VALUES (cid_struct_unit,'Участок СЦ',1,'ед.') RETURNING id INTO cid_sector_sc;
+
+  RAISE NOTICE 'добавляем основные объекты';
+  INSERT INTO obj(title,cls_id,pid) VALUES ('Севергазгеофизика',cid_company, 1 )RETURNING id INTO oid_company_sgg;
+  INSERT INTO obj(title,cls_id,pid) VALUES ('Сервисный центр',cid_department, 1 )RETURNING id INTO oid_department_sc;
+  INSERT INTO obj(title,cls_id,pid) VALUES ('Ремонтный участок',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_repair;
+  INSERT INTO obj(title,cls_id,pid) VALUES ('Долгосрочный ремонт',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_repair_wait;
+  INSERT INTO obj(title,cls_id,pid) VALUES ('Метрология',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_metrology;
+  INSERT INTO obj(title,cls_id,pid) VALUES ('Пункт проката',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_pp;
+  INSERT INTO obj(title,cls_id,pid) VALUES ('Склад',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_warehouse;
+  INSERT INTO obj(title,cls_id,pid) VALUES ('Консервация',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_conservation;
+  INSERT INTO obj(title,cls_id,pid) VALUES ('Утилизация',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_utilize;
+
+
+
+
+
+
+END $BODY$ LANGUAGE plpgsql;
+
+--SELECT sgg_add_prop_and_act();
+
+
 
 -------------------------------------------------------------------------------
 PRINT '';
-PRINT '- удаляем ерунду';
-PRINT '';
--------------------------------------------------------------------------------
-DELETE FROM __cls WHERE title ~~* '%нет данных%';
-DELETE FROM __cls01 WHERE title ~~* '%нет данных%';
-DELETE FROM __cls00 WHERE title ~~* '%нет данных%';
-DELETE FROM __departament WHERE title ~~* '%нет данных%';
--------------------------------------------------------------------------------
-PRINT '';
-PRINT '- удаляем из имён запрещённые символы';
-PRINT '';
--------------------------------------------------------------------------------
-UPDATE __cls00  SET title=replace(title, '/', '|');
-UPDATE __cls01  SET title=replace(title, '/', '|');
-UPDATE __cls  SET title=replace(title, '/', '|');
-UPDATE __obj  SET title=replace(title, '/', '|');
-UPDATE __departament  SET title=replace(title, '/', '|');
--------------------------------------------------------------------------------
-PRINT '';
-PRINT '- переименовываем одинаковые типы';
-PRINT '';
--------------------------------------------------------------------------------
---UPDATE __cls00  SET title=title || '_0';
-UPDATE __cls01  SET title=title || '_1' WHERE title IN (SELECT title FROM __cls00);
-UPDATE __cls  SET title=title || '_2' WHERE title IN (SELECT title FROM __cls01) OR title IN (SELECT title FROM __cls00);
--------------------------------------------------------------------------------
-PRINT '';
-PRINT '- проверяем имена';
-PRINT '';
--------------------------------------------------------------------------------
-ALTER TABLE __cls ALTER COLUMN title TYPE whname;
-ALTER TABLE __obj ALTER COLUMN title TYPE whname;
-ALTER TABLE __departament ALTER COLUMN title TYPE whname;
--------------------------------------------------------------------------------
--- заполняем группы пользователей
--------------------------------------------------------------------------------
-INSERT INTO wh_role (rolname, rolcanlogin, rolcreaterole) VALUES ('Инженер по ремонту ГО',false, false);
-INSERT INTO wh_role (rolname, rolcanlogin, rolcreaterole) VALUES ('Инженер-метролог',false, false);
-INSERT INTO wh_role (rolname, rolcanlogin, rolcreaterole) VALUES ('Диспетчер ГО',false, false);
--------------------------------------------------------------------------------
-PRINT '';
-PRINT '- добавляем свойства';
+
 PRINT '';
 -------------------------------------------------------------------------------
 DECLARE @prid_calp,@prid_desc,@prid_remdesc,@prid_note,@prid_invn,@prid_pasp,@prid_calfile,@prid_objfolder;
@@ -683,10 +909,10 @@ SELECT sgg_import_cls();
 
 
 
+--COMMIT TRANSACTION;
 
 
-
-
+--BEGIN TRANSACTION;
 
 
 
@@ -805,7 +1031,8 @@ BEGIN
     -- берём первую дату упоминания
     SELECT hinput_date INTO _date FROM __hist WHERE hinput_date IS NOT NULL AND sc_oid=impobj.obj_id ORDER BY hinput_date ASC LIMIT 1;
     _date:=COALESCE(_date,now()) - '1 week'::INTERVAL;--отматываем неделю назад на всякий случай
-    RAISE DEBUG 'first date = %',_date;
+    RAISE DEBUG 'first date = % first_obj=%',_date,impobj;
+    
     _prop:=_prop || format('{"%s":"%s"}', _pid_invn, impobj.invtitle)::JSONB;
     _prop:=_prop || format('{"%s":"%s"}', _pid_pasp, impobj.pasport_path)::JSONB;
     _prop:=_prop || format('{"%s":"%s"}', _pid_kalfile, impobj.curr_cal_path)::JSONB;
@@ -816,7 +1043,6 @@ BEGIN
     INSERT INTO log_main(timemark, src_path, obj_id) VALUES (_date, _src_path, _oid_obj) RETURNING id INTO _lid;
     INSERT INTO log_detail_act(id, act_id, prop)     VALUES (_lid,_aid_maininfo, _prop)  RETURNING id INTO _act_lid_previos;
 
-    
     FOR rec IN import_log(impobj.obj_id) LOOP
       -- текущее местоположение
       SELECT wh3_oid,wh3_cid INTO _oid_user,_cid_user FROM __worker WHERE  id=rec.hfrom_user;
@@ -968,7 +1194,18 @@ $BODY$ LANGUAGE plpgsql;
 
 SELECT sgg_import_hist();
 
-COMMIT;
+
+--SELECT sgg_drop_temporary_items();
+--DROP FUNCTION IF EXISTS sgg_drop_temporary_items() CASCADE;
+
+
+--COMMIT TRANSACTION;
+
+--VACUUM;
+--ANALYZE;
+
+
+
 
 --SELECT COALESCE(NULL,now()) 
 

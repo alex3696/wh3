@@ -30,15 +30,14 @@ CREATE TABLE __mtr_group
 DROP TABLE IF EXISTS __mtr CASCADE;
 CREATE TABLE __mtr
 (
-  id text
-  ,mtr_id text
+  mtr_id text
   ,title text
   ,description text
   ,mess text
   ,qty text
   ,price text
-  ,summ text
-  ,note text
+  ,equip_cat text
+  ,dst_dep text
 );
 
 -------------------------------------------------------------------------------
@@ -60,24 +59,26 @@ BEGIN
   RAISE NOTICE 'DATA DIR %', home_dir;
 
   EXECUTE 'COPY __mtr_group FROM '''||home_dir||'__MTR_GROUP.csv'' WITH CSV HEADER DELIMITER '';'' ENCODING ''WIN866'' ';
-  EXECUTE 'COPY __mtr       FROM '''||home_dir||'__MTR_SC.csv''    WITH CSV HEADER DELIMITER '';'' ENCODING ''WIN866'' ';
+  EXECUTE 'COPY __mtr       FROM '''||home_dir||'__MTR_SC2.csv''    WITH CSV HEADER DELIMITER '';'' ENCODING ''WIN866'' ';
 
 END$$;  
 
 -------------------------------------------------------------------------------
 -- обрабатываем загруженые таблички
 -------------------------------------------------------------------------------
+DELETE FROM __mtr WHERE qty IS NULL OR qty='' ;
+UPDATE __mtr  SET qty= NULLIF(REPLACE (REGEXP_REPLACE(qty,'([^[:digit:],.$])','','g'),',','.') ,'');
+--SELECT * FROM __mtr WHERE qty IS NULL;
+UPDATE __mtr  SET qty= 0 WHERE qty IS NULL;
+ALTER TABLE __mtr ALTER COLUMN  qty TYPE NUMERIC USING qty::numeric ;
+ALTER TABLE __mtr ALTER COLUMN  qty SET NOT NULL ;
 
-DELETE FROM __mtr WHERE qty IS NULL OR qty='';
+
 UPDATE __mtr SET mess=trim(both ' ' FROM mess);
 UPDATE __mtr SET mess='шт.' WHERE mess IS NULL OR mess='';
 UPDATE __mtr SET mess=mess||'.' WHERE mess NOT LIKE '%.';
 
-UPDATE __mtr  SET qty=   NULLIF(REPLACE (REGEXP_REPLACE(qty,'([^[:digit:],.$])','','g'),',','.') ,'');
-ALTER TABLE __mtr ALTER COLUMN  qty TYPE NUMERIC USING  qty::numeric;
-
 ALTER TABLE __mtr ADD COLUMN kind SMALLINT;
-
 
 UPDATE __mtr SET kind=3 WHERE mess='л.';
 UPDATE __mtr SET kind=2 WHERE mess='к-т.';
@@ -90,13 +91,16 @@ UPDATE __mtr SET kind=3 WHERE mess='т.';
 --SELECT * FROM __mtr WHERE mess LIKE 'л%';
 
 
-ALTER TABLE __mtr DROP COLUMN id;
+--ALTER TABLE __mtr DROP COLUMN id;
 ALTER TABLE __mtr ADD COLUMN id SERIAL;
 ALTER TABLE __mtr ADD COLUMN category_parent SMALLINT;
 
 
+ALTER TABLE __mtr ALTER COLUMN  equip_cat TYPE NUMERIC USING equip_cat::numeric ;
+ALTER TABLE __mtr ALTER COLUMN  equip_cat SET NOT NULL ;
 
 
+-- если title одинаковый то добавится подкатегория
 UPDATE __mtr SET (category_parent) =
     (
    SELECT mid FROM
@@ -129,6 +133,8 @@ DECLARE
   prid_price BIGINT;
   prid_link BIGINT;
   prid_note BIGINT;
+  prid_eqip_cat BIGINT;
+  prid_dst_dep BIGINT;
 
   cid_sta BIGINT;
   cid_previos BIGINT;
@@ -146,7 +152,8 @@ DECLARE
   sta_title_idx INTEGER;
 BEGIN
   RAISE NOTICE 'Start impotr MTR script';
-  
+
+  RAISE NOTICE 'Clear all MTR';
   --SELECT id FROM acls WHERE title = 'ЗИП';
   SELECT id INTO cid_sta FROM acls WHERE title = 'ЗИП';
   IF FOUND THEN 
@@ -155,7 +162,7 @@ BEGIN
   INSERT INTO acls(pid,title,kind,dobj) VALUES (1,'ЗИП',0,NULL) RETURNING id INTO cid_sta ; 
   RAISE DEBUG 'cid_sta %',cid_sta;
 
-
+  RAISE NOTICE 'Build main MTR tree';
   FOR rec IN import_mtg_group LOOP
     sta_category1:=substring (REGEXP_REPLACE(rec.id,'([^[:digit:],.$])','','g') from '#"%#".%.%' for '#');
     sta_category2:=substring (REGEXP_REPLACE(rec.id,'([^[:digit:],.$])','','g') from '%.#"%#".%' for '#');
@@ -174,6 +181,7 @@ BEGIN
     INSERT INTO acls(pid,title,kind,dobj) VALUES (cid_previos,rec.id||' '||rec.title,0,NULL);
   END LOOP;
 
+  RAISE NOTICE 'Build custom MTR tree';
   FOR rec IN import_subcat LOOP
     SELECT id INTO cid_previos FROM acls WHERE title LIKE rec.mtr_id||'%';
     
@@ -181,8 +189,11 @@ BEGIN
 
   END LOOP;
 
+  RAISE NOTICE 'Add order';
   INSERT INTO acls(pid,title,kind,measure) VALUES (cid_sta,'Заказ',1,'шт.') RETURNING id INTO cid_sta_zayavka ; 
   INSERT INTO obj(title,cls_id,pid) VALUES ('заявка СЦ',cid_sta_zayavka, 1 ) RETURNING id INTO oid_zayavka2016;
+
+  RAISE NOTICE 'Load id properties ';
 
   SELECT id INTO prid_desc FROM prop WHERE title = 'Описание';
   IF NOT FOUND THEN INSERT INTO prop(title, kind)VALUES('Описание', 0) RETURNING id INTO prid_desc ; END IF;
@@ -202,13 +213,21 @@ BEGIN
   SELECT id INTO prid_note FROM prop WHERE title = 'Примечание';
   IF NOT FOUND THEN INSERT INTO prop(title, kind)VALUES('Примечание', 0) RETURNING id INTO prid_note ; END IF;
 
+  SELECT id INTO prid_eqip_cat FROM prop WHERE title = 'Категория ЗИП';
+  IF NOT FOUND THEN INSERT INTO prop(title, kind)VALUES('Категория ЗИП', 0) RETURNING id INTO prid_eqip_cat ; END IF;
+
+  SELECT id INTO prid_dst_dep FROM prop WHERE title = 'Заказчик ЗИП';
+  IF NOT FOUND THEN INSERT INTO prop(title, kind)VALUES('Заказчик ЗИП', 0) RETURNING id INTO prid_dst_dep ; END IF;
+
+
   RAISE DEBUG 'prid_desc %',prid_desc;
   RAISE DEBUG 'prid_note %',prid_note;
   RAISE DEBUG 'prid_uname %',prid_uname;
   RAISE DEBUG 'prid_price %',prid_price;
   RAISE DEBUG 'prid_link %',prid_link;
 
-  
+
+  RAISE NOTICE 'Import classes';
   FOR rec IN import_mtr LOOP
     IF(rec.category_parent IS NOT NULL) THEN
       SELECT id INTO cid_parent FROM acls WHERE kind=0 AND title=rec.title;
@@ -218,15 +237,14 @@ BEGIN
       cid_parent:=cid_sta;
     END IF;
 
-  
     IF(rec.category_parent IS NOT NULL) THEN
       sta_title:=rec.description;
     ELSE
       sta_title:=COALESCE(rec.title,'')||' '||COALESCE(rec.description,'');
     END IF; 
-    --RAISE DEBUG 'sta_title %',sta_title;
+    
     BEGIN
-      --RAISE DEBUG 'sta_title %',sta_title::WHNAME; --SELECT sta_title::WHNAME;
+      RAISE DEBUG 'sta_title %',sta_title::WHNAME; --SELECT sta_title::WHNAME;
       sta_whtitle:=sta_title;
     EXCEPTION
     WHEN SQLSTATE '23514' THEN --check_violation
@@ -251,6 +269,11 @@ BEGIN
       INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_mtr_id, rec.mtr_id);
       INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_desc, COALESCE(rec.title,'')||' '||COALESCE(rec.description,''));
       INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_uname, NULL);
+
+      RAISE DEBUG '  equip_cat=%  %',rec.equip_cat,CASE rec.equip_cat WHEN 0 THEN 'расход.' WHEN 1 THEN 'ЗИП' ELSE 'ОС до 40' END;
+
+      INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_eqip_cat, CASE rec.equip_cat WHEN 0 THEN 'расход.' WHEN 1 THEN 'ЗИП' ELSE 'ОС до 40' END);
+      INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_dst_dep, rec.dst_dep);
     END IF;
 
     PERFORM FROM obj WHERE cls_id=cid_curr AND title='заявка 2016' AND pid=oid_zayavka2016;
@@ -261,13 +284,13 @@ BEGIN
     
   END LOOP;
   
-  
+  RAISE NOTICE 'End impotr MTR script';
 END$$;
-
 
 
 DROP TABLE IF EXISTS __mtr_group CASCADE;
 DROP TABLE IF EXISTS __mtr CASCADE;
 
 COMMIT TRANSACTION;
+--VACUUM;
 --ANALYZE;

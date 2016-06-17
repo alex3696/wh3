@@ -1,6 +1,10 @@
+BEGIN TRANSACTION;
 
-SET client_min_messages='debug1';
-
+--SET client_min_messages = 'error';
+SET client_min_messages = 'warning';
+--SET client_min_messages = 'notice';
+--SET client_min_messages = 'debug';
+--SHOW client_min_messages;
 
 DROP FUNCTION IF EXISTS get_childs_cls(IN _cid BIGINT) CASCADE;
 
@@ -465,3 +469,5 @@ CREATE TRIGGER tr_bu_obj_num BEFORE UPDATE ON obj_num FOR EACH ROW EXECUTE PROCE
 CREATE TRIGGER tr_bu_obj_num BEFORE UPDATE ON obj_qtyi FOR EACH ROW EXECUTE PROCEDURE ftr_bu_any_obj();
 CREATE TRIGGER tr_bu_obj_num BEFORE UPDATE ON obj_qtyf FOR EACH ROW EXECUTE PROCEDURE ftr_bu_any_obj();
 GRANT EXECUTE ON FUNCTION ftr_bu_any_obj() TO "User";
+
+COMMIT TRANSACTION;
