@@ -1,4 +1,4 @@
---BEGIN TRANSACTION;
+BEGIN TRANSACTION;
 
 --SET client_min_messages = 'error';
 --SET client_min_messages = 'debug';
@@ -346,6 +346,9 @@ DECLARE
  prid_temp BIGINT; 
  pid_desc_profil BIGINT; 
  pid_desc_kalibr BIGINT; 
+ pid_fm BIGINT; 
+ pid_nm BIGINT; 
+ pid_ot BIGINT; 
 
  aid_chmain BIGINT;
  aid_remont BIGINT;
@@ -355,12 +358,14 @@ DECLARE
  aid_calib BIGINT; 
  aid_change_desc BIGINT; 
  aid_change_note BIGINT; 
+ aid_ch_worker_info BIGINT; 
 
  cid_struct_unit BIGINT;
  cid_geo_equipment BIGINT;
  cid_company BIGINT;
  cid_department BIGINT;
  cid_sector_sc BIGINT;
+ cid_personal BIGINT;
 
  oid_company_sgg BIGINT;
  oid_department_sc BIGINT;
@@ -373,7 +378,7 @@ DECLARE
  oid_sector_sc_utilize BIGINT;
 
 BEGIN
-  RAISE NOTICE 'Вставляем свойства, если уже есть с такими названиями - обновляем';
+  RAISE NOTICE 'Вставляем свойства';
   INSERT INTO prop(title, kind)VALUES('Период калибровки(мес.)', 100) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO prid_calp;
   INSERT INTO prop(title, kind)VALUES('Описание', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
@@ -406,55 +411,79 @@ BEGIN
     RETURNING id INTO pid_desc_profil;
   INSERT INTO prop(title, kind)VALUES('Описание калибровки', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO pid_desc_kalibr;
+  INSERT INTO prop(title, kind)VALUES('Фамилия', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO pid_fm;
+  INSERT INTO prop(title, kind)VALUES('Имя', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO pid_nm;
+  INSERT INTO prop(title, kind)VALUES('Отчество', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO pid_ot;
 
+  RAISE NOTICE 'Вставляем действия + свойства действий';
   INSERT INTO act (title) VALUES ('Изменить основные свойства') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
     RETURNING id INTO aid_chmain;
+
   INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_note)
                                                  ,(aid_chmain, prid_invn)
+                                                 ,(aid_chmain, prid_pasp)
+                                                 ,(aid_chmain, prid_calfile)
+                                                 ,(aid_chmain, prid_objfolder)
+                                                 ,(aid_chmain, prid_reldate)
+                                                 ,(aid_chmain, prid_indate)
+                                                 ,(aid_chmain, prid_usehours)
+                                                 ON CONFLICT ON CONSTRAINT uk_refactprop__actid_propid DO NOTHING;
 
-   ON CONFLICT (act_id, prop_id) DO NOTHING;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_invn) ON CONFLICT (act_id, prop_id) DO NOTHING;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_pasp) ON CONFLICT (act_id, prop_id) DO NOTHING;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_calfile) ON CONFLICT (act_id, prop_id) DO NOTHING;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_objfolder) ON CONFLICT (act_id, prop_id) DO NOTHING;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_reldate) ON CONFLICT (act_id, prop_id) DO NOTHING;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_indate) ON CONFLICT (act_id, prop_id) DO NOTHING;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_usehours) ON CONFLICT (act_id, prop_id) DO NOTHING;
-
-  INSERT INTO act (title) VALUES ('Ремонт') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
+  INSERT INTO act (title,color) VALUES ('Ремонт','rgb(255, 128, 128)') 
+    ON CONFLICT (title) DO UPDATE SET color=EXCLUDED.color 
     RETURNING id INTO aid_remont;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_remont, prid_note) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_remont, prid_note) ON CONFLICT ON CONSTRAINT uk_refactprop__actid_propid DO NOTHING;
 
-  INSERT INTO act (title) VALUES ('Проверка') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
+  INSERT INTO act (title,color) VALUES ('Проверка','rgb(220, 220, 220)')
+    ON CONFLICT (title) DO UPDATE SET color=EXCLUDED.color 
     RETURNING id INTO aid_proverka;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_proverka, pid_desc_profil) ON CONFLICT (act_id, prop_id) DO NOTHING;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_proverka, prid_usehours) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_proverka, pid_desc_profil) 
+                                                 ,(aid_proverka, prid_usehours) 
+                                                 ON CONFLICT ON CONSTRAINT uk_refactprop__actid_propid DO NOTHING;
 
-  INSERT INTO act (title) VALUES ('Профилактика') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
+  INSERT INTO act (title,color) VALUES ('Профилактика','rgb(255, 255, 128)')
+    ON CONFLICT (title) DO UPDATE SET color=EXCLUDED.color 
     RETURNING id INTO aid_prof;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_prof, pid_desc_profil) ON CONFLICT (act_id, prop_id) DO NOTHING;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_prof, prid_usehours) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_prof, pid_desc_profil)
+                                                 ,(aid_prof, prid_usehours) 
+                                                 ON CONFLICT ON CONSTRAINT uk_refactprop__actid_propid DO NOTHING;
 
-  INSERT INTO act (title) VALUES ('Калибровка') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
+  INSERT INTO act (title,color) VALUES ('Калибровка','rgb(128, 220, 255)')
+    ON CONFLICT (title) DO UPDATE SET color=EXCLUDED.color 
     RETURNING id INTO aid_calib;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_calib, pid_desc_kalibr) ON CONFLICT (act_id, prop_id) DO NOTHING;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_calib, prid_calfile) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_calib, pid_desc_kalibr)
+                                                 ,(aid_calib, prid_calfile) 
+                                                 ON CONFLICT ON CONSTRAINT uk_refactprop__actid_propid DO NOTHING;
 
-  INSERT INTO act (title) VALUES ('ГИС') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
+  INSERT INTO act (title,color) VALUES ('ГИС','rgb(220, 128, 0)')
+    ON CONFLICT (title) DO UPDATE SET color=EXCLUDED.color 
     RETURNING id INTO aid_gis;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_gis, prid_note) ON CONFLICT (act_id, prop_id) DO NOTHING;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_gis, prid_usehours) ON CONFLICT (act_id, prop_id) DO NOTHING;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_gis, prid_depth) ON CONFLICT (act_id, prop_id) DO NOTHING;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_gis, prid_press) ON CONFLICT (act_id, prop_id) DO NOTHING;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_gis, prid_temp) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_gis, prid_note)
+                                                 ,(aid_gis, prid_usehours)
+                                                 ,(aid_gis, prid_depth)
+                                                 ,(aid_gis, prid_press)
+                                                 ,(aid_gis, prid_temp)
+                                                 ON CONFLICT ON CONSTRAINT uk_refactprop__actid_propid DO NOTHING;
 
   INSERT INTO act (title) VALUES ('Изменить описание') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
     RETURNING id INTO aid_change_desc;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_change_desc, prid_desc) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_change_desc, prid_desc) ON CONFLICT ON CONSTRAINT uk_refactprop__actid_propid DO NOTHING;
 
   INSERT INTO act (title) VALUES ('Изменить примечание') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
     RETURNING id INTO aid_change_note;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_change_note, prid_note) ON CONFLICT (act_id, prop_id) DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_change_note, prid_note) ON CONFLICT ON CONSTRAINT uk_refactprop__actid_propid DO NOTHING;
+
+
+  INSERT INTO act (title) VALUES ('Изменить сведения о работнике') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
+    RETURNING id INTO aid_ch_worker_info;
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_ch_worker_info, pid_fm)
+                                                 ,(aid_ch_worker_info, pid_nm)
+                                                 ,(aid_ch_worker_info, pid_ot)
+                                                 ON CONFLICT ON CONSTRAINT uk_refactprop__actid_propid DO NOTHING;
+
 
   RAISE NOTICE 'добавляем основные классы';
   INSERT INTO acls(pid,title,kind,dobj) VALUES (1,'Структурные подразделения',0,NULL) RETURNING id INTO cid_struct_unit;
@@ -462,10 +491,12 @@ BEGIN
   INSERT INTO acls(pid,title,kind,measure) VALUES (cid_struct_unit,'Предприятие',1,'ед.') RETURNING id INTO cid_company;
   INSERT INTO acls(pid,title,kind,measure) VALUES (cid_struct_unit,'Отдел',1,'ед.') RETURNING id INTO cid_department;
   INSERT INTO acls(pid,title,kind,measure) VALUES (cid_struct_unit,'Участок СЦ',1,'ед.') RETURNING id INTO cid_sector_sc;
+  INSERT INTO acls(pid,title,kind,measure) VALUES (1,'Персонал',1,'чел.') RETURNING id INTO cid_personal;
+
 
   RAISE NOTICE 'добавляем основные объекты';
   INSERT INTO obj(title,cls_id,pid) VALUES ('Севергазгеофизика',cid_company, 1 )RETURNING id INTO oid_company_sgg;
-  INSERT INTO obj(title,cls_id,pid) VALUES ('Сервисный центр',cid_department, 1 )RETURNING id INTO oid_department_sc;
+  INSERT INTO obj(title,cls_id,pid) VALUES ('Сервисный центр',cid_department, oid_company_sgg )RETURNING id INTO oid_department_sc;
   INSERT INTO obj(title,cls_id,pid) VALUES ('Ремонтный участок',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_repair;
   INSERT INTO obj(title,cls_id,pid) VALUES ('Долгосрочный ремонт',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_repair_wait;
   INSERT INTO obj(title,cls_id,pid) VALUES ('Метрология',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_metrology;
@@ -474,115 +505,82 @@ BEGIN
   INSERT INTO obj(title,cls_id,pid) VALUES ('Консервация',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_conservation;
   INSERT INTO obj(title,cls_id,pid) VALUES ('Утилизация',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_utilize;
 
+  RAISE NOTICE 'разрешения действий';
+  INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+    VALUES ('TypeDesigner', 0, cid_personal, NULL, aid_ch_worker_info );
 
+  INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+    VALUES ('TypeDesigner', 0, cid_department, NULL, aid_change_desc );
 
+  RAISE NOTICE 'добавляем ДЕЙСТВИЯ для всей категории геофизического оборудования';
+  INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id, src_path)VALUES 
+    ('TypeDesigner',          0, cid_geo_equipment, NULL, aid_chmain,   '{%}' )
+   ,('Инженер по ремонту ГО', 0, cid_geo_equipment, NULL, aid_remont,   format('{{%s,%s},%%}',cid_sector_sc,oid_sector_sc_repair) )
+   ,('Инженер по ремонту ГО', 0, cid_geo_equipment, NULL, aid_proverka, format('{{%s,%s},%%}',cid_sector_sc,oid_sector_sc_repair) ) 
+   ,('Инженер по ремонту ГО', 0, cid_geo_equipment, NULL, aid_prof,     format('{{%s,%s},%%}',cid_sector_sc,oid_sector_sc_repair) ) 
+   ,('Инженер-метролог',      0, cid_geo_equipment, NULL, aid_calib,    format('{{%s,%s},%%}',cid_sector_sc,oid_sector_sc_metrology) )
+   ,('Диспетчер ГО',          0, cid_geo_equipment, NULL, aid_gis,      format('{{%s,%s},%%}',cid_sector_sc,oid_sector_sc_pp) ); 
 
-
+  RAISE NOTICE 'добавляем ПЕРЕМЕЩЕНИЯ для всей категории геофизического оборудования';
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+    ('Инженер по ремонту ГО', 0 ,cid_geo_equipment, NULL
+    ,cid_sector_sc, oid_sector_sc_repair, '{%}' 
+    ,cid_sector_sc, oid_sector_sc_metrology, '{%}' );
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+    ( 'Инженер по ремонту ГО', 0,cid_geo_equipment, NULL
+    ,cid_sector_sc, oid_sector_sc_repair, '{%}'
+    ,cid_sector_sc, oid_sector_sc_pp, '{%}' );
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+    ( 'Инженер по ремонту ГО', 0, cid_geo_equipment, NULL
+    ,cid_sector_sc, oid_sector_sc_repair, '{%}'
+    ,cid_sector_sc, oid_sector_sc_repair_wait, '{%}');
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
+    ( 'Инженер по ремонту ГО', 0, cid_geo_equipment, NULL
+    ,cid_sector_sc, oid_sector_sc_repair_wait, '{%}' 
+    ,cid_sector_sc, oid_sector_sc_repair, '{%}' );
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
+    ( 'Инженер по ремонту ГО', 0, cid_geo_equipment, NULL
+    ,cid_sector_sc, oid_sector_sc_repair, '{%}' 
+    ,cid_sector_sc, oid_sector_sc_conservation, '{%}' );
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
+    ( 'Инженер по ремонту ГО', 0, cid_geo_equipment, NULL
+    ,cid_sector_sc, oid_sector_sc_conservation, '{%}' 
+    ,cid_sector_sc, oid_sector_sc_repair, '{%}' );
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
+    ( 'Инженер по ремонту ГО', 0, cid_geo_equipment, NULL
+    ,cid_sector_sc, oid_sector_sc_repair, '{%}' 
+    ,cid_sector_sc, oid_sector_sc_utilize, '{%}' );
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
+    ( 'Инженер-метролог', 0, cid_geo_equipment, NULL
+    ,cid_sector_sc, oid_sector_sc_metrology, '{%}' 
+    ,cid_sector_sc, oid_sector_sc_repair, '{%}' );
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
+    ( 'Инженер-метролог', 0, cid_geo_equipment, NULL
+    ,cid_sector_sc, oid_sector_sc_metrology, '{%}' 
+    ,cid_sector_sc, oid_sector_sc_pp, '{%}' );
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
+    ( 'Диспетчер ГО', 0, cid_geo_equipment, NULL
+    ,cid_sector_sc, oid_sector_sc_pp, '{%}' 
+    ,cid_sector_sc, oid_sector_sc_metrology, '{%}' );
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
+    ( 'Диспетчер ГО', 0, cid_geo_equipment, NULL
+    ,cid_sector_sc, oid_sector_sc_pp, '{%}' 
+    ,cid_sector_sc, oid_sector_sc_repair, '{%}' );
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
+    ( 'Диспетчер ГО', 0, cid_geo_equipment, NULL
+    ,cid_sector_sc, oid_sector_sc_pp, '{%}' 
+    ,cid_personal, NULL, '{%}' );
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
+    ( 'Диспетчер ГО', 0, cid_geo_equipment, NULL
+    ,cid_personal, NULL, '{%}' 
+    ,cid_sector_sc, oid_sector_sc_repair, '{%}' );
 
 END $BODY$ LANGUAGE plpgsql;
 
---SELECT sgg_add_prop_and_act();
-
-
+SELECT sgg_add_prop_and_act();
 
 -------------------------------------------------------------------------------
-PRINT '';
-
-PRINT '';
--------------------------------------------------------------------------------
-DECLARE @prid_calp,@prid_desc,@prid_remdesc,@prid_note,@prid_invn,@prid_pasp,@prid_calfile,@prid_objfolder;
-DECLARE @prid_reldate,@prid_indate,@prid_usehours,@prid_depth,@prid_press,@prid_temp;
-SET @prid_calp = INSERT INTO prop(title, kind)VALUES('Период калибровки(мес.)', 100)RETURNING id;
-SET @prid_desc =INSERT INTO prop(title, kind)VALUES('Описание', 0)RETURNING id;
-
-SET @prid_remdesc =INSERT INTO prop(title, kind)VALUES('Описание ремонта', 0)RETURNING id;
-SET @prid_note =INSERT INTO prop(title, kind)VALUES('Примечание', 0)RETURNING id;
-SET @prid_invn =INSERT INTO prop(title, kind)VALUES('Инвентарный номер', 0)RETURNING id;
-SET @prid_pasp =INSERT INTO prop(title, kind)VALUES('Паспорт', 300)RETURNING id;
-SET @prid_calfile =INSERT INTO prop(title, kind)VALUES('Файл калибровки', 300)RETURNING id;
-SET @prid_objfolder =INSERT INTO prop(title, kind)VALUES('Папка прибора', 300)RETURNING id;
-SET @prid_reldate =INSERT INTO prop(title, kind)VALUES('Дата выпуска', 201)RETURNING id;
-SET @prid_indate =INSERT INTO prop(title, kind)VALUES('Дата ввода в эксплуатацию', 201)RETURNING id;
-SET @prid_usehours =INSERT INTO prop(title, kind)VALUES('Наработка(ч.)', 101)RETURNING id;
-
-SET @prid_depth =INSERT INTO prop(title, kind)VALUES('Глубина(м.)', 101)RETURNING id;
-SET @prid_press =INSERT INTO prop(title, kind)VALUES('Давление(МПа)', 101)RETURNING id;
-SET @prid_temp =INSERT INTO prop(title, kind)VALUES('Температура(град.С)', 101)RETURNING id;
-
-
-DECLARE @pid_desc_profil,@pid_desc_kalibr;
-SET @pid_desc_profil =INSERT INTO prop(title, kind)VALUES('Описание проверки|профилактики', 0)RETURNING id;
-SET @pid_desc_kalibr =INSERT INTO prop(title, kind)VALUES('Описание калибровки', 0)RETURNING id;
-
--------------------------------------------------------------------------------
-PRINT '';
-PRINT '- добавляем действия';
-PRINT '';
--------------------------------------------------------------------------------
-DECLARE @act_id_chmain,@act_id_remont,@act_id_proverka,@act_id_prof,@act_id_gis,@act_id_calib;
-SET @act_id_chmain =   INSERT INTO act (title) VALUES ('Изменить основные свойства')RETURNING id;
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_chmain, @prid_note);
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_chmain, @prid_invn);
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_chmain, @prid_pasp);
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_chmain, @prid_calfile);
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_chmain, @prid_objfolder);
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_chmain, @prid_reldate);
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_chmain, @prid_indate);
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_chmain, @prid_usehours);
-
-SET @act_id_remont =   INSERT INTO act (title) VALUES ('Ремонт')RETURNING id;
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_remont, @prid_remdesc);
-
-SET @act_id_proverka = INSERT INTO act (title) VALUES ('Проверка')RETURNING id;
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_proverka, @pid_desc_profil);
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_proverka, @prid_usehours);
-
-SET @act_id_prof =     INSERT INTO act (title) VALUES ('Профилактика')RETURNING id;
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_prof, @pid_desc_profil);
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_prof, @prid_usehours);
-
-SET @act_id_calib =     INSERT INTO act (title) VALUES ('Калибровка')RETURNING id;
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_calib, @pid_desc_kalibr);
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_calib, @prid_calfile);
-
-SET @act_id_gis =      INSERT INTO act (title) VALUES ('ГИС')RETURNING id;
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_gis, @prid_note);
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_gis, @prid_usehours);
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_gis, @prid_depth);
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_gis, @prid_press);
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@act_id_gis, @prid_temp);
-
-DECLARE @aid_chfndep;
-SET @aid_chfndep = INSERT INTO act (title) VALUES ('Изменить описание')RETURNING id;
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@aid_chfndep, @prid_desc);
-
-DECLARE @aid_chnote;
-SET @aid_chnote = INSERT INTO act (title) VALUES ('Изменить примечание')RETURNING id;
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@aid_chnote, @prid_note);
-
-
--------------------------------------------------------------------------------
-PRINT '';
-PRINT '- добавляем основные классы';
-PRINT '';
--------------------------------------------------------------------------------
-
-DECLARE @struct_units_id, @geo_equipment_id;
-SET @struct_units_id = INSERT INTO acls(pid,title,kind,dobj) VALUES (1,'Структурные подразделения',0,NULL) RETURNING id;
-SET @geo_equipment_id = INSERT INTO acls(pid,title,kind,dobj) VALUES (1,'Геофизическое оборудование',0,NULL) RETURNING id;
-
-DECLARE @company_id, @department_id, @department_area_id;
-SET @company_id = INSERT INTO acls(pid,title,kind,measure) VALUES (@struct_units_id,'Предприятие',1,'ед.') RETURNING id;
-SET @department_id = INSERT INTO acls(pid,title,kind,measure) VALUES (@struct_units_id,'Отдел',1,'ед.') RETURNING id;
-SET @department_area_id = INSERT INTO acls(pid,title,kind,measure) VALUES (@struct_units_id,'Участок СЦ',1,'ед.') RETURNING id;
-
-DECLARE @sgg_company_id;
-SET @sgg_company_id = INSERT INTO obj(title,cls_id,pid) VALUES ('Севергазгеофизика',@company_id, 1 )RETURNING id;
-
--------------------------------------------------------------------------------
-PRINT '';
-PRINT '- импортируем отделы';
-PRINT '';
+-- импортируем отделы'
 ------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS sgg_sc_import_departament() CASCADE;
 CREATE OR REPLACE FUNCTION sgg_sc_import_departament()
@@ -597,15 +595,20 @@ DECLARE
   _aid_chfndep BIGINT;
   _prop_val JSONB;
 BEGIN
+  RAISE NOTICE 'Import departaments';
+  
   SELECT id INTO sgg_company_oid FROM obj WHERE title='Севергазгеофизика';
   SELECT id INTO department_cid FROM acls WHERE title='Отдел';
   SELECT id INTO _pid_desc FROM prop WHERE title='Описание';
   SELECT id INTO _aid_chfndep FROM act WHERE title='Изменить описание' ;
 
-  
-
   FOR rec IN import_dep LOOP
-    INSERT INTO obj(title,cls_id,pid) VALUES (rec.title,department_cid, sgg_company_oid ) RETURNING id INTO _oid;
+    SELECT id INTO _oid FROM obj WHERE title=rec.title;
+    RAISE DEBUG 'append departament % % ',_oid,rec;
+    IF NOT FOUND THEN
+      INSERT INTO obj(title,cls_id,pid) VALUES (rec.title,department_cid, sgg_company_oid ) RETURNING id INTO _oid;
+    END IF;
+
     _prop_val := format('{"%s":"%s"}',_pid_desc, rec.note );
     PERFORM lock_for_act(_oid, sgg_company_oid);
     PERFORM do_act(_oid, _aid_chfndep, _prop_val);
@@ -617,32 +620,11 @@ RETURN;
 END; 
 $BODY$ LANGUAGE plpgsql;
 
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
-  VALUES ('TypeDesigner', 0, @department_id, NULL, @aid_chfndep );
 
 SELECT sgg_sc_import_departament();
 -------------------------------------------------------------------------------
-PRINT '';
-PRINT '- импортируем работников';
-PRINT '';
+-- импортируем работников'
 ------------------------------------------------------------------------------
-DECLARE @cid_personal;
-SET @cid_personal = INSERT INTO acls(pid,title,kind,measure) VALUES (1,'Персонал',1,'чел.') RETURNING id;
-
-DECLARE @pid_fam,@pid_nm,@pid_ot;
-SET @pid_fam = INSERT INTO prop(title, kind)VALUES('Фамилия', 0)RETURNING id;
-SET @pid_nm = INSERT INTO prop(title, kind)VALUES('Имя', 0)RETURNING id;
-SET @pid_ot = INSERT INTO prop(title, kind)VALUES('Отчество', 0)RETURNING id;
-
-SET @aid_ch_worker_info =   INSERT INTO act (title) VALUES ('Изменить сведения о работнике')RETURNING id;
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@aid_ch_worker_info, @pid_fam);
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@aid_ch_worker_info, @pid_nm);
-INSERT INTO ref_act_prop(act_id, prop_id)VALUES (@aid_ch_worker_info, @pid_ot);
-
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
-  VALUES ('TypeDesigner', 0, @cid_personal, NULL, @aid_ch_worker_info );
-
-
 DROP FUNCTION IF EXISTS sgg_sc_import_worker() CASCADE;
 CREATE OR REPLACE FUNCTION sgg_sc_import_worker()
  RETURNS VOID  AS
@@ -665,6 +647,8 @@ _pid_ot BIGINT;
   _aid_ch_worker_info BIGINT;
   _prop_val JSONB;
 BEGIN
+  RAISE NOTICE 'Import personnel';
+  
   SELECT id INTO _cid_personal FROM acls WHERE title='Персонал';
 
   SELECT id INTO _pid_fam FROM prop WHERE title='Фамилия';
@@ -707,134 +691,6 @@ END;
 $BODY$ LANGUAGE plpgsql;
 
 SELECT sgg_sc_import_worker();
--------------------------------------------------------------------------------
--- добавляем участки СЦ
--------------------------------------------------------------------------------
-DECLARE @sc_departament_id;
-SET @sc_departament_id = SELECT id FROM obj WHERE title='Сервисный центр';
---DECLARE @sc_departament_id,@sc_dep_kontr_id,@sc_dep_bur_id,@sc_dep_gti_id;
---SET @sc_departament_id = INSERT INTO obj(title,cls_id,pid) VALUES ('СЦ',@department_id, @sgg_company_id )RETURNING id;
---SET @sc_dep_kontr_id = INSERT INTO obj(title,cls_id,pid) VALUES ('ПГЭ Контроль',@department_id, @sgg_company_id )RETURNING id;
---SET @sc_dep_bur_id = INSERT INTO obj(title,cls_id,pid) VALUES ('ПГЭ Бурение',@department_id, @sgg_company_id )RETURNING id;
---SET @sc_dep_gti_id = INSERT INTO obj(title,cls_id,pid) VALUES ('ПГЭ ГТИ',@department_id, @sgg_company_id )RETURNING id;
-
-
-DECLARE @remont,@metrolog,@pp,@sklad,@konserv,@dremont,@spisano;
-SET @remont = INSERT INTO obj(title,cls_id,pid) VALUES ('Ремонтный участок',@department_area_id, @sc_departament_id )RETURNING id;
-SET @metrolog = INSERT INTO obj(title,cls_id,pid) VALUES ('Метрология',@department_area_id, @sc_departament_id )RETURNING id;
-SET @pp = INSERT INTO obj(title,cls_id,pid) VALUES ('Пункт проката',@department_area_id, @sc_departament_id )RETURNING id;
-SET @sklad = INSERT INTO obj(title,cls_id,pid) VALUES ('Склад',@department_area_id, @sc_departament_id )RETURNING id;
-SET @konserv = INSERT INTO obj(title,cls_id,pid) VALUES ('Консервация',@department_area_id, @sc_departament_id )RETURNING id;
-SET @dremont = INSERT INTO obj(title,cls_id,pid) VALUES ('Долгосрочный ремонт',@department_area_id, @sc_departament_id )RETURNING id;
-SET @spisano = INSERT INTO obj(title,cls_id,pid) VALUES ('Списано',@department_area_id, @sc_departament_id )RETURNING id;
-
-
--------------------------------------------------------------------------------
-PRINT '';
-PRINT '- добавляем действия для всей категории импортированых классов';
-PRINT '';
-------------------------------------------------------------------------------
-
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
-  VALUES ('TypeDesigner', 0, @geo_equipment_id, NULL, @act_id_chmain );
-
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_path)
-  VALUES ('Инженер по ремонту ГО', 0, @geo_equipment_id, NULL, @act_id_remont, format('{{%s,%s},%%}',@department_area_id,@remont) );
-
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_path)
-  VALUES ('Инженер по ремонту ГО', 0, @geo_equipment_id, NULL, @act_id_proverka, format('{{%s,%s},%%}',@department_area_id,@remont) ); 
-
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_path)
-  VALUES ('Инженер по ремонту ГО', 0, @geo_equipment_id, NULL, @act_id_prof, format('{{%s,%s},%%}',@department_area_id,@remont) ); 
-
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_path)
-  VALUES ('Инженер-метролог', 0, @geo_equipment_id, NULL, @act_id_calib, format('{{%s,%s},%%}',@department_area_id,@metrolog) );
-
-INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id,src_path)
-  VALUES ('Диспетчер ГО', 0, @geo_equipment_id, NULL, @act_id_gis, format('{{%s,%s},%%}',@department_area_id,@pp) ); 
-
-
-
--------------------------------------------------------------------------------
-PRINT '';
-PRINT '- добавляем перемещения для всей категории импортированых классов';
-PRINT '';
-------------------------------------------------------------------------------
-
-INSERT INTO perm_move( access_group, access_disabled
-                      ,cls_id, obj_id
-                      ,src_cls_id, src_obj_id, src_path
-                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
-                     ( 'Инженер по ремонту ГО', 0
-                       ,@geo_equipment_id, NULL                   -- what [ФЭУ-geo_equipment]%
-                       ,@department_area_id, @remont, '{%}'       -- from [remont]%
-                       ,@department_area_id, @metrolog, '{%}'     -- to   [СРК2М]% 
-                      );
-INSERT INTO perm_move( access_group, access_disabled
-                      ,cls_id, obj_id
-                      ,src_cls_id, src_obj_id, src_path
-                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
-                     ( 'Инженер по ремонту ГО', 0
-                       ,@geo_equipment_id, NULL                   -- what [ФЭУ-geo_equipment]%
-                       ,@department_area_id, @remont, '{%}'       -- from [remont]%
-                       ,@department_area_id, @pp, '{%}'           -- to   [СРК2М]% 
-                      );
-INSERT INTO perm_move( access_group, access_disabled
-                      ,cls_id, obj_id
-                      ,src_cls_id, src_obj_id, src_path
-                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
-                     ( 'Инженер по ремонту ГО', 0
-                       ,@geo_equipment_id, NULL       -- what [ФЭУ-geo_equipment]%
-                       ,@department_area_id, @remont, '{%}'       -- from [remont]%
-                       ,@department_area_id, @dremont, '{%}'           -- to   [СРК2М]% 
-                      );
-INSERT INTO perm_move( access_group, access_disabled
-                      ,cls_id, obj_id
-                      ,src_cls_id, src_obj_id, src_path
-                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
-                     ( 'Инженер по ремонту ГО', 0
-                       ,@geo_equipment_id, NULL       -- what [ФЭУ-geo_equipment]%
-                       ,@department_area_id, @dremont, '{%}'       -- from [remont]%
-                       ,@department_area_id, @remont, '{%}'           -- to   [СРК2М]% 
-                      );
-INSERT INTO perm_move( access_group, access_disabled
-                      ,cls_id, obj_id
-                      ,src_cls_id, src_obj_id, src_path
-                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
-                     ( 'Инженер-метролог', 0
-                       ,@geo_equipment_id, NULL       -- what [ФЭУ-geo_equipment]%
-                       ,@department_area_id, @metrolog, '{%}'       -- from [remont]%
-                       ,@department_area_id, @remont, '{%}'           -- to   [СРК2М]% 
-                      );
-INSERT INTO perm_move( access_group, access_disabled
-                      ,cls_id, obj_id
-                      ,src_cls_id, src_obj_id, src_path
-                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
-                     ( 'Инженер-метролог', 0
-                       ,@geo_equipment_id, NULL       -- what [ФЭУ-geo_equipment]%
-                       ,@department_area_id, @metrolog, '{%}'       -- from [remont]%
-                       ,@department_area_id, @pp, '{%}'           -- to   [СРК2М]% 
-                      );
-INSERT INTO perm_move( access_group, access_disabled
-                      ,cls_id, obj_id
-                      ,src_cls_id, src_obj_id, src_path
-                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
-                     ( 'Диспетчер ГО', 0
-                       ,@geo_equipment_id, NULL       -- what [ФЭУ-geo_equipment]%
-                       ,@department_area_id, @pp, '{%}'       -- from [remont]%
-                       ,@department_area_id, @metrolog, '{%}'           -- to   [СРК2М]% 
-                      );
-INSERT INTO perm_move( access_group, access_disabled
-                      ,cls_id, obj_id
-                      ,src_cls_id, src_obj_id, src_path
-                      ,dst_cls_id, dst_obj_id, dst_path)VALUES 
-                     ( 'Диспетчер ГО', 0
-                       ,@geo_equipment_id, NULL       -- what [ФЭУ-geo_equipment]%
-                       ,@department_area_id, @pp, '{%}'       -- from [remont]%
-                       ,@department_area_id, @remont, '{%}'           -- to   [СРК2М]% 
-                      );
-
-
 
 -------------------------------------------------------------------------------
 -- конвертер из старой базы
@@ -873,6 +729,8 @@ DECLARE
   _curr_pid      BIGINT;
 
 BEGIN
+  RAISE NOTICE 'Import cls tree';
+  
   SELECT id INTO _prop_cal_period_id FROM prop WHERE title = 'Период калибровки(мес.)';
   SELECT id INTO _prop_desc_id FROM prop WHERE title = 'Описание';
   SELECT id INTO _geo_equipment_id FROM acls WHERE title = 'Геофизическое оборудование';  
@@ -984,7 +842,16 @@ DECLARE
 
 
  _cls_title TEXT;
+
+  processing_obj BIGINT;
+  processing_hist BIGINT;
 BEGIN
+  RAISE NOTICE 'Import obj and history ';
+  RAISE NOTICE 'Objects=% History=%',(SELECT count(*) FROM __obj),(SELECT count(*) FROM __hist);
+  processing_obj:=0;
+  processing_hist:=0;
+
+  
   SELECT id INTO _pid_note FROM prop WHERE title='Примечание';
   SELECT id INTO _pid_usehours FROM prop WHERE title='Наработка(ч.)';
   SELECT id INTO _pid_depth FROM prop WHERE title='Глубина(м.)';
@@ -1015,6 +882,10 @@ BEGIN
 
 
   FOR impobj IN import_obj LOOP
+    processing_obj:=processing_obj+1;
+    IF ( processing_obj%300 = 0) THEN 
+      RAISE NOTICE '% Processed objects % history %',now()::TIME,processing_obj,processing_hist;
+    END IF ;
     -- создаём объект
     SELECT title INTO _cls_title FROM __cls WHERE id = impobj.cls_id;
     SELECT id INTO _cid_obj FROM acls WHERE title=_cls_title;
@@ -1044,6 +915,7 @@ BEGIN
     INSERT INTO log_detail_act(id, act_id, prop)     VALUES (_lid,_aid_maininfo, _prop)  RETURNING id INTO _act_lid_previos;
 
     FOR rec IN import_log(impobj.obj_id) LOOP
+      processing_hist:=processing_hist+1;
       -- текущее местоположение
       SELECT wh3_oid,wh3_cid INTO _oid_user,_cid_user FROM __worker WHERE  id=rec.hfrom_user;
       IF _cid_user IS NOT NULL AND _oid_user IS NOT NULL THEN
@@ -1195,14 +1067,15 @@ $BODY$ LANGUAGE plpgsql;
 SELECT sgg_import_hist();
 
 
---SELECT sgg_drop_temporary_items();
---DROP FUNCTION IF EXISTS sgg_drop_temporary_items() CASCADE;
+SELECT sgg_drop_temporary_items();
+DROP FUNCTION IF EXISTS sgg_drop_temporary_items() CASCADE;
 
 
---COMMIT TRANSACTION;
+COMMIT TRANSACTION;
 
 --VACUUM;
 --ANALYZE;
+
 
 
 
