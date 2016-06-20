@@ -648,7 +648,7 @@ CREATE OR REPLACE VIEW log AS
  ,mobj.cls_id AS mcls_id
  ,mobj.title  AS mobj_title
  ,mcls.title  AS mcls_title
- ,CASE WHEN lad.act_id IS NOT NULL THEN 1::NUMERIC ELSE lmd.qty END AS qty --,det.qty     AS qty
+ ,CASE WHEN mcls.kind=1 THEN 1::NUMERIC ELSE lmd.qty END AS qty
  ,CASE WHEN lad.act_id IS NOT NULL THEN lad.prop ELSE NULL::JSONB END AS prop --,det.prop    AS prop
  ,lm.timemark::timestamptz::date  AS log_date
  ,date_trunc('second' ,lm.timemark)::timestamptz::time AS log_time

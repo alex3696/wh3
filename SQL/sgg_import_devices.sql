@@ -316,6 +316,12 @@ BEGIN
   ELSE
     UPDATE wh_role SET rolcanlogin=FALSE, rolcreaterole=FALSE WHERE rolname='Диспетчер ГО';
   END IF;
+  PERFORM FROM wh_role WHERE rolname='Кладовщик';
+  IF NOT FOUND THEN
+    INSERT INTO wh_role (rolname, rolcanlogin, rolcreaterole) VALUES ('Кладовщик',false, false);
+  ELSE
+    UPDATE wh_role SET rolcanlogin=FALSE, rolcreaterole=FALSE WHERE rolname='Кладовщик';
+  END IF;
 
 --END$$;  
 END $BODY$ LANGUAGE plpgsql;
@@ -366,8 +372,12 @@ DECLARE
  cid_department BIGINT;
  cid_sector_sc BIGINT;
  cid_personal BIGINT;
+ cid_zakaz BIGINT;
+ cid_zip BIGINT;
 
  oid_company_sgg BIGINT;
+ oid_company_girs BIGINT;
+ oid_company_cgg BIGINT;
  oid_department_sc BIGINT;
  oid_sector_sc_repair BIGINT;
  oid_sector_sc_repair_wait BIGINT;
@@ -376,6 +386,10 @@ DECLARE
  oid_sector_sc_warehouse BIGINT;
  oid_sector_sc_conservation BIGINT;
  oid_sector_sc_utilize BIGINT;
+ oid_zakaz_go BIGINT;
+ oid_zakaz_mtr BIGINT;
+
+ idpath_sgg_sc TEXT;
 
 BEGIN
   RAISE NOTICE 'Вставляем свойства';
@@ -492,9 +506,13 @@ BEGIN
   INSERT INTO acls(pid,title,kind,measure) VALUES (cid_struct_unit,'Отдел',1,'ед.') RETURNING id INTO cid_department;
   INSERT INTO acls(pid,title,kind,measure) VALUES (cid_struct_unit,'Участок СЦ',1,'ед.') RETURNING id INTO cid_sector_sc;
   INSERT INTO acls(pid,title,kind,measure) VALUES (1,'Персонал',1,'чел.') RETURNING id INTO cid_personal;
+  INSERT INTO acls(pid,title,kind,measure) VALUES (1,'Заказ',1,'шт.') RETURNING id INTO cid_zakaz; 
+  INSERT INTO acls(pid,title,kind,dobj) VALUES (1,'ЗИП',0,NULL) RETURNING id INTO cid_zip ; 
 
 
   RAISE NOTICE 'добавляем основные объекты';
+  INSERT INTO obj(title,cls_id,pid) VALUES ('Гирс-Сервис',cid_company, 1 )RETURNING id INTO oid_company_girs;
+  INSERT INTO obj(title,cls_id,pid) VALUES ('ЦГГ',cid_company, 1 )RETURNING id INTO oid_company_cgg;
   INSERT INTO obj(title,cls_id,pid) VALUES ('Севергазгеофизика',cid_company, 1 )RETURNING id INTO oid_company_sgg;
   INSERT INTO obj(title,cls_id,pid) VALUES ('Сервисный центр',cid_department, oid_company_sgg )RETURNING id INTO oid_department_sc;
   INSERT INTO obj(title,cls_id,pid) VALUES ('Ремонтный участок',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_repair;
@@ -504,6 +522,8 @@ BEGIN
   INSERT INTO obj(title,cls_id,pid) VALUES ('Склад',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_warehouse;
   INSERT INTO obj(title,cls_id,pid) VALUES ('Консервация',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_conservation;
   INSERT INTO obj(title,cls_id,pid) VALUES ('Утилизация',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_utilize;
+  INSERT INTO obj(title,cls_id,pid) VALUES ('Заказ ГО',cid_zakaz, oid_company_sgg )RETURNING id INTO oid_zakaz_go;
+  INSERT INTO obj(title,cls_id,pid) VALUES ('Заказ МТР',cid_zakaz, oid_company_sgg )RETURNING id INTO oid_zakaz_mtr;
 
   RAISE NOTICE 'разрешения действий';
   INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
@@ -521,59 +541,130 @@ BEGIN
    ,('Инженер-метролог',      0, cid_geo_equipment, NULL, aid_calib,    format('{{%s,%s},%%}',cid_sector_sc,oid_sector_sc_metrology) )
    ,('Диспетчер ГО',          0, cid_geo_equipment, NULL, aid_gis,      format('{{%s,%s},%%}',cid_sector_sc,oid_sector_sc_pp) ); 
 
-  RAISE NOTICE 'добавляем ПЕРЕМЕЩЕНИЯ для всей категории геофизического оборудования';
+
+  ----------------
+  -- Движение ГО
+  ----------------
+  RAISE NOTICE 'добавляем ПРАВИЛА ПЕРЕМЕЩЕНИЯ для ГО';
+  idpath_sgg_sc := format('{{%s,%s},{%s,%s}%%}', cid_department, oid_department_sc,cid_company,oid_company_sgg);
+
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
     ('Инженер по ремонту ГО', 0 ,cid_geo_equipment, NULL
-    ,cid_sector_sc, oid_sector_sc_repair, '{%}' 
-    ,cid_sector_sc, oid_sector_sc_metrology, '{%}' );
+    ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc 
+    ,cid_sector_sc, oid_sector_sc_metrology, idpath_sgg_sc );
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
     ( 'Инженер по ремонту ГО', 0,cid_geo_equipment, NULL
-    ,cid_sector_sc, oid_sector_sc_repair, '{%}'
-    ,cid_sector_sc, oid_sector_sc_pp, '{%}' );
+    ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc
+    ,cid_sector_sc, oid_sector_sc_pp, idpath_sgg_sc );
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
     ( 'Инженер по ремонту ГО', 0, cid_geo_equipment, NULL
-    ,cid_sector_sc, oid_sector_sc_repair, '{%}'
-    ,cid_sector_sc, oid_sector_sc_repair_wait, '{%}');
+    ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc
+    ,cid_sector_sc, oid_sector_sc_repair_wait, idpath_sgg_sc);
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
     ( 'Инженер по ремонту ГО', 0, cid_geo_equipment, NULL
-    ,cid_sector_sc, oid_sector_sc_repair_wait, '{%}' 
-    ,cid_sector_sc, oid_sector_sc_repair, '{%}' );
+    ,cid_sector_sc, oid_sector_sc_repair_wait, idpath_sgg_sc 
+    ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc );
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
     ( 'Инженер по ремонту ГО', 0, cid_geo_equipment, NULL
-    ,cid_sector_sc, oid_sector_sc_repair, '{%}' 
-    ,cid_sector_sc, oid_sector_sc_conservation, '{%}' );
+    ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc 
+    ,cid_sector_sc, oid_sector_sc_conservation, idpath_sgg_sc );
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
     ( 'Инженер по ремонту ГО', 0, cid_geo_equipment, NULL
-    ,cid_sector_sc, oid_sector_sc_conservation, '{%}' 
-    ,cid_sector_sc, oid_sector_sc_repair, '{%}' );
+    ,cid_sector_sc, oid_sector_sc_conservation, idpath_sgg_sc 
+    ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc );
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
     ( 'Инженер по ремонту ГО', 0, cid_geo_equipment, NULL
-    ,cid_sector_sc, oid_sector_sc_repair, '{%}' 
-    ,cid_sector_sc, oid_sector_sc_utilize, '{%}' );
+    ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc 
+    ,cid_sector_sc, oid_sector_sc_utilize, idpath_sgg_sc );
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
     ( 'Инженер-метролог', 0, cid_geo_equipment, NULL
-    ,cid_sector_sc, oid_sector_sc_metrology, '{%}' 
-    ,cid_sector_sc, oid_sector_sc_repair, '{%}' );
+    ,cid_sector_sc, oid_sector_sc_metrology, idpath_sgg_sc 
+    ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc );
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
     ( 'Инженер-метролог', 0, cid_geo_equipment, NULL
-    ,cid_sector_sc, oid_sector_sc_metrology, '{%}' 
-    ,cid_sector_sc, oid_sector_sc_pp, '{%}' );
+    ,cid_sector_sc, oid_sector_sc_metrology, idpath_sgg_sc 
+    ,cid_sector_sc, oid_sector_sc_pp, idpath_sgg_sc );
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
     ( 'Диспетчер ГО', 0, cid_geo_equipment, NULL
-    ,cid_sector_sc, oid_sector_sc_pp, '{%}' 
-    ,cid_sector_sc, oid_sector_sc_metrology, '{%}' );
+    ,cid_sector_sc, oid_sector_sc_pp, idpath_sgg_sc 
+    ,cid_sector_sc, oid_sector_sc_metrology, idpath_sgg_sc );
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
     ( 'Диспетчер ГО', 0, cid_geo_equipment, NULL
-    ,cid_sector_sc, oid_sector_sc_pp, '{%}' 
-    ,cid_sector_sc, oid_sector_sc_repair, '{%}' );
+    ,cid_sector_sc, oid_sector_sc_pp, idpath_sgg_sc 
+    ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc );
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
     ( 'Диспетчер ГО', 0, cid_geo_equipment, NULL
-    ,cid_sector_sc, oid_sector_sc_pp, '{%}' 
+    ,cid_sector_sc, oid_sector_sc_pp, idpath_sgg_sc 
     ,cid_personal, NULL, '{%}' );
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
     ( 'Диспетчер ГО', 0, cid_geo_equipment, NULL
     ,cid_personal, NULL, '{%}' 
-    ,cid_sector_sc, oid_sector_sc_repair, '{%}' );
+    ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc );
+  -- /*[Предприятие]СГГ/[Заказ]Заказ ГО  >>  /*[Предприятие]Гирс-Сервис
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+    ('Кладовщик', 0 ,cid_geo_equipment, NULL
+    ,cid_zakaz,   oid_zakaz_go,     format('{{%s,%s}%%}',cid_company,oid_company_sgg)
+    ,cid_company, oid_company_girs, '{%}' );
+  -- /*[Предприятие]Гирс-Сервис  >>  /*[Предприятие]СГГ/[Заказ]Заказ ГО
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+    ('Кладовщик', 0 ,cid_geo_equipment, NULL
+    ,cid_company, oid_company_girs, '{%}' 
+    ,cid_zakaz,   oid_zakaz_go,       format('{{%s,%s}%%}',cid_company,oid_company_sgg) );
+  -- /*[Предприятие]Гирс-Сервис  >>  /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок]Ремонтный
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+    ('Кладовщик', 0 ,cid_geo_equipment, NULL
+    ,cid_company, oid_company_girs,          '{%}' 
+    ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc );
+  -- /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок]Ремонтный  >>  /*[Предприятие]Гирс-Сервис
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+    ('Кладовщик', 0 ,cid_geo_equipment, NULL
+    ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc
+    ,cid_company, oid_company_girs,          '{%}' );
+  -- /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок]Ремонтный  >>  /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок]Утилизация
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+    ('Кладовщик', 0 ,cid_geo_equipment, NULL
+    ,cid_sector_sc, NULL,  idpath_sgg_sc 
+    ,cid_sector_sc, oid_sector_sc_utilize, idpath_sgg_sc );
+  ----------------
+  -- Движение МТР
+  ----------------
+  RAISE NOTICE 'добавляем ПРАВИЛА ПЕРЕМЕЩЕНИЯ для МТР';
+  -- /*[Предприятие]СГГ/[Заказ]Заказ МТР  >>  /*[Предприятие]Гирс-Сервис
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+    ('Кладовщик', 0 ,cid_zip, NULL
+    ,cid_zakaz,   oid_zakaz_mtr,     format('{{%s,%s}%%}',cid_company,oid_company_sgg)
+    ,cid_company, oid_company_girs, '{%}' );
+  -- /*[Предприятие]Гирс-Сервис  >>  /*[Предприятие]СГГ/[Заказ]Заказ ГО
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+    ('Кладовщик', 0 ,cid_zip, NULL
+    ,cid_company, oid_company_girs, '{%}' 
+    ,cid_zakaz,   oid_zakaz_go,       format('{{%s,%s}%%}',cid_company,oid_company_sgg) );
+  -- /*[Предприятие]Гирс-Сервис  >>  /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок]Ремонтный
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+    ('Кладовщик', 0 ,cid_zip, NULL
+    ,cid_company, oid_company_girs,          '{%}' 
+    ,cid_sector_sc, oid_sector_sc_warehouse, idpath_sgg_sc );
+  -- /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок]Ремонтный  >>  /*[Предприятие]Гирс-Сервис
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+    ('Кладовщик', 0 ,cid_zip, NULL
+    ,cid_sector_sc, oid_sector_sc_warehouse, idpath_sgg_sc
+    ,cid_company, oid_company_girs,          '{%}' );
+  -- /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок]Склад  >>  /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок]Ремонтный
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+    ('Кладовщик', 0 ,cid_zip, NULL
+    ,cid_sector_sc, oid_sector_sc_warehouse, idpath_sgg_sc
+    ,cid_sector_sc, oid_sector_sc_repair,    idpath_sgg_sc );
+  -- /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок]Ремонтный  >>  /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок]Склад
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+    ('Кладовщик', 0 ,cid_zip, NULL
+    ,cid_sector_sc, oid_sector_sc_repair,    idpath_sgg_sc 
+    ,cid_sector_sc, oid_sector_sc_warehouse, idpath_sgg_sc );
+  -- /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок]Ремонтный  >>  /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок]Утилизация
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES 
+    ('Кладовщик', 0 ,cid_zip, NULL
+    ,cid_sector_sc, oid_sector_sc_repair,  idpath_sgg_sc 
+    ,cid_sector_sc, oid_sector_sc_utilize, idpath_sgg_sc );
+
 
 END $BODY$ LANGUAGE plpgsql;
 
@@ -728,6 +819,9 @@ DECLARE
 
   _curr_pid      BIGINT;
 
+  cid_zakaz      BIGINT;
+
+  oid_zakaz_go      BIGINT;
 BEGIN
   RAISE NOTICE 'Import cls tree';
   
@@ -735,11 +829,13 @@ BEGIN
   SELECT id INTO _prop_desc_id FROM prop WHERE title = 'Описание';
   SELECT id INTO _geo_equipment_id FROM acls WHERE title = 'Геофизическое оборудование';  
 
+  RAISE NOTICE 'Import level 0';
   FOR rec IN import_cls00 LOOP
     --RAISE DEBUG 'ADD ABSTRACT CLS=% TO ROOT ',rec.title;
     INSERT INTO acls(pid,title,kind,dobj) VALUES (_geo_equipment_id,rec.title,0,NULL);
   END LOOP;
 
+  RAISE NOTICE 'Import level 1';
   FOR rec IN import_cls01 LOOP
     SELECT title INTO _title FROM __cls00 WHERE id = rec.pid;
     SELECT id INTO _pid FROM acls WHERE title = _title;
@@ -748,12 +844,17 @@ BEGIN
   END LOOP;
 
   SELECT id INTO _curr_aid FROM ACT WHERE title='Изменить основные свойства' ;
-  
+
+  SELECT id INTO cid_zakaz     FROM acls WHERE title='Заказ';
+
+  SELECT id INTO oid_zakaz_go     FROM obj WHERE title='Заказ ГО' ;
+
+  RAISE NOTICE 'Import cls';
   FOR rec IN import_cls LOOP
     SELECT title INTO _title FROM __cls01 WHERE id = rec.pid;
     SELECT id INTO _pid FROM acls WHERE title = _title;
     --RAISE DEBUG 'ADD NUMERIC CLS=% (period=%) TO % (%)',rec.title,rec.period,_title,rec;
-    INSERT INTO acls(pid,title,kind,measure) VALUES (_pid,rec.title,1,'ед') RETURNING id INTO _cls_id ;
+    INSERT INTO acls(pid,title,kind,measure, dobj) VALUES (_pid,rec.title,1,'ед', oid_zakaz_go) RETURNING id INTO _cls_id ;
     INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (_cls_id , 1, _prop_cal_period_id, rec.period);
     INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (_cls_id , 1, _prop_desc_id, NULL);
   END LOOP;

@@ -142,14 +142,18 @@ DECLARE
   sta_category2 TEXT;
   sta_category3 TEXT;
 
-  cid_sta_zayavka BIGINT;
-  oid_zayavka2016 BIGINT;
+  cid_zakaz BIGINT;
+  oid_zakaz_mtr BIGINT;
 
   cid_curr BIGINT;
   cid_parent BIGINT;
   sta_title TEXT;
   sta_whtitle WHNAME;
   sta_title_idx INTEGER;
+
+  oid_company_sgg BIGINT;
+
+  aid_change_note BIGINT; 
 BEGIN
   RAISE NOTICE 'Start impotr MTR script';
 
@@ -157,9 +161,8 @@ BEGIN
   --SELECT id FROM acls WHERE title = 'ЗИП';
   SELECT id INTO cid_sta FROM acls WHERE title = 'ЗИП';
   IF FOUND THEN 
-    DELETE from acls WHERE id IN (SELECT _id FROM get_childs_cls(cid_sta));
+    DELETE from acls WHERE id IN (SELECT _id FROM get_childs_cls(cid_sta)WHERE _id<>cid_sta);
   END IF;
-  INSERT INTO acls(pid,title,kind,dobj) VALUES (1,'ЗИП',0,NULL) RETURNING id INTO cid_sta ; 
   RAISE DEBUG 'cid_sta %',cid_sta;
 
   RAISE NOTICE 'Build main MTR tree';
@@ -181,6 +184,9 @@ BEGIN
     INSERT INTO acls(pid,title,kind,dobj) VALUES (cid_previos,rec.id||' '||rec.title,0,NULL);
   END LOOP;
 
+  RAISE NOTICE 'Load action';
+  SELECT id INTO aid_change_note FROM act WHERE title='Изменить примечание';
+
   RAISE NOTICE 'Build custom MTR tree';
   FOR rec IN import_subcat LOOP
     SELECT id INTO cid_previos FROM acls WHERE title LIKE rec.mtr_id||'%';
@@ -190,9 +196,10 @@ BEGIN
   END LOOP;
 
   RAISE NOTICE 'Add order';
-  INSERT INTO acls(pid,title,kind,measure) VALUES (cid_sta,'Заказ',1,'шт.') RETURNING id INTO cid_sta_zayavka ; 
-  INSERT INTO obj(title,cls_id,pid) VALUES ('заявка СЦ',cid_sta_zayavka, 1 ) RETURNING id INTO oid_zayavka2016;
-
+  SELECT id INTO cid_zakaz       FROM acls WHERE title='Заказ';
+  SELECT id INTO oid_zakaz_mtr   FROM obj  WHERE title='Заказ МТР';
+  --SELECT id INTO oid_company_sgg FROM obj  WHERE title='Севергазгеофизика';
+  
   RAISE NOTICE 'Load id properties ';
 
   SELECT id INTO prid_desc FROM prop WHERE title = 'Описание';
@@ -264,8 +271,8 @@ BEGIN
 
     SELECT id INTO cid_curr FROM acls WHERE title=sta_title;
     IF NOT FOUND THEN
-      INSERT INTO acls(pid,title,kind,measure,dobj) VALUES (cid_parent,sta_title,rec.kind,rec.mess,oid_zayavka2016) 
-      RETURNING id INTO cid_curr;
+      INSERT INTO acls(pid,title,kind,measure,dobj) VALUES (cid_parent,sta_title,rec.kind,rec.mess,oid_zakaz_mtr) 
+        RETURNING id INTO cid_curr;
       INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_mtr_id, rec.mtr_id);
       INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_desc, COALESCE(rec.title,'')||' '||COALESCE(rec.description,''));
       INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_uname, NULL);
@@ -274,11 +281,15 @@ BEGIN
 
       INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_eqip_cat, CASE rec.equip_cat WHEN 0 THEN 'расход.' WHEN 1 THEN 'ЗИП' ELSE 'ОС до 40' END);
       INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (cid_curr , rec.kind, prid_dst_dep, rec.dst_dep);
+
+      INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+        VALUES ('Кладовщик', 0, cid_curr, NULL, aid_change_note );
+
     END IF;
 
-    PERFORM FROM obj WHERE cls_id=cid_curr AND title='заявка 2016' AND pid=oid_zayavka2016;
+    PERFORM FROM obj WHERE cls_id=cid_curr AND title='заявка 2016' AND pid=oid_zakaz_mtr;
     IF NOT FOUND THEN
-      INSERT INTO obj(title,cls_id,pid,qty) VALUES ('заявка 2016', cid_curr, oid_zayavka2016,rec.qty );
+      INSERT INTO obj(title,cls_id,pid,qty) VALUES ('заявка 2016', cid_curr, oid_zakaz_mtr,rec.qty );
     END IF;
 
     
