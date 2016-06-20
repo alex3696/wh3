@@ -306,7 +306,7 @@ DROP TABLE IF EXISTS ref_cls_act CASCADE;
 CREATE TABLE ref_cls_act ( 
     id        BIGINT   NOT NULL DEFAULT nextval('seq_ref_cls_act_id')
     ,cls_id   INTEGER  NOT NULL
-    ,cls_kind SMALLINT NOT NULL DEFAULT 1 CHECK (cls_kind=1 OR cls_kind=0)
+    ,cls_kind SMALLINT NOT NULL DEFAULT 1 CHECK (cls_kind BETWEEN 0 AND 3 )
     ,act_id   INTEGER  NOT NULL
 
 ,CONSTRAINT pk_refclsact__id    PRIMARY KEY ( id )

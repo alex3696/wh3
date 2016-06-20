@@ -85,8 +85,6 @@ bool MClsAct::GetInsertQuery(wxString& query)const
 	if (!parentCls)
 		return false;
 	const rec::Cls& cls = parentCls->GetStored();
-	if (!cls.IsAbstract() && !cls.IsNumberic())
-		return false;
 	//const rec::ClsActAccess& oldClsAct = this->GetStored();
 	const rec::ClsActAccess& newPerm = this->GetData();
 
