@@ -1,1 +1,0 @@
-pg_dumpall -h localhost -p 5432 -U postgres -v --roles-only -f "c:\db\roles.sql"
