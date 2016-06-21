@@ -384,6 +384,11 @@ void MainFrame::OnShowLoginWnd(wxCommandEvent& evt)
 	if(dlg.ShowModal()==wxID_OK)
 	{
 		auto user_cfg = dlg.GetCfg();
+		dbcfg = user_cfg;
+		if (!user_cfg.mStorePass)
+			dbcfg.mPass.Clear();
+		dbcfg.Save();
+
 		mgr->mDb.Open(	user_cfg.mServer
 						, user_cfg.mPort
 						, user_cfg.mDB
@@ -392,20 +397,14 @@ void MainFrame::OnShowLoginWnd(wxCommandEvent& evt)
 
 		if(mgr->mDb.IsOpen())
 		{
-			dbcfg = user_cfg;
-			dbcfg.Save();
-
 			int toolId=CMD_DB_CONNECT;
 			wxAuiToolBarItem* tool=	m_MainToolBar->FindTool(toolId);
 			if(tool)
 				tool->SetState(wxAUI_BUTTON_STATE_CHECKED);
-
 			dbcfg = dlg.GetCfg();
-			
 			whDataMgr::GetInstance()->mCfg.Prop.Load();
 
 		}//if(mgr->mDb.IsOpen())
-		
 	
 	}//if(dlg.ShowModal()==wxID_OK)
 	else

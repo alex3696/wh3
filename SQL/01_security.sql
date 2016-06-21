@@ -200,9 +200,9 @@ BEGIN
 	IF NEW.rolconnlimit<>OLD.rolconnlimit
 		THEN EXECUTE 'ALTER ROLE '||quote_ident(OLD.rolname)||' CONNECTION LIMIT '||NEW.rolconnlimit;
 		END IF;
-	IF NEW.rolpassword<>OLD.rolpassword
-		THEN EXECUTE 'ALTER ROLE '||quote_ident(OLD.rolname)||' ENCRYPTED PASSWORD '||quote_literal(NEW.rolpassword);
-		END IF;
+  IF NEW.rolpassword<>OLD.rolpassword THEN 
+    EXECUTE 'ALTER ROLE '||quote_ident(OLD.rolname)||' ENCRYPTED PASSWORD '||quote_literal(NEW.rolpassword);
+  END IF;
 	IF NEW.rolvaliduntil<>OLD.rolvaliduntil
 		THEN EXECUTE 'ALTER ROLE '||quote_ident(OLD.rolname)||' VALID UNTIL '||quote_literal(rolvaliduntil);
 		END IF;
@@ -215,7 +215,7 @@ BEGIN
 		END IF;
 	
 
-	RAISE DEBUG 'wh_role NEW RECORD (%)', NEW;
+  RAISE DEBUG 'UPDATE wh_role RECORD (%)', NEW;
 
 RETURN NEW;
 END;
