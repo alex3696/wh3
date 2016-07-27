@@ -383,6 +383,7 @@ DECLARE
  oid_sector_sc_repair_wait BIGINT;
  oid_sector_sc_metrology BIGINT;
  oid_sector_sc_pp BIGINT;
+ oid_sector_sc_pv BIGINT;
  oid_sector_sc_warehouse BIGINT;
  oid_sector_sc_conservation BIGINT;
  oid_sector_sc_utilize BIGINT;
@@ -519,6 +520,7 @@ BEGIN
   INSERT INTO obj(title,cls_id,pid) VALUES ('Долгосрочный ремонт',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_repair_wait;
   INSERT INTO obj(title,cls_id,pid) VALUES ('Метрология',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_metrology;
   INSERT INTO obj(title,cls_id,pid) VALUES ('Пункт проката',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_pp;
+  INSERT INTO obj(title,cls_id,pid) VALUES ('Пункт выдачи',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_pv;
   INSERT INTO obj(title,cls_id,pid) VALUES ('Склад',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_warehouse;
   INSERT INTO obj(title,cls_id,pid) VALUES ('Консервация',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_conservation;
   INSERT INTO obj(title,cls_id,pid) VALUES ('Утилизация',cid_sector_sc, oid_department_sc )RETURNING id INTO oid_sector_sc_utilize;
@@ -539,7 +541,7 @@ BEGIN
    ,('Инженер по ремонту ГО', 0, cid_geo_equipment, NULL, aid_proverka, format('{{%s,%s},%%}',cid_sector_sc,oid_sector_sc_repair) ) 
    ,('Инженер по ремонту ГО', 0, cid_geo_equipment, NULL, aid_prof,     format('{{%s,%s},%%}',cid_sector_sc,oid_sector_sc_repair) ) 
    ,('Инженер-метролог',      0, cid_geo_equipment, NULL, aid_calib,    format('{{%s,%s},%%}',cid_sector_sc,oid_sector_sc_metrology) )
-   ,('Диспетчер ГО',          0, cid_geo_equipment, NULL, aid_gis,      format('{{%s,%s},%%}',cid_sector_sc,oid_sector_sc_pp) ); 
+   ,('Диспетчер ГО',          0, cid_geo_equipment, NULL, aid_gis,      format('{{%s,%%},%%}',cid_personal) );
 
 
   ----------------
@@ -584,18 +586,32 @@ BEGIN
     ( 'Инженер-метролог', 0, cid_geo_equipment, NULL
     ,cid_sector_sc, oid_sector_sc_metrology, idpath_sgg_sc 
     ,cid_sector_sc, oid_sector_sc_pp, idpath_sgg_sc );
+  -- /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок СЦ]Пункт проката  >>  /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок СЦ]Метрология
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
     ( 'Диспетчер ГО', 0, cid_geo_equipment, NULL
     ,cid_sector_sc, oid_sector_sc_pp, idpath_sgg_sc 
     ,cid_sector_sc, oid_sector_sc_metrology, idpath_sgg_sc );
+  -- /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок СЦ]Пункт проката  >>  /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок СЦ]Ремонтный
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
     ( 'Диспетчер ГО', 0, cid_geo_equipment, NULL
     ,cid_sector_sc, oid_sector_sc_pp, idpath_sgg_sc 
     ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc );
+  -- /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок СЦ]Пункт проката  >>  /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок СЦ]Пункт выдачи
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
     ( 'Диспетчер ГО', 0, cid_geo_equipment, NULL
     ,cid_sector_sc, oid_sector_sc_pp, idpath_sgg_sc 
+    ,cid_sector_sc, oid_sector_sc_pv, idpath_sgg_sc );
+  -- /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок СЦ]Пункт выдачи  >>  /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок СЦ]Ремонтный
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
+    ( 'Диспетчер ГО', 0, cid_geo_equipment, NULL
+    ,cid_sector_sc, oid_sector_sc_pv, idpath_sgg_sc 
+    ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc );
+  -- /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок СЦ]Пункт выдачи  >>  /*[Персонал]*
+  INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
+    ( 'Диспетчер ГО', 0, cid_geo_equipment, NULL
+    ,cid_sector_sc, oid_sector_sc_pv, idpath_sgg_sc 
     ,cid_personal, NULL, '{%}' );
+  -- /*[Персонал]*  >>  /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок СЦ]Ремонтный
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
     ( 'Диспетчер ГО', 0, cid_geo_equipment, NULL
     ,cid_personal, NULL, '{%}' 
