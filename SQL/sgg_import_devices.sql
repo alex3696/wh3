@@ -404,9 +404,9 @@ BEGIN
     RETURNING id INTO prid_note;
   INSERT INTO prop(title, kind)VALUES('Инвентарный номер', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO prid_invn;
-  INSERT INTO prop(title, kind)VALUES('Паспорт', 300) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+  INSERT INTO prop(title, kind)VALUES('Паспорт', 400) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO prid_pasp;
-  INSERT INTO prop(title, kind)VALUES('Файл калибровки', 300) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+  INSERT INTO prop(title, kind)VALUES('Файл калибровки', 400) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO prid_calfile;
   INSERT INTO prop(title, kind)VALUES('Папка прибора', 300) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO prid_objfolder;
@@ -450,7 +450,9 @@ BEGIN
   INSERT INTO act (title,color) VALUES ('Ремонт','rgb(255, 128, 128)') 
     ON CONFLICT (title) DO UPDATE SET color=EXCLUDED.color 
     RETURNING id INTO aid_remont;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_remont, prid_note) ON CONFLICT ON CONSTRAINT uk_refactprop__actid_propid DO NOTHING;
+  INSERT INTO ref_act_prop(act_id, prop_id) VALUES (aid_remont, prid_note) 
+                                                  ,(aid_remont, prid_remdesc) 
+                                                  ON CONFLICT ON CONSTRAINT uk_refactprop__actid_propid DO NOTHING;
 
   INSERT INTO act (title,color) VALUES ('Проверка','rgb(220, 220, 220)')
     ON CONFLICT (title) DO UPDATE SET color=EXCLUDED.color 

@@ -53,9 +53,7 @@ void Act::DoAct()
 
 	const rec::PathItem& subj = obj_model->GetData();
 
-
-	wxString propdata = "{";
-
+	wxString propdata;
 	unsigned int propQty = this->mPropArray->GetChildQty();
 
 	for (unsigned int i = 0; i < propQty; ++i)
@@ -64,25 +62,27 @@ void Act::DoAct()
 		if (prop)
 		{
 			auto propData = prop->GetData();
-			wxString propval;
-			if (propData.mProp.mType == ftLong || propData.mProp.mType == ftDouble)
-				propval = propData.mVal.toStr();
-			else
-				propval = wxString::Format("\"%s\"",propData.mVal.toStr());
+			wxString format;
+			switch (propData.mProp.mType)
+			{
+			case ftLong: 
+			case ftDouble:	format = "'%s',%s,";
+				break;
+			default:		format = "'%s','%s',";
+				break;
+			}
 
-			propdata += wxString::Format("\"%s\":%s", 
-				propData.mProp.mId.toStr(), propval);
-			if (propQty - 1!= i )
-				propdata += ",";
+			propdata += wxString::Format(format
+				, propData.mProp.mId.toStr()
+				, propData.mVal.toStr() );
 		}
+		
 	}
-	if (propdata.size()>1)
-
-	propdata += "}";
-
+	propdata.RemoveLast();
+	propdata = wxString::Format("jsonb_build_object(%s)", propdata);
 
 	wxString query = wxString::Format(
-		"SELECT do_act(%s, %s, '%s')"
+		"SELECT do_act(%s, %s, %s)"
 		, subj.mObj.mId.SqlVal()
 		, this->GetData().mID
 		, propdata

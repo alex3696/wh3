@@ -54,7 +54,7 @@ void PnlPropGrid::SetModel(std::shared_ptr<dlg_act::model::PropArray>& model)
 			case ftDouble:	mPropGrid->Append(new wxFloatProperty(propData.mProp.mLabel));  break;
 			case ftDate:	mPropGrid->Append(new wxDateProperty(propData.mProp.mLabel));  break;
 			case ftLink:	mPropGrid->Append(new wxStringProperty(propData.mProp.mLabel));  break;
-			case ftFile:	mPropGrid->Append(new wxStringProperty(propData.mProp.mLabel));  break;
+			case ftFile:	mPropGrid->Append(new wxFileProperty(propData.mProp.mLabel));  break;
 			case ftJSON:	mPropGrid->Append(new wxLongStringProperty(propData.mProp.mLabel));  break;
 			default:
 				break;
