@@ -51,9 +51,14 @@ public:
 		
 		// Create and populate buttons-subwindow
 		wxPGMultiButton* buttons = new wxPGMultiButton(propGrid, sz);
-		if (is_read_only)
-			buttons->Disable();
 		buttons->Add("...");// Add one regular buttons
+		if (is_read_only)
+		{
+			buttons->Disable();
+			auto btn0 = buttons->GetButton(0);
+			if (btn0)
+				btn0->Disable();
+		}
 		
 		// Create the 'primary' editor control (textctrl in this case)
 		property->ChangeFlag(wxPG_PROP_READONLY, true);  // wxPG_EDITABLE_VALUE

@@ -238,12 +238,14 @@ const wxString& name, const wh_rec_Cls& value)
 	parent_obj_cat->SetCfg(rec::catObj,false,true);
 	parent_obj_cat->SetFilterClsKind(ctQtyByOne, foLess, true);
 	pgp_defobj->SetCatalog(parent_obj_cat,true);
+	pgp_defobj->ChangeFlag(wxPG_PROP_READONLY, false);
 
 	// setup for parent cls
 	auto parent_cls_cat = std::make_shared<MCat>();
 	parent_cls_cat->SetCfg(rec::catCls, false, false);
 	parent_cls_cat->SetFilterClsKind(ctAbstract, foEq, true);
 	pgp_parent->SetCatalog(parent_cls_cat,false);
+	pgp_parent->ChangeFlag(wxPG_PROP_READONLY, false);
 
 	//ChangeFlag(wxPG_PROP_COMPOSED_VALUE, true);
 	//pgp_parent->ChangeFlag(wxPG_PROP_COMPOSED_VALUE, true);
