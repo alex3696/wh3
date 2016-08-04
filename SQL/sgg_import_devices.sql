@@ -338,6 +338,7 @@ CREATE OR REPLACE FUNCTION sgg_add_prop_and_act()
 DECLARE 
  prid_calp BIGINT;
  prid_desc BIGINT;
+ prid_repair_reason BIGINT;
  prid_remdesc BIGINT;
  prid_note BIGINT;
  prid_invn BIGINT;
@@ -351,6 +352,7 @@ DECLARE
  prid_press BIGINT; 
  prid_temp BIGINT; 
  pid_desc_profil BIGINT; 
+ pid_desc_prover BIGINT; 
  pid_desc_kalibr BIGINT; 
  pid_fm BIGINT; 
  pid_nm BIGINT; 
@@ -398,8 +400,6 @@ BEGIN
     RETURNING id INTO prid_calp;
   INSERT INTO prop(title, kind)VALUES('Описание', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO prid_desc;
-  INSERT INTO prop(title, kind)VALUES('Описание ремонта', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
-    RETURNING id INTO prid_remdesc;
   INSERT INTO prop(title, kind)VALUES('Примечание', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO prid_note;
   INSERT INTO prop(title, kind)VALUES('Инвентарный номер', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
@@ -422,8 +422,14 @@ BEGIN
     RETURNING id INTO prid_press;
   INSERT INTO prop(title, kind)VALUES('Температура(град.С)', 101) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO prid_temp;
-  INSERT INTO prop(title, kind)VALUES('Описание проверки|профилактики', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+  INSERT INTO prop(title, kind)VALUES('Причина ремонта', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO prid_repair_reason;
+  INSERT INTO prop(title, kind)VALUES('Описание ремонта', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO prid_remdesc;
+  INSERT INTO prop(title, kind)VALUES('Описание профилактики', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO pid_desc_profil;
+  INSERT INTO prop(title, kind)VALUES('Описание проверки', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO pid_desc_prover;
   INSERT INTO prop(title, kind)VALUES('Описание калибровки', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO pid_desc_kalibr;
   INSERT INTO prop(title, kind)VALUES('Фамилия', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
@@ -450,22 +456,21 @@ BEGIN
   INSERT INTO act (title,color) VALUES ('Ремонт','rgb(255, 128, 128)') 
     ON CONFLICT (title) DO UPDATE SET color=EXCLUDED.color 
     RETURNING id INTO aid_remont;
-  INSERT INTO ref_act_prop(act_id, prop_id) VALUES (aid_remont, prid_note) 
+  INSERT INTO ref_act_prop(act_id, prop_id) VALUES (aid_remont, prid_repair_reason) 
                                                   ,(aid_remont, prid_remdesc) 
+                                                  ,(aid_remont, prid_note) 
                                                   ON CONFLICT ON CONSTRAINT uk_refactprop__actid_propid DO NOTHING;
 
   INSERT INTO act (title,color) VALUES ('Проверка','rgb(220, 220, 220)')
     ON CONFLICT (title) DO UPDATE SET color=EXCLUDED.color 
     RETURNING id INTO aid_proverka;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_proverka, pid_desc_profil) 
-                                                 ,(aid_proverka, prid_usehours) 
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_proverka, pid_desc_prover) 
                                                  ON CONFLICT ON CONSTRAINT uk_refactprop__actid_propid DO NOTHING;
 
   INSERT INTO act (title,color) VALUES ('Профилактика','rgb(255, 255, 128)')
     ON CONFLICT (title) DO UPDATE SET color=EXCLUDED.color 
     RETURNING id INTO aid_prof;
   INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_prof, pid_desc_profil)
-                                                 ,(aid_prof, prid_usehours) 
                                                  ON CONFLICT ON CONSTRAINT uk_refactprop__actid_propid DO NOTHING;
 
   INSERT INTO act (title,color) VALUES ('Калибровка','rgb(128, 220, 255)')
@@ -928,6 +933,7 @@ DECLARE
   _pid_temp        BIGINT;
   _pid_repairnote  BIGINT;
   _pid_desc_profil BIGINT;
+  _pid_desc_prover BIGINT;
   _pid_desc_kalibr BIGINT;
   _pid_kalfile     BIGINT;
   _pid_invn      BIGINT;
@@ -977,7 +983,8 @@ BEGIN
   SELECT id INTO _pid_press FROM prop WHERE title='Давление(МПа)';
   SELECT id INTO _pid_temp FROM prop WHERE title='Температура(град.С)';
   SELECT id INTO _pid_repairnote FROM prop WHERE title='Описание ремонта';
-  SELECT id INTO _pid_desc_profil FROM prop WHERE title='Описание проверки|профилактики';
+  SELECT id INTO _pid_desc_profil FROM prop WHERE title='Описание профилактики';
+  SELECT id INTO _pid_desc_prover FROM prop WHERE title='Описание проверки';
   SELECT id INTO _pid_desc_kalibr FROM prop WHERE title='Описание калибровки';
   SELECT id INTO _pid_kalfile FROM prop WHERE title='Файл калибровки';
   SELECT id INTO _pid_invn FROM prop WHERE title='Инвентарный номер' ;
@@ -1099,7 +1106,7 @@ BEGIN
                 _prop:=_prop || format('{"%s":"%s"}',   _pid_desc_profil, _note )::JSONB;
                 INSERT INTO log_detail_act(id, act_id, prop)     VALUES (_lid,_aid_profil, _prop)RETURNING id INTO _act_lid_previos;
               WHEN _note ILIKE '%провер%' AND length(_note)<60 THEN
-                _prop:=_prop || format('{"%s":"%s"}',   _pid_desc_profil, _note )::JSONB;
+                _prop:=_prop || format('{"%s":"%s"}',   _pid_desc_prover, _note )::JSONB;
                 INSERT INTO log_detail_act(id, act_id, prop)     VALUES (_lid,_aid_proverka, _prop)RETURNING id INTO _act_lid_previos;
               ELSE
                 _prop:=_prop || format('{"%s":"%s"}',   _pid_repairnote, _note )::JSONB;
