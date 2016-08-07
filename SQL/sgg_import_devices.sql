@@ -422,7 +422,7 @@ BEGIN
     RETURNING id INTO prid_press;
   INSERT INTO prop(title, kind)VALUES('Температура(град.С)', 101) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO prid_temp;
-  INSERT INTO prop(title, kind)VALUES('Причина ремонта', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+  INSERT INTO prop(title, kind, var)VALUES('Причина ремонта', 0,'{Небрежное отношение,Нарушение условий эксплуатации,Нарушение условий обслуживания,Компонентная база,Износ,Конструктивный недостаток,Брак при изготовлении}') ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO prid_repair_reason;
   INSERT INTO prop(title, kind)VALUES('Описание ремонта', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO prid_remdesc;
