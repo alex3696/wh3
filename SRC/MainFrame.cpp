@@ -162,9 +162,9 @@ void MainFrame::BuildToolbar()
 	
 	m_MainToolBar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, main_toolbar_style);
 
-	m_MainToolBar->AddTool(CMD_DB_CONNECT, "Подключиться к БД", m_ResMgr->m_ico_connect24, "Подключиться к БД", wxITEM_RADIO);
-	m_MainToolBar->AddTool(CMD_DB_DISCONNECT, "Отключиться от БД", m_ResMgr->m_ico_disconnect24, "Отключиться от БД", wxITEM_RADIO);
-	m_MainToolBar->AddSeparator();
+	//m_MainToolBar->AddTool(CMD_DB_CONNECT, "Подключиться к БД", m_ResMgr->m_ico_connect24, "Подключиться к БД", wxITEM_RADIO);
+	//m_MainToolBar->AddTool(CMD_DB_DISCONNECT, "Отключиться от БД", m_ResMgr->m_ico_disconnect24, "Отключиться от БД", wxITEM_RADIO);
+	//m_MainToolBar->AddSeparator();
 
 	//m_btnFavorites = m_MainToolBar->AddTool(CMD_SHOWFAVORITES, "Открыть избранное", m_ResMgr->m_ico_favorites24, "Открыть избранное", wxITEM_CHECK);
 
@@ -216,14 +216,14 @@ void MainFrame::ShowDevToolBar(bool show)
 		m_DevToolBar->AddTool(CMD_PNLSHOWUSER, "Пользователи",
 			m_ResMgr->m_ico_user24, wxEmptyString, wxITEM_NORMAL);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowUser, this, CMD_PNLSHOWUSER);
-		m_DevToolBar->AddTool(CMD_PNLSHOWPROP, "Свойства",
-			m_ResMgr->m_ico_list_prop24, wxEmptyString, wxITEM_NORMAL);
+		//m_DevToolBar->AddTool(CMD_PNLSHOWPROP, "Свойства",
+		//	m_ResMgr->m_ico_list_prop24, wxEmptyString, wxITEM_NORMAL);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowProp, this, CMD_PNLSHOWPROP);
 		m_DevToolBar->AddTool(CMD_PNLSHOWACT, "Действия",
 			m_ResMgr->m_ico_acts24, wxEmptyString, wxITEM_NORMAL);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowAct, this, CMD_PNLSHOWACT);
 
-		m_DevToolBar->AddTool(CMD_DB_TEST, "Тест", m_ResMgr->m_ico_views24);
+		m_DevToolBar->AddTool(CMD_DB_TEST, "Свойства", m_ResMgr->m_ico_list_prop24);
 		auto cmdTest = [this](wxCommandEvent& evt)
 		{
 			wxBusyCursor			busyCursor;
@@ -239,7 +239,7 @@ void MainFrame::ShowDevToolBar(bool show)
 				wnd->mCtrl.fnOnCmdRemove = nullptr;
 			}
 
-			m_Notebook->AddPage(wnd, "ТЕСТ Свойства", true , ResMgr::GetInstance()->m_ico_list_prop24);
+			m_Notebook->AddPage(wnd, "Свойства", true, ResMgr::GetInstance()->m_ico_list_prop24);
 			m_AuiMgr.Update();
 			m_Notebook->Thaw();
 			wnd->SetModel(model);
