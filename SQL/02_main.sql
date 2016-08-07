@@ -223,6 +223,7 @@ GRANT UPDATE        ON TABLE prop_kind  TO "Admin";
 
 INSERT INTO prop_kind (id, title) VALUES (0,  'text')
                                         ,(1,  'name')
+                                        ,(2,  'ftTextArray')
                                         ,(100, 'long')
                                         ,(101, 'double')
                                         ,(200, 'TimeStamp')
@@ -230,7 +231,8 @@ INSERT INTO prop_kind (id, title) VALUES (0,  'text')
                                         ,(202, 'Time')
                                         ,(300, 'link')
                                         ,(400, 'file')
-                                        ,(500, 'ftJSON');
+                                        ,(500, 'ftJSON')
+                                        ,(600, 'ftBool');
 ---------------------------------------------------------------------------------------------------
 -- основная описания свойств(переменных) действий
 ---------------------------------------------------------------------------------------------------
@@ -239,6 +241,8 @@ CREATE TABLE prop (
  id    BIGINT   NOT NULL DEFAULT nextval('seq_prop_id')
 ,title WHNAME   NOT NULL
 ,kind  SMALLINT NOT NULL DEFAULT 0 
+,var   TEXT ARRAY        DEFAULT NULL
+,var_strict BOOLEAN      DEFAULT FALSE
 ,CONSTRAINT pk_prop__id    PRIMARY KEY ( id )
 ,CONSTRAINT uk_prop__title UNIQUE ( title )
 ,CONSTRAINT fk_prop__kind   FOREIGN KEY ( kind )

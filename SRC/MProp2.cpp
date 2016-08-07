@@ -30,6 +30,11 @@ MPropTable::MPropTable(const char option)
 	//fieldID.mFilter.emplace_back(Field::Filter("100"));
 	fields.emplace_back(mFieldVec->CreateItem(fieldID, true));
 
+	Field field_var("Варианты", FieldType::ftTextArray, true, "var");
+	Field field_var_strict("Только варианты", FieldType::ftBool, true, "var_strict");
+	fields.emplace_back(mFieldVec->CreateItem(field_var, true));
+	fields.emplace_back(mFieldVec->CreateItem(field_var_strict, true));
+
 	mFieldVec->Insert(fields);
 
 }

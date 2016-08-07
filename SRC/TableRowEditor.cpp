@@ -4,6 +4,83 @@
 
 using namespace wh;
 
+//-----------------------------------------------------------------------------
+wxArrayString wh::Sql2ArrayString(const wxString& str_sql_value)
+{
+	wxArrayString arr;
+
+	wxRegEx cut_arr("([^{|}$]+)");
+	if (cut_arr.Matches(str_sql_value))
+	{
+		wxString curr = cut_arr.GetMatch(str_sql_value);
+
+		wxRegEx re("([^,]+|\"[^\"]*\")");
+		size_t start = 0;
+
+		while (start < curr.Len())
+		{
+			curr = curr.Mid(start); //SubString(start, str_sql_value.Len());
+			if (re.Matches(curr))
+			{
+				wxString s = re.GetMatch(curr);
+				arr.push_back(s);
+				start = s.Len() + 1;
+			}
+		}
+	}
+
+	return arr;
+}
+//-----------------------------------------------------------------------------
+wxString wh::ArrayString2Sql(const wxArrayString& arr)
+{
+	/*
+	wxString email="user@host.net"; 
+	// bugly wxRegEx reEmail = "([^@]+)@([[:alnum:].-_].)+([[:alnum:]]+)";
+	wxRegEx reEmail = "([^@]+)@([[:alnum:]\\-_]+).([[:alnum:]]+)";
+	if (reEmail.Matches(email))
+	{
+		auto qty = reEmail.GetMatchCount();
+		wxString text =     reEmail.GetMatch(email);
+		wxString username = reEmail.GetMatch(email, 1);
+		wxString domen =    reEmail.GetMatch(email, 2);
+		wxString country =  reEmail.GetMatch(email, 3);
+	}
+	*/
+
+	wxString str_sql_value;
+	for (const auto& it : arr)
+	{
+		wxString sr = it;
+		sr.Trim(true);
+		sr.Trim(false);
+		if (sr.size() > 0)
+		{
+			if ('\"' == sr[0] && '\"' == sr.Last())
+				sr = sr.substr(1, sr.size() - 2);//wxRegEx cut_quote("\"(.*)\"");
+			if (-1 == sr.Find(","))
+				str_sql_value << sr << ",";
+			else
+				str_sql_value << "\"" << sr << "\",";
+		}
+		else
+			str_sql_value << "\"\",";
+	}
+	str_sql_value.RemoveLast();
+	str_sql_value = "{" + str_sql_value + "}";
+	return str_sql_value;
+}
+//-----------------------------------------------------------------------------
+bool wh::Sql2Bool(const wxString& sql_string)
+{
+	return (sql_string.CmpNoCase("true") || sql_string.CmpNoCase("t"));
+}
+//-----------------------------------------------------------------------------
+wxString wh::Bool2Sql(bool bool_value)
+{
+	return bool_value ? "TRUE" : "FALSE";
+}
+
 
 //-----------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -114,6 +191,8 @@ void TableRowPGDefaultEditor::SetModel(std::shared_ptr<IModel>& newModel)
 		case ftLink:	pgp = mPropGrid->Append(new wxStringProperty(field.mTitle));  break;
 		case ftFile:	pgp = mPropGrid->Append(new wxStringProperty(field.mTitle));  break;
 		case ftJSON:	pgp = mPropGrid->Append(new wxLongStringProperty(field.mTitle));  break;
+		case ftBool:	pgp = mPropGrid->Append(new wxBoolProperty(field.mTitle));  break;
+		case ftTextArray:pgp = mPropGrid->Append(new wxArrayStringProperty(field.mTitle));  break;
 		default:break;
 		}
 		if (pgp)
@@ -145,18 +224,32 @@ void TableRowPGDefaultEditor::GetData(TableRowData& rec) const
 		auto pgp = mPropGrid->GetPropertyByLabel(field.mTitle);
 		if (pgp)
 		{
-			if (ftLong == field.mType && field.mEditor == FieldEditor::Type)
+			switch (field.mType)
 			{
-				int cs = pgp->GetChoiceSelection();
-				int ftype = pgp->GetChoices().GetValue(cs);
-				if (-1 != ftype)
-					rec[i] = wxString::Format("%d", ftype);
-			}
-			else
-				rec[i] = pgp->GetValueAsString();
-		}
-			
-	}
+			case ftLong:
+				if (field.mEditor == FieldEditor::Type)
+				{
+					int cs = pgp->GetChoiceSelection();
+					int ftype = pgp->GetChoices().GetValue(cs);
+					if (-1 != ftype)
+						rec[i] = wxString::Format("%d", ftype);
+				}
+				else
+					rec[i] = pgp->GetValueAsString();
+				break;
+			case ftTextArray:
+				{
+					wxArrayString arr = pgp->GetValue().GetArrayString();
+					rec[i] = ArrayString2Sql(arr);
+				}
+				break;
+			case ftBool:rec[i] = Bool2Sql(pgp->GetValue().GetBool());	
+				break;
+			default:	rec[i] = pgp->GetValueAsString();				
+				break;
+			}//switch (field.mType)
+		}//if (pgp)
+	}//for
 }
 //---------------------------------------------------------------------------
 void TableRowPGDefaultEditor::SetData(const TableRowData& rec)
@@ -180,10 +273,22 @@ void TableRowPGDefaultEditor::SetData(const TableRowData& rec)
 		if (pgp && rec.size() > i)
 		{
 			const auto& val = rec[i];
-			pgp->SetValueFromString(val);
-		}
+			switch (field.mType)
+			{
+			case ftTextArray:
+				pgp->SetValue(Sql2ArrayString(rec[i]));
+				break;
+			case ftBool:
+				pgp->SetValue(Sql2Bool(rec[i]));
+				break;
+			case ftLong:
+			default:	
+				pgp->SetValueFromString(val);
+				break;
+			}//switch (field.mType)
+		}//if (pgp && rec.size() > i)
 		
-	}
+	}//for
 }
 //---------------------------------------------------------------------------
 void TableRowPGDefaultEditor::OnChangeModel(const IModel* model, const TableRowData* data)

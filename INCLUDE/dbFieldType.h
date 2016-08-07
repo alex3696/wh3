@@ -10,6 +10,7 @@ enum FieldType
 {
 	ftText = 0,
 	ftName = 1,
+	ftTextArray = 2,
 
 	ftLong = 100,
 	ftDouble = 101,
@@ -22,7 +23,9 @@ enum FieldType
 
 	ftFile = 400,
 
-	ftJSON = 500
+	ftJSON = 500,
+
+	ftBool = 600
 	
 };
 struct FieldTypeItem
@@ -50,6 +53,7 @@ using FieldTypeArray =
 static FieldTypeArray gFieldTypeArray = {
 								{ ftText, "Текст" },
 								{ ftName, "Имя" },
+								{ ftTextArray, "Текст[]" },
 								{ ftLong, "Число(целое)" },
 								{ ftDouble, "Число(дробное)" },
 								{ ftDateTime, "Дата Время" },
@@ -58,6 +62,7 @@ static FieldTypeArray gFieldTypeArray = {
 								{ ftLink, "Ссылка" },
 								{ ftFile, "Файл" },
 								{ ftJSON, "JSON" },
+								{ ftBool, "Логический" },
 								};
 
 

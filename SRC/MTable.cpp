@@ -83,7 +83,18 @@ bool ITableRow::GetInsertQuery(wxString& query)const
 		if (field.mInsert)
 		{
 			fields << field.mDbTitle << ",";
-			values << "'" << row_data[i] << "',";
+			switch (field.mType)
+			{
+			case ftBool:
+			case ftLong:
+			case ftDouble:
+				values << row_data[i] << ",";
+				break;
+			default:
+				values << "'" << row_data[i] << "',";
+				break;
+			}
+			
 		}
 		ins_table_fields += "ins." + field.mDbTitle + ",";
 		if (field.mKey)

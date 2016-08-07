@@ -232,7 +232,7 @@ void FilterArrayEditor::OnFieldInfoChange(const IModel& newVec
 		old_pgp = old_it.GetProperty();
 		
 		auto inew_field = newVec.GetChild(pos);
-		if (inew_field)
+		if (inew_field && old_pgp)
 		{
 			auto edit_field = std::dynamic_pointer_cast<ITableField>(inew_field);
 			if (edit_field)
