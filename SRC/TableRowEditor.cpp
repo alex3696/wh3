@@ -73,7 +73,8 @@ wxString wh::ArrayString2Sql(const wxArrayString& arr)
 //-----------------------------------------------------------------------------
 bool wh::Sql2Bool(const wxString& sql_string)
 {
-	return (sql_string.CmpNoCase("true") || sql_string.CmpNoCase("t"));
+	bool b = (0==sql_string.CmpNoCase("true") || 0==sql_string.CmpNoCase("t"));
+	return b;
 }
 //-----------------------------------------------------------------------------
 wxString wh::Bool2Sql(bool bool_value)
@@ -191,7 +192,9 @@ void TableRowPGDefaultEditor::SetModel(std::shared_ptr<IModel>& newModel)
 		case ftLink:	pgp = mPropGrid->Append(new wxStringProperty(field.mTitle));  break;
 		case ftFile:	pgp = mPropGrid->Append(new wxStringProperty(field.mTitle));  break;
 		case ftJSON:	pgp = mPropGrid->Append(new wxLongStringProperty(field.mTitle));  break;
-		case ftBool:	pgp = mPropGrid->Append(new wxBoolProperty(field.mTitle));  break;
+		case ftBool:	pgp = mPropGrid->Append(new wxBoolProperty(field.mTitle));  
+			pgp->SetAttribute(wxPG_BOOL_USE_CHECKBOX,true);
+			break;
 		case ftTextArray:pgp = mPropGrid->Append(new wxArrayStringProperty(field.mTitle));  break;
 		default:break;
 		}

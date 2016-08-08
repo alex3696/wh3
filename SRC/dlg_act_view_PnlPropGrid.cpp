@@ -2,6 +2,8 @@
 #include "dlg_act_view_PnlPropGrid.h"
 #include "TViewCtrlPanel.h"
 
+// конвертеры из SQL в bool и ArrayString
+#include "TableRowEditor.h"
 
 using namespace wh;
 using namespace wh::dlg_act::view;
@@ -48,7 +50,19 @@ void PnlPropGrid::SetModel(std::shared_ptr<dlg_act::model::PropArray>& model)
 			const auto& propData = prop->GetData();
 			switch (propData.mProp.mType )
 			{
-			case ftText:	mPropGrid->Append(new wxLongStringProperty(propData.mProp.mLabel)); break;
+			case ftText:	
+				if (!propData.mProp.mVarArray.IsEmpty())
+				{
+					auto arr = Sql2ArrayString(propData.mProp.mVarArray);
+					wxPGChoices eech = arr;
+					if (Sql2Bool(propData.mProp.mVarStrict))
+						mPropGrid->Append(new wxEnumProperty(propData.mProp.mLabel, wxPG_LABEL, eech));
+					else
+						mPropGrid->Append(new wxEditEnumProperty(propData.mProp.mLabel, wxPG_LABEL, eech));
+				}
+				else
+					mPropGrid->Append(new wxLongStringProperty(propData.mProp.mLabel));
+				break;
 			case ftName:	mPropGrid->Append(new wxStringProperty(propData.mProp.mLabel)); break;
 			case ftLong:	mPropGrid->Append(new wxIntProperty(propData.mProp.mLabel));  break;
 			case ftDouble:	mPropGrid->Append(new wxFloatProperty(propData.mProp.mLabel));  break;
@@ -56,6 +70,12 @@ void PnlPropGrid::SetModel(std::shared_ptr<dlg_act::model::PropArray>& model)
 			case ftLink:	mPropGrid->Append(new wxStringProperty(propData.mProp.mLabel));  break;
 			case ftFile:	mPropGrid->Append(new wxFileProperty(propData.mProp.mLabel));  break;
 			case ftJSON:	mPropGrid->Append(new wxLongStringProperty(propData.mProp.mLabel));  break;
+			case ftBool:	
+				{
+					auto pgp = mPropGrid->Append(new wxBoolProperty(propData.mProp.mLabel));
+					pgp->SetAttribute(wxPG_BOOL_USE_CHECKBOX, true);
+				}
+				break;
 			default:
 				break;
 			}

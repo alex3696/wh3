@@ -122,6 +122,8 @@ struct Prop: public Base
 	//wxString	mID;
 	//wxString	mLabel;	
 	FieldType	mType;
+	wxString	mVarArray;
+	wxString	mVarStrict;
 
 	Prop(){}
 	Prop(const wxString& label, const FieldType type = ftText)
