@@ -46,11 +46,6 @@ private:
 
 };//-----------------------------------------------------------------------------
 
-wxArrayString Sql2ArrayString(const wxString& sql_value);
-wxString ArrayString2Sql(const wxArrayString& array_string_value);
-
-bool Sql2Bool(const wxString& sql_string);
-wxString Bool2Sql(bool bool_value);
 
 
 }//namespace wh

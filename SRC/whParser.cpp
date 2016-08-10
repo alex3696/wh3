@@ -193,3 +193,140 @@ bool ObjKeyPath::ParsePath(const  std::wstring& str,bool reverse)
 	return res;
 
 }
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+/** Парсер для массивов postgres {"item 1","item,2",item3}
+*/
+template <typename Iterator>
+struct pg_array_parser : qi::grammar<Iterator, std::deque<std::wstring>(), unicode::space_type>
+{
+	pg_array_parser()
+		: pg_array_parser::base_type(arr)
+	{
+		using namespace qi;
+		using qi::lit;
+		using qi::string;
+		using qi::lexeme;
+		using qi::omit;
+		using unicode::char_;
+		using qi::no_skip;
+		
+		n_item %= lexeme[+(char_ - ',' )];							// some_value
+		q_data %= lexeme[*((char_ - '\\' -'"') | string("\\\"") | string("\\\\"))]; 
+		q_item %= omit['"'] >> q_data >> omit['"'];	// "some value"
+
+		item %= q_item | n_item;
+		arr %= '{' >> (item % ',') >> '}';							//{ *item }
+	}
+
+	qi::rule<Iterator, std::wstring(), unicode::space_type>
+		n_item, q_item, q_data, item;
+	qi::rule<Iterator, std::deque<std::wstring>(), unicode::space_type>	arr;
+
+
+};//struct pg_array_parser
+//------------------------------------------------------------------------------
+wxArrayString wh::Sql2ArrayString(const wxString& sql_str)
+{
+	const std::wstring str = sql_str.wc_str();
+	std::deque<std::wstring> ret;
+	std::wstring::const_iterator	begin = str.begin(), end = str.end();
+	
+	
+	pg_array_parser	< std::wstring::const_iterator> gr;
+
+	bool r = qi::phrase_parse(begin, end, gr, unicode::space, ret);
+
+	if (!r || begin != end)
+		wxLogMessage("pg_array_parser error: " + sql_str);
+
+	wxArrayString arr;
+	for (const auto& item : ret)
+	{
+		arr.push_back(item);
+	}
+	return arr;
+}
+
+//-----------------------------------------------------------------------------
+wxArrayString Sql2ArrayString_old(const wxString& str_sql_value)
+{
+	wxArrayString arr;
+
+	wxRegEx cut_arr("([^{|}$]+)");
+	if (cut_arr.Matches(str_sql_value))
+	{
+		wxString curr = cut_arr.GetMatch(str_sql_value);
+
+		wxRegEx re("([^,]+|\"[^\"]*\")");
+		size_t start = 0;
+
+		while (start < curr.Len())
+		{
+			curr = curr.Mid(start); //SubString(start, str_sql_value.Len());
+			if (re.Matches(curr))
+			{
+				wxString s = re.GetMatch(curr);
+				arr.push_back(s);
+				start = s.Len() + 1;
+			}
+		}
+	}
+
+	return arr;
+}
+//-----------------------------------------------------------------------------
+wxString wh::ArrayString2Sql(const wxArrayString& arr)
+{
+	/*
+	wxString email="user@host.net";
+	// bugly wxRegEx reEmail = "([^@]+)@([[:alnum:].-_].)+([[:alnum:]]+)";
+	wxRegEx reEmail = "([^@]+)@([[:alnum:]\\-_]+).([[:alnum:]]+)";
+	if (reEmail.Matches(email))
+	{
+	auto qty = reEmail.GetMatchCount();
+	wxString text =     reEmail.GetMatch(email);
+	wxString username = reEmail.GetMatch(email, 1);
+	wxString domen =    reEmail.GetMatch(email, 2);
+	wxString country =  reEmail.GetMatch(email, 3);
+	}
+	*/
+
+	wxString str_sql_value;
+	for (const auto& it : arr)
+	{
+		wxString sr = it;
+		sr.Trim(true);
+		sr.Trim(false);
+		
+		if (sr.size() > 0)
+		{
+			if ('\"' == sr[0] && '\"' == sr.Last())
+				sr = sr.substr(1, sr.size() - 2);//wxRegEx cut_quote("\"(.*)\"");
+			sr.Replace("\"", "\\\"");
+			if (wxNOT_FOUND == sr.Find(",") && wxNOT_FOUND == sr.Find(" "))
+				str_sql_value << sr << ",";
+			else
+				str_sql_value << "\"" << sr << "\",";
+		}
+		else
+			str_sql_value << "\"\",";
+	}
+	str_sql_value.RemoveLast();
+	str_sql_value = "{" + str_sql_value + "}";
+	return str_sql_value;
+}
+//-----------------------------------------------------------------------------
+bool wh::Sql2Bool(const wxString& sql_string)
+{
+	bool b = (0 == sql_string.CmpNoCase("true") || 0 == sql_string.CmpNoCase("t"));
+	return b;
+}
+//-----------------------------------------------------------------------------
+wxString wh::Bool2Sql(bool bool_value)
+{
+	return bool_value ? "TRUE" : "FALSE";
+}
+

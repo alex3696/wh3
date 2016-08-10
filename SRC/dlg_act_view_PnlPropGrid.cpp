@@ -2,9 +2,6 @@
 #include "dlg_act_view_PnlPropGrid.h"
 #include "TViewCtrlPanel.h"
 
-// конвертеры из SQL в bool и ArrayString
-#include "TableRowEditor.h"
-
 using namespace wh;
 using namespace wh::dlg_act::view;
 
