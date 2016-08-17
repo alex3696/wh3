@@ -212,8 +212,8 @@ struct pg_array_parser : qi::grammar<Iterator, std::deque<std::wstring>(), unico
 		using qi::omit;
 		using unicode::char_;
 		using qi::no_skip;
-		
-		n_item %= lexeme[+(char_ - ',' )];							// some_value
+				
+		n_item %= lexeme[+((char_ - '}' - '\\' - ',') | string("\\}") | string("\\\\"))];
 		q_data %= lexeme[*((char_ - '\\' -'"') | string("\\\"") | string("\\\\"))]; 
 		q_item %= omit['"'] >> q_data >> omit['"'];	// "some value"
 

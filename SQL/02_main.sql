@@ -255,7 +255,7 @@ CREATE INDEX idx_prop__title_tgm ON prop USING gin (title gin_trgm_ops);
 GRANT SELECT        ON TABLE prop  TO "Guest";
 GRANT INSERT        ON TABLE prop  TO "TypeDesigner";
 GRANT DELETE        ON TABLE prop  TO "TypeDesigner";
-GRANT UPDATE(title,kind)
+GRANT UPDATE(title,kind,var,var_strict)
                     ON TABLE prop  TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 -- таблица свойств классов
