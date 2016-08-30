@@ -3,6 +3,7 @@
 
 
 #include "whLogin.h"
+#include "ConnectionCfgDlg.h"
 
 #include "favorites.h"
 
@@ -85,6 +86,8 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 
 
 	ShowDevToolBar();
+
+	OnMakeObjWnd(wxCommandEvent(CMD_MAKEOBJWND));
 }
 //---------------------------------------------------------------------------
 MainFrame::~MainFrame()
@@ -107,6 +110,8 @@ void MainFrame::BuildMenu()
 	wxMenuItem* item = NULL;
 
 	wxMenu* dbmenu = new wxMenu();
+	item = new wxMenuItem(dbmenu, wxID_SETUP, "Настройки соединения");
+	dbmenu->Append(item);
 	item = new wxMenuItem(dbmenu, CMD_DB_CONNECT, "Подключиться к БД");
 	item->SetBitmap(m_ResMgr->m_ico_connect16);
 	dbmenu->Append(item);
@@ -114,40 +119,51 @@ void MainFrame::BuildMenu()
 	item->SetBitmap(m_ResMgr->m_ico_disconnect16);
 	dbmenu->Append(item);
 	dbmenu->AppendSeparator();
-	item = new wxMenuItem(dbmenu, wxID_PREFERENCES, "Конфигурация");
-	item->SetBitmap(m_ResMgr->m_ico_db16);
-	dbmenu->Append(item);
-	dbmenu->AppendSeparator();
 	item = new wxMenuItem(dbmenu, wxID_EXIT, "Выход");
 	dbmenu->Append(item);
 	menu_bar->Append(dbmenu, "Подключение");
 
-	wxMenu* view = new wxMenu();
-	item = new wxMenuItem(view, CMD_SHOWFAVORITES, "Показать/скрыть избранное", wxEmptyString, wxITEM_CHECK);
-	view->Append(item);
-
-	item = new wxMenuItem(view, CMD_SHOWEDITOROPTIONS, "Опции редактора", wxEmptyString, wxITEM_CHECK);
-	view->Append(item);
-	menu_bar->Append(view, "Вид");
-
+	wxMenu* menu_cfg = new wxMenu();
+	item = new wxMenuItem(menu_cfg, CMD_SHOWFAVORITES, "Показать/скрыть избранное", wxEmptyString, wxITEM_CHECK);
+	menu_cfg->Append(item);
+	menu_cfg->AppendSeparator();
+	item = new wxMenuItem(menu_cfg, wxID_PREFERENCES, "Пользовательские настройки");
+	menu_cfg->Append(item);
+	menu_bar->Append(menu_cfg, "Настройки");
 
 	wxMenu* dir = new wxMenu();
-	item = new wxMenuItem(dir, CMD_MAKEOBJWND, "Открыть каталог объектов");
+	item = new wxMenuItem(dir, CMD_PNLSHOWGROUP, "Группы пользователей");
+	item->SetBitmap(m_ResMgr->m_ico_usergroup16);
 	dir->Append(item);
-	item = new wxMenuItem(dir, CMD_MAKEHISTORYWND, "Открыть историю");
+	item = new wxMenuItem(dir, CMD_PNLSHOWUSER, "Пользователи");
+	item->SetBitmap(m_ResMgr->m_ico_user16);
+	dir->Append(item);
+	dir->AppendSeparator();
+	item = new wxMenuItem(dir, CMD_PNLSHOWPROP, "Свойства");
+	item->SetBitmap(m_ResMgr->m_ico_list_prop16);
+	dir->Append(item);
+	item = new wxMenuItem(dir, CMD_PNLSHOWACT, "Действия");
+	item->SetBitmap(m_ResMgr->m_ico_acts16);
+	dir->Append(item);
+	dir->AppendSeparator();
+	item = new wxMenuItem(dir, CMD_MAKEHISTORYWND, "Общая история");
+	dir->Append(item);
+	item = new wxMenuItem(dir, CMD_MAKEOBJWND, "Открыть каталог объектов");
 	dir->Append(item);
 	menu_bar->Append(dir, "Каталоги");
 
-
-	wxMenu* xrcmenu = new wxMenu();
-	item = new wxMenuItem(xrcmenu, wxID_ANY, "About");
-	xrcmenu->Append(item);
-	menu_bar->Append(xrcmenu, "Help");
+	wxMenu* menu_report = new wxMenu();
+	item = new wxMenuItem(menu_report, wxID_ANY, "Редактор отчётов");
+	menu_report->Append(item);
+	item = new wxMenuItem(menu_report, wxID_ANY, "Список отчётов");
+	menu_report->Append(item);
+	menu_bar->Append(menu_report, "Отчёты");
 
 
 	SetMenuBar(menu_bar);
 
-
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::DoMenuPreferences, this, wxID_PREFERENCES);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::DoShowConnDlg, this, wxID_SETUP);
 
 }
 //---------------------------------------------------------------------------
@@ -169,8 +185,7 @@ void MainFrame::BuildToolbar()
 	//m_btnFavorites = m_MainToolBar->AddTool(CMD_SHOWFAVORITES, "Открыть избранное", m_ResMgr->m_ico_favorites24, "Открыть избранное", wxITEM_CHECK);
 
 	m_MainToolBar->AddTool(CMD_MAKEOBJWND, "Открыть каталог объектов", m_ResMgr->m_ico_add_obj_tab24, "Открыть каталог объектов");
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::DoMenuPreferences, this, wxID_PREFERENCES);
-
+	
 	m_MainToolBar->Realize();
 
 	m_AuiMgr.AddPane(m_MainToolBar, wxAuiPaneInfo().
@@ -310,6 +325,12 @@ void MainFrame::ShowDevToolBar(bool show)
 	m_AuiMgr.Update();
 }
 //---------------------------------------------------------------------------
+void MainFrame::DoShowConnDlg(wxCommandEvent& evt)
+{
+	ConnectionCfgDlg conn_dlg(this);
+	conn_dlg.ShowModal();
+}
+//---------------------------------------------------------------------------
 void MainFrame::DoMenuPreferences( wxCommandEvent& evt) 
 {
 
@@ -355,7 +376,8 @@ void MainFrame::CreateObjCatalog(const wxString& _objclass,const wxString& _objn
 //---------------------------------------------------------------------------
 void MainFrame::OnMakeObjWnd(wxCommandEvent& evt)
 {
-	CreateObjCatalog("Object","Object0");
+	if(whDataMgr::GetDB().IsOpen())
+		CreateObjCatalog("Object","Object0");
 }	
 //---------------------------------------------------------------------------
 void MainFrame::OnMakeHistoryWnd(wxCommandEvent& evt)
@@ -379,21 +401,24 @@ void MainFrame::OnShowLoginWnd(wxCommandEvent& evt)
 
 
 	whLogin dlg(this);
-	dlg.SetCfg(dbcfg);
+	dlg.SetAuthInfo(dbcfg.mUser, dbcfg.mPass, dbcfg.mStorePass);
 
 	if(dlg.ShowModal()==wxID_OK)
 	{
-		auto user_cfg = dlg.GetCfg();
-		dbcfg = user_cfg;
-		if (!user_cfg.mStorePass)
+		if (dlg.GetStorePass())
+			dbcfg.mPass = dlg.GetUserPass();
+		else
 			dbcfg.mPass.Clear();
+
+		dbcfg.mStorePass = dlg.GetStorePass();
+		dbcfg.mUser = dlg.GetUserName();
 		dbcfg.Save();
 
-		mgr->mDb.Open(	user_cfg.mServer
-						, user_cfg.mPort
-						, user_cfg.mDB
-						, user_cfg.mUser
-						, user_cfg.mPass);
+		mgr->mDb.Open(	dbcfg.mServer
+						, dbcfg.mPort
+						, dbcfg.mDB
+						, dbcfg.mUser
+						, dbcfg.mPass);
 
 		if(mgr->mDb.IsOpen())
 		{
@@ -401,15 +426,18 @@ void MainFrame::OnShowLoginWnd(wxCommandEvent& evt)
 			wxAuiToolBarItem* tool=	m_MainToolBar->FindTool(toolId);
 			if(tool)
 				tool->SetState(wxAUI_BUTTON_STATE_CHECKED);
-			dbcfg = dlg.GetCfg();
+			dbcfg.Load();
 			whDataMgr::GetInstance()->mCfg.Prop.Load();
+			const wxString conn_str =
+				dbcfg.mUser << " " <<
+				dbcfg.mServer << ":" << dbcfg.mPort << " " << dbcfg.mDB;
+			SetStatusText(conn_str, 0);
 
 		}//if(mgr->mDb.IsOpen())
 	
 	}//if(dlg.ShowModal()==wxID_OK)
 	else
 		::exit(0);
-
 	
 	
 	
@@ -426,9 +454,11 @@ void MainFrame::OnDisconnectDB(wxCommandEvent& evt)
 	whDataMgr* mgr = whDataMgr::GetInstance();
 	mgr->mDb.Close();
 
-	wxAuiToolBarItem* tool=	m_MainToolBar->FindTool(CMD_DB_DISCONNECT);
-	tool->SetState(wxAUI_BUTTON_STATE_CHECKED);
+	SetStatusText(wxEmptyString, 0);
 
+	wxAuiToolBarItem* tool=	m_MainToolBar->FindTool(CMD_DB_DISCONNECT);
+	if (tool)
+		tool->SetState(wxAUI_BUTTON_STATE_CHECKED);
 
 }
 

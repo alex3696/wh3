@@ -1,0 +1,9 @@
+diff a/SRC/MainFrame.cpp b/SRC/MainFrame.cpp	(rejected hunks)
+@@ -154,7 +154,6 @@
+ 	dir->Append(item);
+ 	menu_bar->Append(dir, "��������");
+ 
+-
+ 	wxMenu* xrcmenu = new wxMenu();
+ 	item = new wxMenuItem(xrcmenu, wxID_ANY, "About");
+ 	xrcmenu->Append(item);

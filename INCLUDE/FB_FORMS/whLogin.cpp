@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "whLogin.h"
+#include "ConnectionCfgDlg.h"
 
 //---------------------------------------------------------------------------
 whLogin::whLogin(wxWindow* parent, wxWindowID id, const wxString& title
@@ -54,43 +55,7 @@ whLogin::whLogin(wxWindow* parent, wxWindowID id, const wxString& title
 	szrGrid->Add(0, 0, 0, 0, 5);
 
 
-	mPnlExt = new wxPanel(this, wxID_ANY);
-	{
-		wxFlexGridSizer* szrExtGrid;
-		szrExtGrid = new wxFlexGridSizer(4, 2, 0, 50);
-		szrExtGrid->AddGrowableCol(1);
-		szrExtGrid->AddGrowableRow(0);
-		szrExtGrid->AddGrowableRow(3);
-		szrExtGrid->SetFlexibleDirection(wxBOTH);
-		szrExtGrid->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
-
-		wxStaticText* lblRole = new wxStaticText(mPnlExt, wxID_ANY, "Роль");
-		szrExtGrid->Add(lblRole, 0, wxALL | wxEXPAND | wxALIGN_CENTER_VERTICAL, 5);
-		mTxtRole = new wxTextCtrl(mPnlExt, wxID_ANY);
-		szrExtGrid->Add(mTxtRole, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
-
-		wxStaticText* lblServer = new wxStaticText(mPnlExt, wxID_ANY, "Сервер");
-		szrExtGrid->Add(lblServer, 0, wxALL | wxEXPAND | wxALIGN_CENTER_VERTICAL, 5);
-		mTxtServer = new wxTextCtrl(mPnlExt, wxID_ANY);
-		szrExtGrid->Add(mTxtServer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
-
-		wxStaticText* lblPort = new wxStaticText(mPnlExt, wxID_ANY, "Порт");
-		szrExtGrid->Add(lblPort, 0, wxALL | wxEXPAND | wxALIGN_CENTER_VERTICAL, 5);
-		mTxtPort = new wxTextCtrl(mPnlExt, wxID_ANY);
-		szrExtGrid->Add(mTxtPort, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
-
-		wxStaticText* lblDb = new wxStaticText(mPnlExt, wxID_ANY, "БД");
-		szrExtGrid->Add(lblDb, 0, wxALL | wxEXPAND | wxALIGN_CENTER_VERTICAL, 5);
-		mTxtDB = new wxTextCtrl(mPnlExt, wxID_ANY);
-		szrExtGrid->Add(mTxtDB, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
-
-		mPnlExt->SetSizer(szrExtGrid);
-	}
-	mPnlExt->Hide();
-
-
 	szrMain->Add(szrGrid, 0, wxEXPAND, 5);
-	szrMain->Add(mPnlExt, 0, wxEXPAND, 5);
 
 	wxBoxSizer* szrButtons;
 	szrButtons = new wxBoxSizer(wxHORIZONTAL);
@@ -125,55 +90,29 @@ whLogin::~whLogin()
 //---------------------------------------------------------------------------
 void whLogin::OnParam( wxCommandEvent& event )
 {
-	auto xsize = GetSize();
-	
-	if (mPnlExt->IsShown())
-	{
-		mPnlExt->Hide();
-		xsize.SetHeight(270);
-	}
-	else
-	{
-		mPnlExt->Show();
-		xsize.SetHeight(400);
-	}
-
-	SetSize(xsize);
+	ConnectionCfgDlg conn_dlg(this);
+	conn_dlg.ShowModal();
 }
 //---------------------------------------------------------------------------
-void whLogin::OnOk( wxCommandEvent& event )
+void whLogin::SetAuthInfo(const wxString& name, const wxString& pass, bool store)
 {
-	// TODO: Implement OnOk
+	m_cbxUserName->SetValue(name);
+	m_txtPass->SetValue(pass);
+	m_chkStorePass->SetValue(store);
+
 }
 //---------------------------------------------------------------------------
-void whLogin::OnCancel( wxCommandEvent& event )
+wxString whLogin::GetUserName()const
 {
-	// TODO: Implement OnCancel
+	return m_cbxUserName->GetValue();
 }
 //---------------------------------------------------------------------------
-wh::Cfg::DbConnect whLogin::GetCfg()const
+wxString whLogin::GetUserPass()const
 {
-	wh::Cfg::DbConnect cfg;
-
-	cfg.mServer =	mTxtServer->GetValue();
-	cfg.mDB =		mTxtDB->GetValue();
-	mTxtPort->GetValue().ToCLong(&cfg.mPort);
-	cfg.mUser =		m_cbxUserName->GetValue();
-	cfg.mPass =		m_txtPass->GetValue();
-	cfg.mRole =		mTxtRole->GetValue();
-	cfg.mStorePass =m_chkStorePass->GetValue();
-
-	return cfg;
+	return m_txtPass->GetValue();
 }
 //---------------------------------------------------------------------------
-void whLogin::SetCfg(const wh::Cfg::DbConnect& cfg)
+bool whLogin::GetStorePass()const
 {
-	mTxtServer->SetValue(cfg.mServer);
-	mTxtDB->SetValue(cfg.mDB);
-	mTxtPort->SetValue(wxString::Format("%d",cfg.mPort));
-	m_cbxUserName->SetValue(cfg.mUser);
-	m_txtPass->SetValue(cfg.mPass);
-	mTxtRole->SetValue(cfg.mRole);
-	m_chkStorePass->SetValue(cfg.mStorePass);
+	return m_chkStorePass->GetValue();
 }
-

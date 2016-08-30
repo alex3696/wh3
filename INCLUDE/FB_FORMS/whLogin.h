@@ -15,24 +15,17 @@ public:
 		, long style = wxDEFAULT_DIALOG_STYLE);
 	~whLogin();
 
-	wh::Cfg::DbConnect GetCfg()const;
-	void SetCfg(const wh::Cfg::DbConnect& cfg );
+	void SetAuthInfo(const wxString& name, const wxString& pass, bool store = true);
+	wxString GetUserName()const;
+	wxString GetUserPass()const;
+	bool GetStorePass()const;
 
 protected:
-	// Handlers for dlgBaseLogin events.
 	void OnParam( wxCommandEvent& event );
-	void OnOk( wxCommandEvent& event );
-	void OnCancel( wxCommandEvent& event );
 	
 	wxComboBox* m_cbxUserName;
 	wxTextCtrl* m_txtPass;
 	wxCheckBox* m_chkStorePass;
-
-	wxPanel*		mPnlExt;
-	wxTextCtrl*		mTxtRole;
-	wxTextCtrl*		mTxtServer;
-	wxTextCtrl*		mTxtPort;
-	wxTextCtrl*		mTxtDB;
 
 	wxButton* m_btnParam;
 	wxButton* m_btnOK;

@@ -24,7 +24,6 @@ enum GUIID
 	CMD_MAKEHISTORYWND,
 
 	CMD_SHOWFAVORITES,
-	CMD_SHOWEDITOROPTIONS,
 
 	CMD_PNLSHOWGROUP,
 	CMD_PNLSHOWUSER,
@@ -68,7 +67,7 @@ public:
 		long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL);
 	~MainFrame();
 
-
+	void DoShowConnDlg(wxCommandEvent& evt = wxCommandEvent());
 	void DoMenuPreferences( wxCommandEvent& evt=wxCommandEvent() );
 	void OnMakeTypeWnd(wxCommandEvent& evt=wxCommandEvent());
 	void OnMakeObjWnd(wxCommandEvent& evt=wxCommandEvent());

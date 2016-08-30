@@ -138,6 +138,7 @@
     <ClCompile Include="..\..\SRC\BaseRefControlPanel.cpp" />
     <ClCompile Include="..\..\SRC\BaseTable.cpp" />
     <ClCompile Include="..\..\SRC\BtnProperty.cpp" />
+    <ClCompile Include="..\..\SRC\ConnectionCfgDlg.cpp" />
     <ClCompile Include="..\..\SRC\DActEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsActEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsEditor.cpp" />
@@ -248,6 +249,7 @@
     <ClInclude Include="..\..\INCLUDE\BaseOkCancelDialog.h" />
     <ClInclude Include="..\..\INCLUDE\BaseRefControlPanel.h" />
     <ClInclude Include="..\..\INCLUDE\BtnProperty.h" />
+    <ClInclude Include="..\..\INCLUDE\ConnectionCfgDlg.h" />
     <ClInclude Include="..\..\INCLUDE\DActEditor.h" />
     <ClInclude Include="..\..\INCLUDE\dbFieldType.h" />
     <ClInclude Include="..\..\INCLUDE\db_data.h" />

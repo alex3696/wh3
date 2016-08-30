@@ -108,6 +108,11 @@ public:
 	DEF_INIT_ICO16(connect);
 	DEF_INIT_ICO16(disconnect);
 
+	DEF_INIT_ICO16(usergroup);
+	DEF_INIT_ICO16(user);
+	DEF_INIT_ICO16(list_prop);
+	DEF_INIT_ICO16(acts);
+
 	DEF_INIT_ICO16(newfolder);
 	DEF_INIT_ICO16(sort_asc);
 	DEF_INIT_ICO16(sort_desc);

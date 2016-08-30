@@ -127,11 +127,14 @@
     <Filter Include="Таблица Свойств\Table">
       <UniqueIdentifier>{27388e6a-f0c3-42fe-97a7-37526630ebd7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="dlgLogin">
-      <UniqueIdentifier>{a7a3f226-49ab-4e2d-94eb-9c723a052dad}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Таблица Свойств\Table\Редактор фильтров">
       <UniqueIdentifier>{022d129b-5c5c-4337-8475-6766717de47a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\dlgLogin">
+      <UniqueIdentifier>{a7a3f226-49ab-4e2d-94eb-9c723a052dad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\ConnectionCfgDlg">
+      <UniqueIdentifier>{7f8588ff-31e0-430d-94ab-39c1f0c8af3a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -151,7 +154,7 @@
       <Filter>Controls\DataViewExtension</Filter>
     </ClCompile>
     <ClCompile Include="..\..\INCLUDE\FB_FORMS\whLogin.cpp">
-      <Filter>dlgLogin</Filter>
+      <Filter>MainFrame\dlgLogin</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\whDB.cpp">
       <Filter>DataBase</Filter>
@@ -396,6 +399,9 @@
     <ClCompile Include="..\..\SRC\DetailActToolBar.cpp">
       <Filter>Detail\view</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\SRC\ConnectionCfgDlg.cpp">
+      <Filter>MainFrame\ConnectionCfgDlg</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\INCLUDE\_pch.h">
@@ -417,7 +423,7 @@
       <Filter>Controls\DataViewExtension</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\FB_FORMS\whLogin.h">
-      <Filter>dlgLogin</Filter>
+      <Filter>MainFrame\dlgLogin</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\whDB.h">
       <Filter>DataBase</Filter>
@@ -712,6 +718,9 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h">
       <Filter>Detail\view</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ConnectionCfgDlg.h">
+      <Filter>MainFrame\ConnectionCfgDlg</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
