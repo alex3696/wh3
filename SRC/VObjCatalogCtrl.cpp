@@ -27,7 +27,7 @@ VObjCatalogCtrl::VObjCatalogCtrl(wxWindow* parent,
 	SetSizer(szrMain);
 
 	mToolBar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
-		wxAUI_TB_TEXT | wxAUI_TB_OVERFLOW);
+		wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_PLAIN_BACKGROUND | wxAUI_TB_TEXT | wxAUI_TB_OVERFLOW);
 	GetSizer()->Add(mToolBar, 0, wxALL | wxEXPAND, 0);
 
 	mPathSring = new wxTextCtrl(this, wxID_ANY, "/", wxDefaultPosition, wxDefaultSize, 

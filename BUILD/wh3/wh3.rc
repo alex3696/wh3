@@ -21,7 +21,7 @@ AMAIN                   ICON                    "..\\..\\RESOURCES\main.ico"
 #define VER_DEBUG                   VS_FF_DEBUG
 #endif
 
-#define VER_FILEVERSION             3,0,0,85
+#define VER_FILEVERSION             3,0,0,0
 #define VER_FILEVERSION_STR         "3.0.0.0\0"
 
 #define VER_PRODUCTVERSION          3,0,0,0
