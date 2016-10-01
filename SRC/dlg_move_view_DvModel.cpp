@@ -290,12 +290,12 @@ void DvModel::OnAfterInsert(const IModel& vec
 		auto objArray = typeModel->GetObjects();
 		wxDataViewItemArray objItemArray;
 
-		for (unsigned int j = 0; j < objArray->GetChildQty(); ++j)
-		{
-			wxDataViewItem objItem(objArray->GetChild(j).get());
-			objItemArray.Add(objItem);
-		}
-		ItemsAdded(typeItem, objItemArray);
+		//for (unsigned int j = 0; j < objArray->GetChildQty(); ++j)
+		//{
+		//	wxDataViewItem objItem(objArray->GetChild(j).get());
+		//	objItemArray.Add(objItem);
+		//}
+		//ItemsAdded(typeItem, objItemArray);
 	}
 
 }//OnAppend
