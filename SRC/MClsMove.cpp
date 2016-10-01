@@ -29,6 +29,13 @@ MClsMove::MClsMove(const char option)
 //-------------------------------------------------------------------------
 void MClsMove::OnChange(const IModel* model, const DataType* dt)
 {
+	if (!model)
+		return;
+	auto state = model->GetState();
+
+	if (!dt) // MarkDeleted 
+		return;
+
 	wh::temppath::model::Array pp;
 	
 	mSrcPathGui.clear();
