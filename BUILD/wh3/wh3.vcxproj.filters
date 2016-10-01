@@ -133,8 +133,14 @@
     <Filter Include="MainFrame\dlgLogin">
       <UniqueIdentifier>{a7a3f226-49ab-4e2d-94eb-9c723a052dad}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MainFrame\ConnectionCfgDlg">
+    <Filter Include="MainFrame\dlgConnectionCfg">
       <UniqueIdentifier>{7f8588ff-31e0-430d-94ab-39c1f0c8af3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Панель избранного\model">
+      <UniqueIdentifier>{d380434e-c1b6-471a-ba44-a65da80b923f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Панель избранного\view">
+      <UniqueIdentifier>{0afd9a5a-23e7-4e85-bed9-0215001a1bc5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -400,7 +406,7 @@
       <Filter>Detail\view</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ConnectionCfgDlg.cpp">
-      <Filter>MainFrame\ConnectionCfgDlg</Filter>
+      <Filter>MainFrame\dlgConnectionCfg</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -720,7 +726,10 @@
       <Filter>Detail\view</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ConnectionCfgDlg.h">
-      <Filter>MainFrame\ConnectionCfgDlg</Filter>
+      <Filter>MainFrame\dlgConnectionCfg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MFavorites.h">
+      <Filter>Панель избранного\model</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

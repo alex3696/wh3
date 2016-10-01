@@ -20,22 +20,31 @@
 #include "MHistory.h"
 
 //---------------------------------------------------------------------------
-BEGIN_EVENT_TABLE( MainFrame, wxFrame )
+enum GUIID
+{
+	// GUI controls IDs
+	ID_MAINFRAME = 1100,
 
-	EVT_MENU(CMD_MAKETYPEWND,		MainFrame::OnMakeTypeWnd)
-	EVT_MENU(CMD_MAKEOBJWND,		MainFrame::OnMakeObjWnd)
-	EVT_MENU(CMD_MAKEHISTORYWND,	MainFrame::OnMakeHistoryWnd)
-	EVT_MENU(CMD_SHOWFAVORITES,		MainFrame::OnShowFavorites)
-	
+	// CMD
+	CMD_DB_CONNECT,
+	CMD_DB_DISCONNECT,
+	CMD_DB_TEST,
+	CMD_DB_TEST2,
 
-	EVT_MENU(CMD_DB_CONNECT,	MainFrame::OnShowLoginWnd)
-	EVT_MENU(CMD_DB_DISCONNECT,	MainFrame::OnDisconnectDB)
+	CMD_MAKETYPEWND,
+	CMD_MAKEOBJWND,
+	CMD_MAKEHISTORYWND,
 
-	
+	CMD_SHOWFAVORITES,
 
+	CMD_MKTAB_FAVORITES,
 
-END_EVENT_TABLE()
+	CMD_PNLSHOWGROUP,
+	CMD_PNLSHOWUSER,
+	CMD_PNLSHOWPROP,
+	CMD_PNLSHOWACT
 
+};
 //---------------------------------------------------------------------------
 MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title, 
 						const wxPoint& pos, const wxSize& size, long style)
@@ -45,6 +54,17 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 
 	auto face_colour = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
 	m_AuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, face_colour);
+
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MkTabFaforite, this, CMD_MKTAB_FAVORITES);
+	
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnMakeTypeWnd, this, CMD_MAKETYPEWND);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnMakeObjWnd, this, CMD_MAKEOBJWND);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnMakeHistoryWnd, this, CMD_MAKEHISTORYWND);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnShowFavorites, this, CMD_SHOWFAVORITES);
+
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnShowLoginWnd, this, CMD_DB_CONNECT);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnDisconnectDB, this, CMD_DB_DISCONNECT);
+
 
 	BuildMenu();
 	BuildToolbar();
@@ -150,6 +170,9 @@ void MainFrame::BuildMenu()
 	dir->Append(item);
 	item = new wxMenuItem(dir, CMD_MAKEOBJWND, "Открыть каталог объектов");
 	dir->Append(item);
+	item = new wxMenuItem(dir, CMD_MKTAB_FAVORITES, "Показать избранное");
+	item->SetBitmap(m_ResMgr->m_ico_favorites24);
+	dir->Append(item);
 	menu_bar->Append(dir, "Каталоги");
 
 	wxMenu* menu_report = new wxMenu();
@@ -184,7 +207,13 @@ void MainFrame::BuildToolbar()
 
 	//m_btnFavorites = m_MainToolBar->AddTool(CMD_SHOWFAVORITES, "Открыть избранное", m_ResMgr->m_ico_favorites24, "Открыть избранное", wxITEM_CHECK);
 
-	m_MainToolBar->AddTool(CMD_MAKEOBJWND, "Открыть каталог объектов", m_ResMgr->m_ico_add_obj_tab24, "Открыть каталог объектов");
+	const wxString str_mktab_objdir = "Открыть каталог объектов";
+	m_MainToolBar->AddTool(CMD_MAKEOBJWND, str_mktab_objdir
+		, m_ResMgr->m_ico_add_obj_tab24, str_mktab_objdir);
+
+	const wxString str_mktab_favorites = "Открыть избранное";
+	m_MainToolBar->AddTool(CMD_MKTAB_FAVORITES, str_mktab_favorites
+		, m_ResMgr->m_ico_favorites24, str_mktab_favorites);
 	
 	m_MainToolBar->Realize();
 
@@ -482,6 +511,19 @@ void MainFrame::OnShowFavorites(wxCommandEvent& evt)
 		m_AuiMgr.Update();	
 	}//if(!pi.IsOk())
 	
+}
+//---------------------------------------------------------------------------
+void MainFrame::OnCmd_MkTabFaforite(wxCommandEvent& evt)
+{
+	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	using namespace wh;
+
+	auto view = new wxPanel(m_Notebook);
+
+	m_Notebook->AddPage(view, "Избранное", true, ResMgr::GetInstance()->m_ico_favorites24);
+	view->SetFocus();
+	m_AuiMgr.Update();
+
 }
 
 //---------------------------------------------------------------------------

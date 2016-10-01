@@ -72,7 +72,7 @@
       <EnablePREfast>false</EnablePREfast>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>wxcode_msw28ud_databaselayer_postgresql.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>wxcode_msw28ud_databaselayer_postgresql.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -111,7 +111,7 @@
       <AdditionalOptions>/Zm200 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>wxcode_msw28u_databaselayer_postgresql.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>wxcode_msw28u_databaselayer_postgresql.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -259,6 +259,7 @@
     <ClInclude Include="..\..\INCLUDE\DClsPropEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DetailActCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h" />
+    <ClInclude Include="..\..\INCLUDE\MFavorites.h" />
     <ClInclude Include="..\..\INCLUDE\ObjDetailPGView.h" />
     <ClInclude Include="..\..\INCLUDE\detail_ctrlpnl.h" />
     <ClInclude Include="..\..\INCLUDE\detail_model.h" />

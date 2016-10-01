@@ -4,33 +4,8 @@
 #include "_pch.h"
 #include "whDB.h"
 
-
 #include "globaldata.h"
 
-//---------------------------------------------------------------------------
-enum GUIID
-{
-	// GUI controls IDs
-	ID_MAINFRAME=1100,
-
-	// CMD
-	CMD_DB_CONNECT,
-	CMD_DB_DISCONNECT,
-	CMD_DB_TEST,
-	CMD_DB_TEST2,
-
-	CMD_MAKETYPEWND,
-	CMD_MAKEOBJWND,
-	CMD_MAKEHISTORYWND,
-
-	CMD_SHOWFAVORITES,
-
-	CMD_PNLSHOWGROUP,
-	CMD_PNLSHOWUSER,
-	CMD_PNLSHOWPROP,
-	CMD_PNLSHOWACT
-
-};
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 // MainFrame 
@@ -77,6 +52,8 @@ public:
 	void OnShowLoginWnd(wxCommandEvent& evt=wxCommandEvent());
 	void OnDisconnectDB(wxCommandEvent& evt=wxCommandEvent());
 
+	void OnCmd_MkTabFaforite(wxCommandEvent& evt = wxCommandEvent());
+
 	
 	void CreateTypeCatalog(const wxString& _type);	
 	void CreateObjCatalog(const wxString& _objclass,const wxString& _objname,
@@ -88,7 +65,6 @@ public:
 
 
 
-	DECLARE_EVENT_TABLE();
 
 };
 
