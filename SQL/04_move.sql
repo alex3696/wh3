@@ -353,7 +353,12 @@ CREATE OR REPLACE VIEW moverule_lockup AS
    ,dst_name.title AS dst_otitle
   ,dst.pid         AS dst_opid
   ,perm.access_disabled AS perm_access_disabled
-FROM perm_move perm
+
+FROM 
+  (SELECT * FROM perm_move perm
+     WHERE perm.access_group IN (SELECT groupname FROM wh_membership WHERE username=CURRENT_USER)
+  )perm
+
 RIGHT JOIN obj mov ON -- находим все объекты+классы которые можно перемещать)
                 (  mov.cls_id IN (SELECT _id FROM get_childs_cls(perm.cls_id))) 
                 AND (perm.obj_id = mov.id OR perm.obj_id IS NULL)
@@ -378,7 +383,6 @@ RIGHT JOIN wh_role _user
 */    
 WHERE 
 mov.pid <> dst.id AND dst.id>0  
-AND perm.access_group IN (SELECT groupname FROM wh_membership WHERE username=CURRENT_USER)
 ;
 
 GRANT SELECT        ON "moverule_lockup" TO "Guest";

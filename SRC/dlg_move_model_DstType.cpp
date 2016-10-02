@@ -39,7 +39,12 @@ bool DstType::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t r
 	DstObj::DataType dst_obj;
 	dst_obj.mId = table->GetAsString(2, row);
 	dst_obj.mLabel = table->GetAsString(3, row);
-	dst_obj.mParent.mLabel = ObjArrayToPath(table->GetAsString(4, row));
+
+	ObjKeyPath op;
+	op.ParsePath(table->GetAsString(4, row));
+	wxString path_str;
+	op.GeneratePath(path_str,false);
+	dst_obj.mParent.mLabel = path_str;
 
 	auto dstObjModel = std::make_shared<DstObj>();
 	dstObjModel->SetData(dst_obj);
@@ -72,7 +77,7 @@ bool DstTypeArray::GetSelectChildsQuery(wxString& query)const
 	query = wxString::Format(
 		" SELECT _dst_cls_id, acls.title as dst_cls_label "
 		", _dst_obj_id, _dst_obj_label "
-		", get_path_obj(_dst_obj_pid) AS DST_PATH "
+		", get_path_obj(_dst_obj_pid,1) AS DST_PATH "
 		" FROM lock_for_move(%s,%s) "
 		" LEFT JOIN acls ON acls.id = _dst_cls_id "
 		" ORDER BY _dst_cls_id "
@@ -101,7 +106,13 @@ bool DstTypeArray::LoadChildDataFromDb(std::shared_ptr<IModel>& child,
 
 		dst_obj.mId = table->GetAsString(2, pos);
 		dst_obj.mLabel = table->GetAsString(3, pos);
-		dst_obj.mParent.mLabel = ObjArrayToPath(table->GetAsString(4, pos));
+
+		ObjKeyPath op;
+		op.ParsePath(table->GetAsString(4, pos));
+		wxString path_str;
+		op.GeneratePath(path_str, false);
+		dst_obj.mParent.mLabel = path_str;
+
 		
 		auto dstObjModel = std::make_shared<DstObj>();
 		dstObjModel->SetData(dst_obj,true);
