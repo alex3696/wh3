@@ -146,6 +146,12 @@
     <ClCompile Include="..\..\SRC\DClsPropEditor.cpp" />
     <ClCompile Include="..\..\SRC\DetailActCtrl.cpp" />
     <ClCompile Include="..\..\SRC\DetailActToolBar.cpp" />
+    <ClCompile Include="..\..\SRC\MFav.cpp" />
+    <ClCompile Include="..\..\SRC\MFavFilterCls.cpp" />
+    <ClCompile Include="..\..\SRC\MFavFilterPath.cpp" />
+    <ClCompile Include="..\..\SRC\MFavViewPropActCommon.cpp" />
+    <ClCompile Include="..\..\SRC\MFavViewPropActUsr.cpp" />
+    <ClCompile Include="..\..\SRC\MFavViewPropCls.cpp" />
     <ClCompile Include="..\..\SRC\ObjDetailPGView.cpp" />
     <ClCompile Include="..\..\SRC\detail_ctrlpnl.cpp" />
     <ClCompile Include="..\..\SRC\detail_model_ClsPropArray.cpp" />
@@ -211,9 +217,6 @@
     <ClCompile Include="..\..\SRC\VTableToolBar.cpp" />
     <ClCompile Include="..\..\SRC\VUserPanel.cpp" />
     <ClCompile Include="..\..\SRC\whParser.cpp" />
-    <ClCompile Include="..\..\SRC\whPnlFavorites.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\_pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -259,7 +262,12 @@
     <ClInclude Include="..\..\INCLUDE\DClsPropEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DetailActCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h" />
-    <ClInclude Include="..\..\INCLUDE\MFavorites.h" />
+    <ClInclude Include="..\..\INCLUDE\MFavFilterCls.h" />
+    <ClInclude Include="..\..\INCLUDE\MFavFilterPath.h" />
+    <ClInclude Include="..\..\INCLUDE\MFav.h" />
+    <ClInclude Include="..\..\INCLUDE\MFavViewPropActCommon.h" />
+    <ClInclude Include="..\..\INCLUDE\MFavViewPropActUsr.h" />
+    <ClInclude Include="..\..\INCLUDE\MFavViewPropCls.h" />
     <ClInclude Include="..\..\INCLUDE\ObjDetailPGView.h" />
     <ClInclude Include="..\..\INCLUDE\detail_ctrlpnl.h" />
     <ClInclude Include="..\..\INCLUDE\detail_model.h" />
@@ -317,7 +325,6 @@
     <ClInclude Include="..\..\INCLUDE\BaseControlPanel.h" />
     <ClInclude Include="..\..\INCLUDE\BaseTable.h" />
     <ClInclude Include="..\..\INCLUDE\db_rec.h" />
-    <ClInclude Include="..\..\INCLUDE\Favorites.h" />
     <ClInclude Include="..\..\INCLUDE\TModelArray.h" />
     <ClInclude Include="..\..\INCLUDE\field_data.h" />
     <ClInclude Include="..\..\INCLUDE\MTable.h" />

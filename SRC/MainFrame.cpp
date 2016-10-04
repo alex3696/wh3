@@ -5,8 +5,6 @@
 #include "whLogin.h"
 #include "ConnectionCfgDlg.h"
 
-#include "favorites.h"
-
 #include "VObjCatalogCtrl.h"
 
 #include "VPropCtrlPanel.h"

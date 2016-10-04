@@ -168,9 +168,6 @@
     <ClCompile Include="..\..\SRC\whParser.cpp">
       <Filter>DataBase\Парсер+Генератор</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SRC\whPnlFavorites.cpp">
-      <Filter>Панель избранного</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\BaseTable.cpp">
       <Filter>Controls\Base</Filter>
     </ClCompile>
@@ -408,6 +405,24 @@
     <ClCompile Include="..\..\SRC\ConnectionCfgDlg.cpp">
       <Filter>MainFrame\dlgConnectionCfg</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\SRC\MFav.cpp">
+      <Filter>Панель избранного\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MFavFilterCls.cpp">
+      <Filter>Панель избранного\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MFavFilterPath.cpp">
+      <Filter>Панель избранного\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MFavViewPropActCommon.cpp">
+      <Filter>Панель избранного\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MFavViewPropActUsr.cpp">
+      <Filter>Панель избранного\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MFavViewPropCls.cpp">
+      <Filter>Панель избранного\model</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\INCLUDE\_pch.h">
@@ -436,9 +451,6 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\wxComboBtn.h">
       <Filter>Controls\DataViewExtension</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\Favorites.h">
-      <Filter>Панель избранного</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\BaseTable.h">
       <Filter>Controls\Base</Filter>
@@ -728,7 +740,22 @@
     <ClInclude Include="..\..\INCLUDE\ConnectionCfgDlg.h">
       <Filter>MainFrame\dlgConnectionCfg</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MFavorites.h">
+    <ClInclude Include="..\..\INCLUDE\MFavFilterCls.h">
+      <Filter>Панель избранного\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MFavFilterPath.h">
+      <Filter>Панель избранного\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MFavViewPropCls.h">
+      <Filter>Панель избранного\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MFavViewPropActCommon.h">
+      <Filter>Панель избранного\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MFavViewPropActUsr.h">
+      <Filter>Панель избранного\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MFav.h">
       <Filter>Панель избранного\model</Filter>
     </ClInclude>
   </ItemGroup>

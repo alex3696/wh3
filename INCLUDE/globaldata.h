@@ -5,7 +5,6 @@
 #include "whDB.h"
 #include "ResManager.h"
 #include "wxComboBtn.h"
-#include "favorites.h"
 
 //----------------------------------------------------------------------------
 #define whID_MOVE				5300
@@ -176,7 +175,6 @@ public:
 	wh::Ftp		mFtp;
 
 	MainFrame*					m_MainFrame = nullptr;
-	wh::favorites::DataModel	mFavoritesModel;
 
 	static whDB& GetDB()
 	{	

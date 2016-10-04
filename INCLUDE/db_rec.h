@@ -344,7 +344,68 @@ struct CatCfg
 };
 //-----------------------------------------------------------------------------
 
+/** Узел избранного */
+class Fav
+{
+public:
+	wxString		mId;
+	wxString		mTitle;
+	wxString		mNote;
+	wxString		mUsr;
+	unsigned int 	mViewGroup;
+};
+//-------------------------------------------------------------------------
 
+/** Фильтр по Классу  */
+class FavFilterCls
+{
+public:
+	unsigned long	mFId;
+	unsigned long	mCId;
+};
+//-------------------------------------------------------------------------
+
+/** Фильтр по местоположению  */
+class FavFilterPath
+{
+public:
+	unsigned long	mFId;
+	unsigned long	mParentOId;
+	wxString		mPath;
+};
+//-------------------------------------------------------------------------
+
+/** Вид свойств класса */
+class FavViewPropCls
+{
+public:
+	unsigned long	mFId;
+	unsigned long	mPId;
+};
+//-------------------------------------------------------------------------
+
+/** Вид общих свойств действия*/
+class FavViewPropActCommon
+{
+public:
+	unsigned long	mFId;
+	unsigned long	mAId;
+
+	bool			mShowDateTime;
+	bool			mShowUser;
+	bool			mShowSrcPath;
+	bool			mShowQty;
+};
+//-------------------------------------------------------------------------
+
+/** Вид пользовательских свойств*/
+class FavViewPropActUsr
+{
+public:
+	unsigned long	mFId;
+	unsigned long	mAId;
+	unsigned long	mPId;
+};
 
 
 }//namespace rec
