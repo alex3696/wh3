@@ -239,7 +239,9 @@ BEGIN
                    ,curr_cal_path = NULLIF(substring(to_json(curr_cal_path)::TEXT from '"~"%~""' FOR '~' ),'')
                    ,folder_path   = NULLIF(substring(to_json(folder_path)::TEXT from '"~"%~""' FOR '~' ),'')
                    ,note1   = NULLIF(substring(to_json(note1)::TEXT from '"~"%~""' FOR '~' ),'')
-                   ,note2   = NULLIF(substring(to_json(note2)::TEXT from '"~"%~""' FOR '~' ),'');
+                   ,note2   = NULLIF(substring(to_json(note2)::TEXT from '"~"%~""' FOR '~' ),'')
+                   ,arhived = CASE WHEN arhived='ИСТИНА' THEN 'TRUE' ELSE 'FALSE' END 
+                   ;
   --UPDATE __obj  SET pasport_path= replace(pasport_path, '\\', '\\\\');
   --UPDATE __obj  SET curr_cal_path= replace(curr_cal_path, '\\', '\\\\');
   --UPDATE __obj  SET folder_path= replace(folder_path, '\\', '\\\\');
@@ -248,6 +250,7 @@ BEGIN
   --UPDATE __obj  SET note1= replace(note1, '"', '\\"');
   --UPDATE __obj  SET note2= replace(note2, '"', '\\"');
   --SELECT NULLIF(trim(both '"' from to_json('dgfdg dfg\dfg\d fgdgdfg'::TEXT)::TEXT),'');
+  ALTER TABLE __obj ALTER COLUMN arhived TYPE BOOLEAN USING arhived::BOOLEAN;
 
   RAISE NOTICE 'Processing __hist';
   CREATE INDEX idx__hist_oid ON __hist (sc_oid);
@@ -298,6 +301,13 @@ BEGIN
   --ALTER TABLE __departament ALTER COLUMN title TYPE whname;
 
   RAISE NOTICE 'заполняем группы пользователей';
+  PERFORM FROM wh_role WHERE rolname='Вед.инженер по ремонту ГО';
+  IF NOT FOUND THEN
+    INSERT INTO wh_role (rolname, rolcanlogin, rolcreaterole) VALUES ('Вед.инженер по ремонту ГО',false, false);
+  ELSE
+    UPDATE wh_role SET rolcanlogin=FALSE, rolcreaterole=FALSE WHERE rolname='Вед.инженер по ремонту ГО';
+  END IF;
+
   PERFORM FROM wh_role WHERE rolname='Инженер по ремонту ГО';
   IF NOT FOUND THEN
     INSERT INTO wh_role (rolname, rolcanlogin, rolcreaterole) VALUES ('Инженер по ремонту ГО',false, false);
@@ -336,6 +346,8 @@ DROP FUNCTION IF EXISTS sgg_add_prop_and_act() CASCADE;
 CREATE OR REPLACE FUNCTION sgg_add_prop_and_act()
  RETURNS VOID  AS $BODY$
 DECLARE 
+ pid_service_cid BIGINT;
+ pid_service_oid BIGINT;
  prid_calp BIGINT;
  prid_desc BIGINT;
  prid_repair_reason BIGINT;
@@ -354,6 +366,7 @@ DECLARE
  pid_desc_profil BIGINT; 
  pid_desc_prover BIGINT; 
  pid_desc_kalibr BIGINT; 
+ pid_desc_gis BIGINT; 
  pid_fm BIGINT; 
  pid_nm BIGINT; 
  pid_ot BIGINT; 
@@ -367,6 +380,7 @@ DECLARE
  aid_change_desc BIGINT; 
  aid_change_note BIGINT; 
  aid_ch_worker_info BIGINT; 
+ aid_ch_service_oid BIGINT; 
 
  cid_struct_unit BIGINT;
  cid_geo_equipment BIGINT;
@@ -396,6 +410,10 @@ DECLARE
 
 BEGIN
   RAISE NOTICE 'Вставляем свойства';
+  INSERT INTO prop(title, kind)VALUES('Идентификатор класса в Service', 100) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO pid_service_cid;
+  INSERT INTO prop(title, kind)VALUES('Идентификатор объекта в Service', 100) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO pid_service_oid;
   INSERT INTO prop(title, kind)VALUES('Период калибровки(мес.)', 100) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO prid_calp;
   INSERT INTO prop(title, kind)VALUES('Описание', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
@@ -432,6 +450,8 @@ BEGIN
     RETURNING id INTO pid_desc_prover;
   INSERT INTO prop(title, kind)VALUES('Описание калибровки', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO pid_desc_kalibr;
+  INSERT INTO prop(title, kind)VALUES('Описание ГИС', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
+    RETURNING id INTO pid_desc_gis;
   INSERT INTO prop(title, kind)VALUES('Фамилия', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
     RETURNING id INTO pid_fm;
   INSERT INTO prop(title, kind)VALUES('Имя', 0) ON CONFLICT (title) DO UPDATE SET kind = EXCLUDED.kind
@@ -440,9 +460,14 @@ BEGIN
     RETURNING id INTO pid_ot;
 
   RAISE NOTICE 'Вставляем действия + свойства действий';
+
+  INSERT INTO act (title) VALUES ('Изменить Идентификатор объекта в Service') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
+    RETURNING id INTO aid_ch_service_oid;
+  INSERT INTO ref_act_prop(act_id, prop_id) VALUES (aid_ch_service_oid, pid_service_oid) 
+                                                  ON CONFLICT ON CONSTRAINT uk_refactprop__actid_propid DO NOTHING;
+
   INSERT INTO act (title) VALUES ('Изменить основные свойства') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
     RETURNING id INTO aid_chmain;
-
   INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_chmain, prid_note)
                                                  ,(aid_chmain, prid_invn)
                                                  ,(aid_chmain, prid_pasp)
@@ -450,7 +475,6 @@ BEGIN
                                                  ,(aid_chmain, prid_objfolder)
                                                  ,(aid_chmain, prid_reldate)
                                                  ,(aid_chmain, prid_indate)
-                                                 ,(aid_chmain, prid_usehours)
                                                  ON CONFLICT ON CONSTRAINT uk_refactprop__actid_propid DO NOTHING;
 
   INSERT INTO act (title,color) VALUES ('Ремонт','rgb(255, 128, 128)') 
@@ -483,7 +507,7 @@ BEGIN
   INSERT INTO act (title,color) VALUES ('ГИС','rgb(220, 128, 0)')
     ON CONFLICT (title) DO UPDATE SET color=EXCLUDED.color 
     RETURNING id INTO aid_gis;
-  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_gis, prid_note)
+  INSERT INTO ref_act_prop(act_id, prop_id)VALUES (aid_gis, pid_desc_gis)
                                                  ,(aid_gis, prid_usehours)
                                                  ,(aid_gis, prid_depth)
                                                  ,(aid_gis, prid_press)
@@ -535,6 +559,10 @@ BEGIN
   INSERT INTO obj(title,cls_id,pid) VALUES ('Заказ МТР',cid_zakaz, oid_company_sgg )RETURNING id INTO oid_zakaz_mtr;
 
   RAISE NOTICE 'разрешения действий';
+
+  INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
+    VALUES ('TypeDesigner', 0, 1, NULL, aid_ch_service_oid );
+
   INSERT INTO perm_act(access_group, access_disabled, cls_id, obj_id, act_id)
     VALUES ('TypeDesigner', 0, cid_personal, NULL, aid_ch_worker_info );
 
@@ -573,12 +601,14 @@ BEGIN
     ( 'Инженер по ремонту ГО', 0, cid_geo_equipment, NULL
     ,cid_sector_sc, oid_sector_sc_repair_wait, idpath_sgg_sc 
     ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc );
+  -- /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок СЦ]Ремонтный  >>  /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок СЦ]Консервация
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
-    ( 'Инженер по ремонту ГО', 0, cid_geo_equipment, NULL
+    ( 'Вед.инженер по ремонту ГО', 0, cid_geo_equipment, NULL
     ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc 
     ,cid_sector_sc, oid_sector_sc_conservation, idpath_sgg_sc );
+  -- /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок СЦ]Консервация >>  /*[Предприятие]СГГ/[Отдел]Сервисный центр/[Участок СЦ]Ремонтный
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
-    ( 'Инженер по ремонту ГО', 0, cid_geo_equipment, NULL
+    ( 'Вед.инженер по ремонту ГО', 0, cid_geo_equipment, NULL
     ,cid_sector_sc, oid_sector_sc_conservation, idpath_sgg_sc 
     ,cid_sector_sc, oid_sector_sc_repair, idpath_sgg_sc );
   INSERT INTO perm_move( access_group, access_disabled, cls_id, obj_id, src_cls_id, src_obj_id, src_path ,dst_cls_id, dst_obj_id, dst_path)VALUES
@@ -708,8 +738,17 @@ DECLARE
   _pid_desc BIGINT;
   _aid_chfndep BIGINT;
   _prop_val JSONB;
+
+  pid_service_oid BIGINT;
+  aid_ch_service_oid BIGINT;
 BEGIN
   RAISE NOTICE 'Import departaments';
+
+  SELECT id INTO pid_service_oid FROM prop WHERE title = 'Идентификатор объекта в Service';
+  SELECT id INTO aid_ch_service_oid FROM act WHERE title='Изменить Идентификатор объекта в Service' ;
+
+  INSERT INTO act (title) VALUES ('Изменить Идентификатор объекта в Service') ON CONFLICT (title) DO UPDATE SET title=EXCLUDED.title
+    RETURNING id INTO aid_ch_service_oid;
   
   SELECT id INTO sgg_company_oid FROM obj WHERE title='Севергазгеофизика';
   SELECT id INTO department_cid FROM acls WHERE title='Отдел';
@@ -722,6 +761,11 @@ BEGIN
     IF NOT FOUND THEN
       INSERT INTO obj(title,cls_id,pid) VALUES (rec.title,department_cid, sgg_company_oid ) RETURNING id INTO _oid;
     END IF;
+
+    PERFORM lock_for_act(_oid, sgg_company_oid);
+    _prop_val :=format('{"%s":"%s"}',pid_service_oid, rec.id );
+    PERFORM do_act(_oid, aid_ch_service_oid, _prop_val);
+    PERFORM lock_reset(_oid, sgg_company_oid);
 
     _prop_val := format('{"%s":"%s"}',_pid_desc, rec.note );
     PERFORM lock_for_act(_oid, sgg_company_oid);
@@ -760,6 +804,10 @@ _pid_ot BIGINT;
 
   _aid_ch_worker_info BIGINT;
   _prop_val JSONB;
+
+  pid_service_oid BIGINT;
+  aid_ch_service_oid BIGINT;
+
 BEGIN
   RAISE NOTICE 'Import personnel';
   
@@ -771,19 +819,21 @@ BEGIN
 
   SELECT id INTO _aid_ch_worker_info FROM act WHERE title='Изменить сведения о работнике' ;
 
-  
+  SELECT id INTO pid_service_oid FROM prop WHERE title = 'Идентификатор объекта в Service';
+  SELECT id INTO aid_ch_service_oid FROM act WHERE title='Изменить Идентификатор объекта в Service' ;
+ 
 
   FOR rec IN import_worker LOOP
     SELECT title INTO _dep_title FROM __departament WHERE id=rec.dep_id;
     SELECT id INTO _oid_dep FROM obj WHERE title=_dep_title;
 
-    _user_title:= substring(rec.im from 1 for 1) || '.' || rec.fam;
+    _user_title:= rec.fam || ' ' || substring(rec.im from 1 for 1) || '.' || substring(rec.oth from 1 for 1) || '.' ;
     --_user_title:= iris_translit(_user_title);
     _user_title_idx = 0;
     LOOP
       PERFORM FROM obj WHERE cls_id=_cid_personal AND title=_user_title;
       IF FOUND THEN
-       _user_title:= substring(rec.im from 1 for 1) ||_user_title_idx ||'.' || rec.fam;
+       _user_title:= rec.fam || ' ' || substring(rec.im from 1 for 1) || '.' || substring(rec.oth from 1 for 1) || '. ' ||_user_title_idx;
        _user_title_idx:=_user_title_idx+1;
       ELSE 
         EXIT;
@@ -792,6 +842,12 @@ BEGIN
     
     INSERT INTO obj(title,cls_id,pid) VALUES (_user_title,_cid_personal, _oid_dep ) RETURNING id INTO _oid;
     UPDATE __worker SET wh3_oid = _oid, wh3_cid=_cid_personal WHERE  id=rec.id;
+
+    PERFORM lock_for_act(_oid, _oid_dep);
+    _prop_val := format('{"%s":"%s"}',pid_service_oid, rec.id );
+    PERFORM do_act(_oid, aid_ch_service_oid, _prop_val);
+    PERFORM lock_reset(_oid, _oid_dep);
+
 
     _prop_val := format('{"%s":"%s","%s":"%s","%s":"%s"}',_pid_fam,rec.fam, _pid_nm, rec.im,_pid_ot, rec.oth );
     PERFORM lock_for_act(_oid, _oid_dep);
@@ -807,7 +863,7 @@ $BODY$ LANGUAGE plpgsql;
 SELECT sgg_sc_import_worker();
 
 -------------------------------------------------------------------------------
--- конвертер из старой базы
+-- импорт классов из старой базы
 -------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS sgg_import_cls() CASCADE;
 CREATE OR REPLACE FUNCTION sgg_import_cls()
@@ -826,19 +882,15 @@ DECLARE
   _title      TEXT;
   _pid      BIGINT;
   
-
-  
-  _prop_cal_period_id INTEGER;
-  _prop_note_id INTEGER;
-
+  pid_service_cid  BIGINT;
+  pid_cal_period   BIGINT;
+  pid_note         BIGINT;
+  pid_desc         BIGINT;
 
   _cls_id      BIGINT;
-
-  _prop_desc_id      BIGINT;
   
 
   _curr_oid      BIGINT;
-  _curr_aid      BIGINT;
 
   _curr_pid      BIGINT;
 
@@ -847,9 +899,11 @@ DECLARE
   oid_zakaz_go      BIGINT;
 BEGIN
   RAISE NOTICE 'Import cls tree';
+
+  SELECT id INTO pid_service_cid FROM prop WHERE title = 'Идентификатор класса в Service';
+  SELECT id INTO pid_cal_period  FROM prop WHERE title = 'Период калибровки(мес.)';
+  SELECT id INTO pid_desc        FROM prop WHERE title = 'Описание';
   
-  SELECT id INTO _prop_cal_period_id FROM prop WHERE title = 'Период калибровки(мес.)';
-  SELECT id INTO _prop_desc_id FROM prop WHERE title = 'Описание';
   SELECT id INTO _geo_equipment_id FROM acls WHERE title = 'Геофизическое оборудование';  
 
   RAISE NOTICE 'Import level 0';
@@ -866,11 +920,8 @@ BEGIN
     INSERT INTO acls(pid,title,kind,dobj) VALUES (_pid,rec.title,0,NULL) ;
   END LOOP;
 
-  SELECT id INTO _curr_aid FROM ACT WHERE title='Изменить основные свойства' ;
-
   SELECT id INTO cid_zakaz     FROM acls WHERE title='Заказ';
-
-  SELECT id INTO oid_zakaz_go     FROM obj WHERE title='Заказ ГО' ;
+  SELECT id INTO oid_zakaz_go  FROM obj WHERE title='Заказ ГО' ;
 
   RAISE NOTICE 'Import cls';
   FOR rec IN import_cls LOOP
@@ -878,8 +929,9 @@ BEGIN
     SELECT id INTO _pid FROM acls WHERE title = _title;
     --RAISE DEBUG 'ADD NUMERIC CLS=% (period=%) TO % (%)',rec.title,rec.period,_title,rec;
     INSERT INTO acls(pid,title,kind,measure, dobj) VALUES (_pid,rec.title,1,'ед', oid_zakaz_go) RETURNING id INTO _cls_id ;
-    INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (_cls_id , 1, _prop_cal_period_id, rec.period);
-    INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (_cls_id , 1, _prop_desc_id, NULL);
+    INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (_cls_id , 1, pid_service_cid, rec.id);
+    INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (_cls_id , 1, pid_cal_period, rec.period);
+    INSERT INTO prop_cls(cls_id, cls_kind, prop_id, val) VALUES (_cls_id , 1, pid_desc, NULL);
   END LOOP;
 
 RETURN;
@@ -912,10 +964,12 @@ DECLARE
   _cid_repair BIGINT;
   _oid_drepair BIGINT;
   _cid_drepair BIGINT;
+  _oid_conservation BIGINT;
+  _cid_conservation BIGINT;
   _oid_metr BIGINT;
   _cid_metr BIGINT;
-  _oid_pp BIGINT;
-  _cid_pp BIGINT;
+  _oid_pv BIGINT;
+  _cid_pv BIGINT;
 
   _aid_maininfo BIGINT;
   _aid_gis    BIGINT;
@@ -924,6 +978,7 @@ DECLARE
   _aid_repair BIGINT;
   _aid_proverka BIGINT;
   _aid_profil BIGINT;
+  _aid_ch_service_oid BIGINT;
   
   
   _pid_note        BIGINT;
@@ -941,8 +996,8 @@ DECLARE
   _pid_objfolder BIGINT;
   _pid_reldate   BIGINT;
   _pid_indate    BIGINT;
-
-  
+  _pid_service_oid BIGINT;
+  _pid_desc_gis BIGINT;
 
   _src_path BIGINT[];
   _dst_path BIGINT[];
@@ -970,6 +1025,7 @@ DECLARE
 
   processing_obj BIGINT;
   processing_hist BIGINT;
+
 BEGIN
   RAISE NOTICE 'Import obj and history ';
   RAISE NOTICE 'Objects=% History=%',(SELECT count(*) FROM __obj),(SELECT count(*) FROM __hist);
@@ -986,18 +1042,22 @@ BEGIN
   SELECT id INTO _pid_desc_profil FROM prop WHERE title='Описание профилактики';
   SELECT id INTO _pid_desc_prover FROM prop WHERE title='Описание проверки';
   SELECT id INTO _pid_desc_kalibr FROM prop WHERE title='Описание калибровки';
+  SELECT id INTO _pid_desc_gis FROM prop WHERE title='Описание ГИС';
   SELECT id INTO _pid_kalfile FROM prop WHERE title='Файл калибровки';
   SELECT id INTO _pid_invn FROM prop WHERE title='Инвентарный номер' ;
   SELECT id INTO _pid_pasp FROM prop WHERE title='Паспорт' ;
   SELECT id INTO _pid_objfolder FROM prop WHERE title='Папка прибора' ;
   SELECT id INTO _pid_reldate FROM prop WHERE title='Дата выпуска' ;
   SELECT id INTO _pid_indate FROM prop WHERE title='Дата ввода в эксплуатацию' ;
+  SELECT id INTO _pid_service_oid FROM prop WHERE title='Идентификатор объекта в Service' ;
 
   SELECT id,cls_id  INTO _oid_repair,_cid_repair FROM obj_name WHERE title='Ремонтный участок';
   SELECT id,cls_id  INTO _oid_drepair,_cid_drepair FROM obj_name WHERE title='Долгосрочный ремонт';
+  SELECT id,cls_id  INTO _oid_conservation,_cid_conservation FROM obj_name WHERE title='Консервация';
   SELECT id,cls_id  INTO _oid_metr,_cid_metr FROM obj_name WHERE title='Метрология';
-  SELECT id,cls_id  INTO _oid_pp,_cid_pp FROM obj_name WHERE title='Пункт проката';
+  SELECT id,cls_id  INTO _oid_pv,_cid_pv FROM obj_name WHERE title='Пункт выдачи';
 
+  SELECT id INTO _aid_ch_service_oid FROM act WHERE title='Изменить Идентификатор объекта в Service' ;
   SELECT id INTO _aid_maininfo FROM ACT WHERE title='Изменить основные свойства' ;
   SELECT id INTO _aid_gis FROM act WHERE title='ГИС';
   SELECT id INTO _aid_chnote FROM act WHERE title='Изменить примечание';
@@ -1016,10 +1076,11 @@ BEGIN
     SELECT title INTO _cls_title FROM __cls WHERE id = impobj.cls_id;
     SELECT id INTO _cid_obj FROM acls WHERE title=_cls_title;
     RAISE DEBUG '_cid_obj = % sc_oid=% _cls_title=%',_cid_obj, impobj.obj_id,_cls_title;
-    INSERT INTO obj(title,cls_id,pid) VALUES (impobj.title, _cid_obj, _oid_pp )RETURNING id INTO _oid_obj;
+    INSERT INTO obj(title,cls_id,pid) VALUES (impobj.title, _cid_obj, _oid_pv )RETURNING id INTO _oid_obj;
     UPDATE __obj SET wh3_oid = _oid_obj, wh3_cid=_cid_obj WHERE obj_id=impobj.obj_id;
+
     -- добавляем основные сведения 
-    _src_path:=format('{{%s,%s},{2,1}}',_cid_pp,_oid_pp); -- помещаем в пункт проката
+    _src_path:=format('{{%s,%s},{2,1}}',_cid_pv,_oid_pv); -- помещаем в пункт выдачи
     _prop:= ('{}'::JSONB);
     _date:=NULL;
     _note:=NULL;
@@ -1029,14 +1090,17 @@ BEGIN
     SELECT hinput_date INTO _date FROM __hist WHERE hinput_date IS NOT NULL AND sc_oid=impobj.obj_id ORDER BY hinput_date ASC LIMIT 1;
     _date:=COALESCE(_date,now()) - '1 week'::INTERVAL;--отматываем неделю назад на всякий случай
     RAISE DEBUG 'first date = % first_obj=%',_date,impobj;
-    
+    -- вводим идентификатор старой базы
+    _prop:=_prop || format('{"%s":"%s"}',_pid_service_oid, impobj.obj_id )::JSONB;
+    INSERT INTO log_main(timemark, src_path, obj_id) VALUES (_date, _src_path, _oid_obj) RETURNING id INTO _lid;
+    INSERT INTO log_detail_act(id, act_id, prop)     VALUES (_lid,_aid_ch_service_oid, _prop)  RETURNING id INTO _act_lid_previos;
+    -- вводим основные сведения
     _prop:=_prop || format('{"%s":"%s"}', _pid_invn, impobj.invtitle)::JSONB;
     _prop:=_prop || format('{"%s":"%s"}', _pid_pasp, impobj.pasport_path)::JSONB;
     _prop:=_prop || format('{"%s":"%s"}', _pid_kalfile, impobj.curr_cal_path)::JSONB;
     _prop:=_prop || format('{"%s":"%s"}', _pid_objfolder, impobj.folder_path)::JSONB;
     _prop:=_prop || format('{"%s":"%s"}', _pid_reldate, impobj.release_date)::JSONB;
     _prop:=_prop || format('{"%s":"%s"}', _pid_indate, impobj.inservice_date)::JSONB;
-    _prop:=_prop || format('{"%s":"%s"}', _pid_usehours, 0)::JSONB;
     INSERT INTO log_main(timemark, src_path, obj_id) VALUES (_date, _src_path, _oid_obj) RETURNING id INTO _lid;
     INSERT INTO log_detail_act(id, act_id, prop)     VALUES (_lid,_aid_maininfo, _prop)  RETURNING id INTO _act_lid_previos;
 
@@ -1055,7 +1119,7 @@ BEGIN
       RAISE DEBUG 'REC % ', rec;
       _date:=rec.hinput_date;
       IF(_note IS NOT NULL AND _note ILIKE '%ГИС%')OR(rec.hdepth IS NOT NULL AND rec.hdepth>0 ) THEN
-        _prop:=_prop || format('{"%s":"%s"}', _pid_note, _note)::JSONB;
+        _prop:=_prop || format('{"%s":"%s"}', _pid_desc_gis, _note)::JSONB;
         _prop:=_prop || format('{"%s":%s}',   _pid_usehours, COALESCE(rec.husetime,0) )::JSONB;
         _prop:=_prop || format('{"%s":%s}',   _pid_depth, COALESCE(rec.hdepth,0) )::JSONB;
         _prop:=_prop || format('{"%s":%s}',   _pid_press, COALESCE(rec.hpress,0) )::JSONB;
@@ -1151,15 +1215,15 @@ BEGIN
         INSERT INTO log_detail_act(id, act_id, prop)     VALUES (_lid,_aid_chnote, _prop)RETURNING id INTO _act_lid_previos;
       END IF;
 
-      -- перемещаем в ПП
-      RAISE DEBUG 'MOVE TO PP';
+      -- перемещаем в Пункт выдачи
+      RAISE DEBUG 'MOVE TO PV';
       IF(rec.hto_pp_date IS NOT NULL) THEN
         _date:=COALESCE (rec.hto_pp_date,rec.hinput_date) +'07:00:00'::INTERVAL;
-        _dst_path:=format('{{%s,%s},{2,1}}',_cid_pp,_oid_pp);
+        _dst_path:=format('{{%s,%s},{2,1}}',_cid_pv,_oid_pv);
         INSERT INTO log_main(timemark, src_path, obj_id) VALUES (_date, _src_path, _oid_obj) RETURNING id INTO _lid;
         INSERT INTO log_detail_move(id, dst_path, qty, prop_lid) VALUES (_lid,  _dst_path, 1, _act_lid_previos);
         _src_path:=_dst_path;
-        UPDATE obj_num SET pid = _oid_pp WHERE id=_oid_obj;
+        UPDATE obj_num SET pid = _oid_pv WHERE id=_oid_obj;
       END IF;
 
       -- Выдаём из ПП
@@ -1175,14 +1239,24 @@ BEGIN
       END IF;
     END LOOP; -- FOR rec IN import_log(_oid_obj) LOOP
     
-
+    -- ставим последнее примечание
+    _note:= COALESCE (impobj.note1,'') || ' ' || COALESCE (impobj.note2,'');
     _prop:=_prop || format('{"%s":"%s"}', _pid_note, _note)::JSONB;
-    _prop:=_prop || format('{"%s":%s}',   _pid_usehours, COALESCE(impobj.use_hours,0) )::JSONB;
     _date:=_date+'01:00:00'::INTERVAL;
     INSERT INTO log_main(timemark, src_path, obj_id) VALUES (_date, _src_path, _oid_obj) RETURNING id INTO _lid;
     INSERT INTO log_detail_act(id, act_id, prop)     VALUES (_lid, _aid_maininfo, _prop)      RETURNING id INTO _act_lid_previos;
     UPDATE obj_name SET prop = _prop WHERE id=_oid_obj;
 
+    -- Перемещаем в консервацию (архив)
+    RAISE DEBUG 'MOVE TO CONSERVATION';
+    IF(impobj.arhived IS TRUE) THEN
+      _date:=_date+'09:00:00'::INTERVAL;
+      _dst_path:=format('{{%s,%s},{2,1}}',_cid_conservation,_oid_conservation);
+      INSERT INTO log_main(timemark, src_path, obj_id) VALUES (_date, _src_path, _oid_obj) RETURNING id INTO _lid;
+      INSERT INTO log_detail_move(id, dst_path, qty, prop_lid) VALUES (_lid,  _dst_path, 1, _act_lid_previos);
+      _src_path:=_dst_path;
+      UPDATE obj_num SET pid = _oid_conservation WHERE id=_oid_obj;
+    END IF;
 
   END LOOP; --FOR impobj IN import_obj LOOP
 
