@@ -741,7 +741,10 @@ void VObjCatalogCtrl::OnExpanding(wxDataViewEvent &evt)
 		auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
 		auto typeItem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
 		if (typeItem)
+		{
+			wxBusyCursor busyCursor;
 			typeItem->mObjArray->Load();
+		}
 	}
 }
 //---------------------------------------------------------------------------

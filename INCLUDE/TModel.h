@@ -581,13 +581,21 @@ public:
 
 	void Load()
 	{
+		if (ModelOption::CommitLoad & mOption)
+			whDataMgr::GetDB().BeginTransaction();
 		LoadData();
 		LoadChilds();
+		if (ModelOption::CommitLoad & mOption)
+			whDataMgr::GetDB().Commit();
 	}
 	void Save()
 	{
+		if (ModelOption::CommitSave & mOption)
+			whDataMgr::GetDB().BeginTransaction();
 		SaveData();
 		SaveChilds();
+		if (ModelOption::CommitSave & mOption)
+			whDataMgr::GetDB().Commit();
 	}
 	
 	void MarkDeleted()
@@ -809,6 +817,10 @@ public:
 	typedef T_Data	 T_Data;
 	using DataType = T_Data;
 
+	bool HaveStored()const
+	{
+		return mStored.operator bool();
+	}
 
 	const T_Data& GetStored() const
 	{
