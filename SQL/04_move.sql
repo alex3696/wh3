@@ -759,6 +759,7 @@ CREATE OR REPLACE FUNCTION ftr_bd_log_main()
   RETURNS trigger AS
 $BODY$
 DECLARE
+  _lock_info       RECORD;
   _rec_detail_act  RECORD;
   prev_act_log_id  BIGINT;
   prev_prop        JSONB;
@@ -803,6 +804,27 @@ BEGIN
     _new_opid:=OLD.src_path[1][2];
     _qty := _old_detail_move.qty;
     SELECT cls_kind INTO _ckind FROM obj_name WHERE id=_oid;
+    
+    -- Ищем непросроченые чужие блокировки
+    SELECT * INTO _lock_info 
+      FROM lock_obj
+      WHERE
+      oid = _oid
+      AND now() < lock_time +'00:10:00.00' AND lock_session <> pg_backend_pid()
+      AND ( 
+            _ckind=1
+            OR --Если обьект относится к количественным, то надо проверить в таблице блокировок текущее место и предыдущее
+            ( _ckind<>1 
+              AND 
+              (pid = _old_opid OR pid=_new_opid) 
+            )
+          )
+    ;
+    IF FOUND THEN -- отменяем откат действия если стоит блокировка
+      RAISE EXCEPTION ' %: can`t delete object(id=%) is locked by user % in %.'
+        ,TG_NAME, _oid, _lock_info.lock_user, _lock_info.lock_time;
+    END IF;
+
     CASE _ckind
       WHEN 1 THEN PERFORM do_move_objnum(_oid, _new_opid);
       WHEN 2 THEN PERFORM do_move_objqtyi(_oid, _old_opid, _new_opid, _qty);
