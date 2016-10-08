@@ -42,6 +42,7 @@ public:
 	MObjArray(const char option
 		= ModelOption::EnableParentNotify
 		| ModelOption::EnableNotifyFromChild
+		| ModelOption::CommitLoad
 		| ModelOption::CommitSave )
 	: TModelArray<MObjItem>(option)
 	{}

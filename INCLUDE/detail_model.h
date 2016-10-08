@@ -61,6 +61,10 @@ class ObjProp
 public:
 	ObjProp(const char option = ModelOption::EnableParentNotify);
 	bool LoadThisDataFromDb(std::shared_ptr<whTable>&, const size_t)override;
+	void SetSelected(bool select = false) { mSelected = select;	}
+	bool GetSelected()const { return mSelected; }
+protected:
+	bool mSelected = false;
 };
 //-----------------------------------------------------------------------------
 class ObjPropArray
@@ -71,9 +75,44 @@ public:
 		= ModelOption::EnableParentNotify
 		| ModelOption::EnableNotifyFromChild);
 
-	void SetPropArray(const wxString& prop_str);
+	void SetPropArray(const wxString& prop_str, const wxString& act_id_str);
+
+	void UnselectAll();
 protected:
 	virtual bool GetSelectChildsQuery(wxString& query)const override;
+
+	virtual bool LoadChildDataFromDb(std::shared_ptr<IModel>& child,
+		std::shared_ptr<whTable>& db, const size_t pos) override;
+
+
+	// ObjPropArray - будет хранить все уникальные свойства для обьекта
+	struct extr_pid
+	{
+		typedef const wxString result_type;
+		inline result_type operator()(const std::shared_ptr<ObjProp>& r)const
+		{
+			return r->GetData().mProp.mId.toStr();
+		}
+	};
+
+	using UniqueIndex_PId =
+		boost::multi_index_container
+		<
+			std::shared_ptr<ObjProp>,
+			indexed_by
+			<
+				ordered_unique< extr_pid >
+			>
+		>;
+
+	using ActProps = std::map<wxString, std::shared_ptr<UniqueIndex_PId>>;
+
+	ActProps mActProps;
+	UniqueIndex_PId mUniqueIndex_PId;
+
+	sig::scoped_connection		mConnRowAR;
+	void OnRowAfterRemove(const IModel& vec, const std::vector<SptrIModel>& remVec);
+
 };
 //-----------------------------------------------------------------------------
 class ObjPropValLoader

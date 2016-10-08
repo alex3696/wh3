@@ -248,9 +248,17 @@ void ObjDetailPGView::OnObjPropChange(const IModel& model, const std::vector<uns
 
 	for (const unsigned int& i : vec)
 	{
+		auto pg_item = propCategory->Item(i);
 		auto prop_model = prop_array->at(i);
 		const auto& prop_data = prop_model->GetData();
-
-		propCategory->Item(i)->SetValueFromString(prop_data.mVal);
+		
+		if (prop_model->GetSelected())
+		{
+			wxColour hl = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT);
+			pg_item->SetBackgroundColour(hl);
+		}
+		pg_item->SetValueFromString(prop_data.mVal);
+		
 	}
+	Refresh();
 }

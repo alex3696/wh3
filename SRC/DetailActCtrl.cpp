@@ -174,8 +174,10 @@ void DetailActCtrl::OnDvSelect(wxDataViewEvent& evt)
 	if (!mrow)
 		return;
 
-	mObjModel->GetObjPropArray()->SetPropArray(mrow->GetData().at(9));
-
+	mObjModel->GetObjPropArray()->UnselectAll();
+	auto propCategory = mObjDetailView->GetProperty("user_obj_prop");
+	propCategory->SetBackgroundColour(*wxWHITE);
+	mObjModel->GetObjPropArray()->SetPropArray(mrow->GetData().at(9), mrow->GetData().at(14));
 
 }
 //-----------------------------------------------------------------------------

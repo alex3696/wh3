@@ -218,7 +218,7 @@ struct pg_array_parser : qi::grammar<Iterator, std::deque<std::wstring>(), unico
 		q_item %= omit['"'] >> q_data >> omit['"'];	// "some value"
 
 		item %= q_item | n_item;
-		arr %= '{' >> (item % ',') >> '}';							//{ *item }
+		arr %= '{' >> *(item % ',') >> '}';							//{ *item }
 	}
 
 	qi::rule<Iterator, std::wstring(), unicode::space_type>
