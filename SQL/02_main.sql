@@ -125,6 +125,8 @@ DROP FUNCTION IF EXISTS ftr_bu_any_obj() CASCADE;
 ---------------------------------------------------------------------------------------------------
 -- создание основных элементов
 ---------------------------------------------------------------------------------------------------
+REVOKE CREATE ON DATABASE wh3 FROM public CASCADE; -- запретить создавать схемы
+REVOKE CREATE ON SCHEMA public FROM public CASCADE;-- запретить создавать в схемах
 ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON SEQUENCES FROM public;
 ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON TABLES FROM public;
 ALTER DEFAULT PRIVILEGES REVOKE ALL PRIVILEGES ON FUNCTIONS FROM public;
