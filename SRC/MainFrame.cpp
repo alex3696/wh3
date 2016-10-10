@@ -35,6 +35,8 @@ enum GUIID
 
 	CMD_SHOWFAVORITES,
 
+	CMD_VIEW_TOOGLE_MAINTOOLBAR,
+
 	CMD_MKTAB_FAVORITES,
 
 	CMD_PNLSHOWGROUP,
@@ -54,6 +56,7 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 	m_AuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, face_colour);
 
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MkTabFaforite, this, CMD_MKTAB_FAVORITES);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_ToogleViewMainToolbar, this, CMD_VIEW_TOOGLE_MAINTOOLBAR);
 	
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnMakeTypeWnd, this, CMD_MAKETYPEWND);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnMakeObjWnd, this, CMD_MAKEOBJWND);
@@ -62,6 +65,8 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnShowLoginWnd, this, CMD_DB_CONNECT);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnDisconnectDB, this, CMD_DB_DISCONNECT);
+
+	
 
 
 	BuildMenu();
@@ -142,12 +147,12 @@ void MainFrame::BuildMenu()
 	menu_bar->Append(dbmenu, "Подключение");
 
 	wxMenu* menu_cfg = new wxMenu();
-	item = new wxMenuItem(menu_cfg, CMD_SHOWFAVORITES, "Показать/скрыть избранное", wxEmptyString, wxITEM_CHECK);
+	item = new wxMenuItem(menu_cfg, CMD_VIEW_TOOGLE_MAINTOOLBAR, "Показать/скрыть основную панель", wxEmptyString, wxITEM_CHECK);
 	menu_cfg->Append(item);
 	menu_cfg->AppendSeparator();
-	item = new wxMenuItem(menu_cfg, wxID_PREFERENCES, "Пользовательские настройки");
+	item = new wxMenuItem(menu_cfg, wxID_PREFERENCES, "...");
 	menu_cfg->Append(item);
-	menu_bar->Append(menu_cfg, "Настройки");
+	menu_bar->Append(menu_cfg, "Вид");
 
 	wxMenu* dir = new wxMenu();
 	item = new wxMenuItem(dir, CMD_PNLSHOWGROUP, "Группы пользователей");
@@ -165,8 +170,10 @@ void MainFrame::BuildMenu()
 	dir->Append(item);
 	dir->AppendSeparator();
 	item = new wxMenuItem(dir, CMD_MAKEHISTORYWND, "Общая история");
+	item->SetBitmap(m_ResMgr->m_ico_history24);
 	dir->Append(item);
 	item = new wxMenuItem(dir, CMD_MAKEOBJWND, "Открыть каталог объектов");
+	item->SetBitmap(m_ResMgr->m_ico_add_obj_tab24);
 	dir->Append(item);
 	item = new wxMenuItem(dir, CMD_MKTAB_FAVORITES, "Показать избранное");
 	item->SetBitmap(m_ResMgr->m_ico_favorites24);
@@ -523,8 +530,36 @@ void MainFrame::OnCmd_MkTabFaforite(wxCommandEvent& evt)
 	m_AuiMgr.Update();
 
 }
-
 //---------------------------------------------------------------------------
+
+void MainFrame::OnCmd_ToogleViewMainToolbar(wxCommandEvent& evt)
+{
+	if (evt.IsChecked())
+	{
+		wxAuiPaneInfo&  pi_main = m_AuiMgr.GetPane(m_MainToolBar);
+		if (pi_main.IsOk())
+			pi_main.Show();
+
+		wxAuiPaneInfo&  pi_dev = m_AuiMgr.GetPane(m_DevToolBar);
+		if (pi_dev.IsOk())
+			pi_dev.Show();
+	}
+	else
+	{
+		wxAuiPaneInfo&  pi_main = m_AuiMgr.GetPane(m_MainToolBar);
+		if (pi_main.IsOk())
+			pi_main.Hide();
+
+		wxAuiPaneInfo&  pi_dev = m_AuiMgr.GetPane(m_DevToolBar);
+		if (pi_dev.IsOk())
+			pi_dev.Hide();
+
+	}
+
+	m_AuiMgr.Update();
+}
+//---------------------------------------------------------------------------
+
 void MainFrame::PnlShowGroup(wxCommandEvent& WXUNUSED(evt))
 {
 	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);

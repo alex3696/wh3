@@ -42,8 +42,7 @@ SELECT obj.id, obj.pid, obj.title, cls_id, prop, qty, move_logid, act_logid, cls
 -- Перенос значения свойства "примечание"
 -- из "Изменить основные свойства"->"примечание" в "Изменить особенность"->"Особенность прибора"
 ------------------------------------------------------------------------------
-
-
+/**
 DROP FUNCTION IF EXISTS move_note_to_spec() CASCADE;
 CREATE OR REPLACE FUNCTION move_note_to_spec()
  RETURNS VOID  AS
@@ -109,11 +108,57 @@ $BODY$ LANGUAGE plpgsql;
 
 SELECT move_note_to_spec();
 DROP FUNCTION IF EXISTS move_note_to_spec() CASCADE;
+*/
+-------------------------------------------------------------------------------
+-- Добавление особенности в текущее состояние прибора
+------------------------------------------------------------------------------
+SET client_min_messages = 'debug';
+DROP FUNCTION IF EXISTS move_spec_to_obj() CASCADE;
+CREATE OR REPLACE FUNCTION move_spec_to_obj()
+ RETURNS VOID  AS
+$BODY$
+DECLARE
+  source CURSOR IS 
+    SELECT id as log_id
+          ,log_main.timemark
+          ,src_path
+          ,obj_id
+           ,act_id
+           , prop->>(SELECT id::TEXT FROM prop WHERE title='Особенность прибора') , prop
+      FROM log_detail_act 
+      LEFT JOIN log_main USING (id )
+      WHERE 
+      act_id = (SELECT id FROM act WHERE title='Изменить особенность')
+      AND log_main.username='postgres'
+      ;
+  _pid_spec BIGINT;
+  _txt_spec TEXT;
+BEGIN
+  RAISE NOTICE 'Start moving NOTE to SPEC';
+  select id INTO _pid_spec FROM prop WHERE title = 'Особенность прибора';
+
+  FOR source IN source LOOP
+    _txt_spec := to_json(source.prop->>(_pid_spec::TEXT));
+
+    UPDATE obj_name
+     SET prop= prop || format('{"%s":%s}', _pid_spec, _txt_spec)::JSONB
+     WHERE obj_name.id=source.obj_id;
+
+    UPDATE log_detail_act SET 
+      prop = prop || format('{"%s":%s}', _pid_spec, _txt_spec)::JSONB
+      WHERE id IN
+      (SELECT id FROM log_main lm WHERE lm.timemark>source.timemark AND lm.obj_id=source.obj_id )
+      ;
+
+  END LOOP;
+--RAISE EXCEPTION 'END moving NOTE to SPEC';
+RETURN;
+END; 
+$BODY$ LANGUAGE plpgsql;
 
 
-
-
-
+SELECT move_spec_to_obj();
+DROP FUNCTION IF EXISTS move_spec_to_obj() CASCADE;
 
 
 
