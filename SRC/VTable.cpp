@@ -12,16 +12,6 @@ VTable::VTable(wxWindow*		parent,
 {
 	SetRowHeight(24);
 	Bind(wxEVT_DATAVIEW_COLUMN_HEADER_CLICK, &VTable::OnColumnHeaderlClick, this);
-
-	const std::function<void(wxDataViewEvent&)> on_event = [](wxDataViewEvent& evt)
-	{
-		wxString str = evt.GetValue().GetString();
-		bool ret = false;
-	};
-
-	//Connect(wxEVT_MOTION, on_event);
-	wxWindow::Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, on_event);
-
 }
 //-----------------------------------------------------------------------------
 void VTable::SetModel(std::shared_ptr<ITable> model)

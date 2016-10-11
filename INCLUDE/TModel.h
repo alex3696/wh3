@@ -641,7 +641,6 @@ protected:
 		// загружаем детишек
 		wxString query;
 		const bool queryExist = GetSelectChildsQuery(query);
-		unsigned int rowQty = 0;
 		if (queryExist)
 		{
 			auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
@@ -649,7 +648,7 @@ protected:
 			{
 				std::vector<SptrIModel> new_vec;
 				SptrIModel child;
-				rowQty = table->GetRowCount();
+				unsigned int rowQty = table->GetRowCount();
 				
 				if (rowQty)
 				{

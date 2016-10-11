@@ -136,6 +136,29 @@ BaseTable::BaseTable (	wxWindow*		parent,
 	wxDataViewCtrl::AssociateModel(mDataViewModel);
 	mDataViewModel->DecRef();
 	//Bind(wxEVT_SIZE,&BaseTable::OnResize,this );
+
+	//this->GetTargetWindow()->GetToolTip()->SetDelay(2000);
+	//this->GetTargetWindow()->GetToolTip()->SetReshow(500);
+	//this->GetTargetWindow()->GetToolTip()->SetAutoPop(20000);
+	this->GetTargetWindow()->SetToolTip("ToolTip");
+
+	std::function<void(wxMouseEvent&)> on_move = [this](wxMouseEvent& evt)
+	{
+		wxDataViewColumn* col = nullptr;
+		wxDataViewItem item(nullptr);
+		auto pos = evt.GetPosition();
+		this->HitTest(pos, item, col);
+
+		wxString str;
+		if (col && item.IsOk())
+		{
+			wxVariant var;
+			this->GetModel()->GetValue(var, item, col->GetModelColumn());
+			str = var.GetString();
+		}
+		this->GetTargetWindow()->GetToolTip()->SetTip(str);
+	};
+	this->GetTargetWindow()->Bind(wxEVT_MOTION, on_move);
 }
 //---------------------------------------------------------------------------
 

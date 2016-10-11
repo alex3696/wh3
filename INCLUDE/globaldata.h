@@ -74,7 +74,7 @@ public:
 		bool		mStorePass;
 	
 		DbConnect()
-			:mServer(L"localhost"),mDB(L"wh3"),mPort(5432),mRole("User")
+			:mServer(L"localhost"), mDB(L"wh3"), mPort(5432), mRole("User"), mStorePass(true)
 		{}
 	
 		void Load();
