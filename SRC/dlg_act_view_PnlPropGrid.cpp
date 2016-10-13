@@ -1,6 +1,7 @@
 #include "_pch.h"
 #include "dlg_act_view_PnlPropGrid.h"
 #include "TViewCtrlPanel.h"
+#include "whPGFileLinkProperty.h"
 
 using namespace wh;
 using namespace wh::dlg_act::view;
@@ -48,7 +49,8 @@ void PnlPropGrid::SetModel(std::shared_ptr<dlg_act::model::PropArray>& model)
 			switch (propData.mProp.mType )
 			{
 			case ftText:	
-				if (!propData.mProp.mVarArray.IsEmpty())
+				if (   true != propData.mProp.mVarArray.IsEmpty() 
+					&& "{}" != propData.mProp.mVarArray)
 				{
 					auto arr = Sql2ArrayString(propData.mProp.mVarArray);
 					wxPGChoices eech = arr;
@@ -64,7 +66,7 @@ void PnlPropGrid::SetModel(std::shared_ptr<dlg_act::model::PropArray>& model)
 			case ftLong:	mPropGrid->Append(new wxIntProperty(propData.mProp.mLabel));  break;
 			case ftDouble:	mPropGrid->Append(new wxFloatProperty(propData.mProp.mLabel));  break;
 			case ftDate:	mPropGrid->Append(new wxDateProperty(propData.mProp.mLabel));  break;
-			case ftLink:	mPropGrid->Append(new wxStringProperty(propData.mProp.mLabel));  break;
+			case ftLink:	mPropGrid->Append(new whPGFileLinkProperty(propData.mProp.mLabel));  break;
 			case ftFile:	mPropGrid->Append(new wxFileProperty(propData.mProp.mLabel));  break;
 			case ftJSON:	mPropGrid->Append(new wxLongStringProperty(propData.mProp.mLabel));  break;
 			case ftBool:	

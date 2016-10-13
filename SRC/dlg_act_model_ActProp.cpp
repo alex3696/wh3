@@ -52,6 +52,7 @@ bool PropArray::GetSelectChildsQuery(wxString& query)const
 		" FROM ref_act_prop "
 		" LEFT JOIN prop ON ref_act_prop.prop_id = prop.id "
 		" WHERE act_id = %s "
+		" ORDER BY prop.title"
 		, act.mID
 		);
 	return true;
