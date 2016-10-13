@@ -25,16 +25,16 @@ public:
 		wxPGMultiButton* buttons = new wxPGMultiButton(propGrid, sz);
 
 		// Add regular buttons
-		buttons->Add(wxString("..."));
 		buttons->Add(wxArtProvider::GetBitmap(wxART_EXECUTABLE_FILE, wxART_BUTTON));
+		buttons->Add(wxString("..."));
 
-		if (is_read_only )
-		{
-			buttons->Disable();
-			auto btn0 = buttons->GetButton(0);
-			if (btn0)
-				btn0->Disable();
-		}
+		auto btn0 = buttons->GetButton(0);
+		auto btn1 = buttons->GetButton(1);
+
+		btn0->SetToolTip("Открыть");
+		btn1->SetToolTip("Выбрать");
+		if (is_read_only)
+			btn1->Disable();
 
 		// Create the 'primary' editor control (textctrl in this case)
 		property->ChangeFlag(wxPG_PROP_READONLY, true);  // wxPG_EDITABLE_VALUE
@@ -59,9 +59,9 @@ public:
 				return false;
 
 			const std::function<bool(wxPGProperty*)>* func = nullptr;
-			if (evt.GetId() == buttons->GetButtonId(0))
+			if (evt.GetId() == buttons->GetButtonId(1))
 				func = &bprop->GetOpenFunc();
-			else if (evt.GetId() == buttons->GetButtonId(1))
+			else if (evt.GetId() == buttons->GetButtonId(0))
 				func = &bprop->GetExecFunc();
 			if (func && func->operator bool() )
 				return (*func)(prop);
@@ -111,14 +111,18 @@ whPGFileLinkProperty::whPGFileLinkProperty(const wxString& label, const wxString
 
 	mImpl->funcExec = [this](wxPGProperty* prop)->bool
 	{
-		wxBusyCursor			busyCursor;
-		//execl(prop->GetValueAsString().c_str(),nullptr);
-		HWND hwnd=nullptr;
 		auto str = prop->GetValueAsString();
-		//str = "\\\\dlserver\\Arhiv_SC\\_работа_вед.СЦ\\_бумаги_по_датам\\2016\\2016_09_15 Оконч. БДР и МТР\\посл СГГ_2017 Отправлена 15.09.2016.xlsx";
+		if (str.IsEmpty())
+			return false;
+		wxBusyCursor			busyCursor;
+		// win execute
+		HWND hwnd = nullptr;
 		LPCWSTR path = str.operator const wchar_t *();
-		ShellExecuteW(hwnd, L"open", path,L"", NULL, SW_SHOWNORMAL);
+		ShellExecuteW(hwnd, L"open", path, L"", NULL, SW_SHOWNORMAL);
+		//wxWidget
 		//wxShell(str);
+		// std
+		//execl(prop->GetValueAsString().c_str(),nullptr);
 		return true;
 	};
 

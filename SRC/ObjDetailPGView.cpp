@@ -204,6 +204,7 @@ void ObjDetailPGView::OnObjPropAfterInsert(const IModel& vec
 		propCategory->AppendChild(pgp);
 	}
 
+	propCategory->SetFlagRecursively(wxPG_PROP_READONLY, true);
 	//SetPropertyReadOnly(propCategory, true);
 
 	if (!propCategory->GetChildCount())
