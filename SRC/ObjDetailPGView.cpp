@@ -1,6 +1,7 @@
 #include "_pch.h"
 #include "ObjDetailPGView.h"
 #include "PGClsPid.h"
+#include "whPGFileLinkProperty.h"
 
 
 using namespace wh;
@@ -194,7 +195,7 @@ void ObjDetailPGView::OnObjPropAfterInsert(const IModel& vec
 			break;
 		case ftDouble:	pgp = new wxFloatProperty(pgp_title, pgp_name);  break;
 		case ftDate:	pgp = new wxDateProperty(pgp_title, pgp_name);  break;
-		case ftLink:	pgp = new wxStringProperty(pgp_title, pgp_name);  break;
+		case ftLink:	pgp = new whPGFileLinkProperty(pgp_title, pgp_name);  break;
 		case ftFile:	pgp = new wxStringProperty(pgp_title, pgp_name);  break;
 		case ftJSON:	pgp = new wxLongStringProperty(pgp_title, pgp_name);  break;
 		default:break;

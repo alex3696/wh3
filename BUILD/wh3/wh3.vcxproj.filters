@@ -423,6 +423,9 @@
     <ClCompile Include="..\..\SRC\MFavViewPropCls.cpp">
       <Filter>Панель избранного\model</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\INCLUDE\whPGFileLinkProperty.cpp">
+      <Filter>Controls\PropertyGridExt</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\INCLUDE\_pch.h">
@@ -757,6 +760,9 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MFav.h">
       <Filter>Панель избранного\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\whPGFileLinkProperty.h">
+      <Filter>Controls\PropertyGridExt</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

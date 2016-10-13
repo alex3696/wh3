@@ -134,6 +134,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\INCLUDE\whPGFileLinkProperty.cpp" />
     <ClCompile Include="..\..\SRC\BaseControlPanel.cpp" />
     <ClCompile Include="..\..\SRC\BaseRefControlPanel.cpp" />
     <ClCompile Include="..\..\SRC\BaseTable.cpp" />
@@ -351,6 +352,7 @@
     <ClInclude Include="..\..\INCLUDE\VTableToolBar.h" />
     <ClInclude Include="..\..\INCLUDE\VUserCtrlPanel.h" />
     <ClInclude Include="..\..\INCLUDE\VUserPanel.h" />
+    <ClInclude Include="..\..\INCLUDE\whPGFileLinkProperty.h" />
     <ClInclude Include="..\..\INCLUDE\wxComboBtn.h" />
     <ClInclude Include="..\..\INCLUDE\_pch.h" />
     <ClInclude Include="..\..\INCLUDE\App.h" />

@@ -44,6 +44,7 @@ wxString GetAppVersion()
 	DWORD v3 = (pFileInfo->dwFileVersionLS >> 16) & 0xFFFF; 
 	DWORD v4 = (pFileInfo->dwFileVersionLS >> 0) & 0xFFFF; 
 
+	delete[] pbVersionInfo;
 
 	// pFileInfo->dwFileVersionMS is usually zero. However, you should check
 	// this if your version numbers seem to be wrong
