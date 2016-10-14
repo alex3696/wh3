@@ -21,11 +21,12 @@ PnlPropGrid::PnlPropGrid(wxWindow* parent,
 	mPropGrid = new wxPropertyGrid(this);
 	szrMain->Add(mPropGrid, 1, wxALL | wxEXPAND, 0);
 
-
-	
-
+	mPropGrid->AddActionTrigger(wxPG_ACTION_NEXT_PROPERTY, WXK_RETURN);
+	mPropGrid->AddActionTrigger(wxPG_ACTION_EDIT, WXK_RETURN);
+	mPropGrid->DedicateKey(WXK_RETURN);
+	mPropGrid->DedicateKey(WXK_UP);
+	mPropGrid->DedicateKey(WXK_DOWN);
 	//Bind(wxEVT_COMMAND_DATAVIEW_ITEM_ACTIVATED, &CtrlPanel::OnActivated, this);
-
 	//Layout();
 }//
 //-----------------------------------------------------------------------------

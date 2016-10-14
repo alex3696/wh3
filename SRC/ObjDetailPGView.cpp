@@ -27,7 +27,10 @@ ObjDetailPGView::ObjDetailPGView(wxWindow *parent, wxWindowID id,
 	SetPropertyReadOnly(pg_cls, true);
 	SetPropertyReadOnly(pg_obj, true);
 
-
+	AddActionTrigger(wxPG_ACTION_NEXT_PROPERTY, WXK_RETURN);
+	DedicateKey(WXK_RETURN);
+	DedicateKey(WXK_UP);
+	DedicateKey(WXK_DOWN);
 }
 //-----------------------------------------------------------------------------
 void ObjDetailPGView::SetModel(std::shared_ptr<wh::detail::model::Obj> model)

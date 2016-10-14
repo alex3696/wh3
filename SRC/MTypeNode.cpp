@@ -166,7 +166,7 @@ bool MTypeItem::GetUpdateQuery(wxString& query)const
 
 	query = wxString::Format(
 		"UPDATE acls SET "
-		" title=%s, note=%s, kind=%s, measure=%s, pid=%s, dobj=%s "
+		" title=%s, note=%s, measure=%s, pid=%s, dobj=%s "
 		" WHERE id = %s "
 		, cls.mLabel.SqlVal()
 		, cls.mComment.SqlVal()
