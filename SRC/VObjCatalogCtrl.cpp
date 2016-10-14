@@ -588,17 +588,28 @@ void VObjCatalogCtrl::OnEdit(wxCommandEvent& evt)
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnDelete(wxCommandEvent& evt)
 {
+	int res = wxMessageBox("Вы действительно ходите удалить?",
+		"Подтверждение", wxYES_NO);
+	if (wxYES != res)
+		return;
+
+	wxPasswordEntryDialog passDlg(this, "введите пароль для подтверждения", "Удаление");
+	if(wxID_OK != passDlg.ShowModal())
+		return;
+
+	const wh::Cfg::DbConnect& dbcfg = whDataMgr::GetInstance()->mCfg.mConnect;
+	if (passDlg.GetValue()!=dbcfg.mPass)
+	{ 
+		wxMessageBox("Неверный пароль","Подтверждение", wxOK);
+		return;
+	}
+	
 	try
 	{
-
 
 	auto subj = GetSelectedObj();
 	if (subj)
 	{
-		int res = wxMessageBox("Вы действительно ходите удалить?",
-			"Подтверждение", wxYES_NO);
-		if (wxYES != res)
-			return;
 
 		subj->MarkDeleted();
 		
