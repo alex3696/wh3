@@ -69,18 +69,21 @@ bool App::OnInit()
 		mLogger = nullptr;
 	}
 
-	mgr = ResMgr::GetInstance();
-	gdm = whDataMgr::GetInstance();
+	auto res_mgr = ResMgr::GetInstance();
+	auto data_mgr = whDataMgr::GetInstance();
+
+	// загружаем конфиг
+	wh::Cfg::DbConnect& dbcfg = data_mgr->mCfg.mConnect;
+	dbcfg.Load();
+
+
 
 	// создаём вид
-	MainFrame* mainframe = new MainFrame(NULL);
-	mainframe->Show();
-
-
-	gdm->m_MainFrame=mainframe;
+	data_mgr->m_MainFrame = new MainFrame(NULL);
+	SetTopWindow(data_mgr->m_MainFrame);
 	
-	SetTopWindow(mainframe);
-
+	data_mgr->m_MainFrame->Show();
+	data_mgr->m_MainFrame->OnShowLoginWnd();
 
 	return true;
 }
@@ -101,6 +104,13 @@ int App::OnExit()
 
 	//delete mLogger;
 	mLogger = nullptr;
+
+	// сохраняем конфиг
+
+	auto data_mgr = whDataMgr::GetInstance();
+
+	data_mgr->mCfg.mConnect.Save();
+
 
 	return 0;
 }

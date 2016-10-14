@@ -43,6 +43,9 @@ void Cfg::DbConnect::Save()
 {
 	wxFileConfig cfg("wh3","alex3696@ya.ru",wxEmptyString,wxEmptyString,wxCONFIG_USE_LOCAL_FILE);
 		
+	if (!mStorePass)
+		mPass.Clear();
+
 	cfg.Write("DbConnect/Server",mServer);
 	cfg.Write("DbConnect/Db",	mDB);
 	cfg.Write("DbConnect/Port", mPort);

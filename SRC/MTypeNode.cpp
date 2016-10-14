@@ -170,7 +170,6 @@ bool MTypeItem::GetUpdateQuery(wxString& query)const
 		" WHERE id = %s "
 		, cls.mLabel.SqlVal()
 		, cls.mComment.SqlVal()
-		, cls.mType.SqlVal()
 		, cls.mMeasure.SqlVal()
 		, parent
 		, cls.mDefaultObj.mId.SqlVal()

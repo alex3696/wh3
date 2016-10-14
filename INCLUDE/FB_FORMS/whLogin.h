@@ -15,13 +15,10 @@ public:
 		, long style = wxDEFAULT_DIALOG_STYLE);
 	~whLogin();
 
-	void SetAuthInfo(const wxString& name, const wxString& pass, bool store = true);
-	wxString GetUserName()const;
-	wxString GetUserPass()const;
-	bool GetStorePass()const;
-
 protected:
-	void OnParam( wxCommandEvent& event );
+	void OnParam( wxCommandEvent& evt );
+	void OnShow(wxShowEvent& evt);
+	void OnOk(wxCommandEvent& evt);
 	
 	wxComboBox* m_cbxUserName;
 	wxTextCtrl* m_txtPass;

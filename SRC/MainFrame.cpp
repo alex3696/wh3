@@ -82,8 +82,6 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 					CenterPane().Layer(1).Position(1).CloseButton(true).MaximizeButton(true).PaneBorder(false));
 
 	m_AuiMgr.Update();
-	OnShowLoginWnd();
-	
 
 	/*
 	m_wndFavorites = new wh::favorites::Panel(this);
@@ -110,7 +108,7 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 
 	ShowDevToolBar();
 
-	OnMakeObjWnd(wxCommandEvent(CMD_MAKEOBJWND));
+
 }
 //---------------------------------------------------------------------------
 MainFrame::~MainFrame()
@@ -331,30 +329,6 @@ void MainFrame::ShowDevToolBar(bool show)
 			);
 	}
 
-	BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
-	switch (bg)
-	{
-	default:
-	case bgNull:
-		m_DevToolBar->EnableTool(CMD_PNLSHOWGROUP, false);
-		m_DevToolBar->EnableTool(CMD_PNLSHOWUSER, false);
-		m_DevToolBar->EnableTool(CMD_PNLSHOWPROP, false);
-		m_DevToolBar->EnableTool(CMD_PNLSHOWACT, false);
-		break;
-	case bgAdmin:
-		m_DevToolBar->EnableTool(CMD_PNLSHOWGROUP, true);
-		m_DevToolBar->EnableTool(CMD_PNLSHOWUSER, true);
-	case bgTypeDesigner:
-		m_DevToolBar->EnableTool(CMD_PNLSHOWPROP, true);
-		m_DevToolBar->EnableTool(CMD_PNLSHOWACT, true);
-	case bgObjDesigner:
-	case bgUser:
-	case bgGuest:
-		break;
-	}
-
-
-	
 	show ? m_DevToolBar->Show() : m_DevToolBar->Hide();
 	m_AuiMgr.Update();
 }
@@ -429,25 +403,12 @@ void MainFrame::OnShowLoginWnd(wxCommandEvent& evt)
 
 	if(mgr->mDb.IsOpen())
 		OnDisconnectDB();
-	
-	wh::Cfg::DbConnect& dbcfg = whDataMgr::GetInstance()->mCfg.mConnect;
-	dbcfg.Load();
-
 
 	whLogin dlg(this);
-	dlg.SetAuthInfo(dbcfg.mUser, dbcfg.mPass, dbcfg.mStorePass);
 
 	if(dlg.ShowModal()==wxID_OK)
 	{
-		if (dlg.GetStorePass())
-			dbcfg.mPass = dlg.GetUserPass();
-		else
-			dbcfg.mPass.Clear();
-
-		dbcfg.mStorePass = dlg.GetStorePass();
-		dbcfg.mUser = dlg.GetUserName();
-		dbcfg.Save();
-
+		const wh::Cfg::DbConnect& dbcfg = whDataMgr::GetInstance()->mCfg.mConnect;
 		mgr->mDb.Open(	dbcfg.mServer
 						, dbcfg.mPort
 						, dbcfg.mDB
@@ -456,25 +417,47 @@ void MainFrame::OnShowLoginWnd(wxCommandEvent& evt)
 
 		if(mgr->mDb.IsOpen())
 		{
-			int toolId=CMD_DB_CONNECT;
-			wxAuiToolBarItem* tool=	m_MainToolBar->FindTool(toolId);
+			whDataMgr::GetInstance()->mCfg.Prop.Load();
+
+			wxAuiToolBarItem* tool = m_MainToolBar->FindTool(CMD_DB_CONNECT);
 			if(tool)
 				tool->SetState(wxAUI_BUTTON_STATE_CHECKED);
-			dbcfg.Load();
-			whDataMgr::GetInstance()->mCfg.Prop.Load();
-			const wxString conn_str =
-				dbcfg.mUser << " " <<
-				dbcfg.mServer << ":" << dbcfg.mPort << " " << dbcfg.mDB;
+			
+			const wxString conn_str = wxString::Format(
+				"%s %s %d %s"
+				,dbcfg.mUser, dbcfg.mServer,dbcfg.mPort,dbcfg.mDB);
 			SetStatusText(conn_str, 0);
 
+			// restore windows whDataMgr::GetInstance()->mCfg.Prop.Load();
+			// временно создаём окошко каталогов
+			OnMakeObjWnd(wxCommandEvent(CMD_MAKEOBJWND));
 		}//if(mgr->mDb.IsOpen())
 	
 	}//if(dlg.ShowModal()==wxID_OK)
-	else
-		::exit(0);
 	
+	BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+	switch (bg)
+	{
+	default:
+	case bgNull:
+		m_DevToolBar->EnableTool(CMD_PNLSHOWGROUP, false);
+		m_DevToolBar->EnableTool(CMD_PNLSHOWUSER, false);
+		m_DevToolBar->EnableTool(CMD_PNLSHOWPROP, false);
+		m_DevToolBar->EnableTool(CMD_PNLSHOWACT, false);
+		break;
+	case bgAdmin:
+		m_DevToolBar->EnableTool(CMD_PNLSHOWGROUP, true);
+		m_DevToolBar->EnableTool(CMD_PNLSHOWUSER, true);
+	case bgTypeDesigner:
+		m_DevToolBar->EnableTool(CMD_PNLSHOWPROP, true);
+		m_DevToolBar->EnableTool(CMD_PNLSHOWACT, true);
+	case bgObjDesigner:
+	case bgUser:
+	case bgGuest:
+		break;
+	}
 	
-	
+	m_AuiMgr.Update();
 }
 //---------------------------------------------------------------------------
 void MainFrame::OnDisconnectDB(wxCommandEvent& evt)

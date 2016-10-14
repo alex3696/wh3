@@ -151,39 +151,42 @@ whLogin::whLogin(wxWindow* parent, wxWindowID id, const wxString& title
 
 	// Connect Events
 	m_btnParam->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(whLogin::OnParam), NULL, this);
+
+	this->Bind(wxEVT_SHOW, &whLogin::OnShow, this);
+	m_btnOK->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &whLogin::OnOk, this);
+
 }
 //---------------------------------------------------------------------------
 whLogin::~whLogin()
 {
 	m_btnParam->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(whLogin::OnParam), NULL, this);
 }
-
 //---------------------------------------------------------------------------
+
+void whLogin::OnShow(wxShowEvent& event)
+{
+	const wh::Cfg::DbConnect& dbcfg = whDataMgr::GetInstance()->mCfg.mConnect;
+	m_cbxUserName->SetValue(dbcfg.mUser);
+	m_txtPass->SetValue(dbcfg.mPass);
+	m_chkStorePass->SetValue(dbcfg.mStorePass);
+}
+//---------------------------------------------------------------------------
+
 void whLogin::OnParam( wxCommandEvent& event )
 {
 	ConnectionCfgDlg conn_dlg(this);
 	conn_dlg.ShowModal();
 }
 //---------------------------------------------------------------------------
-void whLogin::SetAuthInfo(const wxString& name, const wxString& pass, bool store)
-{
-	m_cbxUserName->SetValue(name);
-	m_txtPass->SetValue(pass);
-	m_chkStorePass->SetValue(store);
 
-}
-//---------------------------------------------------------------------------
-wxString whLogin::GetUserName()const
+void whLogin::OnOk(wxCommandEvent& evt)
 {
-	return m_cbxUserName->GetValue();
-}
-//---------------------------------------------------------------------------
-wxString whLogin::GetUserPass()const
-{
-	return m_txtPass->GetValue();
-}
-//---------------------------------------------------------------------------
-bool whLogin::GetStorePass()const
-{
-	return m_chkStorePass->GetValue();
+	whDataMgr* mgr = whDataMgr::GetInstance();
+	wh::Cfg::DbConnect& dbcfg = whDataMgr::GetInstance()->mCfg.mConnect;
+
+	dbcfg.mUser = m_cbxUserName->GetValue();
+	dbcfg.mPass = m_txtPass->GetValue();
+	dbcfg.mStorePass = m_chkStorePass->GetValue();
+
+	EndModal(wxID_OK);
 }
