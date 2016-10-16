@@ -10,6 +10,7 @@
 #include "DClsEditor.h"
 #include "detail_ctrlpnl.h"
 #include "MainFrame.h"
+#include "config.h"
 
 using namespace wh;
 using namespace view;
@@ -69,7 +70,7 @@ void VObjCatalogCtrl::BuildToolbar(bool is_dlg)
 	wxWindowUpdateLocker	wndLockUpdater(mToolBar);
 	mToolBar->ClearTools();
 
-	const auto currBaseGroup = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+	const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
 
 	// делаем тулбар
 	// ---------- Общедоступные кнопки
@@ -165,7 +166,7 @@ void VObjCatalogCtrl::UpdateToolsStates()
 	mToolDisable[wxID_EDIT] = 0;
 	mToolDisable[wxID_DELETE] = 0;
 	// ограничения кнопок по логину
-	BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+	const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
 	switch (bg)
 	{
 	default:
@@ -597,8 +598,8 @@ void VObjCatalogCtrl::OnDelete(wxCommandEvent& evt)
 	if(wxID_OK != passDlg.ShowModal())
 		return;
 
-	const wh::Cfg::DbConnect& dbcfg = whDataMgr::GetInstance()->mCfg.mConnect;
-	if (passDlg.GetValue()!=dbcfg.mPass)
+	const auto& connect_cfg = whDataMgr::GetInstance()->mConnectCfg->GetData();
+	if (passDlg.GetValue() != connect_cfg.mPass)
 	{ 
 		wxMessageBox("Неверный пароль","Подтверждение", wxOK);
 		return;

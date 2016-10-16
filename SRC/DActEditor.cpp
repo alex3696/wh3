@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "DActEditor.h"
+#include "config.h"
 
 using namespace wh;
 using namespace wh::view;
@@ -98,7 +99,7 @@ void DActEditor::SetModel(std::shared_ptr<IModel>& newModel)
 
 		mActPanel->SetModel(newModel);
 		mPropsPanel->SetModel(actModel->GetPropArray());
-		BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+		const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
 		if ((int)bg < (int)bgTypeDesigner)
 			mBtnOK->Enable(false);
 	}

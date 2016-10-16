@@ -4,17 +4,36 @@
 #include "_pch.h"
 
 //----------------------------------------------------------------------------
+/// Базовые группы
+enum BaseGroup
+{
+	bgNull = 0,
+	bgGuest,
+	bgUser,
+	bgObjDesigner,
+	bgTypeDesigner,
+	bgAdmin
+};
+//----------------------------------------------------------------------------
 class	whTable;
 typedef std::shared_ptr<whTable> whTable_shared_ptr;
+
 //------------------------------------------------------------------------------
 /** Класс обеспечивает соединение с БД и получение данных в таблицах типа whTable */
 class whDB//: public Base
 {
 protected:
-	PostgresDatabaseLayer	m_Connection;
+	mutable PostgresDatabaseLayer	m_Connection;
 
 	//void ShowError(const DatabaseLayerException& err)const;
 public:
+	using Signal = sig::signal<void(const whDB* const)>;
+	using Slot = Signal::slot_type;
+
+	Signal SigAfterConnect;
+	Signal SigBeforeDisconnect;
+
+
 	whDB();
 	~whDB();
 	//virtual int GetClassID()const	{	return whID_TABLE;	}
@@ -33,9 +52,10 @@ public:
 	inline PostgresDatabaseLayer* GetConn()		{ return &m_Connection; }
 
 	bool Open(const wxString& strServer, int nPort, const wxString& strDatabase, const wxString& strUser, const wxString& strPassword);
+	bool Close();
+
+	inline bool IsOpen()const	{	return m_Connection.IsOpen();	} 
 	
-	inline bool IsOpen()	{	return m_Connection.IsOpen();	} 
-	inline bool Close()		{	return m_Connection.Close();	} 
 	
 
 };

@@ -1,10 +1,7 @@
 #ifndef __BTNPROPERTY_H
 #define __BTNPROPERTY_H
 
-#include "BaseOkCancelDialog.h"
-
-
-
+#include "_pch.h"
 
 //-------------------------------------------------------------------------------------------------
 /// Свойство с кнопкой "..."

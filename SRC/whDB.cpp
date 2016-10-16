@@ -19,20 +19,47 @@ whDB::~whDB()
 //------------------------------------------------------------------------------
 void whDB::BeginTransaction()	
 { 
-	m_Connection.BeginTransaction(); 
-	wxLogMessage("BeginTransaction");
+	try
+	{
+		m_Connection.BeginTransaction();
+		wxLogMessage("BeginTransaction");
+	}
+	catch (DatabaseLayerException & e)
+	{
+		wxString str = wxString::Format(("%d %s"), e.GetErrorCode(), e.GetErrorMessage().GetData());
+		wxMessageBox(str);
+		throw;
+	}
 }
 //------------------------------------------------------------------------------
 void whDB::Commit()
 { 
-	m_Connection.Commit(); 
-	wxLogMessage("Commit");
+	try
+	{
+		m_Connection.Commit();
+		wxLogMessage("Commit");
+	}
+	catch (DatabaseLayerException & e)
+	{
+		wxString str = wxString::Format(("%d %s"), e.GetErrorCode(), e.GetErrorMessage().GetData());
+		wxMessageBox(str);
+		throw;
+	}
 }
 //------------------------------------------------------------------------------
 void whDB::RollBack()
 { 
-	m_Connection.RollBack(); 
-	wxLogMessage("RollBack");
+	try
+	{
+		m_Connection.RollBack();
+		wxLogMessage("RollBack");
+	}
+	catch (DatabaseLayerException & e)
+	{
+		wxString str = wxString::Format(("%d %s"), e.GetErrorCode(), e.GetErrorMessage().GetData());
+		wxMessageBox(str);
+		throw;
+	}
 }
 
 //------------------------------------------------------------------------------
@@ -42,7 +69,9 @@ bool whDB::Open(const wxString& strServer, int nPort, const wxString& strDatabas
 	bool result = false;
 	try
 	{
+		Close();
 		result = m_Connection.Open(strServer,nPort,strDatabase,strUser,strPassword);
+		SigAfterConnect(this);
 	}
    	catch(DatabaseLayerException & e)
 	{
@@ -51,6 +80,13 @@ bool whDB::Open(const wxString& strServer, int nPort, const wxString& strDatabas
 	}
 	return result;
 }
+//------------------------------------------------------------------------------
+bool whDB::Close()
+{ 
+	SigBeforeDisconnect(this);
+	return m_Connection.Close(); 
+}
+
 //------------------------------------------------------------------------------
 whTable*	whDB::ExecWithResults(const wxString& query)
 {

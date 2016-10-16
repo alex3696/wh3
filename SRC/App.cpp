@@ -2,6 +2,7 @@
 #include "App.h"
 #include "MainFrame.h"
 #include "ResManager.h" 
+#include "config.h" 
 
 IMPLEMENT_APP( App );
 
@@ -73,17 +74,13 @@ bool App::OnInit()
 	auto data_mgr = whDataMgr::GetInstance();
 
 	// загружаем конфиг
-	wh::Cfg::DbConnect& dbcfg = data_mgr->mCfg.mConnect;
-	dbcfg.Load();
-
-
-
+	data_mgr->mConnectCfg->Load();
+	
 	// создаём вид
 	data_mgr->m_MainFrame = new MainFrame(NULL);
 	SetTopWindow(data_mgr->m_MainFrame);
-	
 	data_mgr->m_MainFrame->Show();
-	data_mgr->m_MainFrame->OnShowLoginWnd();
+	data_mgr->m_MainFrame->OnCmd_ConnectDB();
 
 	return true;
 }
@@ -96,6 +93,12 @@ App::~App()
 //---------------------------------------------------------------------------
 int App::OnExit()
 {
+	// сохраняем конфиг
+	auto data_mgr = whDataMgr::GetInstance();
+
+	data_mgr->mConnectCfg->Save();
+	
+	// отключаем логер
 	mLogger->Flush();
 	wxLog::EnableLogging(false);
 	delete wxLog::SetActiveTarget(nullptr);
@@ -105,11 +108,7 @@ int App::OnExit()
 	//delete mLogger;
 	mLogger = nullptr;
 
-	// сохраняем конфиг
-
-	auto data_mgr = whDataMgr::GetInstance();
-
-	data_mgr->mCfg.mConnect.Save();
+	
 
 
 	return 0;

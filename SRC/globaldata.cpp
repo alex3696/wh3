@@ -1,105 +1,10 @@
 #include "_pch.h"
 #include "globaldata.h"
 #include "MainFrame.h"
+#include "config.h"
 
 using namespace wh;
 //using namespace std;
-
-
-//---------------------------------------------------------------------------
-
-void Cfg::DbConnect::Load()
-{
-	wxFileName		local_cfg_file = wxFileConfig::GetLocalFile ("wh3.ini");;
-	
-
-
-	if(!local_cfg_file.FileExists() )//если пользовательского конфига нет 
-	{
-		wxFileName		vendor_cfg_file("wh3.ini");
-		if(vendor_cfg_file.FileExists())//ищем глобальный который рядом с экзешкой		
-		{
-			if(!wxCopyFile("wh3.ini", local_cfg_file.GetFullPath() ) ) // копируем как пользовательский
-				return;
-		}
-		else
-			return;
-	}
-
-	wxFileConfig cfg("wh3","alex3696@ya.ru",wxEmptyString,wxEmptyString,wxCONFIG_USE_LOCAL_FILE);
-		
-	cfg.Read("DbConnect/Server",&mServer);
-	cfg.Read("DbConnect/Db",	&mDB);
-	cfg.Read("DbConnect/Port",	&mPort);
-	cfg.Read("DbConnect/User",	&mUser);
-	cfg.Read("DbConnect/Pass",	&mPass);
-	cfg.Read("DbConnect/Role",	&mRole);
-	cfg.Read("DbConnect/StorePass", &mStorePass);
-
-}//void Load()
-//---------------------------------------------------------------------------
-
-void Cfg::DbConnect::Save()
-{
-	wxFileConfig cfg("wh3","alex3696@ya.ru",wxEmptyString,wxEmptyString,wxCONFIG_USE_LOCAL_FILE);
-		
-	if (!mStorePass)
-		mPass.Clear();
-
-	cfg.Write("DbConnect/Server",mServer);
-	cfg.Write("DbConnect/Db",	mDB);
-	cfg.Write("DbConnect/Port", mPort);
-	cfg.Write("DbConnect/User", mUser);
-	cfg.Write("DbConnect/Pass", mPass);
-	cfg.Write("DbConnect/Role", mRole);
-	cfg.Write("DbConnect/StorePass", mStorePass);
-	cfg.Flush();
-
-}//void Save()
-
-
-//---------------------------------------------------------------------------
-//---------------------------------------------------------------------------
-// Other Config Data
-//---------------------------------------------------------------------------
-//---------------------------------------------------------------------------
-void Cfg::DbProp::Load()
-{
-	wxString query =
-		"SELECT  prop.id    AS prop_id"
-		" , prop.title AS prop_title"
-		" , prop.kind  AS prop_kind"
-		" , val"
-		" , prop_cls.id AS id"
-		" FROM prop_cls"
-		" LEFT JOIN prop ON prop.id = prop_cls.prop_id"
-		" WHERE prop_cls.cls_id = 2";
-		
-	auto table= whDataMgr::GetDB().ExecWithResultsSPtr (query);
-	if(table)
-	{
-		for (size_t i = 0; i < table->GetRowCount(); i++)
-		{
-			DbProp&	propTable = *this;
-			const  wxString propLabel = table->GetAsString(1, i);
-			propTable[propLabel] = table->GetAsString(3, i);
-		}
-	}
-
-	query = "SELECT idx, groupname "
-		" FROM fn_array1_to_table( "
-		"  '{Guest,User,ObjDesigner,TypeDesigner,Admin}'::NAME[]) stdGroup "
-		" INNER JOIN wh_membership ON wh_membership.groupname = stdGroup.id "
-		" WHERE username = CURRENT_USER "
-		" ORDER BY idx DESC LIMIT 1 ";
-	table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
-	if (table && table->GetRowCount())
-		mBaseGroup = (BaseGroup)table->GetAsInt(0, 0);
-
-	
-}//void Load()
-//---------------------------------------------------------------------------
-
 
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -107,18 +12,21 @@ void Cfg::DbProp::Load()
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 Ftp::Ftp()
-	: mCfg(&whDataMgr::GetInstance()->mCfg)
-{}
+{
+
+}
 
 
 
 void Ftp::DoConnect()
 {
+	const rec::FtpCfg& ftp_cfg_data = whDataMgr::GetInstance()->mDbCfg->mFtpCfg->GetData();
+
 	if(mFtp.IsDisconnected() )
 	{
-		const wxString& server=mCfg->Prop["FTP server"];
-		const wxString& user=mCfg->Prop["FTP username"];
-		const wxString& pass=mCfg->Prop["FTP password"];
+		const wxString& server = ftp_cfg_data.mServer;
+		const wxString& user = ftp_cfg_data.mUser;
+		const wxString& pass = ftp_cfg_data.mPass;
 	
 		mFtp.SetUser	(user);
 		mFtp.SetPassword(pass);
@@ -357,4 +265,37 @@ void Ftp::Rename(const wxFileName& ftpfile,const wxString& new_name)
 		mFtp.Close();
 		BOOST_THROW_EXCEPTION( ftp_error_rename()<<wxstr("Can`t rename ftp file '"+ftpfile.GetFullPath(wxPATH_UNIX)+"'") );
 	}
+}
+
+
+
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+// whDataMgr
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+
+whDataMgr::whDataMgr()
+	:mConnectCfg(new wh::MConnectCfg())
+	, mDbCfg(new wh::MDbCfg())
+{
+	rec::ConnectCfg  default_connect_cfg;
+	mConnectCfg->SetData(default_connect_cfg);
+
+	whDB::Slot on_connect = [this](const whDB* const)
+	{
+		this->mDbCfg->Load();
+	};
+	
+	mSSC_AfterDbConnected = mDb.SigAfterConnect.connect(on_connect);
+
+
+	whDB::Slot on_disconnect = [this](const whDB* const db)
+	{
+		if (db && db->IsOpen())
+			this->mDbCfg->Save();
+	};
+
+	mSSC_AfterDbConnected = mDb.SigBeforeDisconnect.connect(on_disconnect);
+
 }

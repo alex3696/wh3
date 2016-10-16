@@ -1,10 +1,8 @@
 #ifndef __MAINFRAME_H
 #define __MAINFRAME_H
 
-#include "_pch.h"
-#include "whDB.h"
-
 #include "globaldata.h"
+#include "TModel.h"
 
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -25,9 +23,9 @@ private:
 
 	void BuildMenu();
 	void BuildToolbar();
+	void BuildDevToolBar();
 	void BuildStatusbar();
-
-	void ShowDevToolBar(bool show = true);
+	
 	void PnlShowGroup(wxCommandEvent& WXUNUSED(evt));
 	void PnlShowUser(wxCommandEvent& WXUNUSED(evt));
 	void PnlShowProp(wxCommandEvent& WXUNUSED(evt));
@@ -49,8 +47,8 @@ public:
 	void OnMakeHistoryWnd(wxCommandEvent& evt=wxCommandEvent());
 	void OnShowFavorites(wxCommandEvent& evt=wxCommandEvent());
 
-	void OnShowLoginWnd(wxCommandEvent& evt=wxCommandEvent());
-	void OnDisconnectDB(wxCommandEvent& evt=wxCommandEvent());
+	void OnCmd_ConnectDB(wxCommandEvent& evt = wxCommandEvent());
+	void OnCmd_DisconnectDB(wxCommandEvent& evt=wxCommandEvent());
 
 	void OnCmd_MkTabFaforite(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_ToogleViewMainToolbar(wxCommandEvent& evt = wxCommandEvent());
@@ -63,8 +61,18 @@ public:
 	void AddTab(wxWindow* pnl, const wxString& lbl=wxEmptyString, const wxIcon& icon=wxNullIcon);
 	void UpdateTab(wxWindow* pnl, const wxString& lbl, const wxIcon& icon);
 
+	void PrespectiveToCfg();
+	void CfgToPrespective();
 
 
+	sig::scoped_connection mSSC_AfterDbConnected;
+	sig::scoped_connection mSSC_BeforeDbDisconnect;
+	void OnSig_AfterDbConnected(const whDB* const);
+	void OnSig_BeforeDbDisconnect(const whDB* const);
+
+
+	sig::scoped_connection mSSC_AfterChange_BaseGroup;
+	void OnSigAfterChange_BaseGroup(const wh::IModel*, const BaseGroup* const);
 
 };
 

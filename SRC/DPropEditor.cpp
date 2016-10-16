@@ -1,6 +1,7 @@
 #include "_pch.h"
 #include "DPropEditor.h"
 #include "PGClsPid.h"
+#include "config.h"
 
 using namespace wh;
 using namespace wh::view;
@@ -103,7 +104,7 @@ void DPropEditor::SetModel(std::shared_ptr<IModel>& newModel)
 			mChangeConnection = mModel->DoConnect(moAfterUpdate, funcOnChange);
 			OnChangeModel(mModel.get(), nullptr);
 
-			BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+			const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
 			if ((int)bg < (int)bgTypeDesigner)
 				m_btnOK->Enable(false);
 		}//if (mModel)

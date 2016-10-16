@@ -22,27 +22,8 @@
 #define whID_CATALOG_SELECT		1100
 #define whID_CATALOG_PATH		1101
 #define whID_CATALOG_TYPE		1102
-//----------------------------------------------------------------------------
-enum ModelState
-{
-	msNull = 0,
-	msCreated,	//NEW созданная(новая) модель
-	msExist,	//модель, данные которой синхронизированы с хранилищем
-	msUpdated,	//измененная модель
-	msDeleted,	//удаленная модель
 
-};
-//----------------------------------------------------------------------------
-/// Базовые группы
-enum BaseGroup
-{
-	bgNull = 0,
-	bgGuest,
-	bgUser,
-	bgObjDesigner,
-	bgTypeDesigner,
-	bgAdmin
-};
+
 //----------------------------------------------------------------------------
 
 
@@ -50,47 +31,19 @@ enum BaseGroup
 
 class MainFrame;
 
+
 namespace wh
 {
+
+class MConnectCfg;
+class MDbCfg;
+
+
+};//namespace wh
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 // Config
 //---------------------------------------------------------------------------
-//---------------------------------------------------------------------------
-
-class Cfg
-{
-public:
-	class DbConnect
-	{
-	public:
-		wxString	mServer;
-		wxString	mDB;
-		long		mPort;
-		wxString	mUser;
-		wxString	mPass;
-
-		wxString	mRole;
-		bool		mStorePass;
-	
-		DbConnect()
-			:mServer(L"localhost"), mDB(L"wh3"), mPort(5432), mRole("User"), mStorePass(true)
-		{}
-	
-		void Load();
-		void Save();
-
-	
-	}	mConnect;
-
-	struct DbProp: public std::map<wxString,wxString>
-	{
-		BaseGroup	mBaseGroup = bgNull;
-		void Load();
-		//wxString FtpServer()	{	return (*this)[wxString("FTP server")];	}
-
-	}	Prop;
-};//class Cfg: public TSingletonSptr<Cfg>
 //---------------------------------------------------------------------------
 
 class Ftp
@@ -128,13 +81,11 @@ public:
 protected:
 
 	wxFTP						mFtp;
-	//std::shared_ptr<wh::Cfg>	mCfg;
-	wh::Cfg*	mCfg;
 
 };
 //---------------------------------------------------------------------------
 
-};//namespace wh
+
 
 
 
@@ -157,9 +108,12 @@ protected:
 class whDataMgr
 {
 private:
-	whDataMgr() {};                   // Constructor? (the {} brackets) are needed here.
+	whDataMgr();
 	whDataMgr(whDataMgr const&) = delete;
 	void operator=(whDataMgr const&) = delete;
+
+	boost::signals2::scoped_connection mSSC_AfterDbConnected;
+	boost::signals2::scoped_connection mSSC_BeforeDbDisconnected;
 public:
 	static whDataMgr* GetInstance()
 	{
@@ -170,9 +124,13 @@ public:
 
 	struct data_is_null: virtual exception_base { };
 
-	whDB		mDb;
-	wh::Cfg		mCfg;
-	wh::Ftp		mFtp;
+	whDB	mDb;
+	Ftp		mFtp;
+	
+	std::shared_ptr<wh::MConnectCfg>	mConnectCfg;
+	
+	std::shared_ptr<wh::MDbCfg>			mDbCfg;
+	
 
 	MainFrame*					m_MainFrame = nullptr;
 

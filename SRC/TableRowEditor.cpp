@@ -1,6 +1,7 @@
 #include "_pch.h"
 #include "TableRowEditor.h"
 #include "PGPTypeId.h"
+#include "config.h"
 
 using namespace wh;
 
@@ -81,7 +82,7 @@ void TableRowPGDefaultEditor::SetModel(std::shared_ptr<IModel>& newModel)
 		this, std::placeholders::_1, std::placeholders::_2);
 	mChangeConnection = mModel->DoConnect(moAfterUpdate, funcOnChange);
 
-	BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+	const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
 	if ((int)bg < (int)bgTypeDesigner)
 		this->GetWindowChild(wxID_OK)->Enable(false);//	m_btnOK
 

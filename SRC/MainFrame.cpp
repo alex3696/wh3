@@ -16,6 +16,7 @@
 #include "VTablePanel.h"
 #include "MProp2.h"
 #include "MHistory.h"
+#include "config.h"
 
 //---------------------------------------------------------------------------
 enum GUIID
@@ -26,8 +27,6 @@ enum GUIID
 	// CMD
 	CMD_DB_CONNECT,
 	CMD_DB_DISCONNECT,
-	CMD_DB_TEST,
-	CMD_DB_TEST2,
 
 	CMD_MAKETYPEWND,
 	CMD_MAKEOBJWND,
@@ -63,68 +62,46 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnMakeHistoryWnd, this, CMD_MAKEHISTORYWND);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnShowFavorites, this, CMD_SHOWFAVORITES);
 
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnShowLoginWnd, this, CMD_DB_CONNECT);
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnDisconnectDB, this, CMD_DB_DISCONNECT);
-
-	
-
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_ConnectDB, this, CMD_DB_CONNECT);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_DisconnectDB, this, CMD_DB_DISCONNECT);
 
 	BuildMenu();
-	BuildToolbar();
 	BuildStatusbar();
- 
+	BuildToolbar();
+	BuildDevToolBar();
 
 	m_Notebook = new wxAuiNotebook(this);
-
-
 	m_AuiMgr.AddPane(m_Notebook, wxAuiPaneInfo().
-					Name(wxT("NotebookPane")).Caption(wxT("Notebook")).
+					Name(wxT("NotebookPane")).Caption(wxT("NotebookPane")).
 					CenterPane().Layer(1).Position(1).CloseButton(true).MaximizeButton(true).PaneBorder(false));
-
 	m_AuiMgr.Update();
 
-	/*
-	m_wndFavorites = new wh::favorites::Panel(this);
 
-	m_AuiMgr.AddPane(m_wndFavorites,wxAuiPaneInfo().
-										Name("favorites_pane").Caption("Избранное")
-											.Left()
-											 .Layer(1).Position(1)
-											 //.Icon(GetResMgr()->m_ico_favorites16)
-											 .MinSize(250,200)
-											 .CloseButton(false)
-											 .Dockable(false)
-											 .Floatable(false)
-											 .Hide()
-											 );
+	namespace ph = std::placeholders;
 	
+	wh::MBaseGroup::Slot fnAC_basegroup = 
+		std::bind(&MainFrame::OnSigAfterChange_BaseGroup, this, ph::_1, ph::_2);
+	mSSC_AfterChange_BaseGroup =
+		whDataMgr::GetInstance()->mDbCfg->mBaseGroup
+		->DoConnect(wh::ModelOperation::moAfterUpdate, fnAC_basegroup);
 	
-	OnShowFavorites();
-	*/
+	auto fnAC = std::bind(&MainFrame::OnSig_AfterDbConnected, this, ph::_1);
+	auto fnBD = std::bind(&MainFrame::OnSig_BeforeDbDisconnect, this, ph::_1);
+	mSSC_AfterDbConnected = whDataMgr::GetInstance()->GetDB().SigAfterConnect.connect(fnAC);
+	mSSC_BeforeDbDisconnect = whDataMgr::GetInstance()->GetDB().SigBeforeDisconnect.connect(fnBD);
+
+
 	
-
-	//DoMenuPreferences();
-
-
-	ShowDevToolBar();
-
-
 }
 //---------------------------------------------------------------------------
+
 MainFrame::~MainFrame()
 {
-//	m_KindModel->DecRef();  // avoid memory leak !!
-	
-	while(m_Notebook->GetPageCount())
-		m_Notebook->DeletePage(0);
-	//bp1->Disconnect();
+	PrespectiveToCfg();
 	m_AuiMgr.UnInit();
-
-	whDataMgr* mgr = whDataMgr::GetInstance();
-	mgr->mDb.Close();
-
 }
 //---------------------------------------------------------------------------
+
 void MainFrame::BuildMenu()
 {
 	wxMenuBar*	menu_bar = new wxMenuBar(0);
@@ -221,7 +198,7 @@ void MainFrame::BuildToolbar()
 	m_MainToolBar->Realize();
 
 	m_AuiMgr.AddPane(m_MainToolBar, wxAuiPaneInfo().
-		Name(wxT("m_MainToolBar")).Caption(wxT("Main toolbar"))
+		Name(wxT("mMainToolBar")).Caption(wxT("mMainToolBar"))
 		.CaptionVisible(false)
 		.ToolbarPane()
 		.Top()
@@ -248,7 +225,7 @@ void MainFrame::BuildStatusbar()
 }
 
 //---------------------------------------------------------------------------
-void MainFrame::ShowDevToolBar(bool show)
+void MainFrame::BuildDevToolBar()
 {
 	if (!m_DevToolBar)
 	{ 
@@ -257,42 +234,19 @@ void MainFrame::ShowDevToolBar(bool show)
 			| wxAUI_TB_PLAIN_BACKGROUND
 			| wxAUI_TB_GRIPPER);
 
-		m_DevToolBar->AddTool(CMD_PNLSHOWGROUP, "Групп",
+		m_DevToolBar->AddTool(CMD_PNLSHOWGROUP, "Группы",
 			m_ResMgr->m_ico_usergroup24, wxEmptyString, wxITEM_NORMAL);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowGroup, this, CMD_PNLSHOWGROUP);
 		m_DevToolBar->AddTool(CMD_PNLSHOWUSER, "Пользователи",
 			m_ResMgr->m_ico_user24, wxEmptyString, wxITEM_NORMAL);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowUser, this, CMD_PNLSHOWUSER);
-		//m_DevToolBar->AddTool(CMD_PNLSHOWPROP, "Свойства",
-		//	m_ResMgr->m_ico_list_prop24, wxEmptyString, wxITEM_NORMAL);
+		m_DevToolBar->AddTool(CMD_PNLSHOWPROP, "Свойства", m_ResMgr->m_ico_list_prop24);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowProp, this, CMD_PNLSHOWPROP);
 		m_DevToolBar->AddTool(CMD_PNLSHOWACT, "Действия",
 			m_ResMgr->m_ico_acts24, wxEmptyString, wxITEM_NORMAL);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowAct, this, CMD_PNLSHOWACT);
 
-		m_DevToolBar->AddTool(CMD_DB_TEST, "Свойства", m_ResMgr->m_ico_list_prop24);
-		auto cmdTest = [this](wxCommandEvent& evt)
-		{
-			wxBusyCursor			busyCursor;
-			m_Notebook->Freeze(); //wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
-			auto wnd = new wh::VTablePanel(m_Notebook);
-			auto model = std::make_shared<wh::MPropTable>();
-			const auto currBaseGroup = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
-			if ((int)currBaseGroup <= (int)bgUser)
-			{
-				wnd->mCtrl.fnOnCmdSave = nullptr; //wnd->SetEnableSave(false);
-				wnd->mCtrl.fnOnCmdInsert = nullptr;
-				wnd->mCtrl.fnOnCmdEdit = nullptr;
-				wnd->mCtrl.fnOnCmdRemove = nullptr;
-			}
 
-			m_Notebook->AddPage(wnd, "Свойства", true, ResMgr::GetInstance()->m_ico_list_prop24);
-			m_AuiMgr.Update();
-			m_Notebook->Thaw();
-			wnd->SetModel(model);
-			model->Load();
-		};
-		Bind(wxEVT_COMMAND_MENU_SELECTED, cmdTest, CMD_DB_TEST);
 
 
 		m_DevToolBar->AddTool(CMD_MAKEHISTORYWND, "История", m_ResMgr->m_ico_history24);
@@ -317,8 +271,9 @@ void MainFrame::ShowDevToolBar(bool show)
 
 		m_DevToolBar->Realize();
 
-		m_AuiMgr.AddPane(m_DevToolBar, wxAuiPaneInfo().Name(wxT("DevToolBar")).
-			Caption(wxT("Developer toolbar")).CaptionVisible(false)
+		m_AuiMgr.AddPane(m_DevToolBar
+			, wxAuiPaneInfo().Name(wxT("DevToolBar"))
+			.Caption(wxT("DevToolBar")).CaptionVisible(false)
 			.ToolbarPane()
 			.Top()
 			.Fixed()
@@ -329,8 +284,7 @@ void MainFrame::ShowDevToolBar(bool show)
 			);
 	}
 
-	show ? m_DevToolBar->Show() : m_DevToolBar->Hide();
-	m_AuiMgr.Update();
+	OnSigAfterChange_BaseGroup(nullptr, nullptr);
 }
 //---------------------------------------------------------------------------
 void MainFrame::DoShowConnDlg(wxCommandEvent& evt)
@@ -395,88 +349,16 @@ void MainFrame::OnMakeHistoryWnd(wxCommandEvent& evt)
 //---------------------------------------------------------------------------
 
 
-void MainFrame::OnShowLoginWnd(wxCommandEvent& evt)
+void MainFrame::OnCmd_ConnectDB(wxCommandEvent& evt)
 {
-
-	
-	whDataMgr* mgr = whDataMgr::GetInstance();
-
-	if(mgr->mDb.IsOpen())
-		OnDisconnectDB();
-
 	whLogin dlg(this);
-
-	if(dlg.ShowModal()==wxID_OK)
-	{
-		const wh::Cfg::DbConnect& dbcfg = whDataMgr::GetInstance()->mCfg.mConnect;
-		mgr->mDb.Open(	dbcfg.mServer
-						, dbcfg.mPort
-						, dbcfg.mDB
-						, dbcfg.mUser
-						, dbcfg.mPass);
-
-		if(mgr->mDb.IsOpen())
-		{
-			whDataMgr::GetInstance()->mCfg.Prop.Load();
-
-			wxAuiToolBarItem* tool = m_MainToolBar->FindTool(CMD_DB_CONNECT);
-			if(tool)
-				tool->SetState(wxAUI_BUTTON_STATE_CHECKED);
-			
-			const wxString conn_str = wxString::Format(
-				"%s %s %d %s"
-				,dbcfg.mUser, dbcfg.mServer,dbcfg.mPort,dbcfg.mDB);
-			SetStatusText(conn_str, 0);
-
-			// restore windows whDataMgr::GetInstance()->mCfg.Prop.Load();
-			// временно создаём окошко каталогов
-			OnMakeObjWnd(wxCommandEvent(CMD_MAKEOBJWND));
-		}//if(mgr->mDb.IsOpen())
-	
-	}//if(dlg.ShowModal()==wxID_OK)
-	
-	BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
-	switch (bg)
-	{
-	default:
-	case bgNull:
-		m_DevToolBar->EnableTool(CMD_PNLSHOWGROUP, false);
-		m_DevToolBar->EnableTool(CMD_PNLSHOWUSER, false);
-		m_DevToolBar->EnableTool(CMD_PNLSHOWPROP, false);
-		m_DevToolBar->EnableTool(CMD_PNLSHOWACT, false);
-		break;
-	case bgAdmin:
-		m_DevToolBar->EnableTool(CMD_PNLSHOWGROUP, true);
-		m_DevToolBar->EnableTool(CMD_PNLSHOWUSER, true);
-	case bgTypeDesigner:
-		m_DevToolBar->EnableTool(CMD_PNLSHOWPROP, true);
-		m_DevToolBar->EnableTool(CMD_PNLSHOWACT, true);
-	case bgObjDesigner:
-	case bgUser:
-	case bgGuest:
-		break;
-	}
-	
-	m_AuiMgr.Update();
+	dlg.ShowModal();
 }
 //---------------------------------------------------------------------------
-void MainFrame::OnDisconnectDB(wxCommandEvent& evt)
+void MainFrame::OnCmd_DisconnectDB(wxCommandEvent& evt)
 {
-	while(m_Notebook->GetPageCount())
-	{
-		// TODO сохранить вкладки пользователя;
-		m_Notebook->DeletePage(0);
-	}
-	
 	whDataMgr* mgr = whDataMgr::GetInstance();
 	mgr->mDb.Close();
-
-	SetStatusText(wxEmptyString, 0);
-
-	wxAuiToolBarItem* tool=	m_MainToolBar->FindTool(CMD_DB_DISCONNECT);
-	if (tool)
-		tool->SetState(wxAUI_BUTTON_STATE_CHECKED);
-
 }
 
 //---------------------------------------------------------------------------
@@ -550,7 +432,7 @@ void MainFrame::PnlShowGroup(wxCommandEvent& WXUNUSED(evt))
 	using namespace wh::view;
 	auto model = std::make_shared<MGroupArray>();
 	auto view = new VGroupCtrlPanel(m_Notebook);
-	BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+	const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
 	if ((int)bg < (int)bgAdmin)
 		view->DisableCreateDelete();
 	model->Load();
@@ -567,7 +449,7 @@ void MainFrame::PnlShowUser(wxCommandEvent& WXUNUSED(evt))
 	using namespace wh::view;
 	auto model = std::make_shared<MUserArray>();
 	auto view = new VUserCtrlPanel(m_Notebook);
-	BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+	const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
 	if ((int)bg < (int)bgAdmin)
 		view->DisableCreateDelete();
 	model->Load();
@@ -579,12 +461,32 @@ void MainFrame::PnlShowUser(wxCommandEvent& WXUNUSED(evt))
 //---------------------------------------------------------------------------
 void MainFrame::PnlShowProp(wxCommandEvent& WXUNUSED(evt))
 {
+	wxBusyCursor			busyCursor;
+	m_Notebook->Freeze(); //wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	auto wnd = new wh::VTablePanel(m_Notebook);
+	auto model = std::make_shared<wh::MPropTable>();
+	const auto currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
+	if ((int)currBaseGroup <= (int)bgUser)
+	{
+		wnd->mCtrl.fnOnCmdSave = nullptr; //wnd->SetEnableSave(false);
+		wnd->mCtrl.fnOnCmdInsert = nullptr;
+		wnd->mCtrl.fnOnCmdEdit = nullptr;
+		wnd->mCtrl.fnOnCmdRemove = nullptr;
+	}
+
+	m_Notebook->AddPage(wnd, "Свойства", true, ResMgr::GetInstance()->m_ico_list_prop24);
+	m_AuiMgr.Update();
+	m_Notebook->Thaw();
+	wnd->SetModel(model);
+	model->Load();
+
+	/*
 	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 	using namespace wh;
 	using namespace wh::view;
 	auto model = std::make_shared<MPropArray>();
 	auto view = new VPropCtrlPanel(m_Notebook);
-	BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+	const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
 	if ((int)bg < (int)bgTypeDesigner)
 		view->DisableCreateDelete();
 	model->Load();
@@ -592,6 +494,7 @@ void MainFrame::PnlShowProp(wxCommandEvent& WXUNUSED(evt))
 	m_Notebook->AddPage(view, "Свойства", true, ResMgr::GetInstance()->m_ico_list_prop24);
 	view->SetFocus();
 	m_AuiMgr.Update();
+	*/
 }
 //---------------------------------------------------------------------------
 void MainFrame::PnlShowAct(wxCommandEvent& WXUNUSED(evt))
@@ -601,7 +504,7 @@ void MainFrame::PnlShowAct(wxCommandEvent& WXUNUSED(evt))
 	using namespace wh::view;
 	auto model = std::make_shared<MActArray>();
 	auto view = new VActCtrlPanel(m_Notebook);
-	BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+	const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
 	if ((int)bg < (int)bgTypeDesigner)
 		view->DisableCreateDelete();
 	model->Load();
@@ -617,6 +520,9 @@ void MainFrame::AddTab(wxWindow* wnd,const wxString& lbl, const wxIcon& icon)
 		return;
 	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 	m_Notebook->AddPage(wnd, lbl, true, icon);
+	auto pagr_id = m_Notebook->GetPageIndex(wnd);
+	if (pagr_id != wxNOT_FOUND && pagr_id>2)
+		m_Notebook->Split(pagr_id, wxRIGHT);
 	wnd->SetFocus();
 	m_AuiMgr.Update();
 }
@@ -634,4 +540,126 @@ void MainFrame::UpdateTab(wxWindow* wnd, const wxString& lbl, const wxIcon& icon
 		m_Notebook->Update();
 	}
 	m_AuiMgr.Update();
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::PrespectiveToCfg()
+{
+	/*
+	auto gui_cfg_model = whDataMgr::GetInstance()->mDbCfg->mGuiCfg;
+	if (!gui_cfg_model || wh::ModelState::msNull == gui_cfg_model->GetState())
+		return;
+
+	auto gui_cfg_data = gui_cfg_model->GetData();
+	
+	gui_cfg_data.mPersp = m_AuiMgr.SavePerspective();
+	
+	gui_cfg_model->SetData(gui_cfg_data);
+	*/
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::CfgToPrespective()
+{
+	/*
+	auto gui_cfg_model = whDataMgr::GetInstance()->mDbCfg->mGuiCfg;
+	if (!gui_cfg_model || wh::ModelState::msNull == gui_cfg_model->GetState())
+		return;
+	const auto& gui_cfg_data = gui_cfg_model->GetData();
+	m_AuiMgr.LoadPerspective(gui_cfg_data.mPersp, true);
+	*/
+
+	OnMakeObjWnd(wxCommandEvent(CMD_MAKEOBJWND));
+	m_AuiMgr.Update();
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::OnSig_AfterDbConnected(const whDB* const)
+{
+	const auto& dbcfg = whDataMgr::GetInstance()->mConnectCfg->GetData();
+	
+	//wxAuiToolBarItem* tool = m_MainToolBar->FindTool(CMD_DB_CONNECT);
+	//if (tool)
+	//	tool->SetState(wxAUI_BUTTON_STATE_CHECKED);
+
+	const wxString conn_str = wxString::Format("%s %s %d %s"
+		, dbcfg.mUser, dbcfg.mServer, dbcfg.mPort, dbcfg.mDB);
+	SetStatusText(conn_str, 0);
+
+	wxMenuBar* menu_bar = this->GetMenuBar();
+	if (menu_bar)
+	{
+		int catalog_menu_id = menu_bar->FindMenu("Каталоги");
+		if (wxNOT_FOUND != catalog_menu_id)
+			menu_bar->EnableTop(catalog_menu_id, true);
+	}
+	m_MainToolBar->Enable();
+	m_DevToolBar->Enable();
+
+
+	CfgToPrespective();
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::OnSig_BeforeDbDisconnect(const whDB* const)
+{
+	
+
+	PrespectiveToCfg();
+
+	const auto& dbcfg = whDataMgr::GetInstance()->mConnectCfg->GetData();
+
+	//wxAuiToolBarItem* tool = m_MainToolBar->FindTool(CMD_DB_CONNECT);
+	//if (tool)
+	//	tool->SetState(wxAUI_BUTTON_STATE_NORMAL);
+
+	const wxString conn_str = wxString::Format("DISCONNECTED %s %d %s"
+		, dbcfg.mServer, dbcfg.mPort, dbcfg.mDB);
+	SetStatusText(conn_str, 0);
+
+	wxMenuBar* menu_bar = this->GetMenuBar();
+	if (menu_bar)
+	{
+		int catalog_menu_id = menu_bar->FindMenu("Каталоги");
+		if (wxNOT_FOUND != catalog_menu_id)
+			menu_bar->EnableTop(catalog_menu_id, false);
+	}
+	m_MainToolBar->Disable();
+	m_DevToolBar->Disable();
+
+	while (m_Notebook->GetPageCount())
+	{
+		// TODO сохранить вкладки пользователя;
+		m_Notebook->DeletePage(0);
+	}
+
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::OnSigAfterChange_BaseGroup(const wh::IModel*, const BaseGroup* const pbg)
+{
+	/*
+	BaseGroup bg = pbg ? *pbg : bgNull;
+	switch (bg)
+	{
+	default:
+	case bgNull:
+		m_DevToolBar->EnableTool(CMD_PNLSHOWGROUP, false);
+		m_DevToolBar->EnableTool(CMD_PNLSHOWUSER, false);
+		m_DevToolBar->EnableTool(CMD_PNLSHOWPROP, false);
+		m_DevToolBar->EnableTool(CMD_PNLSHOWACT, false);
+		break;
+	case bgAdmin:
+		m_DevToolBar->EnableTool(CMD_PNLSHOWGROUP, true);
+		m_DevToolBar->EnableTool(CMD_PNLSHOWUSER, true);
+	case bgTypeDesigner:
+		m_DevToolBar->EnableTool(CMD_PNLSHOWPROP, true);
+		m_DevToolBar->EnableTool(CMD_PNLSHOWACT, true);
+	case bgObjDesigner:
+	case bgUser:
+	case bgGuest:
+		break;
+	}
+	m_AuiMgr.Update();
+	*/
 }

@@ -1,7 +1,7 @@
 #ifndef __WHPGFILELINKPROPERTY_H
 #define __WHPGFILELINKPROPERTY_H
 
-#include "BaseOkCancelDialog.h"
+#include "_pch.h"
 
 
 class whPGFileLinkProperty

@@ -1,6 +1,7 @@
 #include "_pch.h"
 #include "whLogin.h"
 #include "ConnectionCfgDlg.h"
+#include "config.h"
 
 wxString GetAppVersion()
 {
@@ -165,10 +166,10 @@ whLogin::~whLogin()
 
 void whLogin::OnShow(wxShowEvent& event)
 {
-	const wh::Cfg::DbConnect& dbcfg = whDataMgr::GetInstance()->mCfg.mConnect;
-	m_cbxUserName->SetValue(dbcfg.mUser);
-	m_txtPass->SetValue(dbcfg.mPass);
-	m_chkStorePass->SetValue(dbcfg.mStorePass);
+	const auto& conn_cfg = whDataMgr::GetInstance()->mConnectCfg->GetData();
+	m_cbxUserName->SetValue(conn_cfg.mUser);
+	m_txtPass->SetValue(conn_cfg.mPass);
+	m_chkStorePass->SetValue(conn_cfg.mStorePass);
 }
 //---------------------------------------------------------------------------
 
@@ -182,11 +183,21 @@ void whLogin::OnParam( wxCommandEvent& event )
 void whLogin::OnOk(wxCommandEvent& evt)
 {
 	whDataMgr* mgr = whDataMgr::GetInstance();
-	wh::Cfg::DbConnect& dbcfg = whDataMgr::GetInstance()->mCfg.mConnect;
+	auto conn_cfg = whDataMgr::GetInstance()->mConnectCfg->GetData();
 
-	dbcfg.mUser = m_cbxUserName->GetValue();
-	dbcfg.mPass = m_txtPass->GetValue();
-	dbcfg.mStorePass = m_chkStorePass->GetValue();
+	conn_cfg.mUser = m_cbxUserName->GetValue();
+	conn_cfg.mPass = m_txtPass->GetValue();
+	conn_cfg.mStorePass = m_chkStorePass->GetValue();
+
+	whDataMgr::GetInstance()->mConnectCfg->SetData(conn_cfg);
+
+	mgr->mDb.Open(conn_cfg.mServer
+		, conn_cfg.mPort
+		, conn_cfg.mDB
+		, conn_cfg.mUser
+		, conn_cfg.mPass);
+
+
 
 	EndModal(wxID_OK);
 }

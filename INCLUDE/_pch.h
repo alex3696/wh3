@@ -83,6 +83,7 @@ wxMenuItem* AppendBitmapMenu(wxMenu* menu,int id,const wxString& label,const wxB
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/signals2.hpp>
+namespace sig = boost::signals2;
 
 //---------------------------------------------------------------------------
 // Мультииндексы буста

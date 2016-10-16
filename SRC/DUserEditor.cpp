@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "DUserEditor.h"
+#include "config.h"
 
 using namespace wh;
 using namespace wh::view;
@@ -98,7 +99,7 @@ void DUserEditor::SetModel(std::shared_ptr<IModel>& newModel)
 
 		mUserPanel->SetModel(newModel);
 		mGroupsPanel->SetModel(userModel->GetGroupArray());
-		BaseGroup bg = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+		const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
 		if ((int)bg < (int)bgAdmin)
 			mBtnOK->Enable(false);
 	}

@@ -426,6 +426,9 @@
     <ClCompile Include="..\..\SRC\whPGFileLinkProperty.cpp">
       <Filter>Controls\PropertyGridExt</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\SRC\config.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\INCLUDE\_pch.h">
@@ -763,6 +766,9 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\whPGFileLinkProperty.h">
       <Filter>Controls\PropertyGridExt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\config.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

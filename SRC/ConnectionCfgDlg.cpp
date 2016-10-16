@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "ConnectionCfgDlg.h"
+#include "config.h"
 
 //---------------------------------------------------------------------------
 ConnectionCfgDlg::ConnectionCfgDlg(wxWindow* parent, wxWindowID id, const wxString& title
@@ -37,12 +38,11 @@ ConnectionCfgDlg::ConnectionCfgDlg(wxWindow* parent, wxWindowID id, const wxStri
 	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConnectionCfgDlg::OnOk, this, wxID_OK);
 
 
-	wh::Cfg::DbConnect& dbcfg = whDataMgr::GetInstance()->mCfg.mConnect;
-	dbcfg.Load();
-	mPGPServer->SetValueFromString(dbcfg.mServer);
-	mPGPPort->SetValueFromInt(dbcfg.mPort);
-	mPGPBd->SetValueFromString(dbcfg.mDB);
-	mPGPRole->SetValueFromString(dbcfg.mRole);
+	const auto& conn_cfg = whDataMgr::GetInstance()->mConnectCfg->GetData();
+	mPGPServer->SetValueFromString(conn_cfg.mServer);
+	mPGPPort->SetValueFromInt(conn_cfg.mPort);
+	mPGPBd->SetValueFromString(conn_cfg.mDB);
+	mPGPRole->SetValueFromString(conn_cfg.mRole);
 
 }
 //---------------------------------------------------------------------------
@@ -53,13 +53,14 @@ ConnectionCfgDlg::~ConnectionCfgDlg()
 //---------------------------------------------------------------------------
 void ConnectionCfgDlg::OnOk(wxCommandEvent& evt)
 {
-	wh::Cfg::DbConnect& dbcfg = whDataMgr::GetInstance()->mCfg.mConnect;
-	dbcfg.Load();
-	dbcfg.mServer = mPGPServer->GetValueAsString();
-	dbcfg.mPort = mPGPPort->GetValue().GetInteger();
-	dbcfg.mDB = mPGPBd->GetValueAsString();
-	dbcfg.mRole = mPGPRole->GetValueAsString();
-	dbcfg.Save();
+	auto conn_cfg = whDataMgr::GetInstance()->mConnectCfg->GetData();
+	conn_cfg.mServer = mPGPServer->GetValueAsString();
+	conn_cfg.mPort = mPGPPort->GetValue().GetInteger();
+	conn_cfg.mDB = mPGPBd->GetValueAsString();
+	conn_cfg.mRole = mPGPRole->GetValueAsString();
+
+	whDataMgr::GetInstance()->mConnectCfg->SetData(conn_cfg);
+	whDataMgr::GetInstance()->mConnectCfg->Save();
 
 	EndModal(wxID_OK);
 }

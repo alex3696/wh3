@@ -94,6 +94,27 @@ static FieldType ToFieldType(const wxString& str)
 	}
 	return it->mType;
 }
+//-----------------------------------------------------------------------------
+
+static int GetColumnWidthBy(FieldType ft)
+{
+	switch (ft)
+	{
+	case wh::ftText:	return	-1;		break;
+	case wh::ftName:	return	150;	break;
+	case wh::ftLong:	return	100;	break;
+	case wh::ftDouble:	return	100;	break;
+	case wh::ftDateTime:return	100;	break;
+	case wh::ftDate:	return	80;		break;
+	case wh::ftTime:	return	80;		break;
+	case wh::ftLink:	return	80;		break;
+	case wh::ftFile:	return	80;		break;
+	case wh::ftJSON:	return	150;	break;
+	default:			return	80;		break;
+	}
+	return -1;
+}
+//-----------------------------------------------------------------------------
 
 }//namespace wh{
 #endif // __****_H

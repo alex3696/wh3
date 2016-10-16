@@ -1,15 +1,21 @@
 #ifndef __TMODEL_H
 #define __TMODEL_H
 
-#include "_pch.h"
-#include "whDB.h"
-#include "globaldata.h"
 #include "dbFieldType.h"
 #include "field_data.h"
 
 namespace wh{
 
-namespace sig = boost::signals2;
+//----------------------------------------------------------------------------
+enum ModelState
+{
+	msNull = 0,
+	msCreated,	//NEW созданная(новая) модель
+	msExist,	//модель, данные которой синхронизированы с хранилищем
+	msUpdated,	//измененная модель
+	msDeleted,	//удаленная модель
+
+};
 
 //-----------------------------------------------------------------------------
 class IModel;
@@ -256,26 +262,7 @@ protected:
 
 
 
-//-----------------------------------------------------------------------------
 
-static int GetColumnWidthBy(FieldType ft)
-{
-	switch (ft)
-	{
-	case wh::ftText:	return	-1;		break;
-	case wh::ftName:	return	150;	break;
-	case wh::ftLong:	return	100;	break;
-	case wh::ftDouble:	return	100;	break;
-	case wh::ftDateTime:return	100;	break;
-	case wh::ftDate:	return	80;		break;
-	case wh::ftTime:	return	80;		break;
-	case wh::ftLink:	return	80;		break;
-	case wh::ftFile:	return	80;		break;
-	case wh::ftJSON:	return	150;	break;
-	default:			return	80;		break;
-	}
-	return -1;
-}
 //-----------------------------------------------------------------------------
 
 

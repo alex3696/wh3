@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "DetailActToolBar.h"
+#include "config.h"
 
 using namespace wh;
 //-----------------------------------------------------------------------------
@@ -22,7 +23,7 @@ void DetailActToolBar::Build()
 	auto tool_move_here = AddTool(whID_MOVE_HERE, "Переместить сюда", m_ResMgr->m_ico_movehere24, "Переместить сюда(CTRL+F6)");
 	auto tool_action = AddTool(whID_ACTION, "Выполнить", m_ResMgr->m_ico_act24, "Выполнить(F7)");
 
-	const auto currBaseGroup = whDataMgr::GetInstance()->mCfg.Prop.mBaseGroup;
+	const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
 	if ((int)currBaseGroup < (int)bgUser)
 	{
 		tool_move->SetActive(false);
