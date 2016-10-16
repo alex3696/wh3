@@ -27,15 +27,6 @@ public:
 		);
 	
 	void SetCfg(const rec::CatCfg& cfg);
-	void SetCfg(rec::CatType catType = rec::catObj
-		, bool enableProp = true
-		, bool enableObj = true
-		, bool debugColumns = false)
-	{
-		SetCfg(rec::CatCfg(catType, enableProp, enableObj, debugColumns));
-	}
-
-
 
 	std::shared_ptr<TModelData<bool>> mAutoLoadObj;
 	std::shared_ptr<MTypeArray>		mTypeArray;

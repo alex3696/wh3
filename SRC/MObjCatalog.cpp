@@ -50,12 +50,14 @@ MObjCatalog::MObjCatalog(const char option)
 void MObjCatalog::SetCfg(const rec::CatCfg& cfg)
 {
 	this->SetData(cfg);
+
+	unsigned long parent_id = cfg.mHideSystemRoot ? 1 : 0;
 	
 	switch (cfg.mCatType)
 	{
 	case rec::catCls:	
 	case rec::catObj:
-		SetCatFilter(0, true);	
+		SetCatFilter(parent_id, true);
 		break;
 	default:
 		SetCatFilter(0, false);
@@ -144,7 +146,7 @@ void MObjCatalog::DoUp()
 	const auto& cfg = this->GetData();
 
 	std::shared_ptr<model::MPathItem> pathItem;
-	unsigned long pid(0);
+	unsigned long pid = cfg.mHideSystemRoot ? 1 : 0;
 	
 	switch (cfg.mCatType)
 	{
@@ -156,6 +158,7 @@ void MObjCatalog::DoUp()
 				pid = pathItem->GetData().mCls.mId;
 		}
 		SetCatFilter(pid);
+		Load();
 		break;
 	case rec::catObj:	
 		if (mPath->GetChildQty() > 1)
@@ -165,6 +168,7 @@ void MObjCatalog::DoUp()
 				pid = pathItem->GetData().mObj.mId;
 		}
 		SetCatFilter(pid);
+		Load();
 		break;
 	case rec::catFav:
 	default:break;

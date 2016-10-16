@@ -51,7 +51,7 @@ Frame::Frame(wxWindow* parent,
 	mPropGrid->SetPropertyReadOnly(mPGParent, true);
 
 	auto parent_obj_cat = std::make_shared<MCat>();
-	parent_obj_cat->SetCfg(rec::catObj, false, true);
+	parent_obj_cat->SetCfg(rec::CatCfg(rec::catObj, false, true));
 	parent_obj_cat->SetFilterClsKind(ctQtyByOne, foLess, true);
 
 	mPGParent->SetCatalog(parent_obj_cat,true);

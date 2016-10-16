@@ -39,8 +39,6 @@ class VObjCatalogCtrl
 	wxAuiToolBarItem* mEditTool;
 	wxAuiToolBarItem* mDeleteTool;
 
-	void OnCmdSetTypeDir(wxCommandEvent& evt);
-	void OnCmdSetPathDir(wxCommandEvent& evt);
 	void OnCmdReload(wxCommandEvent& evt);
 	void OnCmdUp(wxCommandEvent& evt);
 	void OnCmdDetail(wxCommandEvent& evt);
@@ -87,6 +85,9 @@ public:
 
 	bool GetSelectedObjKey(rec::PathItem& objKey)const; 
 	bool GetCurrentParent(rec::PathItem& root)const;
+
+	void OnCmdSetTypeDir(wxCommandEvent& evt = wxCommandEvent());
+	void OnCmdSetPathDir(wxCommandEvent& evt = wxCommandEvent());
 
 };
 

@@ -279,11 +279,12 @@ void VObjCatalogCtrl::OnCmdSetTypeDir(wxCommandEvent& evt)
 	wxWindowDisabler		wndDisabler(mToolBar);
 	wxBusyCursor			busyCursor;
 	mToolBar->SetToolBitmap(whID_CATALOG_SELECT, m_ResMgr->m_ico_folder_type24);
-	
 	//mToolBar->Refresh();
 	if (mCatalogModel)
 	{
-		mCatalogModel->SetCfg(rec::catCls, true, true);
+		auto cfg = mCatalogModel->GetData();
+		cfg.mCatType = rec::catCls;
+		mCatalogModel->SetCfg(cfg);
 		mCatalogModel->Load();
 		mTableView->ExpandAll();
 	}
@@ -300,7 +301,9 @@ void VObjCatalogCtrl::OnCmdSetPathDir(wxCommandEvent& evt)
 	//mToolBar->Refresh();
 	if (mCatalogModel)
 	{
-		mCatalogModel->SetCfg(rec::catObj, true, true);
+		auto cfg = mCatalogModel->GetData();
+		cfg.mCatType = rec::catObj;
+		mCatalogModel->SetCfg(cfg);
 		mCatalogModel->Load();
 		mTableView->ExpandAll();
 	}
@@ -332,8 +335,8 @@ void VObjCatalogCtrl::OnCmdUp(wxCommandEvent& evt)
 	if (mCatalogModel)
 	{
 		mCatalogModel->DoUp();
-		wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, wxID_REFRESH);
-		this->ProcessEvent(evt);
+		//wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, wxID_REFRESH);
+		//this->ProcessEvent(evt);
 	}
 }
 //-----------------------------------------------------------------------------

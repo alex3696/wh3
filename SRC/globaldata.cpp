@@ -296,6 +296,6 @@ whDataMgr::whDataMgr()
 			this->mDbCfg->Save();
 	};
 
-	mSSC_AfterDbConnected = mDb.SigBeforeDisconnect.connect(on_disconnect);
+	mSSC_BeforeDbDisconnected = mDb.SigBeforeDisconnect.connect(on_disconnect);
 
 }

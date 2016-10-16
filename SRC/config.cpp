@@ -25,6 +25,7 @@ void MGuiCfg::LoadData()
 	//std::wstringstream ss;
 	//boost::property_tree::read_json(ss, data.mCfg);
 
+	/*
 	data.mPersp.clear();
 	wxFileInputStream file_input("presp.cfg");
 	if (!file_input.IsOk())
@@ -39,11 +40,13 @@ void MGuiCfg::LoadData()
 	text_input >> data.mPersp;
 
 	this->SetData(data);
+	*/
 }
 //-----------------------------------------------------------------------------
 
 void MGuiCfg::SaveData()
 {
+	/*
 	const T_Data& data = this->GetData();
 
 	wxFileOutputStream file_output("presp.cfg");
@@ -55,7 +58,7 @@ void MGuiCfg::SaveData()
 	wxTextOutputStream text_output(buf_output);
 
 	text_output << data.mPersp;
-
+	*/
 }
 //-----------------------------------------------------------------------------
 

@@ -83,6 +83,9 @@ wxString MPath::GetPathStr()const
 	wxString str_path = "/";
 	unsigned int qty = GetChildQty();
 
+	if (qty > 0 && catalog->GetData().mHideSystemRoot)
+		qty -= 1;
+
 	for (unsigned int i = qty; i > 0; i--)
 	{
 		auto node = std::dynamic_pointer_cast<MPathItem>(GetChild(i - 1));

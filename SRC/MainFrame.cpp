@@ -283,8 +283,6 @@ void MainFrame::BuildDevToolBar()
 			.Position(1)
 			);
 	}
-
-	OnSigAfterChange_BaseGroup(nullptr, nullptr);
 }
 //---------------------------------------------------------------------------
 void MainFrame::DoShowConnDlg(wxCommandEvent& evt)
@@ -320,14 +318,18 @@ void MainFrame::CreateObjCatalog(const wxString& _objclass,const wxString& _objn
 	wxBusyCursor		busyCursor;
 	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 
+	bool hideSysRoot = true;
+	const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
+	if ((int)bgUser < (int)currBaseGroup )
+		hideSysRoot = false;
+
+
 	auto obj_cat = new wh::view::VObjCatalogCtrl(m_Notebook);
 
 	auto mcat = std::make_shared<wh::object_catalog::MObjCatalog>();
-
-	mcat->SetCfg(wh::rec::CatType::catCls, true, true);
-	mcat->Load();
-
+	mcat->SetCfg(wh::rec::CatCfg(wh::rec::catObj, true, true, hideSysRoot));
 	obj_cat->SetModel(mcat);
+	obj_cat->OnCmdSetPathDir();
 
 	m_Notebook->AddPage(obj_cat, "каталог объектов", true, ResMgr::GetInstance()->m_ico_type_abstract24 );
 	

@@ -208,7 +208,7 @@ void PathPatternEditor::OnCmdSetCls(wxCommandEvent& evt)
 	dlg.SetTargetValidator(tv);
 
 	auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
-	catalog->SetCfg(rec::catCls, false, false);
+	catalog->SetCfg(rec::CatCfg(rec::catCls, false, false));
 	//if (FixOne_ReqCls != mMode)
 	//	catalog->SetFilterClsKind(ctQtyByOne, foLess, true);
 	catalog->Load();
@@ -244,7 +244,7 @@ void PathPatternEditor::OnCmdSetClsObj(wxCommandEvent& evt)
 
 	auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
 	
-	catalog->SetCfg(rec::catCls, false, true);
+	catalog->SetCfg(rec::CatCfg(rec::catCls, false, true));
 	//catalog->SetCfg(rec::catObj, false, true);
 	//if(FixOne_ReqCls!=mMode)
 	//	catalog->SetFilterClsKind(ctQtyByOne, foLess, true);
@@ -282,7 +282,7 @@ void PathPatternEditor::OnCmdSetFixObj(wxCommandEvent& evt)
 	
 	auto catalog = std::make_shared<wh::object_catalog::MObjCatalog>();
 
-	catalog->SetCfg(rec::catCustom, false, true);
+	catalog->SetCfg(rec::CatCfg(rec::catCustom, false, true));
 	catalog->SetFilterClsKind(ctQtyByOne, foLess, true);
 	catalog->SetFilterClsId(cls_id, foEq, true);
 	catalog->Load();
