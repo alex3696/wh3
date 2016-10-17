@@ -328,8 +328,9 @@ void MainFrame::CreateObjCatalog(const wxString& _objclass,const wxString& _objn
 
 	auto mcat = std::make_shared<wh::object_catalog::MObjCatalog>();
 	mcat->SetCfg(wh::rec::CatCfg(wh::rec::catObj, true, true, hideSysRoot));
+	mcat->Load();
 	obj_cat->SetModel(mcat);
-	obj_cat->OnCmdSetPathDir();
+	
 
 	m_Notebook->AddPage(obj_cat, "каталог объектов", true, ResMgr::GetInstance()->m_ico_type_abstract24 );
 	
@@ -522,9 +523,9 @@ void MainFrame::AddTab(wxWindow* wnd,const wxString& lbl, const wxIcon& icon)
 		return;
 	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 	m_Notebook->AddPage(wnd, lbl, true, icon);
-	auto pagr_id = m_Notebook->GetPageIndex(wnd);
-	if (pagr_id != wxNOT_FOUND && pagr_id>2)
-		m_Notebook->Split(pagr_id, wxRIGHT);
+	//auto pagr_id = m_Notebook->GetPageIndex(wnd);
+	//if (pagr_id != wxNOT_FOUND && pagr_id>2)
+	//	m_Notebook->Split(pagr_id, wxRIGHT);
 	wnd->SetFocus();
 	m_AuiMgr.Update();
 }

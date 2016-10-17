@@ -225,7 +225,7 @@ void VObjCatalogTable::OnAppend(const IModel& newVec,
 		}
 		mDataViewModel->ItemsAdded(typeItem, objItemArray);
 
-		this->Expand(typeItem);
+		//this->Expand(typeItem);
 
 	}
 
