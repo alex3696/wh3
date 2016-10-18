@@ -17,7 +17,9 @@
 #include "MProp2.h"
 #include "MHistory.h"
 #include "config.h"
+#include "AppViewConfig.h"
 
+#include "detail_ctrlpnl.h"
 //---------------------------------------------------------------------------
 enum GUIID
 {
@@ -31,8 +33,6 @@ enum GUIID
 	CMD_MAKETYPEWND,
 	CMD_MAKEOBJWND,
 	CMD_MAKEHISTORYWND,
-
-	CMD_SHOWFAVORITES,
 
 	CMD_VIEW_TOOGLE_MAINTOOLBAR,
 
@@ -57,10 +57,15 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MkTabFaforite, this, CMD_MKTAB_FAVORITES);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_ToogleViewMainToolbar, this, CMD_VIEW_TOOGLE_MAINTOOLBAR);
 	
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnMakeTypeWnd, this, CMD_MAKETYPEWND);
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnMakeObjWnd, this, CMD_MAKEOBJWND);
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnMakeHistoryWnd, this, CMD_MAKEHISTORYWND);
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnShowFavorites, this, CMD_SHOWFAVORITES);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_Group, this, CMD_PNLSHOWGROUP);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_User, this, CMD_PNLSHOWUSER);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_Prop, this, CMD_PNLSHOWPROP);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_Act, this, CMD_PNLSHOWACT);
+	
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_ObjByType, this, CMD_MAKETYPEWND);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_ObjByPath, this, CMD_MAKEOBJWND);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_History, this, CMD_MAKEHISTORYWND);
+	
 
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_ConnectDB, this, CMD_DB_CONNECT);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_DisconnectDB, this, CMD_DB_DISCONNECT);
@@ -76,28 +81,29 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 					CenterPane().Layer(1).Position(1).CloseButton(true).MaximizeButton(true).PaneBorder(false));
 	m_AuiMgr.Update();
 
-
+	auto dmgr = whDataMgr::GetInstance();
 	namespace ph = std::placeholders;
 	
 	wh::MBaseGroup::Slot fnAC_basegroup = 
 		std::bind(&MainFrame::OnSigAfterChange_BaseGroup, this, ph::_1, ph::_2);
 	mSSC_AfterChange_BaseGroup =
-		whDataMgr::GetInstance()->mDbCfg->mBaseGroup
+		dmgr->mDbCfg->mBaseGroup
 		->DoConnect(wh::ModelOperation::moAfterUpdate, fnAC_basegroup);
 	
 	auto fnAC = std::bind(&MainFrame::OnSig_AfterDbConnected, this, ph::_1);
 	auto fnBD = std::bind(&MainFrame::OnSig_BeforeDbDisconnect, this, ph::_1);
-	mSSC_AfterDbConnected = whDataMgr::GetInstance()->GetDB().SigAfterConnect.connect(fnAC);
-	mSSC_BeforeDbDisconnect = whDataMgr::GetInstance()->GetDB().SigBeforeDisconnect.connect(fnBD);
+	mSSC_AfterDbConnected = dmgr->GetDB().SigAfterConnect.connect(fnAC);
+	mSSC_BeforeDbDisconnect = dmgr->GetDB().SigBeforeDisconnect.connect(fnBD);
 
 
+	auto fnAI_page = std::bind(&MainFrame::OnSigAfterInsertPage, this, ph::_1, ph::_2, ph::_3);
+	mSSC_AfterInsert_Page = dmgr->mDbCfg->mGuiCfg->mNotepadCfg->ConnAfterInsert(fnAI_page);
 	
 }
 //---------------------------------------------------------------------------
 
 MainFrame::~MainFrame()
 {
-	PrespectiveToCfg();
 	m_AuiMgr.UnInit();
 }
 //---------------------------------------------------------------------------
@@ -147,7 +153,10 @@ void MainFrame::BuildMenu()
 	item = new wxMenuItem(dir, CMD_MAKEHISTORYWND, "Общая история");
 	item->SetBitmap(m_ResMgr->m_ico_history24);
 	dir->Append(item);
-	item = new wxMenuItem(dir, CMD_MAKEOBJWND, "Открыть каталог объектов");
+	item = new wxMenuItem(dir, CMD_MAKEOBJWND, "Каталог объектов по местоположению");
+	item->SetBitmap(m_ResMgr->m_ico_add_obj_tab24);
+	dir->Append(item);
+	item = new wxMenuItem(dir, CMD_MAKETYPEWND, "Каталог объектов по типу");
 	item->SetBitmap(m_ResMgr->m_ico_add_obj_tab24);
 	dir->Append(item);
 	item = new wxMenuItem(dir, CMD_MKTAB_FAVORITES, "Показать избранное");
@@ -181,15 +190,18 @@ void MainFrame::BuildToolbar()
 	
 	m_MainToolBar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, main_toolbar_style);
 
-	//m_MainToolBar->AddTool(CMD_DB_CONNECT, "Подключиться к БД", m_ResMgr->m_ico_connect24, "Подключиться к БД", wxITEM_RADIO);
-	//m_MainToolBar->AddTool(CMD_DB_DISCONNECT, "Отключиться от БД", m_ResMgr->m_ico_disconnect24, "Отключиться от БД", wxITEM_RADIO);
-	//m_MainToolBar->AddSeparator();
+	m_MainToolBar->AddTool(CMD_DB_CONNECT, "Подключиться к БД", m_ResMgr->m_ico_connect24, "Подключиться к БД", wxITEM_RADIO);
+	m_MainToolBar->AddTool(CMD_DB_DISCONNECT, "Отключиться от БД", m_ResMgr->m_ico_disconnect24, "Отключиться от БД", wxITEM_RADIO);
+	m_MainToolBar->AddSeparator();
 
-	//m_btnFavorites = m_MainToolBar->AddTool(CMD_SHOWFAVORITES, "Открыть избранное", m_ResMgr->m_ico_favorites24, "Открыть избранное", wxITEM_CHECK);
-
-	const wxString str_mktab_objdir = "Открыть каталог объектов";
+	const wxString str_mktab_objdir = "Каталог объектов по местоположению";
 	m_MainToolBar->AddTool(CMD_MAKEOBJWND, str_mktab_objdir
-		, m_ResMgr->m_ico_add_obj_tab24, str_mktab_objdir);
+		, m_ResMgr->m_ico_folder_obj24, str_mktab_objdir);
+
+	const wxString cat_obj_by_type = "Каталог объектов по типу";
+	m_MainToolBar->AddTool(CMD_MAKETYPEWND, cat_obj_by_type
+		, m_ResMgr->m_ico_folder_type24, cat_obj_by_type);
+
 
 	const wxString str_mktab_favorites = "Открыть избранное";
 	m_MainToolBar->AddTool(CMD_MKTAB_FAVORITES, str_mktab_favorites
@@ -234,40 +246,11 @@ void MainFrame::BuildDevToolBar()
 			| wxAUI_TB_PLAIN_BACKGROUND
 			| wxAUI_TB_GRIPPER);
 
-		m_DevToolBar->AddTool(CMD_PNLSHOWGROUP, "Группы",
-			m_ResMgr->m_ico_usergroup24, wxEmptyString, wxITEM_NORMAL);
-		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowGroup, this, CMD_PNLSHOWGROUP);
-		m_DevToolBar->AddTool(CMD_PNLSHOWUSER, "Пользователи",
-			m_ResMgr->m_ico_user24, wxEmptyString, wxITEM_NORMAL);
-		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowUser, this, CMD_PNLSHOWUSER);
+		m_DevToolBar->AddTool(CMD_PNLSHOWGROUP, "Группы", m_ResMgr->m_ico_usergroup24);
+		m_DevToolBar->AddTool(CMD_PNLSHOWUSER, "Пользователи", m_ResMgr->m_ico_user24);
 		m_DevToolBar->AddTool(CMD_PNLSHOWPROP, "Свойства", m_ResMgr->m_ico_list_prop24);
-		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowProp, this, CMD_PNLSHOWPROP);
-		m_DevToolBar->AddTool(CMD_PNLSHOWACT, "Действия",
-			m_ResMgr->m_ico_acts24, wxEmptyString, wxITEM_NORMAL);
-		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::PnlShowAct, this, CMD_PNLSHOWACT);
-
-
-
-
+		m_DevToolBar->AddTool(CMD_PNLSHOWACT, "Действия", m_ResMgr->m_ico_acts24);
 		m_DevToolBar->AddTool(CMD_MAKEHISTORYWND, "История", m_ResMgr->m_ico_history24);
-		auto cmdHistTest = [this](wxCommandEvent& evt)
-		{
-			wxBusyCursor			busyCursor;
-			m_Notebook->Freeze(); //wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
-			auto model = std::make_shared<wh::MLogTable>();
-			auto wnd = new wh::VTablePanel(m_Notebook);
-			wnd->SetRowHeight(32);
-			//wnd->mCtrl.fnOnCmdSave = nullptr; //wnd->SetEnableSave(false);
-			wnd->mCtrl.fnOnCmdInsert = nullptr;
-			wnd->mCtrl.fnOnCmdEdit = nullptr;
-			m_Notebook->AddPage(wnd, "История", true, ResMgr::GetInstance()->m_ico_history24);
-			m_AuiMgr.Update();
-			m_Notebook->Thaw();
-			wnd->SetModel(model);
-			model->Load();
-		};
-		Bind(wxEVT_COMMAND_MENU_SELECTED, cmdHistTest, CMD_MAKEHISTORYWND);
-
 
 		m_DevToolBar->Realize();
 
@@ -295,62 +278,8 @@ void MainFrame::DoMenuPreferences( wxCommandEvent& evt)
 {
 
 }
+
 //---------------------------------------------------------------------------
-void MainFrame::OnMakeTypeWnd(wxCommandEvent& evt)
-{
-	CreateTypeCatalog("Object");
-}
-//---------------------------------------------------------------------------
-void MainFrame::CreateTypeCatalog(const wxString& _type)
-{
-	//wxWindowUpdateLocker	wndDisabler(m_Notebook);
-	//ListPanel* typ_panel=new ListPanel(m_Notebook);
-	//typ_panel->SetParentType(_type);
-	////bp1->SetDataModel(new whDir_TypeTreeFolder(whClass("Object","Object"),NULL,&mgr->mDb));
-	//m_Notebook->AddPage(typ_panel,"Каталог типов");
-	//
-	//typ_panel->SetFocus();
-	//m_AuiMgr.Update();	
-}
-//---------------------------------------------------------------------------
-void MainFrame::CreateObjCatalog(const wxString& _objclass,const wxString& _objname,const wxString& _classfilter)
-{
-	wxBusyCursor		busyCursor;
-	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
-
-	bool hideSysRoot = true;
-	const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
-	if ((int)bgUser < (int)currBaseGroup )
-		hideSysRoot = false;
-
-
-	auto obj_cat = new wh::view::VObjCatalogCtrl(m_Notebook);
-
-	auto mcat = std::make_shared<wh::object_catalog::MObjCatalog>();
-	mcat->SetCfg(wh::rec::CatCfg(wh::rec::catObj, true, true, hideSysRoot));
-	mcat->Load();
-	obj_cat->SetModel(mcat);
-	
-
-	m_Notebook->AddPage(obj_cat, "каталог объектов", true, ResMgr::GetInstance()->m_ico_type_abstract24 );
-	
-	m_AuiMgr.Update();	
-
-
-}
-//---------------------------------------------------------------------------
-void MainFrame::OnMakeObjWnd(wxCommandEvent& evt)
-{
-	if(whDataMgr::GetDB().IsOpen())
-		CreateObjCatalog("Object","Object0");
-}	
-//---------------------------------------------------------------------------
-void MainFrame::OnMakeHistoryWnd(wxCommandEvent& evt)
-{
-
-}
-//---------------------------------------------------------------------------
-
 
 void MainFrame::OnCmd_ConnectDB(wxCommandEvent& evt)
 {
@@ -364,27 +293,6 @@ void MainFrame::OnCmd_DisconnectDB(wxCommandEvent& evt)
 	mgr->mDb.Close();
 }
 
-//---------------------------------------------------------------------------
-void MainFrame::OnShowFavorites(wxCommandEvent& evt)
-{
-	wxAuiPaneInfo& pi=m_AuiMgr.GetPane("favorites_pane");
-
-	if(pi.IsOk())
-	{
-		bool visible = !pi.IsShown();
-		pi.Show(visible);
-		
-		wxAuiToolBarItem* tool=	m_MainToolBar->FindTool(CMD_SHOWFAVORITES);
-		visible ?  tool->SetState(wxAUI_BUTTON_STATE_CHECKED) : tool->SetState(wxAUI_BUTTON_STATE_NORMAL) ;
-		
-		int mnu=GetMenuBar()->FindMenuItem("Вид","Показать/скрыть избранное");
-		wxMenuItem* itm=GetMenuBar()->FindItem(mnu);
-		itm->Check(visible);
-		
-		m_AuiMgr.Update();	
-	}//if(!pi.IsOk())
-	
-}
 //---------------------------------------------------------------------------
 void MainFrame::OnCmd_MkTabFaforite(wxCommandEvent& evt)
 {
@@ -428,107 +336,18 @@ void MainFrame::OnCmd_ToogleViewMainToolbar(wxCommandEvent& evt)
 }
 //---------------------------------------------------------------------------
 
-void MainFrame::PnlShowGroup(wxCommandEvent& WXUNUSED(evt))
-{
-	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
-	using namespace wh;
-	using namespace wh::view;
-	auto model = std::make_shared<MGroupArray>();
-	auto view = new VGroupCtrlPanel(m_Notebook);
-	const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
-	if ((int)bg < (int)bgAdmin)
-		view->DisableCreateDelete();
-	model->Load();
-	view->SetModel(model);
-	m_Notebook->AddPage(view, "Группы", true, ResMgr::GetInstance()->m_ico_usergroup24);
-	view->SetFocus();
-	m_AuiMgr.Update();
-}
-//---------------------------------------------------------------------------
-void MainFrame::PnlShowUser(wxCommandEvent& WXUNUSED(evt))
-{
-	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
-	using namespace wh;
-	using namespace wh::view;
-	auto model = std::make_shared<MUserArray>();
-	auto view = new VUserCtrlPanel(m_Notebook);
-	const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
-	if ((int)bg < (int)bgAdmin)
-		view->DisableCreateDelete();
-	model->Load();
-	view->SetModel(model);
-	m_Notebook->AddPage(view, "Пользователи", true, ResMgr::GetInstance()->m_ico_user24);
-	view->SetFocus();
-	m_AuiMgr.Update();
-}
-//---------------------------------------------------------------------------
-void MainFrame::PnlShowProp(wxCommandEvent& WXUNUSED(evt))
-{
-	wxBusyCursor			busyCursor;
-	m_Notebook->Freeze(); //wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
-	auto wnd = new wh::VTablePanel(m_Notebook);
-	auto model = std::make_shared<wh::MPropTable>();
-	const auto currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
-	if ((int)currBaseGroup <= (int)bgUser)
-	{
-		wnd->mCtrl.fnOnCmdSave = nullptr; //wnd->SetEnableSave(false);
-		wnd->mCtrl.fnOnCmdInsert = nullptr;
-		wnd->mCtrl.fnOnCmdEdit = nullptr;
-		wnd->mCtrl.fnOnCmdRemove = nullptr;
-	}
-
-	m_Notebook->AddPage(wnd, "Свойства", true, ResMgr::GetInstance()->m_ico_list_prop24);
-	m_AuiMgr.Update();
-	m_Notebook->Thaw();
-	wnd->SetModel(model);
-	model->Load();
-
-	/*
-	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
-	using namespace wh;
-	using namespace wh::view;
-	auto model = std::make_shared<MPropArray>();
-	auto view = new VPropCtrlPanel(m_Notebook);
-	const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
-	if ((int)bg < (int)bgTypeDesigner)
-		view->DisableCreateDelete();
-	model->Load();
-	view->SetModel(model);
-	m_Notebook->AddPage(view, "Свойства", true, ResMgr::GetInstance()->m_ico_list_prop24);
-	view->SetFocus();
-	m_AuiMgr.Update();
-	*/
-}
-//---------------------------------------------------------------------------
-void MainFrame::PnlShowAct(wxCommandEvent& WXUNUSED(evt))
-{
-	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
-	using namespace wh;
-	using namespace wh::view;
-	auto model = std::make_shared<MActArray>();
-	auto view = new VActCtrlPanel(m_Notebook);
-	const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
-	if ((int)bg < (int)bgTypeDesigner)
-		view->DisableCreateDelete();
-	model->Load();
-	view->SetModel(model);
-	m_Notebook->AddPage(view, "Действия", true, ResMgr::GetInstance()->m_ico_acts24);
-	view->SetFocus();
-	m_AuiMgr.Update();
-}
-//---------------------------------------------------------------------------
 void MainFrame::AddTab(wxWindow* wnd,const wxString& lbl, const wxIcon& icon)
 {
 	if (!wnd)
 		return;
-	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	wxBusyCursor busyCursor;
+	//wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	wxWindowUpdateLocker	wndUpdateLocker(this);
 	m_Notebook->AddPage(wnd, lbl, true, icon);
-	//auto pagr_id = m_Notebook->GetPageIndex(wnd);
-	//if (pagr_id != wxNOT_FOUND && pagr_id>2)
-	//	m_Notebook->Split(pagr_id, wxRIGHT);
-	wnd->SetFocus();
+	//wnd->SetFocus();
 	m_AuiMgr.Update();
 }
+
 //---------------------------------------------------------------------------
 void MainFrame::UpdateTab(wxWindow* wnd, const wxString& lbl, const wxIcon& icon)
 {
@@ -542,37 +361,6 @@ void MainFrame::UpdateTab(wxWindow* wnd, const wxString& lbl, const wxIcon& icon
 		m_Notebook->SetPageText(page_idx, lbl);
 		m_Notebook->Update();
 	}
-	m_AuiMgr.Update();
-}
-//---------------------------------------------------------------------------
-
-void MainFrame::PrespectiveToCfg()
-{
-	/*
-	auto gui_cfg_model = whDataMgr::GetInstance()->mDbCfg->mGuiCfg;
-	if (!gui_cfg_model || wh::ModelState::msNull == gui_cfg_model->GetState())
-		return;
-
-	auto gui_cfg_data = gui_cfg_model->GetData();
-	
-	gui_cfg_data.mPersp = m_AuiMgr.SavePerspective();
-	
-	gui_cfg_model->SetData(gui_cfg_data);
-	*/
-}
-//---------------------------------------------------------------------------
-
-void MainFrame::CfgToPrespective()
-{
-	/*
-	auto gui_cfg_model = whDataMgr::GetInstance()->mDbCfg->mGuiCfg;
-	if (!gui_cfg_model || wh::ModelState::msNull == gui_cfg_model->GetState())
-		return;
-	const auto& gui_cfg_data = gui_cfg_model->GetData();
-	m_AuiMgr.LoadPerspective(gui_cfg_data.mPersp, true);
-	*/
-
-	OnMakeObjWnd(wxCommandEvent(CMD_MAKEOBJWND));
 	m_AuiMgr.Update();
 }
 //---------------------------------------------------------------------------
@@ -599,16 +387,12 @@ void MainFrame::OnSig_AfterDbConnected(const whDB* const)
 	m_MainToolBar->Enable();
 	m_DevToolBar->Enable();
 
-
-	CfgToPrespective();
 }
 //---------------------------------------------------------------------------
 
 void MainFrame::OnSig_BeforeDbDisconnect(const whDB* const)
 {
 	
-
-	PrespectiveToCfg();
 
 	const auto& dbcfg = whDataMgr::GetInstance()->mConnectCfg->GetData();
 
@@ -666,3 +450,286 @@ void MainFrame::OnSigAfterChange_BaseGroup(const wh::IModel*, const BaseGroup* c
 	m_AuiMgr.Update();
 	*/
 }
+//---------------------------------------------------------------------------
+
+void MainFrame::OnCmd_MakePage_Group(wxCommandEvent& evt)
+{
+	auto notepadCfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->mNotepadCfg;
+	auto model = std::make_shared<wh::MPageGroup>();
+	model->SetData(wh::rec::PageGroup());
+	notepadCfg->Insert(model);
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::OnCmd_MakePage_User(wxCommandEvent& evt)
+{
+	auto notepadCfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->mNotepadCfg;
+	auto model = std::make_shared<wh::MPageUser>();
+	model->SetData(wh::rec::PageUser());
+	notepadCfg->Insert(model);
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::OnCmd_MakePage_Prop(wxCommandEvent& evt)
+{
+	auto notepadCfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->mNotepadCfg;
+	auto model = std::make_shared<wh::MPageProp>();
+	model->SetData(wh::rec::PageProp());
+	notepadCfg->Insert(model);
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::OnCmd_MakePage_Act(wxCommandEvent& evt)
+{
+	auto notepadCfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->mNotepadCfg;
+	auto model = std::make_shared<wh::MPageAct>();
+	model->SetData(wh::rec::PageAct());
+	notepadCfg->Insert(model);
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::OnCmd_MakePage_ObjByType(wxCommandEvent& evt)
+{
+	auto notepadCfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->mNotepadCfg;
+
+	wh::rec::PageObjByType page_obj_by_type;
+	page_obj_by_type.mParent_Cid = 1;
+
+	auto model_page_obj_by_type = std::make_shared<wh::MPageObjByType>();
+	model_page_obj_by_type->SetData(page_obj_by_type);
+
+	notepadCfg->Insert(model_page_obj_by_type);
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::OnCmd_MakePage_ObjByPath(wxCommandEvent& evt)
+{
+	auto notepadCfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->mNotepadCfg;
+
+	wh::rec::PageObjByPath page_obj_by_path;
+	page_obj_by_path.mParent_Oid = 1;
+
+	auto model_page_obj_by_path = std::make_shared<wh::MPageObjByPath>();
+	model_page_obj_by_path->SetData(page_obj_by_path);
+
+	notepadCfg->Insert(model_page_obj_by_path);
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::OnCmd_MakePage_History(wxCommandEvent& evt)
+{
+	auto notepadCfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->mNotepadCfg;
+	auto model = std::make_shared<wh::MPageHistory>();
+	model->SetData(wh::rec::PageHistory());
+	notepadCfg->Insert(model);
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::OnSigAfterInsertPage(const wh::IModel& notepad_imodel
+	, const std::vector<wh::SptrIModel>& newItems, const wh::SptrIModel& itemBefore)
+{
+	wxBusyCursor			busyCursor;
+	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+
+
+	auto notepad_model = dynamic_cast<const wh::MNotepadCfg*>(&notepad_imodel);
+		
+	for (const auto& curr : newItems)
+	{
+		bool ok = false;
+		
+		if (MakePage<wh::MPageUser>(curr))
+			continue;
+		if (MakePage<wh::MPageGroup>(curr))
+			continue;
+		if (MakePage<wh::MPageProp>(curr))
+			continue;
+		if (MakePage<wh::MPageAct>(curr))
+			continue;
+		if (MakePage<wh::MPageObjByType>(curr))
+			continue;
+		if (MakePage<wh::MPageObjByPath>(curr))
+			continue;
+		if (MakePage<wh::MPageObjDetail>(curr))
+			continue;
+		if (MakePage<wh::MPageHistory>(curr))
+			continue;
+
+	}
+
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::MakePage(const wh::rec::PageUser& cfg)
+{
+	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	using namespace wh;
+	using namespace wh::view;
+	auto model = std::make_shared<MUserArray>();
+	auto view = new VUserCtrlPanel(m_Notebook);
+	const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
+	if ((int)bg < (int)bgAdmin)
+		view->DisableCreateDelete();
+	model->Load();
+	view->SetModel(model);
+	m_Notebook->AddPage(view, "Пользователи", true, ResMgr::GetInstance()->m_ico_user24);
+	view->SetFocus();
+	m_AuiMgr.Update();
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::MakePage(const wh::rec::PageGroup& cfg)
+{
+	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	using namespace wh;
+	using namespace wh::view;
+	auto model = std::make_shared<MGroupArray>();
+	auto view = new VGroupCtrlPanel(m_Notebook);
+	const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
+	if ((int)bg < (int)bgAdmin)
+		view->DisableCreateDelete();
+	model->Load();
+	view->SetModel(model);
+	m_Notebook->AddPage(view, "Группы", true, ResMgr::GetInstance()->m_ico_usergroup24);
+	view->SetFocus();
+	m_AuiMgr.Update();
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::MakePage(const wh::rec::PageProp& cfg)
+{
+	wxBusyCursor			busyCursor;
+	m_Notebook->Freeze(); //wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	auto wnd = new wh::VTablePanel(m_Notebook);
+	auto model = std::make_shared<wh::MPropTable>();
+	const auto currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
+	if ((int)currBaseGroup <= (int)bgUser)
+	{
+		wnd->mCtrl.fnOnCmdSave = nullptr; //wnd->SetEnableSave(false);
+		wnd->mCtrl.fnOnCmdInsert = nullptr;
+		wnd->mCtrl.fnOnCmdEdit = nullptr;
+		wnd->mCtrl.fnOnCmdRemove = nullptr;
+	}
+
+	m_Notebook->AddPage(wnd, "Свойства", true, ResMgr::GetInstance()->m_ico_list_prop24);
+	m_AuiMgr.Update();
+	m_Notebook->Thaw();
+	wnd->SetModel(model);
+	model->Load();
+
+	/*
+	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	using namespace wh;
+	using namespace wh::view;
+	auto model = std::make_shared<MPropArray>();
+	auto view = new VPropCtrlPanel(m_Notebook);
+	const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
+	if ((int)bg < (int)bgTypeDesigner)
+	view->DisableCreateDelete();
+	model->Load();
+	view->SetModel(model);
+	m_Notebook->AddPage(view, "Свойства", true, ResMgr::GetInstance()->m_ico_list_prop24);
+	view->SetFocus();
+	m_AuiMgr.Update();
+	*/
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::MakePage(const wh::rec::PageAct& cfg)
+{
+	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	using namespace wh;
+	using namespace wh::view;
+	auto model = std::make_shared<MActArray>();
+	auto view = new VActCtrlPanel(m_Notebook);
+	const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
+	if ((int)bg < (int)bgTypeDesigner)
+		view->DisableCreateDelete();
+	model->Load();
+	view->SetModel(model);
+	m_Notebook->AddPage(view, "Действия", true, ResMgr::GetInstance()->m_ico_acts24);
+	view->SetFocus();
+	m_AuiMgr.Update();
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::MakePage(const wh::rec::PageObjByType& cfg)
+{
+	auto obj_cat = new wh::view::VObjCatalogCtrl(m_Notebook);
+
+	bool hideSysRoot = true;
+	const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
+	if ((int)bgUser < (int)currBaseGroup)
+		hideSysRoot = false;
+
+	auto mcat = std::make_shared<wh::object_catalog::MObjCatalog>();
+	mcat->SetCfg(wh::rec::CatCfg(wh::rec::catCls, true, true, hideSysRoot));
+	mcat->SetCatFilter(cfg.mParent_Cid, true);
+	mcat->Load();
+	obj_cat->SetModel(mcat);
+
+
+	m_Notebook->AddPage(obj_cat, "Каталог объектов по типу", true, ResMgr::GetInstance()->m_ico_folder_type24);
+
+	m_AuiMgr.Update();
+
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::MakePage(const wh::rec::PageObjByPath& cfg)
+{
+	auto obj_cat = new wh::view::VObjCatalogCtrl(m_Notebook);
+
+	bool hideSysRoot = true;
+	const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
+	if ((int)bgUser < (int)currBaseGroup)
+		hideSysRoot = false;
+
+	auto mcat = std::make_shared<wh::object_catalog::MObjCatalog>();
+	mcat->SetCfg(wh::rec::CatCfg(wh::rec::catObj, true, true, hideSysRoot));
+	mcat->SetCatFilter(cfg.mParent_Oid, true);
+	mcat->Load();
+	obj_cat->SetModel(mcat);
+
+
+	m_Notebook->AddPage(obj_cat, "Каталог объектов по местоположению", true, ResMgr::GetInstance()->m_ico_folder_obj24);
+
+	m_AuiMgr.Update();
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::MakePage(const wh::rec::PageObjDetail& cfg)
+{
+	wxBusyCursor busyCursor;
+	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	
+	wh::rec::ObjInfo obj_info;
+	
+	obj_info.mObj.mId = cfg.mOid;
+	obj_info.mObj.mParent.mId = cfg.mParentOid;
+	obj_info.mCls.mId = cfg.mCid;
+
+	wh::detail::view::CtrlPnl* pnl = new wh::detail::view::CtrlPnl(m_Notebook);
+	m_Notebook->AddPage(pnl,wxEmptyString,true,wxNullIcon);
+	
+	m_AuiMgr.Update();
+	pnl->SetObject(obj_info);
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::MakePage(const wh::rec::PageHistory& cfg)
+{
+	wxBusyCursor			busyCursor;
+	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+	auto model = std::make_shared<wh::MLogTable>();
+	auto wnd = new wh::VTablePanel(m_Notebook);
+	wnd->SetRowHeight(32);
+	//wnd->mCtrl.fnOnCmdSave = nullptr; //wnd->SetEnableSave(false);
+	wnd->mCtrl.fnOnCmdInsert = nullptr;
+	wnd->mCtrl.fnOnCmdEdit = nullptr;
+	m_Notebook->AddPage(wnd, "История", true, ResMgr::GetInstance()->m_ico_history24);
+	m_AuiMgr.Update();
+	wnd->SetModel(model);
+	model->Load();
+}
+//---------------------------------------------------------------------------

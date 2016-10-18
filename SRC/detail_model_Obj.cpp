@@ -52,44 +52,30 @@ bool Obj::GetSelectQuery(wxString& query)const
 {
 	const auto& data = GetData();
 
-	if (data.mCls.mId.IsNull() || data.mObj.mId.IsNull() )
+	if (data.mObj.mId.IsNull())
 		return false;
 	
 	if (data.mCls.mType.IsNull() 
 		|| (data.mCls.IsQuantity() && data.mObj.mParent.mId.IsNull()))
 		return false;
-	
+
 	query = wxString::Format(
 		"SELECT  o.id, o.pid, o.title, o.qty, o.move_logid "
-		"      , co.id, co.title, co.kind, co.measure, NULL as defaultPid "
-		"      , cparent.id, cparent.title "
+		"      , cls.id, cls.title, cls.kind, cls.measure, cls.dobj as defaultPid "
+		"      , cls.pid AS cls_parent_id, cls_parent.title AS cls_parent_title "
 		" FROM obj o "
-		" LEFT JOIN acls co      ON co.id = o.cls_id "
-		" LEFT JOIN acls cparent ON co.pid = cparent.id "
-		" WHERE o.cls_id=%s  AND o.id=%s " 
-		, data.mCls.mId.SqlVal()
+		" INNER JOIN acls cls      ON cls.id = o.cls_id "
+		" INNER JOIN acls cls_parent ON cls.pid = cls_parent.id "
+		" WHERE o.id=%s " 
 		, data.mObj.mId.SqlVal()
 		);
 
+	if (!data.mCls.mId.IsNull())
+		query += wxString::Format("AND o.cls_id=%s ", data.mCls.mId.SqlVal());
 	if (data.mCls.IsQuantity())
 		query += wxString::Format("AND o.pid=%s ", data.mObj.mParent.mId.SqlVal());
 
 	return true;
-
-	/*
-	SELECT obj_id, obj_pid, obj.label, qty, obj.last_log_id -- obj info
-	, obj.cls_id,  cls_label, obj.type, obj.measurename, obj.cls_default_pid
-	,parent.id AS cls_parent_id ,parent.label AS cls_parent_label
-	, pobj.id, pobj.label
-	, pobjcls.id, pobjcls.label
-	FROM w_obj obj
-	LEFT JOIN t_objnum pobj ON pobj.id = obj.obj_pid
-	LEFT JOIN t_cls parent  ON cls_pid = parent.id
-	LEFT JOIN t_cls pobjcls ON pobj.cls_id = pobjcls.id
-	WHERE obj.obj_id=103 AND obj.cls_id=105 AND obj.obj_pid=100
-	*/
-
-
 }
 //-----------------------------------------------------------------------------
 void Obj::LoadChilds()

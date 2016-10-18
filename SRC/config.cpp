@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "config.h"
+#include "AppViewConfig.h"
 
 #include "wx/wfstream.h"
 #include "wx/datstrm.h"
@@ -12,7 +13,9 @@ using namespace wh;
 //-----------------------------------------------------------------------------
 MGuiCfg::MGuiCfg(const char option)
 	:TModelData<rec::GuiCfg>(option)
+	, mNotepadCfg(new MNotepadCfg)
 {
+	this->Insert(mNotepadCfg);
 }
 //-----------------------------------------------------------------------------
 

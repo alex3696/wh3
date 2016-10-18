@@ -361,18 +361,24 @@ void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 		return;
 
 
+	/*
+	auto notepadCfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->mNotepadCfg;
+	wh::rec::PageObjDetail page_obj_detail;
+	page_obj_detail.mOid = objItem->GetData().mId;
+	page_obj_detail.mParentOid = objItem->GetData().mParent.mId;
+	page_obj_detail.mCid = typeItem->GetData().mId;
+	auto model_page_detail = std::make_shared<wh::MPageObjDetail>();
+	model_page_detail->SetData(page_obj_detail);
+	notepadCfg->Insert(model_page_detail);
+	*/
+
+
 	rec::ObjInfo oi;
 	oi.mCls = typeItem->GetData();
 	oi.mObj = objItem->GetData();
-
-	//const rec::Obj& obj_data = objItem->GetData();
-	//const rec::Cls& cls_data = typeItem->GetData();
-
 	detail::view::CtrlPnl* pnl = new detail::view::CtrlPnl(notebook);
 	main_farame->AddTab(pnl);
-	//pnl->SetObject(cls_data.mId, obj_data.mId, obj_data.mParent.mId);
 	pnl->SetObject(oi);
-	
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdFavProp(wxCommandEvent& evt)

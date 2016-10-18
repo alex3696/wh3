@@ -327,16 +327,18 @@ struct CatCfg
 	CatType mCatType;
 	bool mEnableProp;
 	bool mEnableObj;
-
+	bool mHideSystemRoot;
 	bool mShowDebugColumns;
 
 	CatCfg(CatType catType = catObj
 				, bool enableProp = true
 				, bool enableObj = true
+				, bool hideSysRoot = false
 				, bool debugColumns = false)
 		: mCatType(catType)
 		, mEnableProp(enableProp)
 		, mEnableObj(enableObj)
+		, mHideSystemRoot(hideSysRoot)
 		, mShowDebugColumns(debugColumns)
 	{
 	}
