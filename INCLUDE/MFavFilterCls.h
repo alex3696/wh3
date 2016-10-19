@@ -17,7 +17,7 @@ public:
 
 	virtual bool LoadThisDataFromDb(std::shared_ptr<whTable>&, const size_t)override;
 protected:
-	virtual void LoadChilds()override;
+	//virtual void LoadChilds()override;
 	virtual bool GetSelectQuery(wxString&)const override;
 	virtual bool GetInsertQuery(wxString&)const override;
 	virtual bool GetUpdateQuery(wxString&)const override;
@@ -29,9 +29,11 @@ class MFavFilterClsArray
 	: public TModelArray<MFavFilterCls>
 {
 public:
+	typedef  MFavFilterCls		T_Item;
+
 	MFavFilterClsArray(const char option =
 		ModelOption::EnableNotifyFromChild
-		| ModelOption::CascadeLoad); //: TModelArray<MFavFilterCls>(option){}
+		| ModelOption::CascadeLoad);
 
 protected:
 	virtual bool GetSelectChildsQuery(wxString& query)const override;

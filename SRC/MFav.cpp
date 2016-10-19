@@ -18,16 +18,16 @@ const std::vector<Field> gPropFieldVec = {
 MFav::MFav(const char option)
 	:TModelData<rec::Fav>(option)
 	, mFilterClsArray(new MFavFilterClsArray)
-	, mFilterPathArray(new MFavFilterPathArray)
-	, mViewPropClsArray(new MFavViewPropClsArray)
-	, mViewPropActCommonArray(new MFavViewPropActCommonArray)
-	, mViewPropActUsrArray(new MFavViewPropActUsrArray)
+	//, mFilterPathArray(new MFavFilterPathArray)
+	//, mViewPropClsArray(new MFavViewPropClsArray)
+	//, mViewPropActCommonArray(new MFavViewPropActCommonArray)
+	//, mViewPropActUsrArray(new MFavViewPropActUsrArray)
 {
 	this->Insert(mFilterClsArray);
-	this->Insert(mFilterPathArray);
-	this->Insert(mViewPropClsArray);
-	this->Insert(mViewPropActCommonArray);
-	this->Insert(mViewPropActUsrArray);
+	//this->Insert(mFilterPathArray);
+	//this->Insert(mViewPropClsArray);
+	//this->Insert(mViewPropActCommonArray);
+	//this->Insert(mViewPropActUsrArray);
 }
 //-------------------------------------------------------------------------
 bool MFav::GetSelectQuery(wxString& query)const

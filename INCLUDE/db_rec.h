@@ -362,8 +362,10 @@ public:
 class FavFilterCls
 {
 public:
-	unsigned long	mFId;
-	unsigned long	mCId;
+	//wxString	mFId;		// подвязываем к Fav потому не загружаем
+	wxString	mCId;
+	wxString	mCTitle;	//только для отображения в базе нет
+	wxString	mCKind;		//только для отображения в базе нет
 };
 //-------------------------------------------------------------------------
 

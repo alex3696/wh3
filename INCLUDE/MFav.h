@@ -18,10 +18,10 @@ public:
 		= ModelOption::CommitSave);
 
 	std::shared_ptr<MFavFilterClsArray>			mFilterClsArray;
-	std::shared_ptr<MFavFilterPathArray>		mFilterPathArray;
-	std::shared_ptr<MFavViewPropClsArray>		mViewPropClsArray;
-	std::shared_ptr<MFavViewPropActCommonArray>	mViewPropActCommonArray;
-	std::shared_ptr<MFavViewPropActUsrArray>	mViewPropActUsrArray;
+	//std::shared_ptr<MFavFilterPathArray>		mFilterPathArray;
+	//std::shared_ptr<MFavViewPropClsArray>		mViewPropClsArray;
+	//std::shared_ptr<MFavViewPropActCommonArray>	mViewPropActCommonArray;
+	//std::shared_ptr<MFavViewPropActUsrArray>	mViewPropActUsrArray;
 
 	virtual	bool GetFieldValue(unsigned int col, wxVariant &variant)override;
 	virtual const std::vector<Field>& GetFieldVector()const override;
