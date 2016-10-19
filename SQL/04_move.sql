@@ -92,7 +92,7 @@ CREATE UNLOGGED TABLE lock_act
   oid  BIGINT  NOT NULL,
   pid BIGINT  NOT NULL,
 
-  act_id INTEGER,
+  act_id BIGINT,
 
   CONSTRAINT lock_act_oid_pid_fkey FOREIGN KEY (oid,pid)
       REFERENCES lock_obj (oid,pid) MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
@@ -393,7 +393,7 @@ GRANT SELECT        ON "moverule_lockup" TO "Guest";
 DROP FUNCTION IF EXISTS    lock_for_move( IN _obj_id  BIGINT, IN _old_pid BIGINT) CASCADE;
 CREATE OR REPLACE FUNCTION lock_for_move( IN _obj_id  BIGINT, IN _old_pid BIGINT) 
                   --RETURNS SETOF moverule_lockup AS $BODY$
-    RETURNS TABLE(_dst_obj_id BIGINT, _dst_cls_id INTEGER, _dst_obj_label NAME,_dst_obj_pid BIGINT,_oiddstpath BIGINT[])
+    RETURNS TABLE(_dst_obj_id BIGINT, _dst_cls_id BIGINT, _dst_obj_label NAME,_dst_obj_pid BIGINT,_oiddstpath BIGINT[])
     AS $BODY$
 DECLARE
    _dst_path_2id BIGINT[];

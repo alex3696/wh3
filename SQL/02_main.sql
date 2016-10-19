@@ -265,9 +265,9 @@ GRANT UPDATE(title,kind,var,var_strict)
 DROP TABLE IF EXISTS prop_cls CASCADE;
 CREATE TABLE prop_cls ( 
  id      BIGINT  NOT NULL DEFAULT nextval('seq_prop_cls_id')
-,cls_id   INTEGER  NOT NULL
+,cls_id   BIGINT  NOT NULL
 ,cls_kind SMALLINT NOT NULL CHECK (cls_kind BETWEEN 1 AND 3)
-,prop_id INTEGER NOT NULL
+,prop_id BIGINT NOT NULL
 ,val     TEXT
 ,CONSTRAINT pk_propcls               PRIMARY KEY ( id )
 ,CONSTRAINT uk_propcls__propid_clsid UNIQUE ( prop_id, cls_id )
@@ -311,9 +311,9 @@ GRANT UPDATE(title,note,color,script)
 DROP TABLE IF EXISTS ref_cls_act CASCADE;
 CREATE TABLE ref_cls_act ( 
     id        BIGINT   NOT NULL DEFAULT nextval('seq_ref_cls_act_id')
-    ,cls_id   INTEGER  NOT NULL
+    ,cls_id   BIGINT  NOT NULL
     ,cls_kind SMALLINT NOT NULL DEFAULT 1 CHECK (cls_kind BETWEEN 0 AND 3 )
-    ,act_id   INTEGER  NOT NULL
+    ,act_id   BIGINT  NOT NULL
 
 ,CONSTRAINT pk_refclsact__id    PRIMARY KEY ( id )
 ,CONSTRAINT uk_refclsact_clsid_actid UNIQUE (cls_id, act_id)
@@ -334,8 +334,8 @@ GRANT UPDATE(cls_id,act_id)
 ---------------------------------------------------------------------------------------------------
 CREATE TABLE ref_act_prop ( 
     id       BIGINT  NOT NULL DEFAULT nextval('seq_ref_act_prop_id')
-    ,act_id  INTEGER NOT NULL
-    ,prop_id INTEGER NOT NULL
+    ,act_id  BIGINT NOT NULL
+    ,prop_id BIGINT NOT NULL
 
 ,CONSTRAINT pk_refactprop__id          PRIMARY KEY ( id )
 ,CONSTRAINT uk_refactprop__actid_propid UNIQUE( act_id,prop_id) 
@@ -417,7 +417,7 @@ CREATE TABLE perm_act
   ,obj_id  BIGINT            DEFAULT NULL
   ,src_path TMPPATH  NOT NULL DEFAULT '{%}' 
 
-  ,act_id          INTEGER   NOT NULL 
+  ,act_id          BIGINT   NOT NULL 
 ,CONSTRAINT pk_permact__id PRIMARY KEY ( id )   
 ,CONSTRAINT fk_permact__acess_group FOREIGN KEY (access_group) 
     REFERENCES                               wh_role (rolname)
@@ -622,9 +622,9 @@ GRANT DELETE        ON TABLE log_detail_move  TO "User";
 CREATE TABLE favorite_prop(
     id           BIGINT NOT NULL DEFAULT nextval('favorite_prop_id_seq') UNIQUE
     ,user_label  NAME      NOT NULL DEFAULT CURRENT_USER 
-    ,cls_id      INTEGER       NOT NULL
-    ,act_id      INTEGER   NOT NULL
-    ,prop_id     INTEGER   NOT NULL
+    ,cls_id      BIGINT       NOT NULL
+    ,act_id      BIGINT   NOT NULL
+    ,prop_id     BIGINT   NOT NULL
 
 ,CONSTRAINT pk_favoriteprop__id           PRIMARY KEY ( id ) 
 ,CONSTRAINT uk_favoriteprop__id           UNIQUE (user_label, cls_id, act_id, prop_id )

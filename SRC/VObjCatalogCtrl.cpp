@@ -75,23 +75,23 @@ void VObjCatalogCtrl::BuildToolbar(bool is_dlg)
 	// делаем тулбар
 	// ---------- Общедоступные кнопки
 	//if (!is_dlg)
-	{
-		mCatalogTool = mToolBar->AddTool(whID_CATALOG_SELECT, "Группировать",
-			m_ResMgr->m_ico_folder_obj24, wxEmptyString, wxITEM_NORMAL);
-		mCatalogTool->SetHasDropDown(true);
-		Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, [this](wxAuiToolBarEvent& evt)
-		{
-			mCatalogTool->SetSticky(true);
-			wxRect rect = mToolBar->GetToolRect(whID_CATALOG_SELECT);
-			wxPoint pt = mToolBar->ClientToScreen(rect.GetBottomLeft());
-			pt = ScreenToClient(pt);
-			PopupMenu(&mCatalogToolMenu, pt);
-			mCatalogTool->SetSticky(false);
-		}
-		, whID_CATALOG_SELECT);
-		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdSetPathDir, this, whID_CATALOG_PATH);
-		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdSetTypeDir, this, whID_CATALOG_TYPE);
-	}
+	//{
+	//	mCatalogTool = mToolBar->AddTool(whID_CATALOG_SELECT, "Группировать",
+	//		m_ResMgr->m_ico_folder_obj24, wxEmptyString, wxITEM_NORMAL);
+	//	mCatalogTool->SetHasDropDown(true);
+	//	Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, [this](wxAuiToolBarEvent& evt)
+	//	{
+	//		mCatalogTool->SetSticky(true);
+	//		wxRect rect = mToolBar->GetToolRect(whID_CATALOG_SELECT);
+	//		wxPoint pt = mToolBar->ClientToScreen(rect.GetBottomLeft());
+	//		pt = ScreenToClient(pt);
+	//		PopupMenu(&mCatalogToolMenu, pt);
+	//		mCatalogTool->SetSticky(false);
+	//	}
+	//	, whID_CATALOG_SELECT);
+	//	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdSetPathDir, this, whID_CATALOG_PATH);
+	//	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdSetTypeDir, this, whID_CATALOG_TYPE);
+	//}
 
 	mReloadTool = mToolBar->AddTool(wxID_REFRESH, "Обновить", m_ResMgr->m_ico_refresh24);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdReload, this, wxID_REFRESH);
@@ -272,44 +272,44 @@ void VObjCatalogCtrl::UpdateToolsStates()
 	mToolBar->Refresh();
 
 }
-//-----------------------------------------------------------------------------
-void VObjCatalogCtrl::OnCmdSetTypeDir(wxCommandEvent& evt)
-{
-	wxWindowUpdateLocker	wndLockUpdater(mToolBar);
-	wxWindowDisabler		wndDisabler(mToolBar);
-	wxBusyCursor			busyCursor;
-	mToolBar->SetToolBitmap(whID_CATALOG_SELECT, m_ResMgr->m_ico_folder_type24);
-	//mToolBar->Refresh();
-	if (mCatalogModel)
-	{
-		auto cfg = mCatalogModel->GetData();
-		cfg.mCatType = rec::catCls;
-		mCatalogModel->SetCfg(cfg);
-		mCatalogModel->Load();
-		mTableView->ExpandAll();
-	}
-
-	UpdateToolsStates();
-}
-//-----------------------------------------------------------------------------
-void VObjCatalogCtrl::OnCmdSetPathDir(wxCommandEvent& evt)
-{
-	wxWindowUpdateLocker	wndLockUpdater(mToolBar);
-	wxWindowDisabler		wndDisabler(mToolBar);
-	wxBusyCursor			busyCursor;
-	mToolBar->SetToolBitmap(whID_CATALOG_SELECT, m_ResMgr->m_ico_folder_obj24);
-	//mToolBar->Refresh();
-	if (mCatalogModel)
-	{
-		auto cfg = mCatalogModel->GetData();
-		cfg.mCatType = rec::catObj;
-		mCatalogModel->SetCfg(cfg);
-		mCatalogModel->Load();
-		mTableView->ExpandAll();
-	}
-
-	UpdateToolsStates();
-}
+////-----------------------------------------------------------------------------
+//void VObjCatalogCtrl::OnCmdSetTypeDir(wxCommandEvent& evt)
+//{
+//	wxWindowUpdateLocker	wndLockUpdater(mToolBar);
+//	wxWindowDisabler		wndDisabler(mToolBar);
+//	wxBusyCursor			busyCursor;
+//	mToolBar->SetToolBitmap(whID_CATALOG_SELECT, m_ResMgr->m_ico_folder_type24);
+//	//mToolBar->Refresh();
+//	if (mCatalogModel)
+//	{
+//		auto cfg = mCatalogModel->GetData();
+//		cfg.mCatType = rec::catCls;
+//		mCatalogModel->SetCfg(cfg);
+//		mCatalogModel->Load();
+//		mTableView->ExpandAll();
+//	}
+//
+//	UpdateToolsStates();
+//}
+////-----------------------------------------------------------------------------
+//void VObjCatalogCtrl::OnCmdSetPathDir(wxCommandEvent& evt)
+//{
+//	wxWindowUpdateLocker	wndLockUpdater(mToolBar);
+//	wxWindowDisabler		wndDisabler(mToolBar);
+//	wxBusyCursor			busyCursor;
+//	mToolBar->SetToolBitmap(whID_CATALOG_SELECT, m_ResMgr->m_ico_folder_obj24);
+//	//mToolBar->Refresh();
+//	if (mCatalogModel)
+//	{
+//		auto cfg = mCatalogModel->GetData();
+//		cfg.mCatType = rec::catObj;
+//		mCatalogModel->SetCfg(cfg);
+//		mCatalogModel->Load();
+//		mTableView->ExpandAll();
+//	}
+//
+//	UpdateToolsStates();
+//}
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 {
@@ -705,11 +705,11 @@ void VObjCatalogCtrl::OnActivated(wxDataViewEvent& evt)
 			{
 				auto objArray = dynamic_cast<object_catalog::MObjArray*> (objItem->GetParent());
 				typeItem = dynamic_cast<object_catalog::MTypeItem*> (objArray->GetParent());
-				if(!typeItem)
+				if (!typeItem)
 					return;
 				const auto& typeData = typeItem->GetData();
-				
-				if ("1" == typeData.mType )
+
+				if ("1" == typeData.mType)
 				{
 					const auto& objData = objItem->GetData();
 					new_root.mObj.mId = objData.mId;
@@ -723,6 +723,9 @@ void VObjCatalogCtrl::OnActivated(wxDataViewEvent& evt)
 					this->ProcessEvent(evt);
 				}
 			}//if (objItem)
+			else
+				mTableView->IsExpanded(selectedItem) ?
+					mTableView->Collapse(selectedItem):mTableView->Expand(selectedItem);
 		}
 		else
 		{
@@ -743,8 +746,9 @@ void VObjCatalogCtrl::OnActivated(wxDataViewEvent& evt)
 					evt.SetString("OnActivated");
 					this->ProcessEvent(evt);
 				}
-
-
+				else
+					mTableView->IsExpanded(selectedItem) ?
+						mTableView->Collapse(selectedItem) : mTableView->Expand(selectedItem);
 			}//if (!objItem)
 		} //if (IsObjCatalog)
 		

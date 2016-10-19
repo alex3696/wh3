@@ -52,7 +52,13 @@ bool MLogPropDataArr::GetSelectChildsQuery(wxString& query)const
 
 
 	query = wxString::Format(
-		"SELECT ref_act_prop.prop_id, prop.title, prop.kind, ref_act_prop.act_id, fav.prop_id::BOOLEAN AS selected "
+		"SELECT  ref_act_prop.prop_id "
+		"      , prop.title "
+		"      , prop.kind "
+		"	   , ref_act_prop.act_id "
+		"      , CASE WHEN fav.prop_id IS NOT NULL AND fav.prop_id<>0 "
+		"             THEN TRUE ELSE FALSE  "
+		"	     END AS selected "
 		"FROM(SELECT unnest('{%s}'::BIGINT[]))curr_act "
 		"LEFT  JOIN ref_act_prop ON curr_act.unnest = ref_act_prop.act_id "
 		"LEFT  JOIN prop  ON prop.id = ref_act_prop.prop_id "

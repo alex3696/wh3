@@ -286,7 +286,7 @@ CREATE OR REPLACE FUNCTION fn_array1_to_table(IN anyarray)
   AS $BODY$ 
   SELECT row, $1[row] from generate_subscripts($1, 1) as row
 $BODY$ LANGUAGE sql IMMUTABLE;
-SELECT * FROM fn_array1_to_table('{101,102,103,104}'::int[]);
+SELECT * FROM fn_array1_to_table('{101,102,103,104}'::BIGINT[]);
 
 
 -----------------------------------------------------------------------------------------------------------------------------    
@@ -338,7 +338,7 @@ CREATE OR REPLACE FUNCTION fn_array2_to_table(IN anyarray)
   SELECT row, $1[row][1],$1[row][2] from generate_subscripts($1, 1) as row
 $BODY$ LANGUAGE sql IMMUTABLE;
 
-SELECT * FROM fn_array2_to_table('{{101,1011},{102,1022},{103,1033},{104,1044}}'::int[]);
+SELECT * FROM fn_array2_to_table('{{101,1011},{102,1022},{103,1033},{104,1044}}'::BIGint[]);
 SELECT * FROM fn_array2_to_table('{{%,%},{%,1022},{103,%},{104,1044}}'::NAME[]);
 
 
