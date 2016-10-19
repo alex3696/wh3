@@ -347,6 +347,10 @@ void VObjCatalogDataViewModel::SetModel(std::shared_ptr<IModel> model)
 //	void OnRemove(const IModel&, const std::vector<unsigned int>&);
 //	void OnChange(const IModel&, const std::vector<unsigned int>&);
 
+	std::vector<SptrIModel> vec;
+	for (size_t i = 0; i < mCatalogModel->mTypeArray->GetChildQty(); i++)
+		vec.emplace_back(mCatalogModel->mTypeArray->GetChild(i));
+	OnClsAfterInsert(*mCatalogModel->mTypeArray.get(), vec, SptrIModel());
 }
 //---------------------------------------------------------------------------
 void VObjCatalogDataViewModel::ClearModel()

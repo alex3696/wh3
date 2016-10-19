@@ -492,8 +492,13 @@ void MainFrame::OnCmd_MakePage_ObjByType(wxCommandEvent& evt)
 {
 	auto notepadCfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->mNotepadCfg;
 
+	bool hideSysRoot = true;
+	const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
+	if ((int)bgUser < (int)currBaseGroup)
+		hideSysRoot = false;
+	
 	wh::rec::PageObjByType page_obj_by_type;
-	page_obj_by_type.mParent_Cid = 1;
+	page_obj_by_type.mParent_Cid = hideSysRoot? 1 : 0;
 
 	auto model_page_obj_by_type = std::make_shared<wh::MPageObjByType>();
 	model_page_obj_by_type->SetData(page_obj_by_type);
@@ -506,8 +511,14 @@ void MainFrame::OnCmd_MakePage_ObjByPath(wxCommandEvent& evt)
 {
 	auto notepadCfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->mNotepadCfg;
 
+	bool hideSysRoot = true;
+	const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
+	if ((int)bgUser < (int)currBaseGroup)
+		hideSysRoot = false;
+
+
 	wh::rec::PageObjByPath page_obj_by_path;
-	page_obj_by_path.mParent_Oid = 1;
+	page_obj_by_path.mParent_Oid = hideSysRoot ? 1 : 0;
 
 	auto model_page_obj_by_path = std::make_shared<wh::MPageObjByPath>();
 	model_page_obj_by_path->SetData(page_obj_by_path);

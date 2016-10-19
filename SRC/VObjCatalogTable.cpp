@@ -99,13 +99,7 @@ void VObjCatalogTable::SetModel(std::shared_ptr<IModel> model)
 
 		*/
 		
-		auto typeQty = mCatalogModel->mTypeArray->GetChildQty();
-		std::vector<unsigned int> addedItems(typeQty);
-		for (unsigned int i = 0; i < typeQty; i++)
-			addedItems[i] = i;
-
 		OnAfterUpdateFavProp(mCatalogModel->mFavProps.get(), nullptr);
-		OnAppend(*model, addedItems);
 		
 		//mDataViewModel->Reset();
 		
