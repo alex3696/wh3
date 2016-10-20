@@ -680,7 +680,7 @@ void MainFrame::MakePage(const wh::rec::PageObjByType& cfg)
 	obj_cat->SetModel(mcat);
 
 
-	m_Notebook->AddPage(obj_cat, "Каталог объектов по типу", true, ResMgr::GetInstance()->m_ico_folder_type24);
+	m_Notebook->AddPage(obj_cat, "Каталог объектов", true, ResMgr::GetInstance()->m_ico_folder_type24);
 
 	m_AuiMgr.Update();
 
@@ -703,7 +703,7 @@ void MainFrame::MakePage(const wh::rec::PageObjByPath& cfg)
 	obj_cat->SetModel(mcat);
 
 
-	m_Notebook->AddPage(obj_cat, "Каталог объектов по местоположению", true, ResMgr::GetInstance()->m_ico_folder_obj24);
+	m_Notebook->AddPage(obj_cat, "Каталог объектов", true, ResMgr::GetInstance()->m_ico_folder_obj24);
 
 	m_AuiMgr.Update();
 }

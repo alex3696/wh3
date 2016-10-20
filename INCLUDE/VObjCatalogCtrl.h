@@ -49,7 +49,8 @@ class VObjCatalogCtrl
 	void OnMkCls(wxCommandEvent& evt);
 	void OnEdit(wxCommandEvent& evt);
 	void OnDelete(wxCommandEvent& evt);
-
+	
+	void OnMiddleUpTable(wxMouseEvent& event);
 	void UpdateToolsStates();
 
 
@@ -86,8 +87,8 @@ public:
 	bool GetSelectedObjKey(rec::PathItem& objKey)const; 
 	bool GetCurrentParent(rec::PathItem& root)const;
 
-	//void OnCmdSetTypeDir(wxCommandEvent& evt = wxCommandEvent());
-	//void OnCmdSetPathDir(wxCommandEvent& evt = wxCommandEvent());
+	void OnCmdSetTypeDir(wxCommandEvent& evt = wxCommandEvent());
+	void OnCmdSetPathDir(wxCommandEvent& evt = wxCommandEvent());
 
 };
 
