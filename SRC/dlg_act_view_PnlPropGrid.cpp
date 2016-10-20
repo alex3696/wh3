@@ -66,7 +66,15 @@ void PnlPropGrid::SetModel(std::shared_ptr<dlg_act::model::PropArray>& model)
 			case ftName:	mPropGrid->Append(new wxStringProperty(propData.mProp.mLabel)); break;
 			case ftLong:	mPropGrid->Append(new wxIntProperty(propData.mProp.mLabel));  break;
 			case ftDouble:	mPropGrid->Append(new wxFloatProperty(propData.mProp.mLabel));  break;
-			case ftDate:	mPropGrid->Append(new wxDateProperty(propData.mProp.mLabel));  break;
+			case ftDate:
+			{
+				auto pgp = new wxDateProperty(propData.mProp.mLabel);
+				pgp->SetAttribute(wxPG_DATE_PICKER_STYLE
+					, (long)(wxDP_DROPDOWN | wxDP_SHOWCENTURY | wxDP_ALLOWNONE));
+				mPropGrid->Append(pgp);
+			}
+				
+				break;
 			case ftLink:	mPropGrid->Append(new whPGFileLinkProperty(propData.mProp.mLabel));  break;
 			case ftFile:	mPropGrid->Append(new wxFileProperty(propData.mProp.mLabel));  break;
 			case ftJSON:	mPropGrid->Append(new wxLongStringProperty(propData.mProp.mLabel));  break;

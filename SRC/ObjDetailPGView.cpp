@@ -197,7 +197,7 @@ void ObjDetailPGView::OnObjPropAfterInsert(const IModel& vec
 				pgp->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
 			break;
 		case ftDouble:	pgp = new wxFloatProperty(pgp_title, pgp_name);  break;
-		case ftDate:	pgp = new wxDateProperty(pgp_title, pgp_name);  break;
+		case ftDate:	pgp = new wxStringProperty(pgp_title, pgp_name);  break;
 		case ftLink:	pgp = new whPGFileLinkProperty(pgp_title, pgp_name);  break;
 		case ftFile:	pgp = new wxStringProperty(pgp_title, pgp_name);  break;
 		case ftJSON:	pgp = new wxLongStringProperty(pgp_title, pgp_name);  break;
@@ -262,7 +262,31 @@ void ObjDetailPGView::OnObjPropChange(const IModel& model, const std::vector<uns
 			wxColour hl = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT);
 			pg_item->SetBackgroundColour(hl);
 		}
-		pg_item->SetValueFromString(prop_data.mVal);
+
+		if (prop_data.mVal.IsNull())
+		{
+			pg_item->SetValueToUnspecified();
+		}
+		else
+		{
+			if (ftDate == prop_data.mProp.mType)
+			{
+				const wxString& datestr = prop_data.mVal.toStr();
+				wxDateTime dt;
+				wxString::const_iterator end;
+
+				if (dt.ParseDate(datestr))
+					pg_item->SetValueFromString(dt.Format("%Y.%m.%d"));
+				else if (dt.ParseFormat(datestr, wxS("%Y"), &end))
+					pg_item->SetValueFromString(dt.Format("%Y"));
+				else
+					pg_item->SetValueFromString(datestr);
+
+			}
+			else
+				pg_item->SetValueFromString(prop_data.mVal);
+
+		}//else if (prop_data.mVal.IsNull())
 		
 	}
 	Refresh();
