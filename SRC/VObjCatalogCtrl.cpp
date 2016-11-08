@@ -100,7 +100,7 @@ void VObjCatalogCtrl::BuildToolbar(bool is_dlg)
 
 	//if (mCatalogModel && mCatalogModel->GetFilterClsId().mIsEnabled)
 	{
-		mUpTool = mToolBar->AddTool(wxID_BACKWARD, "Назад", m_ResMgr->m_ico_back24);
+		mUpTool = mToolBar->AddTool(wxID_BACKWARD, "Вверх", m_ResMgr->m_ico_back24);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdUp, this, wxID_BACKWARD);
 	}
 
@@ -274,6 +274,32 @@ void VObjCatalogCtrl::UpdateToolsStates()
 	mToolBar->Refresh();
 
 }
+
+//-----------------------------------------------------------------------------
+void VObjCatalogCtrl::HideCatalogSelect(bool hide)
+{
+	if (hide)
+		mToolBar->DeleteTool(whID_CATALOG_SELECT);
+	else
+	{
+		mCatalogTool = mToolBar->AddTool(whID_CATALOG_SELECT, "Группировать",
+			m_ResMgr->m_ico_folder_obj24, wxEmptyString, wxITEM_NORMAL);
+		mCatalogTool->SetHasDropDown(true);
+		Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, [this](wxAuiToolBarEvent& evt)
+		{
+			mCatalogTool->SetSticky(true);
+			wxRect rect = mToolBar->GetToolRect(whID_CATALOG_SELECT);
+			wxPoint pt = mToolBar->ClientToScreen(rect.GetBottomLeft());
+			pt = ScreenToClient(pt);
+			PopupMenu(&mCatalogToolMenu, pt);
+			mCatalogTool->SetSticky(false);
+		}
+		, whID_CATALOG_SELECT);
+		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdSetPathDir, this, whID_CATALOG_PATH);
+		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdSetTypeDir, this, whID_CATALOG_TYPE);
+	}
+}
+
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdSetTypeDir(wxCommandEvent& evt)
 {

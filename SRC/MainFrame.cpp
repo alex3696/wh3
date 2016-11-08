@@ -679,11 +679,25 @@ void MainFrame::MakePage(const wh::rec::PageObjByType& cfg)
 	mcat->Load();
 	obj_cat->SetModel(mcat);
 
-
-	m_Notebook->AddPage(obj_cat, "Каталог объектов", true, ResMgr::GetInstance()->m_ico_folder_type24);
-
+	m_Notebook->AddPage(obj_cat, "Type catalog", true
+		, ResMgr::GetInstance()->m_ico_folder_type24);
+	obj_cat->HideCatalogSelect(true);
 	m_AuiMgr.Update();
 
+
+	auto page_idx = m_Notebook->GetPageIndex(obj_cat);
+	BOOST_ASSERT_MSG(wxNOT_FOUND != page_idx, "Just created page not found?!");
+	
+	auto onClearPath = std::bind(&MainFrame::OnSigPathClear, this, page_idx,
+		std::placeholders::_1, std::placeholders::_2);
+	auto onChangePath = std::bind(&MainFrame::OnSigPathInsert, this, page_idx,
+		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+
+	onClearPath(*mcat->mPath.get(), std::vector<wh::SptrIModel>());
+	onChangePath(*mcat->mPath.get(), std::vector<wh::SptrIModel>(), nullptr);
+
+	mcat->mPath->ConnAfterInsert(onChangePath);
+	mcat->mPath->ConnectAfterRemove(onClearPath);
 }
 //---------------------------------------------------------------------------
 
@@ -702,10 +716,25 @@ void MainFrame::MakePage(const wh::rec::PageObjByPath& cfg)
 	mcat->Load();
 	obj_cat->SetModel(mcat);
 
-
-	m_Notebook->AddPage(obj_cat, "Каталог объектов", true, ResMgr::GetInstance()->m_ico_folder_obj24);
-
+	m_Notebook->AddPage(obj_cat, "Place catalog", true
+		, ResMgr::GetInstance()->m_ico_folder_obj24);
+	obj_cat->HideCatalogSelect(true);
 	m_AuiMgr.Update();
+
+
+	auto page_idx = m_Notebook->GetPageIndex(obj_cat);
+	BOOST_ASSERT_MSG(wxNOT_FOUND != page_idx, "Just created page not found?!");
+	
+	auto onClearPath = std::bind(&MainFrame::OnSigPathClear, this, page_idx,
+		std::placeholders::_1, std::placeholders::_2);
+	auto onChangePath = std::bind(&MainFrame::OnSigPathInsert, this, page_idx,
+		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+
+	onClearPath(*mcat->mPath.get(), std::vector<wh::SptrIModel>());
+	onChangePath(*mcat->mPath.get(), std::vector<wh::SptrIModel>(), nullptr);
+
+	mcat->mPath->ConnAfterInsert(onChangePath);
+	mcat->mPath->ConnectAfterRemove(onClearPath);
 }
 //---------------------------------------------------------------------------
 
@@ -744,3 +773,32 @@ void MainFrame::MakePage(const wh::rec::PageHistory& cfg)
 	model->Load();
 }
 //---------------------------------------------------------------------------
+
+void MainFrame::OnSigPathClear(const int page_idx
+	, const wh::IModel& model, const std::vector<wh::SptrIModel>&)
+{
+	if (0 == model.size())
+	{
+		wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+		m_Notebook->SetPageText(page_idx, "/");
+		//m_Notebook->Update();
+		//m_AuiMgr.Update();
+	}
+}
+//---------------------------------------------------------------------------
+
+void MainFrame::OnSigPathInsert(const int page_idx
+	, const wh::IModel& model, const std::vector<wh::SptrIModel>&
+	, const wh::SptrIModel&)
+{
+	#include "MObjCatPath.h"
+	auto path_array = dynamic_cast<const wh::object_catalog::model::MPath*>(&model);
+	if (path_array)
+	{
+		wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+		m_Notebook->SetPageText(page_idx, path_array->GetLastItemStr());
+		//m_Notebook->Update();
+		//m_AuiMgr.Update();
+		//this->UpdateTab(obj_cat, path_array->GetLastItemStr(), ResMgr::GetInstance()->m_ico_folder_type24);
+	}
+}

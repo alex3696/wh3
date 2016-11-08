@@ -35,6 +35,7 @@ public:
 	{}
 
 	wxString GetPathStr()const;
+	wxString GetLastItemStr()const;
 protected:
 	virtual bool GetSelectChildsQuery(wxString& query)const override;
 

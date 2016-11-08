@@ -87,6 +87,7 @@ public:
 	bool GetSelectedObjKey(rec::PathItem& objKey)const; 
 	bool GetCurrentParent(rec::PathItem& root)const;
 
+	void HideCatalogSelect(bool hide = false);
 	void OnCmdSetTypeDir(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmdSetPathDir(wxCommandEvent& evt = wxCommandEvent());
 

@@ -105,6 +105,32 @@ wxString MPath::GetPathStr()const
 	return str_path;
 }
 
+//-------------------------------------------------------------------------
+wxString MPath::GetLastItemStr()const
+{
+	auto catalog = dynamic_cast<MObjCatalog*>(GetParent());
+	if (!catalog)
+		return "**error**";
+	wxString str_path = "/";
+	unsigned int qty = GetChildQty();
+	unsigned int skip_root = catalog->GetData().mHideSystemRoot ? 1 : 0;
+	if (qty>skip_root)
+	{
+		auto node = std::dynamic_pointer_cast<MPathItem>(GetChild(0));
+		if (catalog->IsObjTree())
+		{
+			str_path = wxString::Format("../[%s]%s"
+					, node->GetData().mCls.mLabel.toStr()
+					, node->GetData().mObj.mLabel.toStr() );
+		}
+		else
+		{
+			str_path = wxString::Format("../%s"
+					, node->GetData().mCls.mLabel.toStr());
+		}
+	}
+	return str_path;
+}
 
 //-------------------------------------------------------------------------
 //-------------------------------------------------------------------------

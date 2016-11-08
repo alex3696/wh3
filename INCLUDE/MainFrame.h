@@ -90,7 +90,12 @@ public:
 	void UpdateTab(wxWindow* pnl, const wxString& lbl, const wxIcon& icon);
 
 
+	void OnSigPathClear(const int page_idx
+		, const wh::IModel& model, const std::vector<wh::SptrIModel>&);
 
+	void OnSigPathInsert(const int page_idx
+		, const wh::IModel& model, const std::vector<wh::SptrIModel>&
+		, const wh::SptrIModel&);
 
 };
 
