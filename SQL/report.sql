@@ -1,3 +1,9 @@
+﻿SELECT 
+avg( (kalibr_qty)*2 ) AS avg_kalibr
+,avg( (check_qty+service_qty+repair_qty)*3 ) AS avg_rem
+,avg(total_actions-check_qty*3-service_qty*3-repair_qty*3-kalibr_qty*2 ) AS avg_disp
+FROM
+(
 SELECT log_dt::DATE
        ,EXTRACT(DOY FROM log_dt)::INTEGER
        --,act_id,act.title
@@ -11,11 +17,11 @@ SELECT log_dt::DATE
        
   FROM public.log 
   LEFT JOIN act ON act.id=act_id
-  WHERE log_dt::date >= '2016-01-01'::TIMESTAMP AND log_dt::date < '2017-01-01'::TIMESTAMP
+  WHERE log_dt::date >= '2015-01-01'::TIMESTAMP AND log_dt::date < '2016-03-15'::TIMESTAMP
   GROUP BY log_dt::DATE, EXTRACT(DOY FROM log_dt) --, act_id, act.title
   --HAVING act_id IN (SELECT id FROM act WHERE title~~*'%Проверка%')
   ORDER BY log_dt::DATE  
-
+)ass
 
 
 

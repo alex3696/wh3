@@ -1,4 +1,4 @@
-BEGIN TRANSACTION;
+﻿BEGIN TRANSACTION;
 
 --SET client_min_messages = 'error';
 --SET client_min_messages = 'debug';
@@ -194,7 +194,7 @@ BEGIN
   RAISE NOTICE 'SERVER version %', version();
   
   IF(version() ILIKE '%linux%') THEN
-    home_dir:='/home/alex/wh3_data/';
+    home_dir:='/home/savinov/wh3_data/';
   ELSE
     home_dir:='c:\_SAV\tmp\';
   END IF;
