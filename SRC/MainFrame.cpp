@@ -763,7 +763,6 @@ void MainFrame::MakePage(const wh::rec::PageHistory& cfg)
 	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 	auto model = std::make_shared<wh::MLogTable>();
 	auto wnd = new wh::VTablePanel(m_Notebook);
-	wnd->SetRowHeight(32);
 	//wnd->mCtrl.fnOnCmdSave = nullptr; //wnd->SetEnableSave(false);
 	wnd->mCtrl.fnOnCmdInsert = nullptr;
 	wnd->mCtrl.fnOnCmdEdit = nullptr;

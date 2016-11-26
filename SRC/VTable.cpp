@@ -10,7 +10,10 @@ VTable::VTable(wxWindow*		parent,
 		long			style )
 		: BaseTable(parent, id, pos, size, style)
 {
-	SetRowHeight(24);
+	//auto font = GetFont();
+	//SetFont(font.Scale(1.5));
+	int ch = GetCharHeight();
+	SetRowHeight(ch*2+2);
 	Bind(wxEVT_DATAVIEW_COLUMN_HEADER_CLICK, &VTable::OnColumnHeaderlClick, this);
 }
 //-----------------------------------------------------------------------------
@@ -202,7 +205,7 @@ void VTable::OnFieldAfterInsert(const IModel& vec, const std::vector<SptrIModel>
 						if (heightLine && heightText > heightLine)
 						{
 							int qty = heightText / heightLine -1;
-							int rh = static_cast<VTable*>(GetView())->GetRowHeight();
+							int rh = GetView()->GetCharHeight() * 2 + 2;
 							int max_offset = (rh - heightLine) / 2;
 							int calc_offset = qty* (heightLine / 2);
 							int curr_offset = (calc_offset > max_offset) ? max_offset : calc_offset;
@@ -243,7 +246,7 @@ void VTable::OnFieldAfterInsert(const IModel& vec, const std::vector<SptrIModel>
 					renderer->EnableEllipsize(wxELLIPSIZE_START);
 
 				wxDataViewColumn * col = new wxDataViewColumn(name
-				    , renderer
+					, renderer
 					, model_idx
 					, width
 					, wxALIGN_NOT

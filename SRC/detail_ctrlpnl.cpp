@@ -67,7 +67,7 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 
 	// Создаём панель таблицы истории
 	mLogTable = new wh::VTable(this);
-	mLogTable->SetRowHeight(32);
+	//mLogTable->SetRowHeight(32);
 	mAuiMgr.AddPane(mLogTable, wxAuiPaneInfo().
 		Name("LogPane").Caption("LogPane").
 		CenterPane().Layer(1).Position(1)
@@ -123,10 +123,10 @@ void CtrlPnl::UpdateTab()
 			ico = &GetResMgr()->m_ico_type_abstract24;
 			break;
 		case ctQtyByFloat:	case ctQtyByOne:	
-			ico = &GetResMgr()->m_ico_type_qty24;
+			ico = &GetResMgr()->m_ico_obj_qty24;
 			break;
 		case ctSingle:		
-			ico = &GetResMgr()->m_ico_type_num24;
+			ico = &GetResMgr()->m_ico_obj_num24;
 			break;
 	}//switch
 
