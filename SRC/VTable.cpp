@@ -58,7 +58,13 @@ void VTable::SetModel(std::shared_ptr<ITable> model)
 			newItems.emplace_back(fvec->at(i));
 		OnFieldAfterInsert(*fvec, newItems, nullptr);
 				
-		OnResize(wxSizeEvent());
+		//OnResize(wxSizeEvent());
+		int client_hight = wxGetClientDisplayRect().GetHeight();
+		int row_hight = GetRowHeight();
+		int itemLimit = (client_hight / row_hight) * 0.8;
+		if (itemLimit < 5)
+			itemLimit = 5;
+		mModel->mPageLimit->SetData(itemLimit, true);
 		
 		//if (0 == mModel->size())
 		//	mModel->Load();
@@ -359,16 +365,3 @@ void VTable::OnColumnHeaderlClick(wxDataViewEvent &event)
 
 }
 //-----------------------------------------------------------------------------
-void VTable::OnResize(wxSizeEvent& evt)
-{
-	BaseTable::OnResize(evt);
-	if (mModel)
-	{
-		auto client_hight = GetClientSize().GetHeight();
-		auto row_hight = GetRowHeight();
-		auto itemLimit = client_hight / row_hight - 2;
-		if (itemLimit < 5)
-			itemLimit = 5;
-		mModel->mPageLimit->SetData(itemLimit, true);
-	}
-}

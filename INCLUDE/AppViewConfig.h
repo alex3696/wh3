@@ -26,7 +26,6 @@ struct PageObjByType
 
 struct PageObjDetail
 {
-	unsigned long mCid = 0; // optional
 	unsigned long mOid = 0;
 	unsigned long mParentOid = 0;
 };

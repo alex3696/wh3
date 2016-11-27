@@ -378,35 +378,14 @@ void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 	MObjArray* objArray = dynamic_cast<MObjArray*> (objItem->GetParent());
 	if (!objArray)
 		return;
-	auto typeItem = dynamic_cast<MTypeItem*> (objArray->GetParent());
-	if (!typeItem)
-		return;
-	wxWindow* notebook = this->GetParent();
-	MainFrame* main_farame(nullptr);
-	if (notebook)
-		main_farame = dynamic_cast<MainFrame*>(notebook->GetParent());
-	if (!main_farame)
-		return;
-
-
-	/*
+	
 	auto notepadCfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->mNotepadCfg;
-	wh::rec::PageObjDetail page_obj_detail;
-	page_obj_detail.mOid = objItem->GetData().mId;
-	page_obj_detail.mParentOid = objItem->GetData().mParent.mId;
-	page_obj_detail.mCid = typeItem->GetData().mId;
+	rec::PageObjDetail page_detail;
+	page_detail.mOid = objItem->GetData().mId;
+	page_detail.mParentOid = objItem->GetData().mParent.mId;
 	auto model_page_detail = std::make_shared<wh::MPageObjDetail>();
-	model_page_detail->SetData(page_obj_detail);
+	model_page_detail->SetData(page_detail);
 	notepadCfg->Insert(model_page_detail);
-	*/
-
-
-	rec::ObjInfo oi;
-	oi.mCls = typeItem->GetData();
-	oi.mObj = objItem->GetData();
-	detail::view::CtrlPnl* pnl = new detail::view::CtrlPnl(notebook);
-	main_farame->AddTab(pnl);
-	pnl->SetObject(oi);
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdFavProp(wxCommandEvent& evt)

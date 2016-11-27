@@ -628,21 +628,6 @@ void MainFrame::MakePage(const wh::rec::PageProp& cfg)
 	wnd->SetModel(model);
 	model->Load();
 
-	/*
-	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
-	using namespace wh;
-	using namespace wh::view;
-	auto model = std::make_shared<MPropArray>();
-	auto view = new VPropCtrlPanel(m_Notebook);
-	const auto& bg = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
-	if ((int)bg < (int)bgTypeDesigner)
-	view->DisableCreateDelete();
-	model->Load();
-	view->SetModel(model);
-	m_Notebook->AddPage(view, "Свойства", true, ResMgr::GetInstance()->m_ico_list_prop24);
-	view->SetFocus();
-	m_AuiMgr.Update();
-	*/
 }
 //---------------------------------------------------------------------------
 
@@ -740,18 +725,16 @@ void MainFrame::MakePage(const wh::rec::PageObjByPath& cfg)
 
 void MainFrame::MakePage(const wh::rec::PageObjDetail& cfg)
 {
-	wxBusyCursor busyCursor;
-	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
-	
+	// Setup Data
 	wh::rec::ObjInfo obj_info;
-	
 	obj_info.mObj.mId = cfg.mOid;
 	obj_info.mObj.mParent.mId = cfg.mParentOid;
-	obj_info.mCls.mId = cfg.mCid;
 
+	// Setup GUI
+	wxBusyCursor busyCursor;
+	wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
 	wh::detail::view::CtrlPnl* pnl = new wh::detail::view::CtrlPnl(m_Notebook);
-	m_Notebook->AddPage(pnl,wxEmptyString,true,wxNullIcon);
-	
+	m_Notebook->AddPage(pnl, wxEmptyString, true, wxNullIcon);
 	m_AuiMgr.Update();
 	pnl->SetObject(obj_info);
 }

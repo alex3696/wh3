@@ -30,8 +30,9 @@ VObjCatalogTable::VObjCatalogTable(wxWindow*		parent,
 	this->SetBackgroundColour(wxColour(245, 245, 245));
 
 
-	AppendIconTextColumn("Имя", 1, wxDATAVIEW_CELL_INERT, 300,
+	auto col_name = AppendIconTextColumn("Имя", 1, wxDATAVIEW_CELL_INERT, 300,
 		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
+	col_name->SetSortOrder(1);
 	AppendTextColumn("Количество", 2, wxDATAVIEW_CELL_INERT, 80,
 		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 	AppendTextColumn("ID", 3, wxDATAVIEW_CELL_INERT, 50,

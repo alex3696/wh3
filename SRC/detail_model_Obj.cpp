@@ -52,12 +52,12 @@ bool Obj::GetSelectQuery(wxString& query)const
 {
 	const auto& data = GetData();
 
-	if (data.mObj.mId.IsNull())
+	if (data.mObj.mId.IsNull() || data.mObj.mParent.mId.IsNull() )
 		return false;
 	
-	if (data.mCls.mType.IsNull() 
-		|| (data.mCls.IsQuantity() && data.mObj.mParent.mId.IsNull()))
-		return false;
+	//if (data.mCls.mType.IsNull() 
+	//	|| (data.mCls.IsQuantity() && data.mObj.mParent.mId.IsNull()))
+	//	return false;
 
 	query = wxString::Format(
 		"SELECT  o.id, o.pid, o.title, o.qty, o.move_logid "
@@ -66,14 +66,17 @@ bool Obj::GetSelectQuery(wxString& query)const
 		" FROM obj o "
 		" INNER JOIN acls cls      ON cls.id = o.cls_id "
 		" INNER JOIN acls cls_parent ON cls.pid = cls_parent.id "
-		" WHERE o.id=%s " 
+		" WHERE o.id=%s "
+		" AND o.pid=%s" 
 		, data.mObj.mId.SqlVal()
+		, data.mObj.mParent.mId.SqlVal()
 		);
 
 	if (!data.mCls.mId.IsNull())
 		query += wxString::Format("AND o.cls_id=%s ", data.mCls.mId.SqlVal());
-	if (data.mCls.IsQuantity())
-		query += wxString::Format("AND o.pid=%s ", data.mObj.mParent.mId.SqlVal());
+	
+	//if (data.mCls.IsQuantity())
+	//	query += wxString::Format("AND o.pid=%s", data.mObj.mParent.mId.SqlVal());
 
 	return true;
 }

@@ -18,7 +18,6 @@ public:
 
 	void SetModel(std::shared_ptr<ITable> model);
 protected:
-	virtual void OnResize(wxSizeEvent& evt)override;
 	void OnColumnHeaderlClick(wxDataViewEvent &event);
 	void OnChangeVecState(ModelState state);
 
