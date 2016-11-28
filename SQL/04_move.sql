@@ -365,10 +365,10 @@ RIGHT JOIN obj mov ON -- находим все объекты+классы ко�
 RIGHT JOIN obj_num src ON src.id = mov.pid -- отсеиваем по текущему положению
                     AND  perm.src_cls_id = src.cls_id
                     AND (perm.src_obj_id = src.id OR perm.src_obj_id IS NULL)
-                   AND ( (src.pid=0 AND perm.src_path='{}')OR(get_path_obj_arr_2id(src.pid)::TEXT LIKE perm.src_path) )
+                   AND ( (src.pid=0 AND perm.src_path='{}')OR(get_path_objnum_arr_2id(src.pid)::TEXT LIKE perm.src_path) )
 RIGHT JOIN obj_num dst ON perm.dst_cls_id = dst.cls_id -- находим все места куда можно перемещать
                   AND (perm.dst_obj_id = dst.id OR perm.dst_obj_id IS NULL)
-                  AND ((dst.pid=0 AND perm.dst_path='{}')OR(get_path_obj_arr_2id(dst.pid)::TEXT LIKE perm.dst_path))
+                  AND ((dst.pid=0 AND perm.dst_path='{}')OR(get_path_objnum_arr_2id(dst.pid)::TEXT LIKE perm.dst_path))
 LEFT JOIN obj_name dst_name 
                 ON dst_name.id = dst.id
 /*
@@ -424,7 +424,7 @@ BEGIN
 -- объект блокирован
 -- возвращаем пользвателю объекты назначения, попутно складываем их местоположение  в табличку
   FOR rec IN _dst_obj LOOP
-    _dst_path_2id := (SELECT get_path_obj_arr_2id(rec.dst_oid));
+    _dst_path_2id := (SELECT get_path_objnum_arr_2id(rec.dst_oid));
     _dst_path_2id:=COALESCE(_dst_path_2id::TEXT,'{}');
 
     INSERT INTO lock_dst(oid,pid, dst_path)VALUES(_obj_id,_old_pid,_dst_path_2id); 

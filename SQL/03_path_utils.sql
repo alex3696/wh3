@@ -20,6 +20,10 @@ DROP FUNCTION IF EXISTS get_path_obj_arr_2id(_oid BIGINT,_opid BIGINT) CASCADE;
 DROP FUNCTION IF EXISTS get_path_obj_arr_2title(_oid BIGINT,_opid BIGINT) CASCADE;
 DROP FUNCTION IF EXISTS get_path_obj(_oid BIGINT,_opid BIGINT) CASCADE;
 
+DROP FUNCTION IF EXISTS get_path_obj_info(_oid BIGINT,_opid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_objnum_arr_2id(_oid BIGINT,_opid BIGINT) CASCADE;
+DROP FUNCTION IF EXISTS get_path_objnum(_oid BIGINT,_opid BIGINT) CASCADE;
+
 DROP FUNCTION IF EXISTS fn_array1_to_table(anyarray);
 DROP FUNCTION IF EXISTS obj_arr_id_to_obj_info(IN anyarray);
 
@@ -276,6 +280,106 @@ SELECT * FROM get_path_obj(105);
 SELECT * FROM get_path_obj(105,1);
 
 
+-------------------------------------------------------------------------------
+-- функция получения информации о пути объектов, по идентификатору объекта
+-------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS get_path_objnum_info(_oid BIGINT,_opid BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION get_path_objnum_info(_oid BIGINT,_opid BIGINT DEFAULT 0)
+ RETURNS TABLE(
+     oid        BIGINT
+    ,opid       BIGINT
+    ,otitle     WHNAME
+    ,cid        BIGINT
+    ,ctitle     WHNAME
+
+    ,arr_id     BIGINT[]
+    ,arr_2id    BIGINT[]
+    ,arr_2title NAME[]
+    ,path       TEXT
+    ,CYCLE      BOOLEAN
+    ) AS $BODY$ 
+BEGIN
+RETURN QUERY 
+    WITH RECURSIVE parents AS 
+    (SELECT o.id, o.pid 
+          , onm.title
+          , c.id, c.title
+          , ARRAY[o.id]::BIGINT[] AS arr_id
+          , ARRAY[ ARRAY[c.id,o.id]::BIGINT[] ]::BIGINT[] AS arr_2id
+          , ARRAY[ ARRAY[c.title,onm.title]::NAME[] ]::NAME[] AS arr_2title
+          , '/['||c.title||']'||onm.title AS path
+          , FALSE AS CYCLE
+        FROM obj_num AS o
+        LEFT JOIN acls c ON c.id=o.cls_id
+        LEFT JOIN obj_name AS onm ON onm.id = o.id
+          WHERE _oid IS NOT NULL AND o.id = _oid AND o.id>0
+     UNION ALL
+     SELECT o.id, o.pid 
+          , onm.title
+          , c.id, c.title
+          , p.arr_id     || ARRAY[o.id]::BIGINT[]
+          , p.arr_2id    || ARRAY[c.id,o.id]::BIGINT[]
+          , p.arr_2title || ARRAY[c.title,onm.title]::NAME[]
+          , '/['||c.title||']'||onm.title|| p.path
+          , o.id = any (p.arr_id) AS CYCLE
+        FROM 
+        parents AS p
+        LEFT JOIN obj_num AS o ON o.id = p.pid
+        LEFT JOIN obj_name AS onm ON onm.id = o.id
+        LEFT JOIN acls c ON onm.cls_id=c.id AND c.kind BETWEEN 1 AND 3
+        WHERE NOT p.CYCLE
+              AND o.id <> _opid --AND o.id>0
+        )
+   SELECT * FROM parents WHERE NOT parents.CYCLE;
+
+END; 
+$BODY$ LANGUAGE plpgsql VOLATILE  COST 1000 ROWS 1000;
+GRANT EXECUTE ON FUNCTION get_path_objnum_info(BIGINT,BIGINT) TO "Guest";
+GRANT EXECUTE ON FUNCTION get_path_objnum_info(BIGINT,BIGINT) TO "Admin" WITH GRANT OPTION;
+SELECT * FROM get_path_objnum_info(105);
+SELECT * FROM get_path_objnum_info(105,0);
+SELECT * FROM get_path_objnum_info(105,1);
+-------------------------------------------------------------------------------
+-- функция получения двойного массива для номерного объекта 
+-------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS get_path_objnum_arr_2id(BIGINT, BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION get_path_objnum_arr_2id(_oid bigint, _opid BIGINT DEFAULT 0)
+  RETURNS BIGINT[] AS $BODY$
+BEGIN
+  RETURN (
+    WITH RECURSIVE parents AS 
+    (SELECT o.id, o.pid 
+          , ARRAY[ ARRAY[o.cls_id,o.id]::BIGINT[] ]::BIGINT[] AS arr_2id
+          , FALSE AS CYCLE
+        FROM obj_num AS o
+          WHERE _oid IS NOT NULL AND o.id = _oid AND o.id>0
+     UNION ALL
+     SELECT o.id, o.pid 
+          , p.arr_2id    || ARRAY[o.cls_id,o.id]::BIGINT[]
+          , ARRAY[o.cls_id,o.id] <@ arr_2id AS CYCLE
+        FROM 
+        parents AS p
+        LEFT JOIN obj_num AS o ON o.id = p.pid
+        WHERE NOT p.CYCLE
+              AND o.id <> _opid 
+        )
+   SELECT arr_2id FROM parents WHERE NOT parents.CYCLE AND pid=_opid ) ;
+END; 
+$BODY$ LANGUAGE plpgsql VOLATILE  COST 400;
+SELECT * FROM get_path_objnum_arr_2id(1777);
+-------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS get_path_objnum(BIGINT, BIGINT) CASCADE;
+CREATE OR REPLACE FUNCTION get_path_objnum(_oid bigint, _opid BIGINT DEFAULT 0)
+  RETURNS TEXT AS
+$BODY$ 
+    SELECT path FROM get_path_objnum_info($1,$2) WHERE opid=$2;
+$BODY$
+  LANGUAGE sql STABLE COST 100;
+GRANT EXECUTE ON FUNCTION get_path_objnum(BIGINT,BIGINT) TO "Guest";
+GRANT EXECUTE ON FUNCTION get_path_objnum(BIGINT,BIGINT) TO "Admin" WITH GRANT OPTION;
+SELECT * FROM get_path_objnum(105);
+SELECT * FROM get_path_objnum(105,1);
+
 
 -----------------------------------------------------------------------------------------------------------------------------    
 -- функция преобразования одномерного массива идентификаторов класса в таблицу
@@ -407,6 +511,7 @@ GRANT EXECUTE ON FUNCTION get_path_obj_arr_id(_oid BIGINT,_opid BIGINT) TO "User
 GRANT EXECUTE ON FUNCTION get_path_obj_arr_2id(_oid BIGINT,_opid BIGINT) TO "User";
 GRANT EXECUTE ON FUNCTION get_path_obj_arr_2title(_oid BIGINT,_opid BIGINT) TO "User";
 GRANT EXECUTE ON FUNCTION get_path_obj(_oid BIGINT,_opid BIGINT) TO "User";
+GRANT EXECUTE ON FUNCTION get_path_objnum_arr_2id(_oid BIGINT,_opid BIGINT) TO "User";
 
 GRANT EXECUTE ON FUNCTION fn_array1_to_table(IN anyarray) TO "Guest";
 GRANT EXECUTE ON FUNCTION obj_arr_id_to_obj_info(IN anyarray) TO "User";
