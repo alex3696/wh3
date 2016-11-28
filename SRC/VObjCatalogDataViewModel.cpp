@@ -137,6 +137,7 @@ void VObjCatalogDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 	}
 }
 //---------------------------------------------------------------------------
+/*
 bool VObjCatalogDataViewModel::GetAttr(const wxDataViewItem &dataViewItem, unsigned int col, wxDataViewItemAttr &attr) const
 {
 	if (dataViewItem.IsOk())
@@ -219,6 +220,7 @@ bool VObjCatalogDataViewModel::GetAttr(const wxDataViewItem &dataViewItem, unsig
 	}//if (dataViewItem.IsOk())
 	return false;
 }
+*/
 //---------------------------------------------------------------------------
 
 bool VObjCatalogDataViewModel::SetValue(const wxVariant &variant, const wxDataViewItem &item,

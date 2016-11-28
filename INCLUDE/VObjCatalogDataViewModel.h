@@ -31,8 +31,8 @@ public:
 	
 	virtual void GetValue( wxVariant &variant,const wxDataViewItem &item, 
 		unsigned int col ) const;
-	virtual bool GetAttr (const wxDataViewItem &item, unsigned int col, 
-		wxDataViewItemAttr &attr) const ; 
+	//virtual bool GetAttr (const wxDataViewItem &item, unsigned int col, 
+	//	wxDataViewItemAttr &attr) const ; 
 	virtual bool SetValue(const wxVariant &variant, const wxDataViewItem &item,
 		unsigned int col);
 

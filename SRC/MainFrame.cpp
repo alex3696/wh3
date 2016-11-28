@@ -669,13 +669,9 @@ void MainFrame::MakePage(const wh::rec::PageObjByType& cfg)
 	obj_cat->HideCatalogSelect(true);
 	m_AuiMgr.Update();
 
-
-	auto page_idx = m_Notebook->GetPageIndex(obj_cat);
-	BOOST_ASSERT_MSG(wxNOT_FOUND != page_idx, "Just created page not found?!");
-	
-	auto onClearPath = std::bind(&MainFrame::OnSigPathClear, this, page_idx,
+	auto onClearPath = std::bind(&MainFrame::OnSigPathClear, this, obj_cat,
 		std::placeholders::_1, std::placeholders::_2);
-	auto onChangePath = std::bind(&MainFrame::OnSigPathInsert, this, page_idx,
+	auto onChangePath = std::bind(&MainFrame::OnSigPathInsert, this, obj_cat,
 		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
 	onClearPath(*mcat->mPath.get(), std::vector<wh::SptrIModel>());
@@ -707,12 +703,9 @@ void MainFrame::MakePage(const wh::rec::PageObjByPath& cfg)
 	m_AuiMgr.Update();
 
 
-	auto page_idx = m_Notebook->GetPageIndex(obj_cat);
-	BOOST_ASSERT_MSG(wxNOT_FOUND != page_idx, "Just created page not found?!");
-	
-	auto onClearPath = std::bind(&MainFrame::OnSigPathClear, this, page_idx,
+	auto onClearPath = std::bind(&MainFrame::OnSigPathClear, this, obj_cat,
 		std::placeholders::_1, std::placeholders::_2);
-	auto onChangePath = std::bind(&MainFrame::OnSigPathInsert, this, page_idx,
+	auto onChangePath = std::bind(&MainFrame::OnSigPathInsert, this, obj_cat,
 		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
 	onClearPath(*mcat->mPath.get(), std::vector<wh::SptrIModel>());
@@ -756,20 +749,20 @@ void MainFrame::MakePage(const wh::rec::PageHistory& cfg)
 }
 //---------------------------------------------------------------------------
 
-void MainFrame::OnSigPathClear(const int page_idx
+void MainFrame::OnSigPathClear(wxWindow* page_wnd
 	, const wh::IModel& model, const std::vector<wh::SptrIModel>&)
 {
 	if (0 == model.size())
 	{
 		wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
-		m_Notebook->SetPageText(page_idx, "/");
-		//m_Notebook->Update();
-		//m_AuiMgr.Update();
+		auto page_idx = m_Notebook->GetPageIndex(page_wnd);
+		if (wxNOT_FOUND != page_idx)
+			m_Notebook->SetPageText(page_idx, "/");
 	}
 }
 //---------------------------------------------------------------------------
 
-void MainFrame::OnSigPathInsert(const int page_idx
+void MainFrame::OnSigPathInsert(wxWindow* page_wnd
 	, const wh::IModel& model, const std::vector<wh::SptrIModel>&
 	, const wh::SptrIModel&)
 {
@@ -778,6 +771,8 @@ void MainFrame::OnSigPathInsert(const int page_idx
 	if (path_array)
 	{
 		wxWindowUpdateLocker	wndUpdateLocker(m_Notebook);
+		auto page_idx = m_Notebook->GetPageIndex(page_wnd);
+		BOOST_ASSERT_MSG(wxNOT_FOUND != page_idx, "page not found?!");
 		m_Notebook->SetPageText(page_idx, path_array->GetLastItemStr());
 		//m_Notebook->Update();
 		//m_AuiMgr.Update();

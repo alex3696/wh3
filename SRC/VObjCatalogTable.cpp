@@ -16,7 +16,7 @@ VObjCatalogTable::VObjCatalogTable(wxWindow*		parent,
 	const wxSize &	size,
 	long			style)
 	: wxDataViewCtrl(parent, id, pos, size, style 
-	/*| wxDV_ROW_LINES*/ | wxDV_VERT_RULES | wxDV_HORIZ_RULES)
+	| wxDV_ROW_LINES | wxDV_VERT_RULES /*| wxDV_HORIZ_RULES*/)
 {
 	this->SetRowHeight(26);
 
@@ -27,12 +27,10 @@ VObjCatalogTable::VObjCatalogTable(wxWindow*		parent,
 
 	Bind(wxEVT_SIZE, &VObjCatalogTable::OnResize, this);
 
-	this->SetBackgroundColour(wxColour(245, 245, 245));
-
 
 	auto col_name = AppendIconTextColumn("Имя", 1, wxDATAVIEW_CELL_INERT, 300,
 		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
-	col_name->SetSortOrder(1);
+	//col_name->SetSortOrder(1);
 	AppendTextColumn("Количество", 2, wxDATAVIEW_CELL_INERT, 80,
 		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 	AppendTextColumn("ID", 3, wxDATAVIEW_CELL_INERT, 50,

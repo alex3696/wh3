@@ -225,6 +225,7 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 			" LEFT JOIN acls ON osum.cls_id = acls.id "
 			" LEFT JOIN obj_name ob ON ob.id = acls.dobj "
 			" WHERE acls.id > 0 %s "
+			" ORDER BY acls.title ASC "
 			, catFilter
 			, objFilter
 			, clsFilter);
@@ -244,6 +245,7 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 			" FROM acls "
 			" LEFT JOIN obj_name o ON o.id =acls.dobj "
 			" WHERE acls.id > 0 %s %s"
+			" ORDER BY acls.title ASC "
 			/*
 			"SELECT t.title, osum.qty, t.id, t.kind, t.measure "
 			" FROM cls_tree t "

@@ -80,7 +80,9 @@ bool DstTypeArray::GetSelectChildsQuery(wxString& query)const
 		", get_path_obj(_dst_obj_pid,1) AS DST_PATH "
 		" FROM lock_for_move(%s,%s) "
 		" LEFT JOIN acls ON acls.id = _dst_cls_id "
-		" ORDER BY _dst_cls_id "
+		" ORDER BY "
+		"   acls.title ASC "
+		"   ,(substring(_dst_obj_label, '^[0-9]+')::INT, _dst_obj_label ) ASC "
 		, movable.mObj.mId.SqlVal()
 		, movable.mObj.mParent.mId.SqlVal()
 		);
