@@ -79,6 +79,7 @@ void DetailActCtrl::OnCmdMove(wxCommandEvent& WXUNUSED(evt))
 	rec::PathItem data = mObjModel->GetData();
 	try
 	{
+		wxBusyCursor busyCursor;
 		auto subj = std::make_shared<dlg_move::model::MovableObj>();
 		subj->SetData(data, true);
 		dlg_move::view::Frame dlg;

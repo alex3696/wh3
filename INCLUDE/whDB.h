@@ -27,7 +27,7 @@ protected:
 
 	//void ShowError(const DatabaseLayerException& err)const;
 public:
-	using Signal = sig::signal<void(const whDB* const)>;
+	using Signal = sig::signal<void(const whDB&)>;
 	using Slot = Signal::slot_type;
 
 	Signal SigAfterConnect;

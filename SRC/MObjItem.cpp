@@ -243,7 +243,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 		{
 			query = wxString::Format(
 				"SELECT o.id, o.pid, o.title, o.qty "
-				" , o.move_logid, get_path_obj(o.pid,1)  AS path "
+				" , o.move_logid, get_path_objnum(o.pid,1)  AS path "
 				//" , parent.title "
 				"   %s "
 				" FROM obj o "

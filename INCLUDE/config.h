@@ -9,7 +9,6 @@ namespace rec{
 	
 struct GuiCfg
 {
-	boost::property_tree::wptree	mCfg;
 	wxString						mPersp;
 	int								mActivePage=0;
 };

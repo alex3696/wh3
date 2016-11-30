@@ -365,7 +365,7 @@ void MainFrame::UpdateTab(wxWindow* wnd, const wxString& lbl, const wxIcon& icon
 }
 //---------------------------------------------------------------------------
 
-void MainFrame::OnSig_AfterDbConnected(const whDB* const)
+void MainFrame::OnSig_AfterDbConnected(const whDB&)
 {
 	const auto& dbcfg = whDataMgr::GetInstance()->mConnectCfg->GetData();
 	
@@ -390,7 +390,7 @@ void MainFrame::OnSig_AfterDbConnected(const whDB* const)
 }
 //---------------------------------------------------------------------------
 
-void MainFrame::OnSig_BeforeDbDisconnect(const whDB* const)
+void MainFrame::OnSig_BeforeDbDisconnect(const whDB&)
 {
 	
 

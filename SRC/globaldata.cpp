@@ -282,20 +282,28 @@ whDataMgr::whDataMgr()
 	rec::ConnectCfg  default_connect_cfg;
 	mConnectCfg->SetData(default_connect_cfg);
 
-	whDB::Slot on_connect = [this](const whDB* const)
-	{
-		this->mDbCfg->Load();
-	};
-	
-	mSSC_AfterDbConnected = mDb.SigAfterConnect.connect(on_connect);
+	mSSC_AfterDbConnected = mDb.SigAfterConnect
+		.connect(std::bind(&whDataMgr::OnConnectDb, this, std::placeholders::_1));
 
 
-	whDB::Slot on_disconnect = [this](const whDB* const db)
-	{
-		if (db && db->IsOpen())
-			this->mDbCfg->Save();
-	};
+	mSSC_BeforeDbDisconnected = mDb.SigBeforeDisconnect
+		.connect(std::bind(&whDataMgr::OnDicsonnectDb, this, std::placeholders::_1));
 
-	mSSC_BeforeDbDisconnected = mDb.SigBeforeDisconnect.connect(on_disconnect);
-
+}
+//---------------------------------------------------------------------------
+whDataMgr::~whDataMgr()
+{
+	mDb.Close();
+}
+//---------------------------------------------------------------------------
+void whDataMgr::OnConnectDb(const whDB& db)
+{
+	if (mDb.IsOpen())
+		mDbCfg->Load();
+}
+//---------------------------------------------------------------------------
+void whDataMgr::OnDicsonnectDb(const whDB& db)
+{
+	if (mDb.IsOpen())
+		mDbCfg->Save();
 }

@@ -14,7 +14,7 @@ whDB::whDB()
 //------------------------------------------------------------------------------
 whDB::~whDB()
 {
-	m_Connection.Close();
+	Close();
 }
 //------------------------------------------------------------------------------
 void whDB::BeginTransaction()	
@@ -71,7 +71,7 @@ bool whDB::Open(const wxString& strServer, int nPort, const wxString& strDatabas
 	{
 		Close();
 		result = m_Connection.Open(strServer,nPort,strDatabase,strUser,strPassword);
-		SigAfterConnect(this);
+		SigAfterConnect(*this);
 	}
    	catch(DatabaseLayerException & e)
 	{
@@ -83,7 +83,8 @@ bool whDB::Open(const wxString& strServer, int nPort, const wxString& strDatabas
 //------------------------------------------------------------------------------
 bool whDB::Close()
 { 
-	SigBeforeDisconnect(this);
+	if (IsOpen())
+		SigBeforeDisconnect(*this);
 	return m_Connection.Close(); 
 }
 

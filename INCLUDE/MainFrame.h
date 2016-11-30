@@ -56,8 +56,8 @@ private:
 
 	sig::scoped_connection mSSC_AfterDbConnected;
 	sig::scoped_connection mSSC_BeforeDbDisconnect;
-	void OnSig_AfterDbConnected(const whDB* const);
-	void OnSig_BeforeDbDisconnect(const whDB* const);
+	void OnSig_AfterDbConnected(const whDB&);
+	void OnSig_BeforeDbDisconnect(const whDB&);
 
 
 	sig::scoped_connection mSSC_AfterChange_BaseGroup;
