@@ -97,6 +97,16 @@ CtrlPnl::~CtrlPnl()
 	mAuiMgr.UnInit();
 }
 //-----------------------------------------------------------------------------
+void CtrlPnl::SetObject(const std::shared_ptr<wh::detail::model::Obj>& mdl)
+{
+	mObj = mdl;
+
+	mCtrl.OnCmdLoad(wxCommandEvent(wxID_REFRESH));
+	UpdateTab();
+	mAuiMgr.Update();
+}
+
+//-----------------------------------------------------------------------------
 void CtrlPnl::SetObject(const rec::ObjInfo& oi)
 {
 	mObj->SetObject(oi);

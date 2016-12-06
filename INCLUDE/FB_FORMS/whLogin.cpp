@@ -73,10 +73,9 @@ wxString GetAppVersion()
 //---------------------------------------------------------------------------
 whLogin::whLogin(wxWindow* parent, wxWindowID id, const wxString& title
 	, const wxPoint& pos, const wxSize& size, long style) 
-	: wxDialog(parent, id, title, pos, size, style | wxFRAME_TOOL_WINDOW)
+	: wxDialog(parent, id, title, pos, size, style /*| wxFRAME_TOOL_WINDOW */)
 {
 	Centre(wxBOTH);
-	this->SetExtraStyle(wxDIALOG_EX_METAL);
 
 	wxString title_str;
 	title_str << "Авторизация " << "wh" << GetAppVersion();
@@ -106,7 +105,7 @@ whLogin::whLogin(wxWindow* parent, wxWindowID id, const wxString& title
 	wxStaticText* lblPass = new wxStaticText(this, wxID_ANY, wxT("Пароль"));
 	szrGrid->Add(lblPass, 0, wxALL | wxALIGN_RIGHT, 5);
 
-	m_txtPass = new wxTextCtrl(this, wxID_ANY);
+	m_txtPass = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD);
 	szrGrid->Add(m_txtPass, 0, wxALL | wxEXPAND, 5);
 
 	szrGrid->Add(0, 0, 0, wxALL, 5);

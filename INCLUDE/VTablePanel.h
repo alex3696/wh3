@@ -21,6 +21,13 @@ public:
 	~VTablePanel();
 
 	void SetModel(std::shared_ptr<ITable> model);
+	
+	template<class SPTR>
+	void SetModel(const SPTR& model)
+	{
+		std::shared_ptr<ITable> table_model = std::dynamic_pointer_cast<ITable>(model);
+		SetModel(table_model);
+	}
 
 	bool SetRowHeight(int height) { return mTableView->SetRowHeight(height); }
 
