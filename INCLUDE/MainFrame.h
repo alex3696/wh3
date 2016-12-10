@@ -66,11 +66,11 @@ private:
 	sig::scoped_connection mSSC_AfterInsert_Page;
 	void OnSigAfterInsertPage(const wh::IModel&
 		, const std::vector<wh::SptrIModel>& newItems, const wh::SptrIModel& itemBefore);
-
+public:
 	wxAuiManager	m_AuiMgr;
 	wxAuiNotebook*	m_Notebook;
 
-public:
+
 
 	MainFrame( wxWindow* parent = NULL, wxWindowID id = wxID_ANY, 
 		const wxString& title = wxT("wh3"), 

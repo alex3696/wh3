@@ -6,12 +6,14 @@
 
 
 namespace wh{
+class MLogTable;
 namespace detail{
 namespace model{
 //-----------------------------------------------------------------------------
 class ObjPropArray;
 class ObjPropValLoader;
 class ClsPropArray;
+
 //-----------------------------------------------------------------------------
 class Obj
 	: public TModelData<rec::ObjInfo>
@@ -23,9 +25,11 @@ public:
 
 	std::shared_ptr<ClsPropArray>	GetClsPropArray()const { return mClsProp; }
 	std::shared_ptr<ObjPropArray>	GetObjPropArray()const { return mObjProp; }
+	std::shared_ptr<MLogTable>		GetObjHistory()const { return mLogModel; }
 protected:
 	std::shared_ptr<ClsPropArray>	mClsProp;
 	std::shared_ptr<ObjPropArray>	mObjProp;
+	std::shared_ptr<MLogTable>		mLogModel;
 
 	virtual void LoadChilds()override;
 

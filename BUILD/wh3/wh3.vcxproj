@@ -154,6 +154,7 @@
     <ClCompile Include="..\..\SRC\MFavViewPropActCommon.cpp" />
     <ClCompile Include="..\..\SRC\MFavViewPropActUsr.cpp" />
     <ClCompile Include="..\..\SRC\MFavViewPropCls.cpp" />
+    <ClCompile Include="..\..\SRC\NotebookPresenter.cpp" />
     <ClCompile Include="..\..\SRC\ObjDetailPGView.cpp" />
     <ClCompile Include="..\..\SRC\detail_ctrlpnl.cpp" />
     <ClCompile Include="..\..\SRC\detail_model_ClsPropArray.cpp" />
@@ -185,6 +186,7 @@
     <ClCompile Include="..\..\SRC\MHistory.cpp" />
     <ClCompile Include="..\..\SRC\MLogProp.cpp" />
     <ClCompile Include="..\..\SRC\MProp2.cpp" />
+    <ClCompile Include="..\..\SRC\PagePresenter.cpp" />
     <ClCompile Include="..\..\SRC\PathPattern_model.cpp" />
     <ClCompile Include="..\..\SRC\DUserEditor.cpp" />
     <ClCompile Include="..\..\SRC\DUserGroupEditor.cpp" />
@@ -267,12 +269,20 @@
     <ClInclude Include="..\..\INCLUDE\DClsPropEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DetailActCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h" />
+    <ClInclude Include="..\..\INCLUDE\EmptyPresenter.h" />
+    <ClInclude Include="..\..\INCLUDE\IPageView.h" />
+    <ClInclude Include="..\..\INCLUDE\PageModel.h" />
+    <ClInclude Include="..\..\INCLUDE\IMVP.h" />
+    <ClInclude Include="..\..\INCLUDE\INotebookView.h" />
+    <ClInclude Include="..\..\INCLUDE\NotebookPresenter.h" />
     <ClInclude Include="..\..\INCLUDE\MFavFilterCls.h" />
     <ClInclude Include="..\..\INCLUDE\MFavFilterPath.h" />
     <ClInclude Include="..\..\INCLUDE\MFav.h" />
     <ClInclude Include="..\..\INCLUDE\MFavViewPropActCommon.h" />
     <ClInclude Include="..\..\INCLUDE\MFavViewPropActUsr.h" />
     <ClInclude Include="..\..\INCLUDE\MFavViewPropCls.h" />
+    <ClInclude Include="..\..\INCLUDE\NotebookModel.h" />
+    <ClInclude Include="..\..\INCLUDE\NotebookView.h" />
     <ClInclude Include="..\..\INCLUDE\ObjDetailPGView.h" />
     <ClInclude Include="..\..\INCLUDE\detail_ctrlpnl.h" />
     <ClInclude Include="..\..\INCLUDE\detail_model.h" />
@@ -305,6 +315,7 @@
     <ClInclude Include="..\..\INCLUDE\MHistory.h" />
     <ClInclude Include="..\..\INCLUDE\MLogProp.h" />
     <ClInclude Include="..\..\INCLUDE\MProp2.h" />
+    <ClInclude Include="..\..\INCLUDE\PagePresenter.h" />
     <ClInclude Include="..\..\INCLUDE\PathPattern_model.h" />
     <ClInclude Include="..\..\INCLUDE\DUserEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DUserGroupEditor.h" />

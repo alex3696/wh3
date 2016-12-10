@@ -18,7 +18,7 @@ class CtrlPnl
 {
 	DetailActCtrl			mCtrl;
 
-	std::shared_ptr<MLogTable> mLogModel;
+	//std::shared_ptr<MLogTable> mLogModel;
 	VTable*				mLogTable;
 	FilterArrayEditor*	mLogTableFilter;
 	VTableToolBar*		mLogToolBar;
@@ -42,8 +42,10 @@ public:
 		long style = wxTAB_TRAVERSAL,
 		const wxString& name = wxPanelNameStr);
 	~CtrlPnl();
+	
 	void SetObject(const rec::ObjInfo& oi);
-	void SetObject(const std::shared_ptr<wh::detail::model::Obj>& model);
+	//void SetObject(const std::shared_ptr<wh::detail::model::Obj>& model);
+	void SetModel(const SptrIModel& model);
 
 	void UpdateTab();
 

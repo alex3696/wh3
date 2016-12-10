@@ -1,4 +1,8 @@
 #include "_pch.h"
+//#include "NotebookModel.h"
+#include "NotebookPresenter.h"
+//#include "NotebookView.h"
+
 #include "VObjCatalogCtrl.h"
 #include "MObjCatalog.h"
 
@@ -11,6 +15,8 @@
 #include "detail_ctrlpnl.h"
 #include "MainFrame.h"
 #include "config.h"
+
+
 
 using namespace wh;
 using namespace view;
@@ -386,6 +392,9 @@ void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 	auto model_page_detail = std::make_shared<wh::MPageObjDetail>();
 	model_page_detail->SetData(page_detail);
 	notepadCfg->Insert(model_page_detail);
+
+	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(page_detail);
+
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdFavProp(wxCommandEvent& evt)

@@ -20,6 +20,12 @@
 #include "AppViewConfig.h"
 
 #include "detail_ctrlpnl.h"
+
+#include "EmptyPresenter.h"
+#include "NotebookModel.h"
+#include "NotebookPresenter.h"
+#include "NotebookView.h"
+
 //---------------------------------------------------------------------------
 enum GUIID
 {
@@ -98,6 +104,20 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 
 	auto fnAI_page = std::bind(&MainFrame::OnSigAfterInsertPage, this, ph::_1, ph::_2, ph::_3);
 	mSSC_AfterInsert_Page = dmgr->mDbCfg->mGuiCfg->mNotepadCfg->ConnAfterInsert(fnAI_page);
+	
+
+	//auto ep = new EmptyPresenter();
+	//auto ev = new EmptyView(ep);
+	//ev->SetWindow(this);
+	//ep->SetView(ev);
+
+
+	//auto new_wnd = whDataMgr::GetInstance()->mNotebookPresenter->GetView()->GetWnd();
+
+	//m_AuiMgr.AddPane(new_wnd, wxAuiPaneInfo().
+	//	Name(wxT("TestNotebookPane")).Caption(wxT("TestNotebookPane"))
+	//	.Left().MinSize(300,300));
+	//m_AuiMgr.Update();
 	
 }
 //---------------------------------------------------------------------------
@@ -458,6 +478,10 @@ void MainFrame::OnCmd_MakePage_Group(wxCommandEvent& evt)
 	auto model = std::make_shared<wh::MPageGroup>();
 	model->SetData(wh::rec::PageGroup());
 	notepadCfg->Insert(model);
+
+	//auto mdl= mNotebookPresenter->GetModel();
+	//mNotebookPresenter->SetModel(mdl);
+	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageGroup());
 }
 //---------------------------------------------------------------------------
 
@@ -467,6 +491,8 @@ void MainFrame::OnCmd_MakePage_User(wxCommandEvent& evt)
 	auto model = std::make_shared<wh::MPageUser>();
 	model->SetData(wh::rec::PageUser());
 	notepadCfg->Insert(model);
+
+	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageUser());
 }
 //---------------------------------------------------------------------------
 
@@ -476,6 +502,8 @@ void MainFrame::OnCmd_MakePage_Prop(wxCommandEvent& evt)
 	auto model = std::make_shared<wh::MPageProp>();
 	model->SetData(wh::rec::PageProp());
 	notepadCfg->Insert(model);
+
+	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageProp());
 }
 //---------------------------------------------------------------------------
 
@@ -485,6 +513,8 @@ void MainFrame::OnCmd_MakePage_Act(wxCommandEvent& evt)
 	auto model = std::make_shared<wh::MPageAct>();
 	model->SetData(wh::rec::PageAct());
 	notepadCfg->Insert(model);
+
+	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageAct());
 }
 //---------------------------------------------------------------------------
 
@@ -504,6 +534,8 @@ void MainFrame::OnCmd_MakePage_ObjByType(wxCommandEvent& evt)
 	model_page_obj_by_type->SetData(page_obj_by_type);
 
 	notepadCfg->Insert(model_page_obj_by_type);
+
+	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(page_obj_by_type);
 }
 //---------------------------------------------------------------------------
 
@@ -524,6 +556,8 @@ void MainFrame::OnCmd_MakePage_ObjByPath(wxCommandEvent& evt)
 	model_page_obj_by_path->SetData(page_obj_by_path);
 
 	notepadCfg->Insert(model_page_obj_by_path);
+
+	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(page_obj_by_path);
 }
 //---------------------------------------------------------------------------
 
@@ -533,6 +567,8 @@ void MainFrame::OnCmd_MakePage_History(wxCommandEvent& evt)
 	auto model = std::make_shared<wh::MPageHistory>();
 	model->SetData(wh::rec::PageHistory());
 	notepadCfg->Insert(model);
+
+	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageHistory());
 }
 //---------------------------------------------------------------------------
 

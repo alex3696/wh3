@@ -49,6 +49,81 @@ void MGuiCfg::LoadData()
 
 void MGuiCfg::SaveData()
 {
+	using ptree = boost::property_tree::ptree;
+	
+	ptree	notepad_cfg;
+	ptree pages;
+	/*
+	
+	ptree child1, child2, child3;
+	
+	child1.put("Type", "User");
+	
+	child2.put("Type", "ObjByPath");
+	child2.put("Parent_Oid", 4);
+
+	child3.put("Type", "ObjDetail");
+	child3.put("Oid", 6);
+	child3.put("ParentOid", 6);
+	
+
+	pages.push_back(std::make_pair("", child1));
+	pages.push_back(std::make_pair("", child2));
+	pages.push_back(std::make_pair("", child3));
+
+	*/
+
+	for (unsigned int i = 0; i < mNotepadCfg->GetChildQty(); ++i)
+	{
+		auto pageUser = std::dynamic_pointer_cast<MPageUser>(mNotepadCfg->GetChild(i));
+		if (pageUser)
+		{
+			ptree page;
+			page.put("Type", "Users");
+			pages.push_back(std::make_pair("", page));
+			continue;
+		}
+		auto pageGroup = std::dynamic_pointer_cast<MPageGroup>(mNotepadCfg->GetChild(i));
+		if (pageGroup)
+		{
+			ptree page;
+			page.put("Type", "Groups");
+			pages.push_back(std::make_pair("", page));
+			continue;
+		}
+		auto pageProp = std::dynamic_pointer_cast<MPageProp>(mNotepadCfg->GetChild(i));
+		if (pageProp)
+		{
+			ptree page;
+			page.put("Type", "Propetries");
+			pages.push_back(std::make_pair("", page));
+			continue;
+		}
+		auto pageAct = std::dynamic_pointer_cast<MPageAct>(mNotepadCfg->GetChild(i));
+		if (pageAct)
+		{
+			ptree page;
+			page.put("Type", "Acts");
+			pages.push_back(std::make_pair("", page));
+			continue;
+		}
+		auto pageObjByPath = std::dynamic_pointer_cast<MPageObjByPath>(mNotepadCfg->GetChild(i));
+		if (pageObjByPath)
+		{
+			ptree page;
+			page.put("Type", "ObjByPath");
+			page.put("ParentOid", pageObjByPath->GetData().mParent_Oid);
+			pages.push_back(std::make_pair("", page));
+			continue;
+		}
+	}
+
+	notepad_cfg.put("ActivePage", "0");
+	notepad_cfg.add_child("Pages", pages);
+
+	boost::property_tree::write_json(std::string("notepad_cfg.txt"), notepad_cfg);
+
+
 	/*
 	const T_Data& data = this->GetData();
 

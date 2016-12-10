@@ -1,4 +1,11 @@
 #include "_pch.h"
+
+#include "EmptyPresenter.h"
+#include "NotebookModel.h"
+#include "NotebookPresenter.h"
+#include "NotebookView.h"
+
+
 #include "globaldata.h"
 #include "MainFrame.h"
 #include "config.h"
@@ -289,6 +296,9 @@ whDataMgr::whDataMgr()
 	mSSC_BeforeDbDisconnected = mDb.SigBeforeDisconnect
 		.connect(std::bind(&whDataMgr::OnDicsonnectDb, this, std::placeholders::_1));
 
+
+
+
 }
 //---------------------------------------------------------------------------
 whDataMgr::~whDataMgr()
@@ -307,3 +317,35 @@ void whDataMgr::OnDicsonnectDb(const whDB& db)
 	if (mDb.IsOpen())
 		mDbCfg->Save();
 }
+//---------------------------------------------------------------------------
+void whDataMgr::SetMainFrame(MainFrame* wnd)
+{
+
+	auto notebook_model = std::make_shared<mvp::NotebookModel>();
+
+	mRootPresenter = std::make_unique<mvp::EmptyPresenter>(wnd);
+	mNotebookPresenter = std::make_unique<mvp::NotebookPresenter>(mRootPresenter.get());
+
+	auto notebook_view = new mvp::NotebookView(mNotebookPresenter.get());
+
+	mNotebookPresenter->SetView(notebook_view);
+	mNotebookPresenter->SetModel(notebook_model);
+
+
+	auto new_wnd = mNotebookPresenter->GetView()->GetWnd();
+
+	wnd->m_AuiMgr.AddPane(new_wnd, wxAuiPaneInfo().
+		Name(wxT("TestNotebookPane")).Caption(wxT("TestNotebookPane"))
+		.Left().MinSize(300, 300));
+	wnd->m_AuiMgr.Update();
+
+
+
+	m_MainFrame = wnd;
+}
+//---------------------------------------------------------------------------
+MainFrame* whDataMgr::GetMainFrame()
+{
+	return m_MainFrame;
+}
+

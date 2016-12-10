@@ -4,6 +4,8 @@
 #include "ResManager.h" 
 #include "config.h" 
 
+#include "NotebookPresenter.h"
+
 IMPLEMENT_APP( App );
 
 ResMgr*		mgr=NULL;
@@ -77,10 +79,11 @@ bool App::OnInit()
 	data_mgr->mConnectCfg->Load();
 	
 	// создаём вид
-	data_mgr->m_MainFrame = new MainFrame(NULL);
-	SetTopWindow(data_mgr->m_MainFrame);
-	data_mgr->m_MainFrame->Show();
-	data_mgr->m_MainFrame->OnCmd_ConnectDB();
+	auto main_frame = new MainFrame(NULL);
+	data_mgr->SetMainFrame(main_frame);
+	SetTopWindow(main_frame);
+	main_frame->Show();
+	main_frame->OnCmd_ConnectDB();
 
 	return true;
 }

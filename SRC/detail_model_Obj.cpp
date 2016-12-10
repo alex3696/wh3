@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "detail_model.h"
+#include "MHistory.h"
 
 using namespace wh;
 using namespace wh::detail::model;
@@ -10,10 +11,12 @@ Obj::Obj(const char option)
 	, mClsProp(new ClsPropArray)
 	, mObjProp(new ObjPropArray)
 	, mObjPropValLoader(new ObjPropValLoader)
+	, mLogModel(new wh::MLogTable)
 {
 	this->Insert(mObjProp);
 	this->Insert(mClsProp);
 	this->Insert(mObjPropValLoader);
+	this->Insert(mLogModel);
 }
 //-----------------------------------------------------------------------------
 void Obj::SetObject(const rec::ObjInfo& oi)
@@ -86,4 +89,16 @@ void Obj::LoadChilds()
 	mClsProp->Load();
 	mObjProp->Load();
 	mObjPropValLoader->Load();
+
+	Field field_cls_id = mLogModel->mFieldVec->at(12)->GetData();
+	Field field_obj_id = mLogModel->mFieldVec->at(13)->GetData();
+	field_cls_id.mFilter.clear();
+	field_obj_id.mFilter.clear();
+	field_cls_id.mFilter.emplace_back(GetData().mCls.mId);
+	field_obj_id.mFilter.emplace_back(GetData().mObj.mId);
+	mLogModel->mFieldVec->at(12)->SetData(field_cls_id);
+	mLogModel->mFieldVec->at(13)->SetData(field_obj_id);
+
+
+	mLogModel->GetDataArr()->Load();
 }

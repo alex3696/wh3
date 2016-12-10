@@ -94,8 +94,11 @@ protected:
 
 
 
-
-
+namespace mvp{
+	class EmptyView;
+	class EmptyPresenter;
+	class NotebookPresenter;
+};
 
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -118,6 +121,11 @@ private:
 
 	void OnConnectDb(const whDB& db);
 	void OnDicsonnectDb(const whDB& db);
+
+	std::unique_ptr<mvp::EmptyPresenter>		mRootPresenter;
+	std::unique_ptr<mvp::EmptyView>			mRootView;
+
+	MainFrame*					m_MainFrame = nullptr;
 public:
 	static whDataMgr* GetInstance()
 	{
@@ -134,9 +142,15 @@ public:
 	std::shared_ptr<wh::MConnectCfg>	mConnectCfg;
 	
 	std::shared_ptr<wh::MDbCfg>			mDbCfg;
+
+	std::unique_ptr<mvp::NotebookPresenter>	mNotebookPresenter;
 	
 
-	MainFrame*					m_MainFrame = nullptr;
+	
+
+	void SetMainFrame(MainFrame* wnd);
+	MainFrame* GetMainFrame();
+
 
 	static whDB& GetDB()
 	{	

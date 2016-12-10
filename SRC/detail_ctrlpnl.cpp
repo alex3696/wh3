@@ -73,12 +73,7 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 		CenterPane().Layer(1).Position(1)
 		.CloseButton(true).MaximizeButton(true).PaneBorder(false));
 	
-
-	mLogModel = std::make_shared<wh::MLogTable>();
-	mObj = std::make_shared<model::Obj>();
-
-
-	mCtrl.SetModel(mLogModel);
+	//mCtrl.SetModel(mLogModel);
 	mCtrl.SetAuiMgr(&mAuiMgr);
 	mCtrl.SetViewTable(mLogTable);
 	mCtrl.SetViewToolBar(mLogToolBar);
@@ -88,7 +83,6 @@ CtrlPnl::CtrlPnl(wxWindow* parent,
 	mCtrl.SetObjView(mObjView);
 	mCtrl.SetActToolbar(mActToolBar);
 
-
 	mAuiMgr.Update();
 }
 //-----------------------------------------------------------------------------
@@ -97,21 +91,37 @@ CtrlPnl::~CtrlPnl()
 	mAuiMgr.UnInit();
 }
 //-----------------------------------------------------------------------------
-void CtrlPnl::SetObject(const std::shared_ptr<wh::detail::model::Obj>& mdl)
+void CtrlPnl::SetModel(const SptrIModel& model)
 {
+	auto mdl = std::dynamic_pointer_cast<model::Obj>(model);
 	mObj = mdl;
+	if (!mObj)
+		return;
+	mCtrl.SetObjModel(mObj);
+	mCtrl.SetObjView(mObjView);
+	mCtrl.SetActToolbar(mActToolBar);
+	
+	mCtrl.SetModel(mObj->GetObjHistory());
+	mCtrl.SetViewTable(mLogTable);
+	mCtrl.SetViewToolBar(mLogToolBar);
+	mCtrl.SetViewFilter(mLogTableFilter);
 
-	mCtrl.OnCmdLoad(wxCommandEvent(wxID_REFRESH));
-	UpdateTab();
-	mAuiMgr.Update();
 }
-
 //-----------------------------------------------------------------------------
 void CtrlPnl::SetObject(const rec::ObjInfo& oi)
 {
+	mObj = std::make_shared<model::Obj>();
 	mObj->SetObject(oi);
+	mCtrl.SetObjModel(mObj);
+	mCtrl.SetObjView(mObjView);
+	mCtrl.SetActToolbar(mActToolBar);
 
-	mCtrl.OnCmdLoad(wxCommandEvent(wxID_REFRESH));
+	mCtrl.SetModel(mObj->GetObjHistory());
+	mCtrl.SetViewTable(mLogTable);
+	mCtrl.SetViewToolBar(mLogToolBar);
+	mCtrl.SetViewFilter(mLogTableFilter);
+
+	mObj->Load();
 	UpdateTab();
 	mAuiMgr.Update();
 	

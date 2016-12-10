@@ -1,4 +1,4 @@
-﻿SELECT 
+SELECT 
 avg( (kalibr_qty)*2 ) AS avg_kalibr
 ,avg( (check_qty+service_qty+repair_qty)*3 ) AS avg_rem
 ,avg(total_actions-check_qty*3-service_qty*3-repair_qty*3-kalibr_qty*2 ) AS avg_disp
@@ -34,7 +34,7 @@ SELECT log_dt::DATE
   FROM public.log 
   LEFT JOIN act ON act.id=act_id
   WHERE log_dt::date = '2016-08-13'::TIMESTAMP 
-  
+
 
 
   
@@ -84,33 +84,22 @@ ORDER BY cpath
 Отчет по количеству действий во всех классах
 */
 SELECT 
-_id
-,_kind
-,acls._pid
-,_title
-,check_qty
-,service_qty
-,repair_qty
-,kalibr_qty
-,gis_qty
+_id, _kind, acls._pid, _title
+, check_qty, service_qty, repair_qty, kalibr_qty, gis_qty
 ,get_path_cls(_id)AS cpath 
 FROM get_childs_cls(101) acls
-
-LEFT JOIN
-(
-
-SELECT mcls_id 
-       ,count(CASE WHEN act_id=(SELECT id FROM act WHERE title~~*'%Проверка%') THEN 1 END) as check_qty
-       ,count(CASE WHEN act_id=(SELECT id FROM act WHERE title~~*'%Профилактика%') THEN 1 END) as service_qty
-       ,count(CASE WHEN act_id=(SELECT id FROM act WHERE title~~*'%Ремонт%') THEN 1 END) as repair_qty
-       ,count(CASE WHEN act_id=(SELECT id FROM act WHERE title~~*'%Калибровка%') THEN 1 END) as kalibr_qty
-       ,count(CASE WHEN act_id=(SELECT id FROM act WHERE title~~*'%ГИС%') THEN 1 END) as gis_qty
-       FROM public.log 
-       LEFT JOIN act ON act.id=act_id
-       WHERE log_dt::date >= '2016-01-01'::TIMESTAMP AND log_dt::date <= '2016-12-31'::TIMESTAMP
-       GROUP BY mcls_id
-) by_acls ON by_acls.mcls_id = acls._id
-
+LEFT JOIN (SELECT mcls_id 
+            ,count(CASE WHEN act_id=(SELECT id FROM act WHERE title~~*'%Проверка%') THEN 1 END) as check_qty
+            ,count(CASE WHEN act_id=(SELECT id FROM act WHERE title~~*'%Профилактика%') THEN 1 END) as service_qty
+            ,count(CASE WHEN act_id=(SELECT id FROM act WHERE title~~*'%Ремонт%') THEN 1 END) as repair_qty
+           ,count(CASE WHEN act_id=(SELECT id FROM act WHERE title~~*'%Калибровка%') THEN 1 END) as kalibr_qty
+           ,count(CASE WHEN act_id=(SELECT id FROM act WHERE title~~*'%ГИС%') THEN 1 END) as gis_qty
+           FROM public.log 
+           LEFT JOIN act ON act.id=act_id
+           WHERE log_dt::date >= '2016-01-01'::TIMESTAMP AND log_dt::date <= '2016-12-31'::TIMESTAMP
+           GROUP BY mcls_id
+          ) by_acls 
+          ON by_acls.mcls_id = acls._id
 ORDER BY cpath
 
 

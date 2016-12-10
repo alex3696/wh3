@@ -37,6 +37,17 @@ void ObjDetailPGView::SetModel(std::shared_ptr<wh::detail::model::Obj> model)
 {
 	mObj = model;
 
+	mChangeMainDetail.disconnect();
+	mConnClsPropAppend.disconnect();
+	mConnClsPropRemove.disconnect();
+	mConnClsPropChange.disconnect();
+	mConnObjPropAppend.disconnect();
+	mConnObjPropRemove.disconnect();
+	mConnObjPropChange.disconnect();
+
+	if (!mObj)
+		return;
+
 	namespace sph = std::placeholders;
 
 	auto funcOnChange = std::bind(&ObjDetailPGView::OnChangeMainDetail,

@@ -148,17 +148,6 @@ void DetailActCtrl::OnCmdLoad(wxCommandEvent& evt)
 {
 	if (mObjModel)
 		mObjModel->Load();
-
-	Field field_cls_id = mTableModel->mFieldVec->at(12)->GetData();
-	Field field_obj_id = mTableModel->mFieldVec->at(13)->GetData();
-	field_cls_id.mFilter.clear();
-	field_obj_id.mFilter.clear();
-	field_cls_id.mFilter.emplace_back(mObjModel->GetData().mCls.mId);
-	field_obj_id.mFilter.emplace_back(mObjModel->GetData().mObj.mId);
-	mTableModel->mFieldVec->at(12)->SetData(field_cls_id);
-	mTableModel->mFieldVec->at(13)->SetData(field_obj_id);
-
-	VTableCtrl::OnCmdLoad(evt);
 }
 //-----------------------------------------------------------------------------
 void DetailActCtrl::OnDvSelect(wxDataViewEvent& evt)
