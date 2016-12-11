@@ -435,9 +435,6 @@
     <ClCompile Include="..\..\SRC\config.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SRC\AppViewConfig.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\PagePresenter.cpp">
       <Filter>MainFrame\MVP\Page</Filter>
     </ClCompile>
@@ -783,9 +780,6 @@
       <Filter>Controls\PropertyGridExt</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\config.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\AppViewConfig.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\IMVP.h">

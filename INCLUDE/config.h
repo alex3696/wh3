@@ -34,17 +34,13 @@ struct FtpCfg
 
 }//namespace rec{
 //-----------------------------------------------------------------------------
-class MNotepadCfg;
 
-
-//-----------------------------------------------------------------------------
 class MGuiCfg
 	: public TModelData<rec::GuiCfg>
 {
 public:
 	MGuiCfg(const char option = ModelOption::EnableParentNotify);
 
-	std::shared_ptr<MNotepadCfg>	mNotepadCfg;
 protected:
 	virtual void LoadData() override;
 	virtual void SaveData() override;

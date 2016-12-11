@@ -15,7 +15,6 @@
 #include "VObjCatalogCtrl.h"
 
 #include "config.h"
-#include "AppViewConfig.h"
 
 using namespace mvp;
 

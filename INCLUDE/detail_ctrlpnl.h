@@ -43,11 +43,7 @@ public:
 		const wxString& name = wxPanelNameStr);
 	~CtrlPnl();
 	
-	void SetObject(const rec::ObjInfo& oi);
-	//void SetObject(const std::shared_ptr<wh::detail::model::Obj>& model);
 	void SetModel(const SptrIModel& model);
-
-	void UpdateTab();
 
 };
 

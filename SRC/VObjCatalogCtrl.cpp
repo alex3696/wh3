@@ -385,13 +385,9 @@ void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 	if (!objArray)
 		return;
 	
-	auto notepadCfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->mNotepadCfg;
 	rec::PageObjDetail page_detail;
 	page_detail.mOid = objItem->GetData().mId;
 	page_detail.mParentOid = objItem->GetData().mParent.mId;
-	auto model_page_detail = std::make_shared<wh::MPageObjDetail>();
-	model_page_detail->SetData(page_detail);
-	notepadCfg->Insert(model_page_detail);
 
 	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(page_detail);
 

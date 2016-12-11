@@ -3,7 +3,6 @@
 
 #include "globaldata.h"
 #include "config.h"
-#include "AppViewConfig.h"
 
 #include "PageModel.h"
 

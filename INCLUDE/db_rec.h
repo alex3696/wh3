@@ -411,6 +411,32 @@ public:
 	unsigned long	mPId;
 };
 
+struct PageUser{};
+struct PageGroup{};
+struct PageProp{};
+struct PageAct{};
+
+struct PageObjByPath
+{
+	unsigned long mParent_Oid = 0;
+};
+//-----------------------------------------------------------------------------
+
+struct PageObjByType
+{
+	unsigned long mParent_Cid = 0;
+};
+//-----------------------------------------------------------------------------
+
+struct PageObjDetail
+{
+	unsigned long mOid = 0;
+	unsigned long mParentOid = 0;
+};
+
+struct PageHistory
+{
+};
 
 }//namespace rec
 

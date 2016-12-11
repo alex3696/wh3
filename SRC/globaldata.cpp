@@ -320,7 +320,8 @@ void whDataMgr::OnDicsonnectDb(const whDB& db)
 //---------------------------------------------------------------------------
 void whDataMgr::SetMainFrame(MainFrame* wnd)
 {
-
+	m_MainFrame = wnd;
+	
 	auto notebook_model = std::make_shared<mvp::NotebookModel>();
 
 	mRootPresenter = std::make_unique<mvp::EmptyPresenter>(wnd);
@@ -332,16 +333,12 @@ void whDataMgr::SetMainFrame(MainFrame* wnd)
 	mNotebookPresenter->SetModel(notebook_model);
 
 
-	auto new_wnd = mNotebookPresenter->GetView()->GetWnd();
+	auto new_wnd = dynamic_cast<wxAuiNotebook*>(notebook_view->GetWnd());
 
-	wnd->m_AuiMgr.AddPane(new_wnd, wxAuiPaneInfo().
-		Name(wxT("TestNotebookPane")).Caption(wxT("TestNotebookPane"))
-		.Left().MinSize(300, 300));
-	wnd->m_AuiMgr.Update();
+	m_MainFrame->AddNotebook(new_wnd);
 
 
-
-	m_MainFrame = wnd;
+	
 }
 //---------------------------------------------------------------------------
 MainFrame* whDataMgr::GetMainFrame()

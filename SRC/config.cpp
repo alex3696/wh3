@@ -1,6 +1,5 @@
 #include "_pch.h"
 #include "config.h"
-#include "AppViewConfig.h"
 
 #include "wx/wfstream.h"
 #include "wx/datstrm.h"
@@ -13,9 +12,7 @@ using namespace wh;
 //-----------------------------------------------------------------------------
 MGuiCfg::MGuiCfg(const char option)
 	:TModelData<rec::GuiCfg>(option)
-	, mNotepadCfg(new MNotepadCfg)
 {
-	this->Insert(mNotepadCfg);
 }
 //-----------------------------------------------------------------------------
 
@@ -73,6 +70,7 @@ void MGuiCfg::SaveData()
 
 	*/
 
+	/*
 	for (unsigned int i = 0; i < mNotepadCfg->GetChildQty(); ++i)
 	{
 		auto pageUser = std::dynamic_pointer_cast<MPageUser>(mNotepadCfg->GetChild(i));
@@ -122,7 +120,7 @@ void MGuiCfg::SaveData()
 	notepad_cfg.add_child("Pages", pages);
 
 	boost::property_tree::write_json(std::string("notepad_cfg.txt"), notepad_cfg);
-
+	*/
 
 	/*
 	const T_Data& data = this->GetData();

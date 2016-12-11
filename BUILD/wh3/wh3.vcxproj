@@ -134,7 +134,6 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\SRC\AppViewConfig.cpp" />
     <ClCompile Include="..\..\SRC\BaseControlPanel.cpp" />
     <ClCompile Include="..\..\SRC\BaseRefControlPanel.cpp" />
     <ClCompile Include="..\..\SRC\BaseTable.cpp" />
@@ -254,7 +253,6 @@
     <ClCompile Include="..\..\SRC\dlg_move_view_Tree.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\INCLUDE\AppViewConfig.h" />
     <ClInclude Include="..\..\INCLUDE\BaseOkCancelDialog.h" />
     <ClInclude Include="..\..\INCLUDE\BaseRefControlPanel.h" />
     <ClInclude Include="..\..\INCLUDE\BtnProperty.h" />
