@@ -23,9 +23,8 @@ using namespace mvp;
 
 
 template <class PAGE_WHMODEL, class PAGE_WND>
-void MakeWindow(const PageModel& model, wxWindow* parent_wnd, IPageView* pv)
+void MakeWindow(const wh::SptrIModel& wh_model, wxWindow* parent_wnd, IPageView* pv)
 {
-	auto wh_model = model.GetWhModel();
 	if (std::dynamic_pointer_cast<PAGE_WHMODEL>(wh_model))
 	{
 		auto wnd = new PAGE_WND(parent_wnd);
@@ -34,35 +33,18 @@ void MakeWindow(const PageModel& model, wxWindow* parent_wnd, IPageView* pv)
 	}
 }
 //---------------------------------------------------------------------------
-
-IPageView* ViewFactory::MakePage(IPresenter* presenter)
+IPageView* ViewFactory::MakePage(const wh::SptrIModel& wh_model, wxWindow* notebook_wnd)
 {
-	auto notebook_presenter = presenter->GetParent();
-	if (!notebook_presenter)
-		return nullptr;
-	auto notebook_view = notebook_presenter->GetView();
-	if (!notebook_view)
-		return nullptr;
-	auto notebook_wnd = notebook_view->GetWnd();
-	if (!notebook_wnd)
-		return nullptr;
-	auto page_model = std::dynamic_pointer_cast<PageModel>(presenter->GetModel());
-	if (!page_model)
-		return nullptr;
-
-	IPageView* pv = new IPageView(presenter);
+	IPageView* pv = new IPageView();
 	using namespace wh;
-
-	MakeWindow<MGroupArray, view::VGroupCtrlPanel>(*page_model, notebook_wnd, pv);
-	MakeWindow<MUserArray, view::VUserCtrlPanel>(*page_model, notebook_wnd, pv);
-	MakeWindow<MActArray, view::VActCtrlPanel>(*page_model, notebook_wnd, pv);
-	MakeWindow<MPropTable, VTablePanel>(*page_model, notebook_wnd, pv);
-	MakeWindow<MLogTable, VTablePanel>(*page_model, notebook_wnd, pv);
-	MakeWindow<object_catalog::MObjCatalog, view::VObjCatalogCtrl>(*page_model, notebook_wnd, pv);
-
-	MakeWindow<wh::detail::model::Obj, wh::detail::view::CtrlPnl>(*page_model, notebook_wnd, pv);
-
-	presenter->SetView(pv);
+	
+	MakeWindow<MGroupArray, view::VGroupCtrlPanel>(wh_model, notebook_wnd, pv);
+	MakeWindow<MUserArray, view::VUserCtrlPanel>(wh_model, notebook_wnd, pv);
+	MakeWindow<MActArray, view::VActCtrlPanel>(wh_model, notebook_wnd, pv);
+	MakeWindow<MPropTable, VTablePanel>(wh_model, notebook_wnd, pv);
+	MakeWindow<MLogTable, VTablePanel>(wh_model, notebook_wnd, pv);
+	MakeWindow<object_catalog::MObjCatalog, view::VObjCatalogCtrl>(wh_model, notebook_wnd, pv);
+	MakeWindow<wh::detail::model::Obj, wh::detail::view::CtrlPnl>(wh_model, notebook_wnd, pv);
 
 	return pv;
 }

@@ -10,9 +10,8 @@ class EmptyView
 	: public IView
 {
 public:
-	EmptyView(IPresenter* presenter, wxWindow* wnd)
-		: IView(presenter)
-		, mWnd(wnd)
+	EmptyView(wxWindow* wnd)
+		: mWnd(wnd)
 	{}
 
 	virtual wxWindow* GetWnd() override { return mWnd; }
@@ -28,7 +27,7 @@ public:
 	EmptyPresenter(wxWindow* wnd)
 		:IPresenter(nullptr)
 	{
-		mView.reset(new EmptyView(this, wnd));
+		mView.reset(new EmptyView(wnd));
 	}
 
 	virtual void SetView(IView* view)override 

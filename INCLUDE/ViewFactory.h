@@ -8,15 +8,7 @@ namespace mvp{
 class ViewFactory
 {
 public:
-	static IPageView* MakePage(IPresenter* presenter);
-	
-	static IPageView* MakePageGroup();
-	static IPageView* MakePageUser();
-	static IPageView* MakePageAct();
-	static IPageView* MakePageProp();
-	static IPageView* MakePageLog();
-	static IPageView* MakePageCatalog();
-	static IPageView* MakePageDetail();
+	static IPageView* MakePage(const wh::SptrIModel& wh_model, wxWindow* parent_wnd);
 };
 
 

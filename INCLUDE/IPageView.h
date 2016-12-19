@@ -8,9 +8,8 @@ namespace mvp{
 class IPageView : public IView
 {
 public:
-	IPageView(IPresenter* presenter)
-		:IView(presenter)
-		, mWnd(nullptr)
+	IPageView()
+		: mWnd(nullptr)
 	{}
 
 	virtual wxWindow* GetWnd() override

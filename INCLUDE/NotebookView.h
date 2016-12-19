@@ -8,50 +8,34 @@ class NotebookView
 	: public INotebookView
 {
 public:
-	NotebookView(IPresenter* parent)
-		:INotebookView(parent)
+	NotebookView(wxWindow* wnd)
 	{
-		CreateNotebook();
+		SetWnd(wnd);
+	}
+
+	NotebookView()
+	{
 	}
 
 	virtual wxWindow* GetWnd() override{ return mNotebook; }
 	virtual void SetWnd(wxWindow* wnd)override
 	{
-		mNotebook = dynamic_cast<wxAuiNotebook*>(mNotebook);
-	}
-
-	void CreateNotebook()
-	{
-		auto notebook_presenter = this->GetPresenter();
-		if (!notebook_presenter)
+		mNotebook = dynamic_cast<wxAuiNotebook*>(wnd);
+		if (!mNotebook)
 			return;
-		auto parent_presenter = notebook_presenter->GetParent();
-		if (!parent_presenter)
-			return;
-		auto parent_view = parent_presenter->GetView();
-		if (!parent_view)
-			return;
-		auto parent_wnd = parent_view->GetWnd();
-		if (!parent_wnd)
-			return;
-
-		mNotebook = new wxAuiNotebook(parent_wnd);
 		auto fnOnClosePage = [this](wxAuiNotebookEvent& evt)
 		{
 			int page_to_close = evt.GetSelection();
 			wxWindow* wnd_to_close = mNotebook->GetPage(page_to_close);
-
-			auto notebook_presenter = dynamic_cast<NotebookPresenter*>(GetPresenter());
-
-			//auto pp = std::dynamic_pointer_cast<GroupsPagePresenter>(
-			//	notebook_presenter->GetPagePresenter(page_to_close));
-			//pp->SetView(nullptr);
-
-			notebook_presenter->DoDelPage(wnd_to_close);
+			sigDelPage(this, wnd_to_close);
 			evt.Veto();
 		};
-
 		mNotebook->Bind(wxEVT_AUINOTEBOOK_PAGE_CLOSE, fnOnClosePage);
+	}
+
+	virtual sig::connection ConnectSigDelPage(const SigDelPage::slot_type& slot) override
+	{
+		return sigDelPage.connect(slot);
 	}
 
 	virtual void AddPage(wxWindow* wnd, const wxString& lbl, const wxIcon& icon) override
@@ -67,6 +51,9 @@ public:
 
 	virtual void UpdatePageCaption(wxWindow* wnd, const wxString& lbl, const wxIcon& icon) override
 	{
+		wxBusyCursor busyCursor;
+		wxWindowUpdateLocker	wndUpdateLocker(mNotebook);
+
 		auto page_idx = mNotebook->GetPageIndex(wnd);
 		if (wxNOT_FOUND != page_idx)
 		{
@@ -76,6 +63,8 @@ public:
 		}
 	}
 
+	//using SigDelPage = sig::signal<void(const INotebookView* pm, wxWindow* page)>;
+	SigDelPage sigDelPage;
 	wxAuiNotebook* mNotebook = nullptr;
 };
 

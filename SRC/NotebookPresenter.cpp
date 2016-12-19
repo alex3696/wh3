@@ -11,6 +11,7 @@ NotebookPresenter::NotebookPresenter(IPresenter* presenter)
 //---------------------------------------------------------------------------
 NotebookPresenter::~NotebookPresenter()
 {
+	mPagePresentersConn.clear();
 	mPagePresenters.clear();
 	delete mView;
 }
@@ -18,7 +19,16 @@ NotebookPresenter::~NotebookPresenter()
 //virtual 
 void NotebookPresenter::SetView(IView* view)//override
 { 
+	view_connBD.disconnect();
 	mView = dynamic_cast<INotebookView*>(view); 
+	if (!mView)
+		return;
+
+	auto fnDoClosePage = [this](const INotebookView* pm, wxWindow* page)
+	{
+		DoDelPage(page);
+	};
+	view_connBD = mView->ConnectSigDelPage(fnDoClosePage);
 }
 //---------------------------------------------------------------------------
 //virtual 
@@ -27,7 +37,6 @@ void NotebookPresenter::SetModel(const std::shared_ptr<IModel>& model)//override
 	namespace ph = std::placeholders;
 	if (mModel)
 	{
-
 		if (mView)
 		{
 			for (size_t i = 0; i < mModel->GetPageQty(); i++)
@@ -36,7 +45,6 @@ void NotebookPresenter::SetModel(const std::shared_ptr<IModel>& model)//override
 				OnModelSig_DelPage(*mModel.get(), page_model);
 			}
 		}
-
 
 		connAI.disconnect();
 		connBD.disconnect();
@@ -80,59 +88,52 @@ IView* NotebookPresenter::GetView()// override
 //---------------------------------------------------------------------------
 void NotebookPresenter::DoDelPage(unsigned int page_index)
 {
-	if (mModel && page_index >= 0 && page_index<mPagePresenters.size())
+	if (mModel && page_index<mPagePresenters.size())
 		mModel->DelPage(page_index);
-}
-//---------------------------------------------------------------------------
-
-void NotebookPresenter::DoDelPage(IView* view)
-{
-	DoDelPage(FindIndex(view));
 }
 //---------------------------------------------------------------------------
 
 void NotebookPresenter::DoDelPage(wxWindow* wnd)
 {
-	DoDelPage(FindIndex(wnd));
+	int idx = FindIndex(wnd);
+	if(idx >= 0)
+		DoDelPage(idx);
 }
 //---------------------------------------------------------------------------
 
-std::shared_ptr<IPresenter> NotebookPresenter::GetPagePresenter(int i)
-{
-	return mPagePresenters[i];
-}
-//---------------------------------------------------------------------------
-
-void NotebookPresenter::OnModelSig_UpdateCaption(PagePresenter* pres, const wxString& lbl, const wxIcon& icon)
-{
-	wxBusyCursor busyCursor;
-	wxWindowUpdateLocker	wndUpdateLocker(mView->GetWnd());
-
-	if (!pres || !pres->GetView() || !pres->GetView()->GetWnd() || !mView->GetWnd())
-		return;
-
-	mView->UpdatePageCaption(pres->GetView()->GetWnd(), lbl, icon);
-}
-//---------------------------------------------------------------------------
 void NotebookPresenter::OnModelSig_AddPage(const NotebookModel& nb, const std::shared_ptr<PageModel>& pg)
 {
 	wxBusyCursor busyCursor;
 	wxWindowUpdateLocker	wndUpdateLocker(mView->GetWnd());
 	if (!pg)
 		return;
+	auto wh_model = pg->GetWhModel();
+	if (!wh_model)
+		return;
+	auto notebook_wnd = mView ? mView->GetWnd() : nullptr;
+	if (!notebook_wnd)
+		return;
 
 	auto pp = std::make_shared<PagePresenter>(this);
-	pp->SetModel(pg);
+	auto view = ViewFactory::MakePage(wh_model, notebook_wnd);
 
-	auto view = ViewFactory::MakePage(pp.get());
-
-	//auto view = pp->MakeView();
-	
 	if (view && view->GetWnd())
 	{
-		mView->AddPage(view->GetWnd(), pg->GetTitle(), *pg->GetIcon());
-		pg->GetWhModel()->Load();
+		pp->SetModel(pg);
+		pp->SetView(view);
+
+		// цепляем сигнал обновления от каждой странички
+		auto page_wnd = view->GetWnd();
+		auto fn1 = [this, page_wnd](const PageModel& pm, const wxString& lbl, const wxIcon& icon)
+		{
+			mView->UpdatePageCaption(page_wnd, lbl, icon);
+		};
+		mPagePresentersConn.emplace(std::make_pair(pp, pg->sigUpdateCaption.connect(fn1)));
+		// загружаем все сведения
+		wh_model->Load();
+
 		mPagePresenters.emplace_back(pp);
+		mView->AddPage(view->GetWnd(), pg->GetTitle(), *pg->GetIcon());
 	}
 
 	
@@ -147,7 +148,6 @@ void NotebookPresenter::OnModelSig_DelPage(const NotebookModel&, const std::shar
 	auto it = mPagePresenters.begin();
 	while (it != mPagePresenters.end())
 	{
-		//auto gmodel = std::dynamic_pointer_cast<PageModel>((*it)->GetModel());
 		if (pg == (*it)->GetModel() )
 			break;
 		++it;
@@ -163,18 +163,18 @@ void NotebookPresenter::OnModelSig_DelPage(const NotebookModel&, const std::shar
 		}
 	}
 
+	mPagePresentersConn.erase(*it);
 	mPagePresenters.erase(it);
 }
 //---------------------------------------------------------------------------
 
-int NotebookPresenter::FindIndex(IView* view)
+int NotebookPresenter::FindIndex(const std::function<bool(PagePresenter&)>& fn)
 {
-	//find view
 	int ret = -1;
 	auto it = mPagePresenters.begin();
 	while (it != mPagePresenters.end())
 	{
-		if ((*it)->GetView() == view)
+		if (fn(**it))
 		{
 			ret = std::distance(mPagePresenters.begin(), it);
 			break;
@@ -184,23 +184,14 @@ int NotebookPresenter::FindIndex(IView* view)
 	return ret;
 }
 //---------------------------------------------------------------------------
+
 int NotebookPresenter::FindIndex(wxWindow* wnd)
 {
-	//find view
-	int ret = -1;
-	auto it = mPagePresenters.begin();
-	while (it != mPagePresenters.end())
+	auto fn = [wnd](PagePresenter& pp)
 	{
-		if ((*it)->GetView()->GetWnd() == wnd)
-		{
-			ret = std::distance(mPagePresenters.begin(), it);
-			break;
-		}
-		++it;
-	}
-	return ret;
+		return wnd == pp.GetView()->GetWnd() ;
+	};
+	return FindIndex(fn);
 }
-
-
 
 

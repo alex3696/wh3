@@ -50,7 +50,7 @@ private:
 	wxAuiManager	m_AuiMgr;
 	wxAuiNotebook*	m_Notebook;
 public:
-	void AddNotebook(wxAuiNotebook*);
+	wxAuiNotebook* GetNotebook()const { return m_Notebook; }
 
 	MainFrame( wxWindow* parent = NULL, wxWindowID id = wxID_ANY, 
 		const wxString& title = wxT("wh3"), 

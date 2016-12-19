@@ -322,22 +322,14 @@ void whDataMgr::SetMainFrame(MainFrame* wnd)
 {
 	m_MainFrame = wnd;
 	
-	auto notebook_model = std::make_shared<mvp::NotebookModel>();
-
 	mRootPresenter = std::make_unique<mvp::EmptyPresenter>(wnd);
 	mNotebookPresenter = std::make_unique<mvp::NotebookPresenter>(mRootPresenter.get());
-
-	auto notebook_view = new mvp::NotebookView(mNotebookPresenter.get());
+	
+	auto notebook_model = std::make_shared<mvp::NotebookModel>();
+	auto notebook_view = new mvp::NotebookView(m_MainFrame->GetNotebook());
 
 	mNotebookPresenter->SetView(notebook_view);
 	mNotebookPresenter->SetModel(notebook_model);
-
-
-	auto new_wnd = dynamic_cast<wxAuiNotebook*>(notebook_view->GetWnd());
-
-	m_MainFrame->AddNotebook(new_wnd);
-
-
 	
 }
 //---------------------------------------------------------------------------

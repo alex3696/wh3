@@ -94,33 +94,18 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 	mSSC_AfterDbConnected = dmgr->GetDB().SigAfterConnect.connect(fnAC);
 	mSSC_BeforeDbDisconnect = dmgr->GetDB().SigBeforeDisconnect.connect(fnBD);
 
-	//auto ep = new EmptyPresenter();
-	//auto ev = new EmptyView(ep);
-	//ev->SetWindow(this);
-	//ep->SetView(ev);
-
-
-	//auto new_wnd = whDataMgr::GetInstance()->mNotebookPresenter->GetView()->GetWnd();
-
-	//m_AuiMgr.AddPane(new_wnd, wxAuiPaneInfo().
-	//	Name(wxT("TestNotebookPane")).Caption(wxT("TestNotebookPane"))
-	//	.Left().MinSize(300,300));
-	//m_AuiMgr.Update();
 	
+	m_Notebook = new wxAuiNotebook(this);
+	m_AuiMgr.AddPane(m_Notebook, wxAuiPaneInfo().
+		Name(wxT("NotebookPane")).Caption(wxT("NotebookPane")).
+		CenterPane().Layer(1).Position(1).CloseButton(true).MaximizeButton(true).PaneBorder(false));
+	m_AuiMgr.Update();
+
 }
 //---------------------------------------------------------------------------
 MainFrame::~MainFrame()
 {
 	m_AuiMgr.UnInit();
-}
-//---------------------------------------------------------------------------
-void MainFrame::AddNotebook(wxAuiNotebook* nb)
-{
-	m_Notebook = nb; // new wxAuiNotebook(this);
-	m_AuiMgr.AddPane(m_Notebook, wxAuiPaneInfo().
-		Name(wxT("NotebookPane")).Caption(wxT("NotebookPane")).
-		CenterPane().Layer(1).Position(1).CloseButton(true).MaximizeButton(true).PaneBorder(false));
-	m_AuiMgr.Update();
 }
 //---------------------------------------------------------------------------
 

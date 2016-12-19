@@ -22,10 +22,6 @@ private:
 	std::shared_ptr<PageModel>	mModel;
 	std::unique_ptr<IPageView>	mView;
 
-	sig::scoped_connection connUpdatePageCaption;
-	void OnSigUpdatePageCaption(const PageModel& pm, const wxString& lbl, const wxIcon& icon);
-
-
 };
 
 

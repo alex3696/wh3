@@ -34,18 +34,10 @@ void PagePresenter::SetView(IView* view)
 
 void PagePresenter::SetModel(const std::shared_ptr<IModel>& model)
 {
-	connUpdatePageCaption.disconnect();
-
 	mModel = std::dynamic_pointer_cast<PageModel>(model);
 
 	if (!mModel)
 		return;
-
-	auto onUpdatePageCaption = std::bind(&PagePresenter::OnSigUpdatePageCaption, this
-		, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
-
-	connUpdatePageCaption = mModel->sigUpdateCaption.connect(onUpdatePageCaption);
-
 };
 //---------------------------------------------------------------------------
 std::shared_ptr<IModel> PagePresenter::GetModel() 
@@ -57,10 +49,4 @@ std::shared_ptr<IModel> PagePresenter::GetModel()
 IView* PagePresenter::GetView()
 { 
 	return mView.get(); 
-}
-//---------------------------------------------------------------------------
-void PagePresenter::OnSigUpdatePageCaption(const PageModel& pm, const wxString& lbl, const wxIcon& icon)
-{
-	auto notebook_presenter = dynamic_cast<NotebookPresenter*>(this->GetParent());
-	notebook_presenter->OnModelSig_UpdateCaption(this, lbl, icon);
 }

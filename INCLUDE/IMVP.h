@@ -15,28 +15,18 @@ public:
 class IView
 {
 public:
-	IView() :mPresenter(nullptr){}
-	IView(IPresenter* presenter) :mPresenter(presenter){}
+	IView(){}
 	virtual ~IView(){}
 
 	virtual wxWindow* GetWnd() = 0;
 	virtual void SetWnd(wxWindow*) = 0;
-
-	IPresenter* GetPresenter(){ return mPresenter; }
-	void SetPresenter(IPresenter* presenter){ mPresenter = presenter; }
-
-private:
-	IPresenter* mPresenter;
 };
 //---------------------------------------------------------------------------
 class IPresenter
 {
 public:
 	IPresenter(IPresenter* parent) :mParent(parent){}
-	virtual ~IPresenter()
-	{
-	
-	};
+	virtual ~IPresenter(){};
 
 	virtual void SetView(IView* view) = 0;
 	virtual void SetModel(const std::shared_ptr<IModel>& model) = 0;

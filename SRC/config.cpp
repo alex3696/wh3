@@ -267,7 +267,7 @@ void MFtpCfg::LoadData()
 
 void MFtpCfg::SaveData()
 {
-	const T_Data& data = this->GetData();
+	//const T_Data& data = this->GetData();
 
 
 

@@ -15,7 +15,6 @@ class NotebookPresenter
 {
 public:
 	NotebookPresenter(IPresenter* presenter);
-
 	~NotebookPresenter();
 
 	virtual void SetView(IView* view)override;
@@ -23,7 +22,7 @@ public:
 	virtual std::shared_ptr<IModel> GetModel() override;
 	virtual IView* GetView() override;
 
-	// On signal from GUI
+	// command to model
 	template <class PAGE_INFO>
 	void DoAddPage(const PAGE_INFO& pi)
 	{
@@ -32,17 +31,13 @@ public:
 	}
 	void DoDelPage(unsigned int page_index);
 	void DoDelPage(wxWindow* wnd);
-	void DoDelPage(IView* wnd);
 
-	std::shared_ptr<IPresenter> GetPagePresenter(int i);
-
-	void OnModelSig_UpdateCaption(PagePresenter* pres, const wxString& lbl, const wxIcon& icon);
 private:
-	// On signal from MODEL
+	// On signal from MODEL -> command for update view
 	void OnModelSig_AddPage(const NotebookModel& nb, const std::shared_ptr<PageModel>& pg);
 	void OnModelSig_DelPage(const NotebookModel& nb, const std::shared_ptr<PageModel>& pg);
 
-	int FindIndex(IView* view);
+	int FindIndex(const std::function<bool(PagePresenter&)> &fn);
 	int FindIndex(wxWindow* wnd);
 
 	
@@ -52,8 +47,13 @@ private:
 	
 	std::vector< std::shared_ptr<PagePresenter>> mPagePresenters;
 
+	std::map< std::shared_ptr<PagePresenter>, sig::scoped_connection> mPagePresentersConn;
+
+
 	sig::scoped_connection connAI;
 	sig::scoped_connection connBD;
+
+	sig::scoped_connection view_connBD;
 };
 //---------------------------------------------------------------------------
 
