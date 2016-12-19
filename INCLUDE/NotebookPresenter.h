@@ -32,6 +32,9 @@ public:
 	void DoDelPage(unsigned int page_index);
 	void DoDelPage(wxWindow* wnd);
 
+	void Load(){ mModel->Load(); };
+	void Save(){ mModel->Save(); };
+
 private:
 	// On signal from MODEL -> command for update view
 	void OnModelSig_AddPage(const NotebookModel& nb, const std::shared_ptr<PageModel>& pg);

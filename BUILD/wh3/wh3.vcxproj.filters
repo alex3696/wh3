@@ -444,6 +444,9 @@
     <ClCompile Include="..\..\SRC\ViewFactory.cpp">
       <Filter>MainFrame\MVP</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\SRC\NotebookModel.cpp">
+      <Filter>MainFrame\MVP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\INCLUDE\_pch.h">

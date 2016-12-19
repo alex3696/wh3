@@ -122,6 +122,9 @@ void NotebookPresenter::OnModelSig_AddPage(const NotebookModel& nb, const std::s
 		pp->SetModel(pg);
 		pp->SetView(view);
 
+		mView->AddPage(view->GetWnd(), pg->GetTitle(), *pg->GetIcon());
+		mPagePresenters.emplace_back(pp);
+
 		// цепляем сигнал обновления от каждой странички
 		auto page_wnd = view->GetWnd();
 		auto fn1 = [this, page_wnd](const PageModel& pm, const wxString& lbl, const wxIcon& icon)
@@ -132,8 +135,6 @@ void NotebookPresenter::OnModelSig_AddPage(const NotebookModel& nb, const std::s
 		// загружаем все сведения
 		wh_model->Load();
 
-		mPagePresenters.emplace_back(pp);
-		mView->AddPage(view->GetWnd(), pg->GetTitle(), *pg->GetIcon());
 	}
 
 	

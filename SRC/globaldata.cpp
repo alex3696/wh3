@@ -309,13 +309,21 @@ whDataMgr::~whDataMgr()
 void whDataMgr::OnConnectDb(const whDB& db)
 {
 	if (mDb.IsOpen())
+	{
 		mDbCfg->Load();
+		mNotebookPresenter->Load();
+	}
+		
 }
 //---------------------------------------------------------------------------
 void whDataMgr::OnDicsonnectDb(const whDB& db)
 {
 	if (mDb.IsOpen())
+	{
 		mDbCfg->Save();
+		mNotebookPresenter->Save();
+	}
+		
 }
 //---------------------------------------------------------------------------
 void whDataMgr::SetMainFrame(MainFrame* wnd)

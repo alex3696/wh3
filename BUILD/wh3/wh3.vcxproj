@@ -153,6 +153,7 @@
     <ClCompile Include="..\..\SRC\MFavViewPropActCommon.cpp" />
     <ClCompile Include="..\..\SRC\MFavViewPropActUsr.cpp" />
     <ClCompile Include="..\..\SRC\MFavViewPropCls.cpp" />
+    <ClCompile Include="..\..\SRC\NotebookModel.cpp" />
     <ClCompile Include="..\..\SRC\NotebookPresenter.cpp" />
     <ClCompile Include="..\..\SRC\ObjDetailPGView.cpp" />
     <ClCompile Include="..\..\SRC\detail_ctrlpnl.cpp" />
