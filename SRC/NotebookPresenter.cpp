@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "NotebookPresenter.h"
+#include "ViewFactory.h"
 
 using namespace mvp;
 
@@ -13,13 +14,6 @@ NotebookPresenter::~NotebookPresenter()
 	mPagePresenters.clear();
 	delete mView;
 }
-//---------------------------------------------------------------------------
-//virtual 
-IView* NotebookPresenter::MakeView()//override
-{
-	//mView = new NotebookView2(this);
-	return mView;
-};
 //---------------------------------------------------------------------------
 //virtual 
 void NotebookPresenter::SetView(IView* view)//override
@@ -129,7 +123,10 @@ void NotebookPresenter::OnModelSig_AddPage(const NotebookModel& nb, const std::s
 
 	auto pp = std::make_shared<PagePresenter>(this);
 	pp->SetModel(pg);
-	auto view = pp->MakeView();
+
+	auto view = ViewFactory::MakePage(pp.get());
+
+	//auto view = pp->MakeView();
 	
 	if (view && view->GetWnd())
 	{

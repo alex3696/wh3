@@ -13,7 +13,6 @@ public:
 	PagePresenter(IPresenter* presenter);
 	~PagePresenter();
 
-	virtual IView* MakeView()override;
 	virtual void SetView(IView* view) override;
 	virtual void SetModel(const std::shared_ptr<IModel>& model)override;
 	virtual std::shared_ptr<IModel> GetModel() override;

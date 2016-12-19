@@ -31,13 +31,9 @@ public:
 		mView.reset(new EmptyView(this, wnd));
 	}
 
-	virtual IView* MakeView()override
-	{
-		mView.reset(new EmptyView(this, nullptr));
-		return mView.get();
-	};
 	virtual void SetView(IView* view)override 
 	{ 
+		mView.reset(dynamic_cast<EmptyView*>(view));
 		throw;
 	}
 	virtual IView* GetView() override { return mView.get(); }

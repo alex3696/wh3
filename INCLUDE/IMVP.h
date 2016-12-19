@@ -38,8 +38,6 @@ public:
 	
 	};
 
-	virtual IView* MakeView() = 0;
-	
 	virtual void SetView(IView* view) = 0;
 	virtual void SetModel(const std::shared_ptr<IModel>& model) = 0;
 	virtual std::shared_ptr<IModel> GetModel() = 0;

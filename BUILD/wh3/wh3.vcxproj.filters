@@ -441,6 +441,9 @@
     <ClCompile Include="..\..\SRC\NotebookPresenter.cpp">
       <Filter>MainFrame\MVP</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\SRC\ViewFactory.cpp">
+      <Filter>MainFrame\MVP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\INCLUDE\_pch.h">
@@ -808,6 +811,9 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\PagePresenter.h">
       <Filter>MainFrame\MVP\Page</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ViewFactory.h">
+      <Filter>MainFrame\MVP</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
