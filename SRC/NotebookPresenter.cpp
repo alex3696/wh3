@@ -134,10 +134,8 @@ void NotebookPresenter::OnModelSig_AddPage(const NotebookModel& nb, const std::s
 		mPagePresentersConn.emplace(std::make_pair(pp, pg->sigUpdateCaption.connect(fn1)));
 		// загружаем все сведения
 		wh_model->Load();
+	}//if
 
-	}
-
-	
 }
 //---------------------------------------------------------------------------
 

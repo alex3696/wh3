@@ -70,16 +70,14 @@ bool Obj::GetSelectQuery(wxString& query)const
 		" INNER JOIN acls cls      ON cls.id = o.cls_id "
 		" INNER JOIN acls cls_parent ON cls.pid = cls_parent.id "
 		" WHERE o.id=%s "
-		" AND o.pid=%s" 
 		, data.mObj.mId.SqlVal()
-		, data.mObj.mParent.mId.SqlVal()
 		);
 
 	if (!data.mCls.mId.IsNull())
 		query += wxString::Format("AND o.cls_id=%s ", data.mCls.mId.SqlVal());
 	
-	//if (data.mCls.IsQuantity())
-	//	query += wxString::Format("AND o.pid=%s", data.mObj.mParent.mId.SqlVal());
+	if (!data.mCls.mType.IsNull() && data.mCls.IsQuantity())
+		query += wxString::Format("AND o.pid=%s", data.mObj.mParent.mId.SqlVal());
 
 	return true;
 }

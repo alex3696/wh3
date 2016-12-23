@@ -418,21 +418,15 @@ struct PageAct{};
 
 struct PageObjByPath
 {
-	unsigned long mParent_Oid = 0;
+	wxString mParent_Oid;
 };
 //-----------------------------------------------------------------------------
 
 struct PageObjByType
 {
-	unsigned long mParent_Cid = 0;
+	wxString mParent_Cid;
 };
 //-----------------------------------------------------------------------------
-
-struct PageObjDetail
-{
-	unsigned long mOid = 0;
-	unsigned long mParentOid = 0;
-};
 
 struct PageHistory
 {

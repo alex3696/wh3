@@ -646,6 +646,25 @@ GRANT INSERT        ON TABLE favorite_prop  TO "User";
 GRANT DELETE        ON TABLE favorite_prop  TO "User";
 GRANT UPDATE (user_label, cls_id, act_id, prop_id )
                     ON TABLE favorite_prop  TO "User";
+-----------------------------------------------------------------------------------------------------------------------------
+-- таблица конфигураций приложения
+-----------------------------------------------------------------------------------------------------------------------------
+--DROP TABLE IF EXISTS app_config CASCADE;
+CREATE TABLE app_config(
+ usr  NAME   NOT NULL DEFAULT CURRENT_USER 
+,cfg  JSONB
+
+,CONSTRAINT pk_appcfg__usr PRIMARY KEY ( usr ) 
+
+,CONSTRAINT fk_appcfg_whrole__usr FOREIGN KEY (usr) 
+   REFERENCES                         wh_role (rolname) 
+   MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
+
+);
+
+GRANT SELECT        ON TABLE app_config TO "Guest";
+GRANT INSERT,UPDATE ON TABLE app_config TO "User";
+GRANT DELETE        ON TABLE app_config TO "Admin";
 
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------

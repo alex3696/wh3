@@ -384,12 +384,15 @@ void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 	MObjArray* objArray = dynamic_cast<MObjArray*> (objItem->GetParent());
 	if (!objArray)
 		return;
+	auto typeItem = dynamic_cast<MTypeItem*> (objArray->GetParent());
+	if (!typeItem)
+		return;
 	
-	rec::PageObjDetail page_detail;
-	page_detail.mOid = objItem->GetData().mId;
-	page_detail.mParentOid = objItem->GetData().mParent.mId;
+	rec::ObjInfo oi;
+	oi.mCls = typeItem->GetData();
+	oi.mObj = objItem->GetData();
 
-	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(page_detail);
+	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(oi);
 
 }
 //-----------------------------------------------------------------------------

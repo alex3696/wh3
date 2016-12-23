@@ -29,7 +29,7 @@ public:
 	void MakePage(const wh::rec::PageAct& cfg);
 	void MakePage(const wh::rec::PageObjByType& cfg);
 	void MakePage(const wh::rec::PageObjByPath& cfg);
-	void MakePage(const wh::rec::PageObjDetail& cfg);
+	void MakePage(const wh::rec::ObjInfo& cfg);
 	void MakePage(const wh::rec::PageHistory& cfg);
 
 	void DelPage(unsigned int page_index);

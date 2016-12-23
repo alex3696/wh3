@@ -447,7 +447,7 @@ void MainFrame::OnCmd_MakePage_ObjByType(wxCommandEvent& evt)
 		hideSysRoot = false;
 	
 	wh::rec::PageObjByType page_obj_by_type;
-	page_obj_by_type.mParent_Cid = hideSysRoot? 1 : 0;
+	page_obj_by_type.mParent_Cid = hideSysRoot? "1" : "0";
 
 	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(page_obj_by_type);
 }
@@ -461,7 +461,7 @@ void MainFrame::OnCmd_MakePage_ObjByPath(wxCommandEvent& evt)
 		hideSysRoot = false;
 
 	wh::rec::PageObjByPath page_obj_by_path;
-	page_obj_by_path.mParent_Oid = hideSysRoot ? 1 : 0;
+	page_obj_by_path.mParent_Oid = hideSysRoot ? "1" : "0";
 
 	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(page_obj_by_path);
 }

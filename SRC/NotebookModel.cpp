@@ -73,7 +73,12 @@ void NotebookModel::MakePage(const wh::rec::PageObjByType& cfg)
 
 	auto model = std::make_shared<wh::object_catalog::MObjCatalog>();
 	model->SetCfg(wh::rec::CatCfg(wh::rec::catCls, true, true, hideSysRoot));
-	model->SetCatFilter(cfg.mParent_Cid, true);
+
+	unsigned long cid;
+	if (!cfg.mParent_Cid.ToCULong(&cid))
+		throw;
+
+	model->SetCatFilter(cid, true);
 	//model->Load();
 
 	PageInfo pi;
@@ -95,8 +100,12 @@ void NotebookModel::MakePage(const wh::rec::PageObjByPath& cfg)
 
 	auto model = std::make_shared<wh::object_catalog::MObjCatalog>();
 	model->SetCfg(wh::rec::CatCfg(wh::rec::catObj, true, true, hideSysRoot));
-	model->SetCatFilter(cfg.mParent_Oid, true);
-	model->Load();
+	unsigned long oid;
+	if (!cfg.mParent_Oid.ToCULong(&oid))
+		throw;
+	
+	model->SetCatFilter(oid, true);
+	//model->Load();
 
 	PageInfo pi;
 	pi.mType = mdlObjByPath;
@@ -108,15 +117,10 @@ void NotebookModel::MakePage(const wh::rec::PageObjByPath& cfg)
 }
 //---------------------------------------------------------------------------
 
-void NotebookModel::MakePage(const wh::rec::PageObjDetail& cfg)
+void NotebookModel::MakePage(const wh::rec::ObjInfo& detail)
 {
 	auto model = std::make_shared<wh::detail::model::Obj>();
-
-	wh::rec::ObjInfo obj_info;
-	obj_info.mObj.mId = cfg.mOid;
-	obj_info.mObj.mParent.mId = cfg.mParentOid;
-
-	model->SetObject(obj_info);
+	model->SetObject(detail);
 
 	PageInfo pi;
 	pi.mType = mdlObjDetail;
@@ -169,9 +173,18 @@ std::shared_ptr<PageModel> NotebookModel::GetPageModel(unsigned int idx)const
 
 void NotebookModel::Load()
 {
+try{
 	using ptree = boost::property_tree::ptree;
 	ptree	notepad_cfg;
-	boost::property_tree::read_json(std::string("notepad_cfg.txt"), notepad_cfg);
+	//boost::property_tree::read_json(std::string("notepad_cfg.txt"), notepad_cfg);
+	whDataMgr::GetDB().BeginTransaction();
+	wxString query = "SELECT cfg	FROM app_config WHERE usr = CURRENT_USER";
+	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+	wxString str_app_config;
+	table->GetAsString(0, 0, str_app_config);
+	whDataMgr::GetDB().Commit();
+	std::stringstream ss(str_app_config.ToStdString());
+	boost::property_tree::read_json(ss, notepad_cfg);
 
 	auto active_page = notepad_cfg.get<int>("ActivePage");
 	SelPage(active_page);
@@ -188,23 +201,24 @@ void NotebookModel::Load()
 		case mdlObjByType:
 		{
 			wh::rec::PageObjByType rec;
-			rec.mParent_Cid = v.second.get<unsigned long>("ParentCid");
+			rec.mParent_Cid = v.second.get<std::string>("ParentCid");
 			MakePage(rec);
 		}
 		break;
 		case mdlObjByPath:
 		{
 			wh::rec::PageObjByPath rec;
-			rec.mParent_Oid = v.second.get<unsigned long>("ParentOid");
+			rec.mParent_Oid = v.second.get<std::string>("ParentOid");
 			MakePage(rec);
 		}
 		break;
 		case mdlObjDetail:
 		{
-			wh::rec::PageObjDetail rec;
-			rec.mOid = v.second.get<unsigned long>("Oid");
-			rec.mParentOid = v.second.get<unsigned long>("ParentOid");
-			MakePage(rec);
+			wh::rec::ObjInfo  detail;
+			detail.mCls.mType = v.second.get<std::string>("CKind");
+			detail.mObj.mId = v.second.get<std::string>("Oid");
+			detail.mObj.mParent.mId = v.second.get<std::string>("ParentOid");
+			MakePage(detail);
 		}
 		break;
 		case mdlHistory:	MakePage(wh::rec::PageHistory()); break;
@@ -212,11 +226,24 @@ void NotebookModel::Load()
 		}
 		
 	}
+
+}//try
+catch (boost::exception & e)
+{
+	whDataMgr::GetDB().RollBack();
+	wxLogWarning(wxString(diagnostic_information(e)));
+}///catch(boost::exception & e)
+catch (...)
+{
+	wxLogWarning(wxString("Ошибка загрузки конфигурации"));
+}//catch(...)	
+
 }
 //---------------------------------------------------------------------------
 
 void NotebookModel::Save()
 {
+try{
 	using ptree = boost::property_tree::ptree;
 	
 	ptree	notepad_cfg;
@@ -259,6 +286,7 @@ void NotebookModel::Save()
 			if (detail)
 			{
 				const auto& obj = detail->GetData();
+				page.put("CKind", (int)obj.mCls.GetClsType());
 				page.put("Oid", obj.mObj.mId.toStr());
 				page.put("ParentOid", obj.mObj.mParent.mId.toStr());
 			}
@@ -277,7 +305,7 @@ void NotebookModel::Save()
 	notepad_cfg.put("ActivePage", "0");
 	notepad_cfg.add_child("Pages", pages);
 	
-	boost::property_tree::write_json(std::string("notepad_cfg.txt"), notepad_cfg);
+	//boost::property_tree::write_json(std::string("notepad_cfg.txt"), notepad_cfg);
 
 	std::ostringstream  ss;
 	boost::property_tree::write_json(ss, notepad_cfg);
@@ -285,6 +313,24 @@ void NotebookModel::Save()
 	wxString s;
 	s = ss.str();
 
-	wxMessageBox(s);
+	whDataMgr::GetDB().BeginTransaction();
+	wxString query = wxString::Format(
+		"INSERT INTO app_config(cfg)VALUES('%s')"
+		" ON CONFLICT(usr) DO UPDATE SET cfg = EXCLUDED.cfg "
+		, s);
+	whDataMgr::GetDB().Exec(query);
+	whDataMgr::GetDB().Commit();
+
+}//try
+catch (boost::exception & e)
+{
+	whDataMgr::GetDB().RollBack();
+	wxLogWarning(wxString(diagnostic_information(e)));
+}///catch(boost::exception & e)
+catch (...)
+{
+	wxLogWarning(wxString("Ошибка сохранения конфигурации"));
+}//catch(...)	
+
 }
 //---------------------------------------------------------------------------
