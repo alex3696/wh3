@@ -37,7 +37,7 @@ namespace wh
 
 class MConnectCfg;
 class MDbCfg;
-
+class RecentDstOidPresenter;
 
 };//namespace wh
 //---------------------------------------------------------------------------
@@ -143,7 +143,8 @@ public:
 	
 	std::shared_ptr<wh::MDbCfg>			mDbCfg;
 
-	std::unique_ptr<mvp::NotebookPresenter>	mNotebookPresenter;
+	std::unique_ptr<mvp::NotebookPresenter>		mNotebookPresenter;
+	std::unique_ptr<wh::RecentDstOidPresenter>	mRecentDstOidPresenter;
 	
 
 	

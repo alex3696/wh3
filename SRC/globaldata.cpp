@@ -4,7 +4,7 @@
 #include "NotebookModel.h"
 #include "NotebookPresenter.h"
 #include "NotebookView.h"
-
+#include "RecentDstOidPresenter.h"
 
 #include "globaldata.h"
 #include "MainFrame.h"
@@ -285,6 +285,7 @@ void Ftp::Rename(const wxFileName& ftpfile,const wxString& new_name)
 whDataMgr::whDataMgr()
 	:mConnectCfg(new wh::MConnectCfg())
 	, mDbCfg(new wh::MDbCfg())
+	, mRecentDstOidPresenter (new wh::RecentDstOidPresenter())
 {
 	rec::ConnectCfg  default_connect_cfg;
 	mConnectCfg->SetData(default_connect_cfg);
@@ -312,6 +313,7 @@ void whDataMgr::OnConnectDb(const whDB& db)
 	{
 		mDbCfg->Load();
 		mNotebookPresenter->Load();
+		mRecentDstOidPresenter->GetFromConfig();
 	}
 		
 }
@@ -320,8 +322,9 @@ void whDataMgr::OnDicsonnectDb(const whDB& db)
 {
 	if (mDb.IsOpen())
 	{
-		mDbCfg->Save();
 		mNotebookPresenter->Save();
+		mRecentDstOidPresenter->SetToConfig();
+		mDbCfg->Save();
 	}
 		
 }

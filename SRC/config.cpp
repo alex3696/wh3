@@ -18,123 +18,60 @@ MGuiCfg::MGuiCfg(const char option)
 
 void MGuiCfg::LoadData()
 {
-	T_Data data = this->GetData();
-	
-	
-	//data.mCfg.clear();
-	//std::wstringstream ss;
-	//boost::property_tree::read_json(ss, data.mCfg);
+	try{
+		using ptree = boost::property_tree::ptree;
+		ptree	app_cfg;
+		//boost::property_tree::read_json(std::string("notepad_cfg.txt"), notepad_cfg);
+		whDataMgr::GetDB().BeginTransaction();
+		wxString query = "SELECT cfg FROM app_config WHERE usr = CURRENT_USER";
+		auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+		wxString str_app_config;
+		table->GetAsString(0, 0, str_app_config);
+		whDataMgr::GetDB().Commit();
+		std::stringstream ss(str_app_config.ToStdString());
+		boost::property_tree::read_json(ss, app_cfg);
+		this->SetData(app_cfg, true);
 
-	/*
-	data.mPersp.clear();
-	wxFileInputStream file_input("presp.cfg");
-	if (!file_input.IsOk())
-		return;
-	wxBufferedInputStream buf_input(file_input);
-	if (!buf_input.IsOk())
-		return;
-
-	wxTextInputStream text_input(buf_input);
-
-	wxString str;
-	text_input >> data.mPersp;
-
-	this->SetData(data);
-	*/
+	}//try
+	catch (boost::exception & e)
+	{
+		whDataMgr::GetDB().RollBack();
+		wxLogWarning(wxString(diagnostic_information(e)));
+	}///catch(boost::exception & e)
+	catch (...)
+	{
+		wxLogWarning(wxString("Ошибка загрузки конфигурации"));
+	}//catch(...)
 }
 //-----------------------------------------------------------------------------
 
 void MGuiCfg::SaveData()
 {
-	using ptree = boost::property_tree::ptree;
-	
-	ptree	notepad_cfg;
-	ptree pages;
-	/*
-	
-	ptree child1, child2, child3;
-	
-	child1.put("Type", "User");
-	
-	child2.put("Type", "ObjByPath");
-	child2.put("Parent_Oid", 4);
+	try{
+		std::ostringstream  ss;
+		boost::property_tree::write_json(ss, this->GetData() );
 
-	child3.put("Type", "ObjDetail");
-	child3.put("Oid", 6);
-	child3.put("ParentOid", 6);
-	
+		wxString s;
+		s = ss.str();
 
-	pages.push_back(std::make_pair("", child1));
-	pages.push_back(std::make_pair("", child2));
-	pages.push_back(std::make_pair("", child3));
+		whDataMgr::GetDB().BeginTransaction();
+		wxString query = wxString::Format(
+			"INSERT INTO app_config(cfg)VALUES('%s')"
+			" ON CONFLICT(usr) DO UPDATE SET cfg = EXCLUDED.cfg "
+			, s);
+		whDataMgr::GetDB().Exec(query);
+		whDataMgr::GetDB().Commit();
 
-	*/
-
-	/*
-	for (unsigned int i = 0; i < mNotepadCfg->GetChildQty(); ++i)
+	}//try
+	catch (boost::exception & e)
 	{
-		auto pageUser = std::dynamic_pointer_cast<MPageUser>(mNotepadCfg->GetChild(i));
-		if (pageUser)
-		{
-			ptree page;
-			page.put("Type", "Users");
-			pages.push_back(std::make_pair("", page));
-			continue;
-		}
-		auto pageGroup = std::dynamic_pointer_cast<MPageGroup>(mNotepadCfg->GetChild(i));
-		if (pageGroup)
-		{
-			ptree page;
-			page.put("Type", "Groups");
-			pages.push_back(std::make_pair("", page));
-			continue;
-		}
-		auto pageProp = std::dynamic_pointer_cast<MPageProp>(mNotepadCfg->GetChild(i));
-		if (pageProp)
-		{
-			ptree page;
-			page.put("Type", "Propetries");
-			pages.push_back(std::make_pair("", page));
-			continue;
-		}
-		auto pageAct = std::dynamic_pointer_cast<MPageAct>(mNotepadCfg->GetChild(i));
-		if (pageAct)
-		{
-			ptree page;
-			page.put("Type", "Acts");
-			pages.push_back(std::make_pair("", page));
-			continue;
-		}
-		auto pageObjByPath = std::dynamic_pointer_cast<MPageObjByPath>(mNotepadCfg->GetChild(i));
-		if (pageObjByPath)
-		{
-			ptree page;
-			page.put("Type", "ObjByPath");
-			page.put("ParentOid", pageObjByPath->GetData().mParent_Oid);
-			pages.push_back(std::make_pair("", page));
-			continue;
-		}
-	}
-
-	notepad_cfg.put("ActivePage", "0");
-	notepad_cfg.add_child("Pages", pages);
-
-	boost::property_tree::write_json(std::string("notepad_cfg.txt"), notepad_cfg);
-	*/
-
-	/*
-	const T_Data& data = this->GetData();
-
-	wxFileOutputStream file_output("presp.cfg");
-	if (!file_output.IsOk())
-		return;
-	wxBufferedOutputStream buf_output(file_output);
-	if (!buf_output.IsOk())
-		return;
-	wxTextOutputStream text_output(buf_output);
-
-	text_output << data.mPersp;
-	*/
+		whDataMgr::GetDB().RollBack();
+		wxLogWarning(wxString(diagnostic_information(e)));
+	}///catch(boost::exception & e)
+	catch (...)
+	{
+		wxLogWarning(wxString("Ошибка сохранения конфигурации"));
+	}//catch(...)	
 }
 //-----------------------------------------------------------------------------
 

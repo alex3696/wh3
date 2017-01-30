@@ -175,21 +175,14 @@ void NotebookModel::Load()
 {
 try{
 	using ptree = boost::property_tree::ptree;
-	ptree	notepad_cfg;
-	//boost::property_tree::read_json(std::string("notepad_cfg.txt"), notepad_cfg);
-	whDataMgr::GetDB().BeginTransaction();
-	wxString query = "SELECT cfg	FROM app_config WHERE usr = CURRENT_USER";
-	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
-	wxString str_app_config;
-	table->GetAsString(0, 0, str_app_config);
-	whDataMgr::GetDB().Commit();
-	std::stringstream ss(str_app_config.ToStdString());
-	boost::property_tree::read_json(ss, notepad_cfg);
-
-	auto active_page = notepad_cfg.get<int>("ActivePage");
+	const ptree& app_cfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->GetData();
+	auto active_page = app_cfg.get<int>("ActivePage");
 	SelPage(active_page);
 
-	for(ptree::value_type &v: notepad_cfg.get_child("Pages")) 
+	//auto it1 = app_cfg.find("Pages");
+	//ptree::const_assoc_iterator iterator it = app_cfg.find("Pages");
+	//for(ptree::value_type &v: notepad_cfg.get_child("Pages")) 
+	for (const ptree::value_type &v : app_cfg.get_child("Pages"))
 	{
 		auto type_id = (ModelType)v.second.get<int>("Type.Id");
 		switch (type_id)
@@ -246,7 +239,7 @@ void NotebookModel::Save()
 try{
 	using ptree = boost::property_tree::ptree;
 	
-	ptree	notepad_cfg;
+	ptree app_cfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->GetData();
 	ptree pages;
 	
 	for (unsigned int i = 0; i < mPages.size(); ++i)
@@ -302,24 +295,13 @@ try{
 		
 	}
 	
-	notepad_cfg.put("ActivePage", "0");
-	notepad_cfg.add_child("Pages", pages);
+	app_cfg.put("ActivePage", "0");
+	app_cfg.add_child("Pages", pages);
+	
 	
 	//boost::property_tree::write_json(std::string("notepad_cfg.txt"), notepad_cfg);
-
-	std::ostringstream  ss;
-	boost::property_tree::write_json(ss, notepad_cfg);
-
-	wxString s;
-	s = ss.str();
-
-	whDataMgr::GetDB().BeginTransaction();
-	wxString query = wxString::Format(
-		"INSERT INTO app_config(cfg)VALUES('%s')"
-		" ON CONFLICT(usr) DO UPDATE SET cfg = EXCLUDED.cfg "
-		, s);
-	whDataMgr::GetDB().Exec(query);
-	whDataMgr::GetDB().Commit();
+	////ptree::const_iterator it = pt.find("pi");
+	whDataMgr::GetInstance()->mDbCfg->mGuiCfg->SetData(app_cfg);
 
 }//try
 catch (boost::exception & e)

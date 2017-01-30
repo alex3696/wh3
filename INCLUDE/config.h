@@ -7,11 +7,12 @@ namespace wh{
 //-----------------------------------------------------------------------------
 namespace rec{
 	
-struct GuiCfg
-{
-	wxString						mPersp;
-	int								mActivePage=0;
-};
+using GuiCfg = boost::property_tree::ptree;
+//struct GuiCfg
+//{
+//	wxString						mPersp;
+//	int								mActivePage=0;
+//};
 
 struct ConnectCfg
 {

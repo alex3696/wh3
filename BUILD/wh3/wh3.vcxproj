@@ -153,6 +153,9 @@
     <ClCompile Include="..\..\SRC\MFavViewPropActCommon.cpp" />
     <ClCompile Include="..\..\SRC\MFavViewPropActUsr.cpp" />
     <ClCompile Include="..\..\SRC\MFavViewPropCls.cpp" />
+    <ClCompile Include="..\..\SRC\MoveObjModel.cpp" />
+    <ClCompile Include="..\..\SRC\MoveObjPresenter.cpp" />
+    <ClCompile Include="..\..\SRC\MoveObjView.cpp" />
     <ClCompile Include="..\..\SRC\NotebookModel.cpp" />
     <ClCompile Include="..\..\SRC\NotebookPresenter.cpp" />
     <ClCompile Include="..\..\SRC\ObjDetailPGView.cpp" />
@@ -209,6 +212,7 @@
     <ClCompile Include="..\..\SRC\PGClsPid.cpp" />
     <ClCompile Include="..\..\SRC\MTable.cpp" />
     <ClCompile Include="..\..\SRC\PGPTypeId.cpp" />
+    <ClCompile Include="..\..\SRC\RecentDstOidModel.cpp" />
     <ClCompile Include="..\..\SRC\ViewFactory.cpp" />
     <ClCompile Include="..\..\SRC\VTableCtrl.cpp" />
     <ClCompile Include="..\..\SRC\TableRowEditor.cpp" />
@@ -270,7 +274,12 @@
     <ClInclude Include="..\..\INCLUDE\DetailActCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h" />
     <ClInclude Include="..\..\INCLUDE\EmptyPresenter.h" />
+    <ClInclude Include="..\..\INCLUDE\IMoveObjView.h" />
     <ClInclude Include="..\..\INCLUDE\IPageView.h" />
+    <ClInclude Include="..\..\INCLUDE\IRecentDstOidView.h" />
+    <ClInclude Include="..\..\INCLUDE\MoveObjModel.h" />
+    <ClInclude Include="..\..\INCLUDE\MoveObjPresenter.h" />
+    <ClInclude Include="..\..\INCLUDE\MoveObjView.h" />
     <ClInclude Include="..\..\INCLUDE\PageModel.h" />
     <ClInclude Include="..\..\INCLUDE\IMVP.h" />
     <ClInclude Include="..\..\INCLUDE\INotebookView.h" />
@@ -335,6 +344,8 @@
     <ClInclude Include="..\..\INCLUDE\PathPatternEditor.h" />
     <ClInclude Include="..\..\INCLUDE\PGClsPid.h" />
     <ClInclude Include="..\..\INCLUDE\PGPTypeId.h" />
+    <ClInclude Include="..\..\INCLUDE\RecentDstOidModel.h" />
+    <ClInclude Include="..\..\INCLUDE\RecentDstOidPresenter.h" />
     <ClInclude Include="..\..\INCLUDE\ViewFactory.h" />
     <ClInclude Include="..\..\INCLUDE\VTableCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\TableRowEditor.h" />

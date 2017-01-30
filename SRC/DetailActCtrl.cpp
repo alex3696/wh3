@@ -2,6 +2,8 @@
 #include "DetailActCtrl.h"
 #include "dlg_move_view_Frame.h"
 #include "dlg_act_view_Frame.h"
+#include "MoveObjPresenter.h"
+#include "MoveObjView.h"
 
 
 using namespace wh;
@@ -77,38 +79,33 @@ void DetailActCtrl::OnCmdMove(wxCommandEvent& WXUNUSED(evt))
 		return;
 	
 	rec::PathItem data = mObjModel->GetData();
+	
+	const rec::PathItem& movable_obj = mObjModel->GetData();
+	
+	auto move_presenter = std::make_unique<MoveObjPresenter>();
+	move_presenter->SetMoveable(movable_obj);
+
 	try
 	{
-		wxBusyCursor busyCursor;
-		auto subj = std::make_shared<dlg_move::model::MovableObj>();
-		subj->SetData(data, true);
-		dlg_move::view::Frame dlg;
-		dlg.SetModel(subj);
-		if (wxID_OK == dlg.ShowModal())
-		{
-			
-			auto movable = dlg.GetModel();
-			auto dst = movable->GetDstObj();
-			auto qty = movable->GetQty();
-
-			const auto& movable_data = movable->GetData();
-			const auto& dstobj_data = dst->GetData();
-			const auto& qty_data = qty->GetData();
-			
-			if (movable_data.mObj.mQty.toStr() == qty_data)
-			{
-				auto odata = mObjModel->GetData();
-				odata.mObj.mParent.mId = dstobj_data.mId;
-			}
-		}
 		
+
+		auto view = std::make_unique<MoveObjView>();
+		move_presenter->SetView(view.get());
+		{
+			wxBusyCursor busyCursor;
+			move_presenter->OnViewUpdate();
+		}
+		move_presenter->ShowDialog();
+
 		mObjModel->Load();
 		mTableModel->Load();
+		
 	}
 	catch (...)
 	{
 		// Transaction already rollbacked, dialog was destroyed, so nothinh to do
 		wxLogError("Бла, бла - вобщем кто-то уже юзает этот объект");
+		move_presenter->OnViewClose();
 	}
 }
 //-----------------------------------------------------------------------------

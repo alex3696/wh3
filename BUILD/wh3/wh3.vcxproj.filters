@@ -148,6 +148,12 @@
     <Filter Include="MainFrame\MVP\Page">
       <UniqueIdentifier>{c3872949-0465-4523-816c-69bcca189947}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Common\RecentDstOid">
+      <UniqueIdentifier>{4d4fdce2-59b3-4a35-a763-93c5bd70ff51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Каталог объектов\Диалог перемещения\Move MRU">
+      <UniqueIdentifier>{62fb8ebb-31eb-46eb-8181-f405fd912880}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -446,6 +452,18 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\NotebookModel.cpp">
       <Filter>MainFrame\MVP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\RecentDstOidModel.cpp">
+      <Filter>Common\RecentDstOid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MoveObjModel.cpp">
+      <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MoveObjPresenter.cpp">
+      <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MoveObjView.cpp">
+      <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -817,6 +835,27 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ViewFactory.h">
       <Filter>MainFrame\MVP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\RecentDstOidModel.h">
+      <Filter>Common\RecentDstOid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\RecentDstOidPresenter.h">
+      <Filter>Common\RecentDstOid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\IRecentDstOidView.h">
+      <Filter>Common\RecentDstOid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MoveObjModel.h">
+      <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MoveObjPresenter.h">
+      <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\IMoveObjView.h">
+      <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MoveObjView.h">
+      <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
