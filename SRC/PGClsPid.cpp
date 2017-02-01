@@ -228,7 +228,7 @@ const wxString& name, const wh_rec_Cls& value)
 	AddPrivateChild(pgp_parent);
 	AddPrivateChild(pgp_defobj);
 
-	pgp_title->SetValidator(wxRegExpValidator(titleValidator));
+	//pgp_title->SetValidator(wxRegExpValidator(titleValidator));
 	pgp_measure->SetValidator(wxRegExpValidator(titleValidator));
 
 	pgp_id->ChangeFlag(wxPG_PROP_READONLY, true);

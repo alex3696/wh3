@@ -176,7 +176,7 @@ void NotebookModel::Load()
 try{
 	using ptree = boost::property_tree::ptree;
 	const ptree& app_cfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->GetData();
-	auto active_page = app_cfg.get<int>("ActivePage");
+	auto active_page = app_cfg.get<int>("ActivePage",0);
 	SelPage(active_page);
 
 	//auto it1 = app_cfg.find("Pages");

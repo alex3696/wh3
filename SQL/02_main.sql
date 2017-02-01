@@ -662,8 +662,7 @@ CREATE TABLE app_config(
 
 );
 
-GRANT SELECT        ON TABLE app_config TO "Guest";
-GRANT INSERT,UPDATE ON TABLE app_config TO "User";
+GRANT SELECT,INSERT,UPDATE ON TABLE app_config TO "Guest";
 GRANT DELETE        ON TABLE app_config TO "Admin";
 
 ---------------------------------------------------------------------------------------------------

@@ -35,6 +35,7 @@ bool MTypeItem::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t
 	mQty = table->GetAsString(4, row);
 	data.mDefaultObj.mId = table->GetAsString(5, row);
 	data.mDefaultObj.mLabel = table->GetAsString(6, row);
+	data.mComment = table->GetAsString(7, row);
 	
 	auto type_array = dynamic_cast<MTypeArray*>(this->GetParent());
 	if (type_array)
@@ -219,7 +220,7 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 		wxString objFilter = catalog->GetFilterObj();
 
 		query = wxString::Format(
-			"SELECT acls.title, acls.id, acls.kind, acls.measure, osum.qty, acls.dobj, ob.title "
+			"SELECT acls.title, acls.id, acls.kind, acls.measure, osum.qty, acls.dobj, ob.title, acls.note "
 			" FROM (SELECT COALESCE(SUM(qty), 0) AS qty, cls_id FROM obj "
 			"       WHERE obj.id > 0 %s %s GROUP BY obj.cls_id) osum "
 			" LEFT JOIN acls ON osum.cls_id = acls.id "
@@ -241,7 +242,7 @@ bool MTypeArray::GetSelectChildsQuery(wxString& query)const
 		query = wxString::Format(
 			"SELECT acls.title, acls.id, acls.kind, acls.measure "
 			" ,(SELECT COALESCE(SUM(qty), 0) FROM obj WHERE obj.id > 0 AND obj.cls_id=acls.id %s GROUP BY o.cls_id)  AS qty "
-			" ,dobj AS doid, o.title AS dotitle"
+			" ,dobj AS doid, o.title AS dotitle, acls.note"
 			" FROM acls "
 			" LEFT JOIN obj_name o ON o.id =acls.dobj "
 			" WHERE acls.id > 0 %s %s"

@@ -528,12 +528,14 @@ void VObjCatalogCtrl::OnMkCls(wxCommandEvent& evt)
 	{
 		const auto& root = mCatalogModel->GetRoot();
 
-		auto newItem = std::make_shared<object_catalog::MTypeItem>();
+		auto iparent = mCatalogModel->mPath->GetChild(0); 
+		auto parent = std::dynamic_pointer_cast<object_catalog::model::MPathItem>(iparent);
 
 		rec::Cls cls_data;
 		cls_data.mParent.mId = root.mCls.mId;
-		cls_data.mParent.mLabel = root.mCls.mLabel;
-
+		cls_data.mParent.mLabel = parent ? parent->GetData().mCls.mLabel : root.mCls.mLabel;
+		
+		auto newItem = std::make_shared<object_catalog::MTypeItem>();
 		newItem->SetData(cls_data);
 
 		DClsEditor editor;
@@ -591,11 +593,18 @@ void VObjCatalogCtrl::OnEdit(wxCommandEvent& evt)
 			if (!typeItem)
 				return;
 
-			//const auto& edited_cls = typeItem->GetData();
-			//auto newItem = std::make_shared<object_catalog::MTypeItem>();
-			//newItem->SetData(edited_cls);
-			//newItem->Load();
-
+			auto iparent = mCatalogModel->mPath->GetChild(0);
+			auto parent = std::dynamic_pointer_cast<object_catalog::model::MPathItem>(iparent);
+			if (parent)
+			{
+				auto type_data = typeItem->GetData();
+				if (type_data.mParent.mId == parent->GetData().mCls.mId)
+				{
+					type_data.mParent.mLabel = parent->GetData().mCls.mLabel;
+					typeItem->SetData(type_data);
+				}
+			}
+			
 			DClsEditor editor;
 			std::shared_ptr<IModel> model = typeItem->shared_from_this();
 			editor.SetModel(model);
