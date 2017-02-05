@@ -15,7 +15,6 @@ class MainFrame :  public wxFrame, public ctrlWithResMgr
 private:
 
 	wxAuiToolBar*		m_MainToolBar = nullptr;
-	wxAuiToolBar*		m_DevToolBar = nullptr;
 
 	wxAuiToolBarItem*	m_btnFavorites = nullptr;;
 
@@ -23,7 +22,6 @@ private:
 
 	void BuildMenu();
 	void BuildToolbar();
-	void BuildDevToolBar();
 	void BuildStatusbar();
 	
 	void OnCmd_MakePage_Group(wxCommandEvent& evt = wxCommandEvent());

@@ -78,7 +78,6 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 	BuildMenu();
 	BuildStatusbar();
 	BuildToolbar();
-	BuildDevToolBar();
 
 	auto dmgr = whDataMgr::GetInstance();
 	namespace ph = std::placeholders;
@@ -203,10 +202,13 @@ void MainFrame::BuildToolbar()
 	m_MainToolBar->AddTool(CMD_MAKETYPEWND, cat_obj_by_type
 		, m_ResMgr->m_ico_folder_type24, cat_obj_by_type);
 
+	m_MainToolBar->AddTool(CMD_PNLSHOWGROUP, "Группы", m_ResMgr->m_ico_usergroup24);
+	m_MainToolBar->AddTool(CMD_PNLSHOWUSER, "Пользователи", m_ResMgr->m_ico_user24);
+	m_MainToolBar->AddTool(CMD_PNLSHOWPROP, "Свойства", m_ResMgr->m_ico_list_prop24);
+	m_MainToolBar->AddTool(CMD_PNLSHOWACT, "Действия", m_ResMgr->m_ico_acts24);
+	m_MainToolBar->AddTool(CMD_MAKEHISTORYWND, "История", m_ResMgr->m_ico_history24);
 
-	//const wxString str_mktab_favorites = "Открыть избранное";
-	//m_MainToolBar->AddTool(CMD_MKTAB_FAVORITES, str_mktab_favorites
-	//	, m_ResMgr->m_ico_favorites24, str_mktab_favorites);
+
 	
 	m_MainToolBar->Realize();
 
@@ -220,8 +222,6 @@ void MainFrame::BuildToolbar()
 		.PaneBorder(false)
 		.Layer(1)
 		.Position(1)
-		//.LeftDockable(false)
-		//.RightDockable(false)
 		);
 }
 //---------------------------------------------------------------------------
@@ -236,39 +236,8 @@ void MainFrame::BuildStatusbar()
 
 	CreateStatusBar(3);
 }
-
 //---------------------------------------------------------------------------
-void MainFrame::BuildDevToolBar()
-{
-	if (!m_DevToolBar)
-	{ 
-		m_DevToolBar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-			wxAUI_TB_DEFAULT_STYLE 
-			| wxAUI_TB_PLAIN_BACKGROUND
-			| wxAUI_TB_GRIPPER);
 
-		m_DevToolBar->AddTool(CMD_PNLSHOWGROUP, "Группы", m_ResMgr->m_ico_usergroup24);
-		m_DevToolBar->AddTool(CMD_PNLSHOWUSER, "Пользователи", m_ResMgr->m_ico_user24);
-		m_DevToolBar->AddTool(CMD_PNLSHOWPROP, "Свойства", m_ResMgr->m_ico_list_prop24);
-		m_DevToolBar->AddTool(CMD_PNLSHOWACT, "Действия", m_ResMgr->m_ico_acts24);
-		m_DevToolBar->AddTool(CMD_MAKEHISTORYWND, "История", m_ResMgr->m_ico_history24);
-
-		m_DevToolBar->Realize();
-
-		m_AuiMgr.AddPane(m_DevToolBar
-			, wxAuiPaneInfo().Name(wxT("DevToolBar"))
-			.Caption(wxT("DevToolBar")).CaptionVisible(false)
-			.ToolbarPane()
-			.Top()
-			.Fixed()
-			.Dockable(false)
-			.PaneBorder(false)
-			.Layer(1)
-			.Position(1)
-			);
-	}
-}
-//---------------------------------------------------------------------------
 void MainFrame::DoShowConnDlg(wxCommandEvent& evt)
 {
 	ConnectionCfgDlg conn_dlg(this);
@@ -308,20 +277,12 @@ void MainFrame::OnCmd_ToogleViewMainToolbar(wxCommandEvent& evt)
 		if (pi_main.IsOk())
 			pi_main.Show();
 
-		wxAuiPaneInfo&  pi_dev = m_AuiMgr.GetPane(m_DevToolBar);
-		if (pi_dev.IsOk())
-			pi_dev.Show();
 	}
 	else
 	{
 		wxAuiPaneInfo&  pi_main = m_AuiMgr.GetPane(m_MainToolBar);
 		if (pi_main.IsOk())
 			pi_main.Hide();
-
-		wxAuiPaneInfo&  pi_dev = m_AuiMgr.GetPane(m_DevToolBar);
-		if (pi_dev.IsOk())
-			pi_dev.Hide();
-
 	}
 
 	m_AuiMgr.Update();
@@ -347,8 +308,8 @@ void MainFrame::OnSig_AfterDbConnected(const whDB&)
 		if (wxNOT_FOUND != catalog_menu_id)
 			menu_bar->EnableTop(catalog_menu_id, true);
 	}
-	m_MainToolBar->Enable();
-	m_DevToolBar->Enable();
+	if (m_MainToolBar)
+		m_MainToolBar->Enable();
 
 }
 //---------------------------------------------------------------------------
@@ -374,8 +335,8 @@ void MainFrame::OnSig_BeforeDbDisconnect(const whDB&)
 		if (wxNOT_FOUND != catalog_menu_id)
 			menu_bar->EnableTop(catalog_menu_id, false);
 	}
-	m_MainToolBar->Disable();
-	m_DevToolBar->Disable();
+	if (m_MainToolBar)
+		m_MainToolBar->Disable();
 
 	while (m_Notebook->GetPageCount())
 	{
