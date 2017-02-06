@@ -5,6 +5,7 @@
 #include "whDB.h"
 #include "ResManager.h"
 #include "wxComboBtn.h"
+#include "ioc_strcontainer.h"
 
 //----------------------------------------------------------------------------
 #define whID_MOVE				5300
@@ -160,6 +161,8 @@ public:
 
 
 
+	std::shared_ptr<IOCStrContainer<wxString>>	mContainer
+		= std::make_shared<IOCStrContainer<wxString>>();
 };
 
 

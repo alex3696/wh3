@@ -53,6 +53,11 @@ public:
 		long style = wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER,
 		const wxString& name = wxDialogNameStr);
 
+	virtual void ShowDialog() override { this->ShowModal(); };
+	virtual void UpdateRecent(const ObjTree& tree) override;
+	virtual void UpdateDst(const ObjTree& tree) override;
+	virtual void UpdateMoveable(const rec::PathItem& moveable) override;
+	virtual void EnableRecent(bool enable) override;
 private:
 	void BuildTree();
 	void BuildToolBar();
@@ -61,16 +66,42 @@ private:
 	void ExpandAll();
 	void OnClickSearchBtn(wxCommandEvent& event);
 
-	virtual void ShowDialog() override { this->ShowModal();  };
-	virtual void UpdateRecent(const ObjTree& tree) override;
-	virtual void UpdateDst(const ObjTree& tree) override;
-	virtual void UpdateMoveable(const rec::PathItem& moveable) override;
-	virtual void EnableRecent(bool enable) override;
 
 };
 
 
 
+class XMoveObjView : public IMoveObjView
+{
+	MoveObjView* mWxView;
+public:
+	~XMoveObjView()
+	{
+		if (mWxView)
+			mWxView->Destroy();
+		mWxView = nullptr;
+	}
+
+	XMoveObjView(std::shared_ptr<wxWindow*> sp)
+		:mWxView(new MoveObjView(*sp))
+	{
+		mWxView->sigUpdate.connect([this](){ sigUpdate(); });
+		mWxView->sigEnableRecent.connect([this](bool enable){ sigEnableRecent(enable); });
+		mWxView->sigFindObj.connect([this](const wxString& ss){ sigFindObj(ss); });
+		mWxView->sigClose.connect([this](){ sigClose(); });
+		mWxView->sigMove.connect([this](const wxString& s1, const wxString& s2){ sigMove(s1, s2); });
+
+		mWxView->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent& evt)
+		{
+			mWxView = nullptr;
+		});
+	}
+	virtual void ShowDialog()override { mWxView->ShowDialog(); }
+	virtual void UpdateRecent(const ObjTree& tree)override{ mWxView->UpdateRecent(tree); }
+	virtual void UpdateDst(const ObjTree& tree)override{ mWxView->UpdateDst(tree); }
+	virtual void UpdateMoveable(const rec::PathItem& moveable)override{ mWxView->UpdateMoveable(moveable); }
+	virtual void EnableRecent(bool enable)override{ mWxView->EnableRecent(enable); }
+};
 
 
 

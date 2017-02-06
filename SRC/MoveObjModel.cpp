@@ -34,8 +34,12 @@ const ObjStore::iterator Moveable::FindObj(const wxString& str)const
 //-----------------------------------------------------------------------------
 void Moveable::Load()
 {
-	mDst.Clear();
-	mRecent.Clear();
+	{
+		auto p0 = GetTickCount();
+		mDst.Clear();
+		mRecent.Clear();
+		wxLogMessage(wxString::Format("%d \t MoveObj \t clear results", GetTickCount() - p0));
+	}
 	const auto& global_recent = whDataMgr::GetInstance()->mRecentDstOidPresenter;
 
 	wxString query = wxString::Format(
@@ -53,21 +57,29 @@ void Moveable::Load()
 	whDataMgr::GetDB().BeginTransaction();
 	
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+
+	auto p0 = GetTickCount();
 	
 	if (table)
 	{
+		wxString cid;
+		wxString ctitle;
+		wxString oid;
+		wxString otitle;
+		wxString opath;
+
 		unsigned int rowQty = table->GetRowCount();
 		if (rowQty)
 		{
 			mDst.mObj.reserve(rowQty);
 			for (unsigned int i = 0; i < rowQty; ++i)
 			{
-				wxString cid = table->GetAsString(0, i);
-				wxString ctitle = table->GetAsString(1, i);
-				wxString oid = table->GetAsString(2, i);
-				wxString otitle = table->GetAsString(3, i);
-				wxString opath = table->GetAsString(4, i);
-
+				table->GetAsString(0, i, cid);
+				table->GetAsString(1, i, ctitle);
+				table->GetAsString(2, i, oid);
+				table->GetAsString(3, i, otitle);
+				table->GetAsString(4, i, opath);
+				
 				auto type_IterBool = mDst.mType.emplace_back(cid, ctitle);
 				const Type* type = &(*type_IterBool.first);
 				auto obj_IterBool = mDst.mObj.emplace_back(type, oid, otitle, opath);
@@ -84,10 +96,16 @@ void Moveable::Load()
 	}//if (table)
 
 	whDataMgr::GetDB().Commit();
+	mLock = true;
+
+	wxLogMessage(wxString::Format("%d \t MoveObj \t download results", GetTickCount() - p0));
 }
 //-----------------------------------------------------------------------------
 void Moveable::Unlock()
 {
+	if (!mLock)
+		return;
+	
 	whDataMgr::GetDB().BeginTransaction();
 
 	const rec::PathItem& movable = mMoveble.GetData();
@@ -100,6 +118,7 @@ void Moveable::Unlock()
 	whDataMgr::GetDB().Exec(query);
 
 	whDataMgr::GetDB().Commit();
+	mLock = false;
 }
 //-----------------------------------------------------------------------------
 void Moveable::Move(const wxString& oid, const wxString& qty)

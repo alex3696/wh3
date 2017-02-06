@@ -305,6 +305,7 @@ whDataMgr::whDataMgr()
 whDataMgr::~whDataMgr()
 {
 	mDb.Close();
+	mContainer->Clear();
 }
 //---------------------------------------------------------------------------
 void whDataMgr::OnConnectDb(const whDB& db)

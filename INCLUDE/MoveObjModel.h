@@ -261,7 +261,7 @@ private:
 	ObjTree						mDst;
 	ObjTree						mRecent;
 	TDataModel<rec::PathItem>	mMoveble = rec::PathItem();
-
+	bool						mLock = false;
 };// class Moveable
 
 

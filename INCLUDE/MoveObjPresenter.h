@@ -10,17 +10,11 @@ namespace wh{
 class MoveObjPresenter
 {
 public:
-	MoveObjPresenter();
-	MoveObjPresenter(const rec::PathItem& moveable);
-
+	MoveObjPresenter(std::shared_ptr<IMoveObjView> view, std::shared_ptr<rec::PathItem> moveable);
+	~MoveObjPresenter();
 	
-	void SetView(IMoveObjView* view);
-	void SetMoveable(const rec::PathItem& moveable){ mModel->SetMoveable(moveable); }
 	void ShowDialog();
-
-	void Run();
-
-
+	
 	// View connector functions
 	void OnViewUpdate();
 	void OnViewMove(const wxString& oid, const wxString& qty);
@@ -28,12 +22,17 @@ public:
 	void OnViewFindObj(const wxString& ss);
 	void OnViewClose();
 private:
-	std::unique_ptr<Moveable>	mModel;
+	void SetView(IMoveObjView* view);
+	void SetMoveable(const rec::PathItem& moveable){ mModel->SetMoveable(moveable); }
+
+	std::unique_ptr<Moveable>	mModel = std::make_unique<Moveable>();
 	IMoveObjView*				mView = nullptr;
 	// View connector
 	sig::scoped_connection connViewUpdate;
 	sig::scoped_connection connViewEnableRecent;
 	sig::scoped_connection connViewFindObj;
+	sig::scoped_connection connViewClose;
+	sig::scoped_connection connViewMoveObj;
 	
 	// Model connector
 	sig::scoped_connection connModelUpdate;

@@ -4,54 +4,48 @@
 using namespace wh;
 
 //-----------------------------------------------------------------------------
-MoveObjPresenter::MoveObjPresenter()
+MoveObjPresenter::MoveObjPresenter(std::shared_ptr<IMoveObjView> view, std::shared_ptr<rec::PathItem> moveable)
 {
-	mModel = std::make_unique<Moveable>();
+	SetMoveable(*moveable);
+	SetView(view.get());
+}
 
-}
 //-----------------------------------------------------------------------------
-MoveObjPresenter::MoveObjPresenter(const rec::PathItem& moveable)
-	:MoveObjPresenter()
+MoveObjPresenter::~MoveObjPresenter()
 {
-	mModel->SetMoveable(moveable);
-}
-//-----------------------------------------------------------------------------
-void MoveObjPresenter::Run()
-{
-	ShowDialog();
+	if (mModel)
+		mModel->Unlock();
 }
 //-----------------------------------------------------------------------------
 void MoveObjPresenter::SetView(IMoveObjView* view)
 {
-	if (mView)
-	{
-		//отцепляем все сигналы этой вьюшки от этого презентера
-		connViewUpdate.disconnect();
-		connViewEnableRecent.disconnect();
-		connViewFindObj.disconnect();
-	}
+	//отцепляем все сигналы этой вьюшки от этого презентера
+	connViewUpdate.disconnect();
+	connViewEnableRecent.disconnect();
+	connViewFindObj.disconnect();
+	connViewClose.disconnect();
+	connViewMoveObj.disconnect();
+	
 	mView = view;
 	
 	if (mView)
 	{
 		namespace ph = std::placeholders;
+
 		auto fnU = std::bind(&MoveObjPresenter::OnViewUpdate, this);
-		//mView->ConnSigUpdate(fnU);
-		mView->sigUpdate.connect(fnU);
+		connViewUpdate = mView->sigUpdate.connect(fnU);
 
 		auto fnER = std::bind(&MoveObjPresenter::OnViewEnableRecent, this, ph::_1);
-		//mView->ConnSigEnableRecent(fnER);
-		mView->sigEnableRecent.connect(fnER);
+		connViewEnableRecent = mView->sigEnableRecent.connect(fnER);
 
 		auto fnF = std::bind(&MoveObjPresenter::OnViewFindObj, this, ph::_1);
-		//mView->ConnSigFindObj(fnF);
-		mView->sigFindObj.connect(fnF);
+		connViewFindObj = mView->sigFindObj.connect(fnF);
 
 		auto fnC = std::bind(&MoveObjPresenter::OnViewClose, this);
-		mView->sigClose.connect(fnC);
+		connViewClose = mView->sigClose.connect(fnC);
 
 		auto fnM = std::bind(&MoveObjPresenter::OnViewMove, this, ph::_1, ph::_2);
-		mView->sigMove.connect(fnM);
+		connViewMoveObj = mView->sigMove.connect(fnM);
 
 	}
 }
@@ -93,6 +87,7 @@ void MoveObjPresenter::OnViewClose()
 //-----------------------------------------------------------------------------
 void MoveObjPresenter::OnModelUpdate()
 {
+	auto p0 = GetTickCount();
 	if (mView)
 	{
 		mView->EnableRecent(mModel->GetRecentEnable());
@@ -101,4 +96,5 @@ void MoveObjPresenter::OnModelUpdate()
 		mView->UpdateDst(mModel->GetDst());
 		
 	}
+	wxLogMessage(wxString::Format("%d \t MoveObj \t update view", GetTickCount() - p0));
 }

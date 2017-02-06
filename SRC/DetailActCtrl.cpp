@@ -75,38 +75,46 @@ void DetailActCtrl::SetActToolbar(DetailActToolBar* act_toolbar)
 //-----------------------------------------------------------------------------
 void DetailActCtrl::OnCmdMove(wxCommandEvent& WXUNUSED(evt))
 {
+	auto p0 = GetTickCount();
 	if (!mObjModel || !mTableModel)
 		return;
 	
 	rec::PathItem data = mObjModel->GetData();
+	auto ctrl = whDataMgr::GetInstance()->mContainer;
 	
-	const rec::PathItem& movable_obj = mObjModel->GetData();
-	
-	auto move_presenter = std::make_unique<MoveObjPresenter>();
-	move_presenter->SetMoveable(movable_obj);
-
 	try
 	{
-		
-
-		auto view = std::make_unique<MoveObjView>();
-		move_presenter->SetView(view.get());
-		{
-			wxBusyCursor busyCursor;
-			move_presenter->OnViewUpdate();
-		}
-		move_presenter->ShowDialog();
-
-		mObjModel->Load();
-		mTableModel->Load();
-		
+		auto movable_obj_sp = std::make_shared<rec::PathItem>(mObjModel->GetData());
+		ctrl->RegInstance<rec::PathItem>("MoveableObj", movable_obj_sp);
+		//TODO register parent window is notebook.Make in other place
+		auto pp = std::make_shared<wxWindow*>(mObjDetailView->GetParent());
+		ctrl->RegInstance<wxWindow*>("wxWindowParent", pp);
+		//TODO register view in other place
+		if(!ctrl->IsExist("MoveObjView"))
+			ctrl->RegInstanceDeferred<IMoveObjView, XMoveObjView, wxWindow*>
+				("MoveObjView","wxWindowParent");
+		//TODO register presenter in other place
+		if (!ctrl->IsExist("MoveObjPresenter"))
+			ctrl->RegFactory<MoveObjPresenter, MoveObjPresenter, IMoveObjView, rec::PathItem>
+				("MoveObjPresenter", "MoveObjView", "MoveableObj");
+		auto presenter = ctrl->GetObject<MoveObjPresenter>("MoveObjPresenter");
+		wxLogMessage(wxString::Format("%d \t MoveObj \t init", GetTickCount() - p0));
+		auto busyCursor = std::make_unique<wxBusyCursor>();
+		presenter->OnViewUpdate();
+		wxLogMessage(wxString::Format("%d \t MoveObj \t TOTAL start time", GetTickCount() - p0));
+		busyCursor.reset();
+		presenter->ShowDialog();
 	}
 	catch (...)
 	{
 		// Transaction already rollbacked, dialog was destroyed, so nothinh to do
-		wxLogError("Бла, бла - вобщем кто-то уже юзает этот объект");
-		move_presenter->OnViewClose();
+		wxLogError("Объект занят другим пользователем (см.подробности)");
 	}
+	mObjModel->Load();
+	mTableModel->Load();
+	//ctrl->Erase("MoveObjPresenter");
+	//ctrl->Erase("MoveObjView");
+	//ctrl->Erase("MoveableObj");
 }
 //-----------------------------------------------------------------------------
 void DetailActCtrl::OnCmdMoveHere(wxCommandEvent& WXUNUSED(evt))

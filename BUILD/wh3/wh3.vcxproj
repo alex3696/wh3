@@ -275,6 +275,7 @@
     <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h" />
     <ClInclude Include="..\..\INCLUDE\EmptyPresenter.h" />
     <ClInclude Include="..\..\INCLUDE\IMoveObjView.h" />
+    <ClInclude Include="..\..\INCLUDE\ioc_strcontainer.h" />
     <ClInclude Include="..\..\INCLUDE\IPageView.h" />
     <ClInclude Include="..\..\INCLUDE\IRecentDstOidView.h" />
     <ClInclude Include="..\..\INCLUDE\MoveObjModel.h" />

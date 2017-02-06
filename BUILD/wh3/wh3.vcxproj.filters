@@ -857,6 +857,9 @@
     <ClInclude Include="..\..\INCLUDE\MoveObjView.h">
       <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ioc_strcontainer.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wh3.rc">
