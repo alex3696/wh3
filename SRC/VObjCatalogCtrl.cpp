@@ -528,7 +528,9 @@ void VObjCatalogCtrl::OnMkCls(wxCommandEvent& evt)
 	{
 		const auto& root = mCatalogModel->GetRoot();
 
-		auto iparent = mCatalogModel->mPath->GetChild(0); 
+		SptrIModel iparent;
+		if (mCatalogModel->mPath->size())
+			iparent = mCatalogModel->mPath->GetChild(0);
 		auto parent = std::dynamic_pointer_cast<object_catalog::model::MPathItem>(iparent);
 
 		rec::Cls cls_data;
@@ -593,7 +595,9 @@ void VObjCatalogCtrl::OnEdit(wxCommandEvent& evt)
 			if (!typeItem)
 				return;
 
-			auto iparent = mCatalogModel->mPath->GetChild(0);
+			SptrIModel iparent;
+			if (mCatalogModel->mPath->size())
+				iparent = mCatalogModel->mPath->GetChild(0);
 			auto parent = std::dynamic_pointer_cast<object_catalog::model::MPathItem>(iparent);
 			if (parent)
 			{
