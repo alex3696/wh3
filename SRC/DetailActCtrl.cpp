@@ -87,7 +87,7 @@ void DetailActCtrl::OnCmdMove(wxCommandEvent& WXUNUSED(evt))
 		auto movable_obj_sp = std::make_shared<rec::PathItem>(mObjModel->GetData());
 		ctrl->RegInstance<rec::PathItem>("MoveableObj", movable_obj_sp);
 		//TODO register parent window is notebook.Make in other place
-		auto pp = std::make_shared<wxWindow*>(mObjDetailView->GetParent());
+		auto pp = std::make_shared<wxWindow*>(mObjDetailView->GetParent()->GetParent());
 		ctrl->RegInstance<wxWindow*>("wxWindowParent", pp);
 		//TODO register view in other place
 		if(!ctrl->IsExist("MoveObjView"))

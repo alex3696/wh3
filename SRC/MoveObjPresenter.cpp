@@ -13,6 +13,12 @@ MoveObjPresenter::MoveObjPresenter(std::shared_ptr<IMoveObjView> view, std::shar
 //-----------------------------------------------------------------------------
 MoveObjPresenter::~MoveObjPresenter()
 {
+	connViewUpdate.disconnect();
+	connViewEnableRecent.disconnect();
+	connViewFindObj.disconnect();
+	connViewClose.disconnect();
+	connViewMoveObj.disconnect();
+
 	if (mModel)
 		mModel->Unlock();
 }
