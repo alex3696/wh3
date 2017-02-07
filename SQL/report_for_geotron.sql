@@ -1,6 +1,6 @@
 SELECT log_date,log_time
 ,act_title,mcls_title,mobj_title
-,CASE WHEN act_title='Изменить примечание' THEN prop->>'104' ELSE NULL END as "примечание"
+,CASE WHEN act_title='Изменить примечание' OR act_title='ГИС' THEN prop->>'104' ELSE NULL END as "примечание"
 ,CASE WHEN act_title='Профилактика' THEN prop->>'117' ELSE NULL END as "Описание профилактики"
 ,CASE WHEN act_title='Проверка' THEN prop->>'118' ELSE NULL END as "Описание проверки"
 ,CASE WHEN act_title='Ремонт' THEN prop->>'115' ELSE NULL END as "Причина ремонта"

@@ -350,7 +350,15 @@ SELECT 	wh_role.id 	AS userid,
 	wh_role.rolvaliduntil,
 	wh_role.rolcomment,
 	wh_role.rolcreaterole,
-	wh_role.rolpassword
+      CASE WHEN 
+      (
+        SELECT rol.rolname
+        FROM pg_authid
+        LEFT JOIN pg_auth_members member ON pg_authid.oid = member.member 
+        LEFT JOIN pg_authid rol ON member.roleid = rol.oid 
+        WHERE pg_authid.rolname = CURRENT_USER AND rol.rolname = 'Admin'
+      )IS NOT NULL THEN rolpassword ELSE NULL END 
+    AS rolpassword --NULL::TEXT AS rolpassword
 FROM wh_role
 WHERE wh_role.rolcanlogin;
 ------------------------------------------------------------------------------------------------------------
@@ -504,7 +512,7 @@ GRANT "ObjDesigner" TO "TypeDesigner";
 SELECT UpdateWhGroup('Admin','встроенная группа администраторов позволяет создавать группы и пользователей');
 GRANT "TypeDesigner" TO "Admin";
 
-GRANT SELECT ON TABLE wh_role  		TO "Guest";
+GRANT SELECT(id,rolname,rolcanlogin,rolcreaterole,rolconnlimit,rolvaliduntil,rolcomment) ON TABLE wh_role TO "Guest";
 GRANT SELECT ON TABLE wh_auth_members  	TO "Guest";
 GRANT SELECT ON TABLE wh_group  	TO "Guest";
 GRANT SELECT ON TABLE wh_user  		TO "Guest";

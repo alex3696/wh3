@@ -44,6 +44,8 @@ BEGIN
 
   DROP FUNCTION IF EXISTS iris_translit(p_string character varying);
 
+  DROP FUNCTION IF EXISTS sgg_add_prop_and_act() CASCADE;
+
 END $BODY$ LANGUAGE plpgsql;
 
   SELECT sgg_drop_temporary_items();
