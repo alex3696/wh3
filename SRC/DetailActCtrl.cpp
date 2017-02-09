@@ -3,7 +3,6 @@
 #include "dlg_move_view_Frame.h"
 #include "dlg_act_view_Frame.h"
 #include "MoveObjPresenter.h"
-#include "MoveObjView.h"
 
 
 using namespace wh;
@@ -84,25 +83,17 @@ void DetailActCtrl::OnCmdMove(wxCommandEvent& WXUNUSED(evt))
 	
 	try
 	{
-		auto movable_obj_sp = std::make_shared<rec::PathItem>(mObjModel->GetData());
-		ctrl->RegInstance<rec::PathItem>("MoveableObj", movable_obj_sp);
-		//TODO register parent window is notebook.Make in other place
-		auto pp = std::make_shared<wxWindow*>(mObjDetailView->GetParent()->GetParent());
-		ctrl->RegInstance<wxWindow*>("wxWindowParent", pp);
-		//TODO register view in other place
-		if(!ctrl->IsExist("MoveObjView"))
-			ctrl->RegInstanceDeferred<IMoveObjView, XMoveObjView, wxWindow*>
-				("MoveObjView","wxWindowParent");
-		//TODO register presenter in other place
-		if (!ctrl->IsExist("MoveObjPresenter"))
-			ctrl->RegFactory<MoveObjPresenter, MoveObjPresenter, IMoveObjView, rec::PathItem>
-				("MoveObjPresenter", "MoveObjView", "MoveableObj");
+		auto moveable_sp = ctrl->GetObject<rec::PathItem>("MoveableObj");
+		*moveable_sp = mObjModel->GetData();
+			
 		auto presenter = ctrl->GetObject<MoveObjPresenter>("MoveObjPresenter");
 		wxLogMessage(wxString::Format("%d \t MoveObj \t init", GetTickCount() - p0));
+		
 		auto busyCursor = std::make_unique<wxBusyCursor>();
 		presenter->OnViewUpdate();
-		wxLogMessage(wxString::Format("%d \t MoveObj \t TOTAL start time", GetTickCount() - p0));
 		busyCursor.reset();
+		wxLogMessage(wxString::Format("%d \t MoveObj \t TOTAL start time", GetTickCount() - p0));
+
 		presenter->ShowDialog();
 	}
 	catch (...)
@@ -112,6 +103,8 @@ void DetailActCtrl::OnCmdMove(wxCommandEvent& WXUNUSED(evt))
 	}
 	mObjModel->Load();
 	mTableModel->Load();
+	// presenter удалится после выхода из области видимости вместе с моделью
+	// view прицеплена к MainFrame и будет удалено при выходе
 	//ctrl->Erase("MoveObjPresenter");
 	//ctrl->Erase("MoveObjView");
 	//ctrl->Erase("MoveableObj");

@@ -10,6 +10,9 @@
 #include "MainFrame.h"
 #include "config.h"
 
+#include "MoveObjView.h"
+#include "MoveObjPresenter.h"
+
 using namespace wh;
 //using namespace std;
 
@@ -343,6 +346,17 @@ void whDataMgr::SetMainFrame(MainFrame* wnd)
 	mNotebookPresenter->SetView(notebook_view);
 	mNotebookPresenter->SetModel(notebook_model);
 	
+	auto pp = std::make_shared<wxWindow*>(m_MainFrame);
+	mContainer->RegInstance<wxWindow*>("MainFrameWnd", pp);
+
+	mContainer->RegInstanceDeferred<IMoveObjView, XMoveObjView, wxWindow*>
+		("MoveObjView", "MainFrameWnd");
+
+	mContainer->RegInstanceDeferredNI<rec::PathItem>("MoveableObj");
+
+	mContainer->RegFactory<MoveObjPresenter, MoveObjPresenter, IMoveObjView, rec::PathItem>
+		("MoveObjPresenter", "MoveObjView", "MoveableObj");
+
 }
 //---------------------------------------------------------------------------
 MainFrame* whDataMgr::GetMainFrame()
