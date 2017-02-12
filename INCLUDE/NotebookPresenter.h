@@ -57,6 +57,9 @@ private:
 	sig::scoped_connection connBD;
 
 	sig::scoped_connection view_connBD;
+
+	
+	std::map<wxString, sig::scoped_connection> view_connPage;
 };
 //---------------------------------------------------------------------------
 

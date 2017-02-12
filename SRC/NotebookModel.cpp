@@ -144,6 +144,18 @@ void NotebookModel::MakePage(const wh::rec::PageHistory& cfg)
 	sigAfterAddPage(*this, pi.mPageModel);
 }
 //---------------------------------------------------------------------------
+void NotebookModel::MakePage(const wh::rec::PageReport& cfg)
+{
+	//auto model = std::make_shared<wh::MLogTable>(cfg);
+	PageInfo pi;
+	pi.mType = mdlReport;
+	//pi.mPageModel->SetWhModel(model);
+	pi.mPageModel->SetIcon(&ResMgr::GetInstance()->m_ico_report24);
+	pi.mPageModel->SetTitle("Îò÷¸òû");
+	mPages.emplace_back(pi);
+	sigAfterAddPage(*this, pi.mPageModel);
+}
+//---------------------------------------------------------------------------
 
 void NotebookModel::DelPage(unsigned int page_index)
 {
@@ -215,6 +227,13 @@ try{
 		}
 		break;
 		case mdlHistory:	MakePage(wh::rec::PageHistory()); break;
+		case mdlReport:
+		{
+			wh::rec::PageReport  detail;
+			detail.mSelected_id = v.second.get<std::string>("ReportId","0");
+			MakePage(detail);
+		}
+		break;
 		default:break;
 		}
 		
@@ -286,6 +305,15 @@ try{
 		}
 		break;
 		case mdlHistory:	pageType.put("Name", "History");	break;
+		case mdlReport:	pageType.put("Name", "Report");
+		{
+			//auto by_type = std::dynamic_pointer_cast<wh::object_catalog::MObjCatalog>(pi.mPageModel->GetWhModel());
+			//if (by_type)
+			//{
+			//	page.put("ParentOid", by_type->GetRoot().mObj.mId.toStr());
+			//}
+		}
+		break;
 		default:break;
 		}
 		page.push_back(std::make_pair("Type", pageType));

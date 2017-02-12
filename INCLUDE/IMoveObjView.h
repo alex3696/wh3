@@ -2,7 +2,7 @@
 #define __IMOVEOBJVIEW_H
 
 #include "_pch.h"
-#include "MoveObjModel.h"
+#include "MoveObjData.h"
 
 namespace wh{
 

@@ -1,6 +1,7 @@
 #include "_pch.h"
 #include "NotebookPresenter.h"
 #include "ViewFactory.h"
+#include "ReportListPresenter.h"
 
 using namespace mvp;
 
@@ -19,16 +20,27 @@ NotebookPresenter::~NotebookPresenter()
 //virtual 
 void NotebookPresenter::SetView(IView* view)//override
 { 
+	view_connPage.clear();
 	view_connBD.disconnect();
 	mView = dynamic_cast<INotebookView*>(view); 
 	if (!mView)
 		return;
 
-	auto fnDoClosePage = [this](const INotebookView* pm, wxWindow* page)
-	{
-		DoDelPage(page);
-	};
-	view_connBD = mView->ConnectSigDelPage(fnDoClosePage);
+	auto fnDoClosePage = [this](const INotebookView* pm, wxWindow* page){ DoDelPage(page);};
+	view_connBD = mView->sigClosePage.connect(fnDoClosePage);
+
+	view_connPage["sigMakePageUser"] = mView->sigMakePageUser.connect([this](const wh::rec::PageUser& data){DoAddPage(data); });
+	view_connPage["sigMakePageGroup"] = mView->sigMakePageGroup.connect([this](const wh::rec::PageGroup& data){DoAddPage(data); });
+	view_connPage["sigMakePageProp"] = mView->sigMakePageProp.connect([this](const wh::rec::PageProp& data){DoAddPage(data); });
+	view_connPage["sigMakePageAct"] = mView->sigMakePageAct.connect([this](const wh::rec::PageAct& data){DoAddPage(data); });
+	view_connPage["sigMakePageObjByPath"] = mView->sigMakePageObjByPath.connect([this](const wh::rec::PageObjByPath& data){DoAddPage(data); });
+	view_connPage["sigMakePageObjByType"] = mView->sigMakePageObjByType.connect([this](const wh::rec::PageObjByType& data){DoAddPage(data); });
+	view_connPage["sigMakePageHistory"] = mView->sigMakePageHistory.connect([this](const wh::rec::PageHistory& data){DoAddPage(data); });
+	view_connPage["sigMakePageReport"] = mView->sigMakePageReport.connect([this](const wh::rec::PageReport& data){DoAddPage(data); });
+	view_connPage["sigMakePageReport"] = mView->sigMakePageReport.connect(
+		std::bind(&NotebookPresenter::DoAddPage<wh::rec::PageReport>, this,std::placeholders::_1) 
+		);
+
 }
 //---------------------------------------------------------------------------
 //virtual 
@@ -108,14 +120,28 @@ void NotebookPresenter::OnModelSig_AddPage(const NotebookModel& nb, const std::s
 	if (!pg)
 		return;
 	auto wh_model = pg->GetWhModel();
-	if (!wh_model)
-		return;
+	
 	auto notebook_wnd = mView ? mView->GetWnd() : nullptr;
 	if (!notebook_wnd)
 		return;
 
-	auto pp = std::make_shared<PagePresenter>(this);
-	auto view = ViewFactory::MakePage(wh_model, notebook_wnd);
+	std::shared_ptr<PagePresenter> pp;
+	IView* view = nullptr;
+	if (wh_model)
+	{
+		pp = std::make_shared<PagePresenter>(this);
+		view = ViewFactory::MakePage(wh_model, notebook_wnd);
+	}
+	else
+	{
+		using namespace wh;
+		auto controller = whDataMgr::GetInstance()->mContainer;
+		auto report_presenter = controller->GetObject<ReportListPresenter>("FactoryReportListPresenter");
+		report_presenter->UpdateList();
+		
+		pp = report_presenter;
+		view = pp->GetView();
+	}
 
 	if (view && view->GetWnd())
 	{
@@ -133,7 +159,8 @@ void NotebookPresenter::OnModelSig_AddPage(const NotebookModel& nb, const std::s
 		};
 		mPagePresentersConn.emplace(std::make_pair(pp, pg->sigUpdateCaption.connect(fn1)));
 		// загружаем все сведения
-		wh_model->Load();
+		if (wh_model)
+			wh_model->Load();
 	}//if
 
 }
@@ -151,6 +178,10 @@ void NotebookPresenter::OnModelSig_DelPage(const NotebookModel&, const std::shar
 			break;
 		++it;
 	}
+
+	if (mPagePresenters.end() == it)
+		return;
+
 	if (mView)
 	{
 		auto page_view = (*it)->GetView();

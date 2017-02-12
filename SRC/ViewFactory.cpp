@@ -35,7 +35,7 @@ void MakeWindow(const wh::SptrIModel& wh_model, wxWindow* parent_wnd, IPageView*
 //---------------------------------------------------------------------------
 IPageView* ViewFactory::MakePage(const wh::SptrIModel& wh_model, wxWindow* notebook_wnd)
 {
-	IPageView* pv = new IPageView();
+	IPageView* pv = new PageView();
 	using namespace wh;
 	
 	MakeWindow<MGroupArray, view::VGroupCtrlPanel>(wh_model, notebook_wnd, pv);

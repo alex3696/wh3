@@ -103,6 +103,7 @@ public:
 	DEF_INIT_ICO24(obj_qty_group);
 	DEF_INIT_ICO24(favprop_select);
 	DEF_INIT_ICO24(list_prop);
+	DEF_INIT_ICO24(report);
 	
 
 	DEF_INIT_ICO16(connect);

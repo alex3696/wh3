@@ -154,6 +154,12 @@
     <Filter Include="Каталог объектов\Диалог перемещения\Move MRU">
       <UniqueIdentifier>{62fb8ebb-31eb-46eb-8181-f405fd912880}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Отчёты">
+      <UniqueIdentifier>{a8a9311c-02a5-4fc9-b8ff-31c29728e6f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Отчёты\Редактор отчёта">
+      <UniqueIdentifier>{2284c55b-cb88-410d-b47e-aa2a9e185938}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -464,6 +470,21 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\MoveObjView.cpp">
       <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ReportEditorView.cpp">
+      <Filter>Отчёты\Редактор отчёта</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ReportListPresenter.cpp">
+      <Filter>Отчёты</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ReportListView.cpp">
+      <Filter>Отчёты</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ReportEditorPesenter.cpp">
+      <Filter>Отчёты\Редактор отчёта</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ReportListModel.cpp">
+      <Filter>Отчёты</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -859,6 +880,33 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ioc_strcontainer.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MoveObjData.h">
+      <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ReportData.h">
+      <Filter>Отчёты</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\IReportEditorView.h">
+      <Filter>Отчёты\Редактор отчёта</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ReportEditorView.h">
+      <Filter>Отчёты\Редактор отчёта</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ReportEditorPresenter.h">
+      <Filter>Отчёты\Редактор отчёта</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\IReportListView.h">
+      <Filter>Отчёты</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ReportListModel.h">
+      <Filter>Отчёты</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ReportListPresenter.h">
+      <Filter>Отчёты</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ReportListView.h">
+      <Filter>Отчёты</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

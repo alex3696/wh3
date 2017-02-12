@@ -153,6 +153,7 @@ CREATE SEQUENCE seq_obj_id  INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
 CREATE SEQUENCE seq_log_id  INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
 CREATE SEQUENCE seq_perm_id INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
 CREATE SEQUENCE favorite_prop_id_seq INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
+CREATE SEQUENCE seq_rep_id  INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
 
 GRANT USAGE ON TABLE seq_cls_id  TO "TypeDesigner";
 GRANT USAGE ON TABLE seq_act_id  TO "TypeDesigner";
@@ -666,9 +667,25 @@ GRANT SELECT,INSERT,UPDATE ON TABLE app_config TO "Guest";
 GRANT DELETE        ON TABLE app_config TO "Admin";
 
 ---------------------------------------------------------------------------------------------------
+-- таблица с списком отчётов
 ---------------------------------------------------------------------------------------------------
+--DROP TABLE IF EXISTS report CASCADE;
+CREATE TABLE report(
+ id     BIGINT NOT NULL DEFAULT nextval('seq_rep_id') CHECK ( id>=0 )
+,title  NAME   NOT NULL
+,note   TEXT
+,script TEXT
 
+,CONSTRAINT pk_report__id    PRIMARY KEY ( id ) 
+,CONSTRAINT uk_report__title UNIQUE (title)
 
+);
+
+GRANT SELECT                ON TABLE report TO "Guest";
+GRANT DELETE,INSERT,UPDATE  ON TABLE report TO "TypeDesigner";
+
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 
 
 

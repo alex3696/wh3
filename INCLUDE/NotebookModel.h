@@ -31,6 +31,7 @@ public:
 	void MakePage(const wh::rec::PageObjByPath& cfg);
 	void MakePage(const wh::rec::ObjInfo& cfg);
 	void MakePage(const wh::rec::PageHistory& cfg);
+	void MakePage(const wh::rec::PageReport& cfg);
 
 	void DelPage(unsigned int page_index);
 	void SelPage(unsigned int page_index);
@@ -59,7 +60,8 @@ private:
 		mdlObjByType,
 		mdlObjByPath,
 		mdlObjDetail,
-		mdlHistory
+		mdlHistory,
+		mdlReport
 	};
 
 	struct PageInfo

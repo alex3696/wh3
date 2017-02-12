@@ -432,6 +432,12 @@ struct PageHistory
 {
 };
 
+struct PageReport
+{
+	wxString mSelected_id;
+};
+
+
 }//namespace rec
 
 }//namespace wh

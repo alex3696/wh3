@@ -27,15 +27,10 @@ public:
 		{
 			int page_to_close = evt.GetSelection();
 			wxWindow* wnd_to_close = mNotebook->GetPage(page_to_close);
-			sigDelPage(this, wnd_to_close);
+			sigClosePage(this, wnd_to_close);
 			evt.Veto();
 		};
 		mNotebook->Bind(wxEVT_AUINOTEBOOK_PAGE_CLOSE, fnOnClosePage);
-	}
-
-	virtual sig::connection ConnectSigDelPage(const SigDelPage::slot_type& slot) override
-	{
-		return sigDelPage.connect(slot);
 	}
 
 	virtual void AddPage(wxWindow* wnd, const wxString& lbl, const wxIcon& icon) override
@@ -63,8 +58,6 @@ public:
 		}
 	}
 
-	//using SigDelPage = sig::signal<void(const INotebookView* pm, wxWindow* page)>;
-	SigDelPage sigDelPage;
 	wxAuiNotebook* mNotebook = nullptr;
 };
 

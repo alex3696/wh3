@@ -13,6 +13,17 @@
 #include "MoveObjView.h"
 #include "MoveObjPresenter.h"
 
+
+#include "ReportListModel.h"
+
+#include "IReportListView.h"
+#include "ReportListView.h"
+#include "ReportListPresenter.h"
+
+#include "IReportEditorView.h"
+#include "ReportEditorView.h"
+#include "ReportEditorPresenter.h"
+
 using namespace wh;
 //using namespace std;
 
@@ -349,6 +360,10 @@ void whDataMgr::SetMainFrame(MainFrame* wnd)
 	auto pp = std::make_shared<wxWindow*>(m_MainFrame);
 	mContainer->RegInstance<wxWindow*>("MainFrameWnd", pp);
 
+	auto np = std::make_shared<wxWindow*>(m_MainFrame->GetNotebook());
+	mContainer->RegInstance<wxWindow*>("MainNotebookWnd", np);
+
+
 	mContainer->RegInstanceDeferred<IMoveObjView, XMoveObjView, wxWindow*>
 		("MoveObjView", "MainFrameWnd");
 
@@ -356,6 +371,23 @@ void whDataMgr::SetMainFrame(MainFrame* wnd)
 
 	mContainer->RegFactory<MoveObjPresenter, MoveObjPresenter, IMoveObjView, rec::PathItem>
 		("MoveObjPresenter", "MoveObjView", "MoveableObj");
+
+	////////////
+	// report //
+	////////////
+	mContainer->RegInstanceNI<ReportListModel>("ReportListModel");
+	mContainer->RegFactory<ReportItemModel, ReportItemModel, ReportListModel>
+		("ReportItemModel", "ReportListModel");
+
+	mContainer->RegFactory<IReportListView, ReportListView, wxWindow*>
+		("ReportListView", "MainNotebookWnd");
+	mContainer->RegInstanceDeferred<IReportEditorView, ReportEditorView, wxWindow*>
+		("ReportEditor", "MainFrameWnd");
+	
+	mContainer->RegFactory<ReportListPresenter, ReportListPresenter, IReportListView, ReportListModel>
+		("FactoryReportListPresenter", "ReportListView", "ReportListModel");
+	mContainer->RegFactory<ReportEditorPresenter, ReportEditorPresenter, IReportEditorView, ReportItemModel>
+		("FactoryReportEditorPresenter", "ReportEditor", "ReportItemModel");
 
 }
 //---------------------------------------------------------------------------

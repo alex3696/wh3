@@ -46,7 +46,9 @@ enum GUIID
 	CMD_PNLSHOWGROUP,
 	CMD_PNLSHOWUSER,
 	CMD_PNLSHOWPROP,
-	CMD_PNLSHOWACT
+	CMD_PNLSHOWACT,
+
+	CMD_MKPAGE_REPORT
 
 };
 //---------------------------------------------------------------------------
@@ -58,6 +60,7 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 
 	auto face_colour = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
 	m_AuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, face_colour);
+	m_AuiMgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
 
 	//Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MkTabFaforite, this, CMD_MKTAB_FAVORITES);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_ToogleViewMainToolbar, this, CMD_VIEW_TOOGLE_MAINTOOLBAR);
@@ -70,6 +73,7 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_ObjByType, this, CMD_MAKETYPEWND);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_ObjByPath, this, CMD_MAKEOBJWND);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_History, this, CMD_MAKEHISTORYWND);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_Report, this, CMD_MKPAGE_REPORT);
 	
 
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_ConnectDB, this, CMD_DB_CONNECT);
@@ -93,11 +97,15 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 	mSSC_AfterDbConnected = dmgr->GetDB().SigAfterConnect.connect(fnAC);
 	mSSC_BeforeDbDisconnect = dmgr->GetDB().SigBeforeDisconnect.connect(fnBD);
 
-	
-	m_Notebook = new wxAuiNotebook(this);
+
+	m_Notebook = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize
+		, wxAUI_NB_DEFAULT_STYLE | wxNO_BORDER);
 	m_AuiMgr.AddPane(m_Notebook, wxAuiPaneInfo().
 		Name(wxT("NotebookPane")).Caption(wxT("NotebookPane")).
-		CenterPane().Layer(1).Position(1).CloseButton(true).MaximizeButton(true).PaneBorder(false));
+		CenterPane()
+		//.Layer(1).Position(1).CloseButton(true).MaximizeButton(true)
+		.PaneBorder(false)
+		);
 	m_AuiMgr.Update();
 
 }
@@ -207,6 +215,7 @@ void MainFrame::BuildToolbar()
 	m_MainToolBar->AddTool(CMD_PNLSHOWPROP, "Свойства", m_ResMgr->m_ico_list_prop24);
 	m_MainToolBar->AddTool(CMD_PNLSHOWACT, "Действия", m_ResMgr->m_ico_acts24);
 	m_MainToolBar->AddTool(CMD_MAKEHISTORYWND, "История", m_ResMgr->m_ico_history24);
+	m_MainToolBar->AddTool(CMD_MKPAGE_REPORT, "Отчёты", m_ResMgr->m_ico_report24);
 
 
 	
@@ -433,3 +442,8 @@ void MainFrame::OnCmd_MakePage_History(wxCommandEvent& evt)
 	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageHistory());
 }
 //---------------------------------------------------------------------------
+
+void MainFrame::OnCmd_MakePage_Report(wxCommandEvent& evt)
+{
+	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageReport());
+}

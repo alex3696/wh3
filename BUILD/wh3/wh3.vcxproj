@@ -213,6 +213,11 @@
     <ClCompile Include="..\..\SRC\MTable.cpp" />
     <ClCompile Include="..\..\SRC\PGPTypeId.cpp" />
     <ClCompile Include="..\..\SRC\RecentDstOidModel.cpp" />
+    <ClCompile Include="..\..\SRC\ReportEditorPesenter.cpp" />
+    <ClCompile Include="..\..\SRC\ReportEditorView.cpp" />
+    <ClCompile Include="..\..\SRC\ReportListModel.cpp" />
+    <ClCompile Include="..\..\SRC\ReportListPresenter.cpp" />
+    <ClCompile Include="..\..\SRC\ReportListView.cpp" />
     <ClCompile Include="..\..\SRC\ViewFactory.cpp" />
     <ClCompile Include="..\..\SRC\VTableCtrl.cpp" />
     <ClCompile Include="..\..\SRC\TableRowEditor.cpp" />
@@ -278,6 +283,9 @@
     <ClInclude Include="..\..\INCLUDE\ioc_strcontainer.h" />
     <ClInclude Include="..\..\INCLUDE\IPageView.h" />
     <ClInclude Include="..\..\INCLUDE\IRecentDstOidView.h" />
+    <ClInclude Include="..\..\INCLUDE\IReportEditorView.h" />
+    <ClInclude Include="..\..\INCLUDE\IReportListView.h" />
+    <ClInclude Include="..\..\INCLUDE\MoveObjData.h" />
     <ClInclude Include="..\..\INCLUDE\MoveObjModel.h" />
     <ClInclude Include="..\..\INCLUDE\MoveObjPresenter.h" />
     <ClInclude Include="..\..\INCLUDE\MoveObjView.h" />
@@ -347,6 +355,12 @@
     <ClInclude Include="..\..\INCLUDE\PGPTypeId.h" />
     <ClInclude Include="..\..\INCLUDE\RecentDstOidModel.h" />
     <ClInclude Include="..\..\INCLUDE\RecentDstOidPresenter.h" />
+    <ClInclude Include="..\..\INCLUDE\ReportData.h" />
+    <ClInclude Include="..\..\INCLUDE\ReportEditorPresenter.h" />
+    <ClInclude Include="..\..\INCLUDE\ReportEditorView.h" />
+    <ClInclude Include="..\..\INCLUDE\ReportListModel.h" />
+    <ClInclude Include="..\..\INCLUDE\ReportListPresenter.h" />
+    <ClInclude Include="..\..\INCLUDE\ReportListView.h" />
     <ClInclude Include="..\..\INCLUDE\ViewFactory.h" />
     <ClInclude Include="..\..\INCLUDE\VTableCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\TableRowEditor.h" />

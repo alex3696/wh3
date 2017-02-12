@@ -8,7 +8,15 @@ namespace mvp{
 class IPageView : public IView
 {
 public:
-	IPageView()
+	virtual wxWindow* GetWnd() override = 0;
+	virtual void SetWnd(wxWindow* wnd)override = 0;
+};
+
+//---------------------------------------------------------------------------
+class PageView : public IPageView
+{
+public:
+	PageView()
 		: mWnd(nullptr)
 	{}
 
@@ -22,9 +30,14 @@ public:
 			delete mWnd;
 		mWnd = wnd;
 	}
-private:
+protected:
 	wxWindow* mWnd;
 
 };
+
+
+
+
+
 } //namespace mvp{
 #endif // __********_H

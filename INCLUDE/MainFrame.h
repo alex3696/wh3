@@ -32,6 +32,7 @@ private:
 	void OnCmd_MakePage_ObjByType(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_MakePage_ObjByPath(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_MakePage_History(wxCommandEvent& evt = wxCommandEvent());
+	void OnCmd_MakePage_Report(wxCommandEvent& evt = wxCommandEvent());
 
 	void OnCmd_MkTabFaforite(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_ToogleViewMainToolbar(wxCommandEvent& evt = wxCommandEvent());
