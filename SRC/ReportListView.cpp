@@ -94,7 +94,7 @@ wxAuiToolBar* ReportListView::BuildToolBar(wxWindow* parent)
 	auto mgr = ResMgr::GetInstance();
 
 	auto tool_bar = new wxAuiToolBar(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-		wxAUI_TB_DEFAULT_STYLE | /*wxAUI_TB_PLAIN_BACKGROUND |*/ wxAUI_TB_TEXT | wxAUI_TB_OVERFLOW);
+		wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_PLAIN_BACKGROUND | wxAUI_TB_TEXT | wxAUI_TB_OVERFLOW);
 
 	tool_bar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh24);
 	tool_bar->AddTool(wxID_EXECUTE, "Выполнить", mgr->m_ico_act24);

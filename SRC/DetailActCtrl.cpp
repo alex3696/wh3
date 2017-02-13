@@ -1,6 +1,5 @@
 #include "_pch.h"
 #include "DetailActCtrl.h"
-#include "dlg_move_view_Frame.h"
 #include "dlg_act_view_Frame.h"
 #include "MoveObjPresenter.h"
 

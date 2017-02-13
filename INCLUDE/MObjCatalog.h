@@ -10,8 +10,6 @@
 #include "MTypeNode.h"
 #include "MFavProp.h"
 
-#include "dlg_move_view_Frame.h"
-
 namespace wh{
 namespace object_catalog {
 

@@ -2,7 +2,6 @@
 #include "detail_ctrlpnl.h"
 
 #include "MainFrame.h"
-#include "dlg_move_view_Frame.h"
 #include "dlg_act_view_Frame.h"
 
 

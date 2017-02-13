@@ -6,7 +6,6 @@
 #include "VObjCatalogCtrl.h"
 #include "MObjCatalog.h"
 
-#include "dlg_move_view_Frame.h"
 #include "dlg_act_view_Frame.h"
 #include "dlg_mkobj_view_Frame.h"
 #include "dlg_favprop_SelectFrame.h"
@@ -433,16 +432,10 @@ void VObjCatalogCtrl::OnCmdMove(wxCommandEvent& evt)
 	rec::PathItem data;
 	if (GetSelectedObjKey(data))
 	{
-		using namespace dlg_move;
-		namespace view = dlg_move::view;
-
 		try
 		{
-			auto subj = std::make_shared<model::MovableObj>();
-			subj->SetData(data, true);
-			view::Frame dlg;
-			dlg.SetModel(subj);
-			dlg.ShowModal();
+
+
 			OnCmdReload(wxCommandEvent(wxID_REFRESH));
 		}
 		catch (...)

@@ -160,6 +160,9 @@
     <Filter Include="Отчёты\Редактор отчёта">
       <UniqueIdentifier>{2284c55b-cb88-410d-b47e-aa2a9e185938}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Отчёты\Список отчётов">
+      <UniqueIdentifier>{8d2739fa-b115-4f9a-b92d-3cc74b77ae42}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -285,26 +288,8 @@
     <ClCompile Include="..\..\SRC\VObjCatalogCtrl.cpp">
       <Filter>Каталог объектов\Основная панель\GUI</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SRC\dlg_move_model_MovableObj.cpp">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\dlg_move_model_DstType.cpp">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\dlg_move_view_DvModel.cpp">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\dlg_move_view_Tree.cpp">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\dlg_move_view_CtrlPanel.cpp">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\MFavProp.cpp">
       <Filter>Каталог объектов\Основная панель\модель избранных свойств</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\dlg_move_view_Frame.cpp">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\dlg_act_view_Frame.cpp">
       <Filter>Каталог объектов\Диалог действий</Filter>
@@ -474,17 +459,17 @@
     <ClCompile Include="..\..\SRC\ReportEditorView.cpp">
       <Filter>Отчёты\Редактор отчёта</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SRC\ReportListPresenter.cpp">
-      <Filter>Отчёты</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\ReportListView.cpp">
-      <Filter>Отчёты</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\ReportEditorPesenter.cpp">
       <Filter>Отчёты\Редактор отчёта</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ReportListModel.cpp">
-      <Filter>Отчёты</Filter>
+      <Filter>Отчёты\Список отчётов</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ReportListPresenter.cpp">
+      <Filter>Отчёты\Список отчётов</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ReportListView.cpp">
+      <Filter>Отчёты\Список отчётов</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -649,27 +634,6 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\VObjCatalogCtrl.h">
       <Filter>Каталог объектов\Основная панель\GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\dlg_move_model_MovableObj.h">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\dlg_move_model_DstType.h">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\dlg_move_model_DstObj.h">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\dlg_move_view_Tree.h">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\dlg_move_view_DvModel.h">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\dlg_move_view_CtrlPanel.h">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\dlg_move_view_Frame.h">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MFavProp.h">
       <Filter>Каталог объектов\Основная панель\модель избранных свойств</Filter>
@@ -884,9 +848,6 @@
     <ClInclude Include="..\..\INCLUDE\MoveObjData.h">
       <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\ReportData.h">
-      <Filter>Отчёты</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\IReportEditorView.h">
       <Filter>Отчёты\Редактор отчёта</Filter>
     </ClInclude>
@@ -897,16 +858,19 @@
       <Filter>Отчёты\Редактор отчёта</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\IReportListView.h">
-      <Filter>Отчёты</Filter>
+      <Filter>Отчёты\Список отчётов</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ReportData.h">
+      <Filter>Отчёты\Список отчётов</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ReportListModel.h">
-      <Filter>Отчёты</Filter>
+      <Filter>Отчёты\Список отчётов</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ReportListPresenter.h">
-      <Filter>Отчёты</Filter>
+      <Filter>Отчёты\Список отчётов</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ReportListView.h">
-      <Filter>Отчёты</Filter>
+      <Filter>Отчёты\Список отчётов</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

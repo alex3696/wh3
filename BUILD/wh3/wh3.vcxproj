@@ -180,11 +180,6 @@
     <ClCompile Include="..\..\SRC\dlg_favprop_model.cpp" />
     <ClCompile Include="..\..\SRC\dlg_favprop_SelectFrame.cpp" />
     <ClCompile Include="..\..\SRC\dlg_mkobj_view_Frame.cpp" />
-    <ClCompile Include="..\..\SRC\dlg_move_model_DstType.cpp" />
-    <ClCompile Include="..\..\SRC\dlg_move_model_MovableObj.cpp" />
-    <ClCompile Include="..\..\SRC\dlg_move_view_CtrlPanel.cpp" />
-    <ClCompile Include="..\..\SRC\dlg_move_view_DvModel.cpp" />
-    <ClCompile Include="..\..\SRC\dlg_move_view_Frame.cpp" />
     <ClCompile Include="..\..\SRC\FilterArrayEditor.cpp" />
     <ClCompile Include="..\..\SRC\MHistory.cpp" />
     <ClCompile Include="..\..\SRC\MLogProp.cpp" />
@@ -261,7 +256,6 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\BaseOkCancelDialog.cpp" />
     <ClCompile Include="..\..\SRC\MActProp.cpp" />
-    <ClCompile Include="..\..\SRC\dlg_move_view_Tree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\INCLUDE\BaseOkCancelDialog.h" />
@@ -319,13 +313,6 @@
     <ClInclude Include="..\..\INCLUDE\dlg_favprop_dvtable.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_favprop_model.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_mkobj_view_Frame.h" />
-    <ClInclude Include="..\..\INCLUDE\dlg_move_model_DstObj.h" />
-    <ClInclude Include="..\..\INCLUDE\dlg_move_model_DstType.h" />
-    <ClInclude Include="..\..\INCLUDE\dlg_move_model_MovableObj.h" />
-    <ClInclude Include="..\..\INCLUDE\dlg_move_view_CtrlPanel.h" />
-    <ClInclude Include="..\..\INCLUDE\dlg_move_view_DvModel.h" />
-    <ClInclude Include="..\..\INCLUDE\dlg_move_view_Frame.h" />
-    <ClInclude Include="..\..\INCLUDE\dlg_move_view_Tree.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_favprop_SelectFrame.h" />
     <ClInclude Include="..\..\INCLUDE\FilterArrayEditor.h" />
     <ClInclude Include="..\..\INCLUDE\filter_data.h" />
