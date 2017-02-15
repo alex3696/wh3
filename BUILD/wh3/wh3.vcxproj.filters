@@ -163,6 +163,9 @@
     <Filter Include="Отчёты\Список отчётов">
       <UniqueIdentifier>{8d2739fa-b115-4f9a-b92d-3cc74b77ae42}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Отчёты\Вывод отчёта">
+      <UniqueIdentifier>{7c2a21b6-25cd-42c9-8812-7ad0414d0fef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -470,6 +473,15 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\ReportListView.cpp">
       <Filter>Отчёты\Список отчётов</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ReportModel.cpp">
+      <Filter>Отчёты\Вывод отчёта</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ReportPresenter.cpp">
+      <Filter>Отчёты\Вывод отчёта</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ReportView.cpp">
+      <Filter>Отчёты\Вывод отчёта</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -871,6 +883,18 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ReportListView.h">
       <Filter>Отчёты\Список отчётов</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ReportPresenter.h">
+      <Filter>Отчёты\Вывод отчёта</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\IReportView.h">
+      <Filter>Отчёты\Вывод отчёта</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ReportModel.h">
+      <Filter>Отчёты\Вывод отчёта</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ReportView.h">
+      <Filter>Отчёты\Вывод отчёта</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

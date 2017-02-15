@@ -28,7 +28,7 @@ public:
 	SigMakePage<wh::rec::PageObjByPath> sigMakePageObjByPath;
 	SigMakePage<wh::rec::PageObjByType> sigMakePageObjByType;
 	SigMakePage<wh::rec::PageHistory>	sigMakePageHistory;
-	SigMakePage<wh::rec::PageReport>	sigMakePageReport;
+	SigMakePage<wh::rec::PageReportList> sigMakePageReport;
 
 };
 } //namespace mvp{

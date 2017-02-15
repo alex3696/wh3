@@ -432,10 +432,16 @@ struct PageHistory
 {
 };
 
-struct PageReport
+struct PageReportList
 {
 	wxString mSelected_id;
 };
+
+struct PageReport
+{
+	wxString mReportId;
+};
+
 
 
 }//namespace rec

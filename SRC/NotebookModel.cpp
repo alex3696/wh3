@@ -144,7 +144,7 @@ void NotebookModel::MakePage(const wh::rec::PageHistory& cfg)
 	sigAfterAddPage(*this, pi.mPageModel);
 }
 //---------------------------------------------------------------------------
-void NotebookModel::MakePage(const wh::rec::PageReport& cfg)
+void NotebookModel::MakePage(const wh::rec::PageReportList& cfg)
 {
 	//auto model = std::make_shared<wh::MLogTable>(cfg);
 	PageInfo pi;
@@ -229,7 +229,7 @@ try{
 		case mdlHistory:	MakePage(wh::rec::PageHistory()); break;
 		case mdlReport:
 		{
-			wh::rec::PageReport  detail;
+			wh::rec::PageReportList  detail;
 			detail.mSelected_id = v.second.get<std::string>("ReportId","0");
 			MakePage(detail);
 		}

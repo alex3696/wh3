@@ -36,9 +36,9 @@ void NotebookPresenter::SetView(IView* view)//override
 	view_connPage["sigMakePageObjByPath"] = mView->sigMakePageObjByPath.connect([this](const wh::rec::PageObjByPath& data){DoAddPage(data); });
 	view_connPage["sigMakePageObjByType"] = mView->sigMakePageObjByType.connect([this](const wh::rec::PageObjByType& data){DoAddPage(data); });
 	view_connPage["sigMakePageHistory"] = mView->sigMakePageHistory.connect([this](const wh::rec::PageHistory& data){DoAddPage(data); });
-	view_connPage["sigMakePageReport"] = mView->sigMakePageReport.connect([this](const wh::rec::PageReport& data){DoAddPage(data); });
+	view_connPage["sigMakePageReport"] = mView->sigMakePageReport.connect([this](const wh::rec::PageReportList& data){DoAddPage(data); });
 	view_connPage["sigMakePageReport"] = mView->sigMakePageReport.connect(
-		std::bind(&NotebookPresenter::DoAddPage<wh::rec::PageReport>, this,std::placeholders::_1) 
+		std::bind(&NotebookPresenter::DoAddPage<wh::rec::PageReportList>, this, std::placeholders::_1)
 		);
 
 }

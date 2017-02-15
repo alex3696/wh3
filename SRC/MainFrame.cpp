@@ -445,5 +445,5 @@ void MainFrame::OnCmd_MakePage_History(wxCommandEvent& evt)
 
 void MainFrame::OnCmd_MakePage_Report(wxCommandEvent& evt)
 {
-	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageReport());
+	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageReportList());
 }

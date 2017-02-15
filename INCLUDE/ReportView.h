@@ -1,30 +1,27 @@
-#ifndef __REPORTLISTVIEW_H
-#define __REPORTLISTVIEW_H
+#ifndef __REPORTVIEW_H
+#define __REPORTVIEW_H
 //-----------------------------------------------------------------------------
 #include "_pch.h"
-#include "IReportListView.h"
+#include "IReportView.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
-class ReportListView : public IReportListView
+class ReportView : public IReportView
 {
 	wxPanel* mPanel;
 	wxDataViewCtrl* mTable;
 public:
-	ReportListView(std::shared_ptr<wxWindow*> wnd);
+	ReportView(std::shared_ptr<wxWindow*> wnd);
 	virtual void SetWnd(wxWindow* wnd)override;
 	virtual wxWindow* GetWnd() override;
 
-	virtual void SetReportList(const rec::ReportList& rl) override;
+	virtual void SetReportTable(const rec::ReportTable& rt) override;
 protected:
-	void OnCmd_UpdateList(wxCommandEvent& evt);
-	void OnCmd_ExecReport(wxCommandEvent& evt);
-	void OnCmd_MkReport(wxCommandEvent& evt);
-	void OnCmd_RmReport(wxCommandEvent& evt);
-	void OnCmd_ChReport(wxCommandEvent& evt);
+	void OnCmd_Update(wxCommandEvent& evt);
+	void OnCmd_Export(wxCommandEvent& evt);
 private:
 	wxAuiToolBar*	BuildToolBar(wxWindow* parent);
-	wxDataViewCtrl* BuildReportList(wxWindow* parent);
+	wxDataViewCtrl* BuildReportTable(wxWindow* parent);
 };
 
 

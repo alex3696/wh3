@@ -1,5 +1,5 @@
-#ifndef __REPORTPRESENTER_H
-#define __REPORTPRESENTER_H
+#ifndef __REPORTLISTPRESENTER_H
+#define __REPORTLISTPRESENTER_H
 
 #include "PagePresenter.h"
 #include "IReportListView.h"

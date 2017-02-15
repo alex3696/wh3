@@ -21,7 +21,11 @@ typedef std::vector<ReportItem> ReportList;
 //
 //};
 
-
+class ReportTable
+{
+public:
+	std::vector<wxString> mFields;
+};
 
 
 

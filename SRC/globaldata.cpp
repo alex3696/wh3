@@ -24,6 +24,10 @@
 #include "ReportEditorView.h"
 #include "ReportEditorPresenter.h"
 
+#include "IReportView.h"
+#include "ReportView.h"
+#include "ReportPresenter.h"
+
 using namespace wh;
 //using namespace std;
 
@@ -372,22 +376,34 @@ void whDataMgr::SetMainFrame(MainFrame* wnd)
 	mContainer->RegFactory<MoveObjPresenter, MoveObjPresenter, IMoveObjView, rec::PathItem>
 		("MoveObjPresenter", "MoveObjView", "MoveableObj");
 
-	////////////
-	// report //
-	////////////
+	/////////////////
+	// report list //
+	////////////////
 	mContainer->RegInstanceNI<ReportListModel>("ReportListModel");
-	mContainer->RegFactory<ReportItemModel, ReportItemModel, ReportListModel>
-		("ReportItemModel", "ReportListModel");
-
 	mContainer->RegFactory<IReportListView, ReportListView, wxWindow*>
 		("ReportListView", "MainNotebookWnd");
-	mContainer->RegInstanceDeferred<IReportEditorView, ReportEditorView, wxWindow*>
-		("ReportEditor", "MainFrameWnd");
-	
 	mContainer->RegFactory<ReportListPresenter, ReportListPresenter, IReportListView, ReportListModel>
 		("FactoryReportListPresenter", "ReportListView", "ReportListModel");
+	////////////////////
+	// report editor //
+	///////////////////
+	mContainer->RegFactory<ReportItemModel, ReportItemModel, ReportListModel>
+		("ReportItemModel", "ReportListModel");
+	mContainer->RegInstanceDeferred<IReportEditorView, ReportEditorView, wxWindow*>
+		("ReportEditor", "MainFrameWnd");
 	mContainer->RegFactory<ReportEditorPresenter, ReportEditorPresenter, IReportEditorView, ReportItemModel>
 		("FactoryReportEditorPresenter", "ReportEditor", "ReportItemModel");
+	////////////////////
+	// report output //
+	///////////////////
+	mContainer->RegFactory<ReportModel, ReportModel>
+		("ReportModel");
+	mContainer->RegFactory<IReportView, ReportView, wxWindow*>
+		("ReportView", "MainNotebookWnd");
+	mContainer->RegFactory<ReportPresenter, ReportPresenter, IReportView, ReportModel>
+		("FactoryReportPresenter", "ReportView", "ReportModel");
+
+
 
 }
 //---------------------------------------------------------------------------

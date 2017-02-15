@@ -1,6 +1,7 @@
 #include "_pch.h"
 #include "ReportListPresenter.h"
 #include "ReportEditorPresenter.h"
+#include "ReportPresenter.h"
 
 using namespace wh;
 
@@ -59,7 +60,11 @@ void ReportListPresenter::UpdateList()
 //---------------------------------------------------------------------------
 void ReportListPresenter::ExecReport(size_t idx)
 {
+	auto controller = whDataMgr::GetInstance()->mContainer;
+	auto presenter = controller->GetObject<ReportPresenter>("FactoryReportPresenter");
 
+	//rec::PageReport pr;
+	//whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(pr);
 }
 //---------------------------------------------------------------------------
 size_t ReportListPresenter::MkReport()
