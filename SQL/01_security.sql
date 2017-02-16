@@ -518,9 +518,12 @@ GRANT SELECT ON TABLE wh_group  	TO "Guest";
 GRANT SELECT ON TABLE wh_user  		TO "Guest";
 GRANT SELECT ON TABLE wh_membership	TO "Guest";
 
-GRANT INSERT,DELETE,UPDATE ON TABLE wh_role  	TO "Admin";		-- Позволяет добавлять,удалять,редактировать пользователей
-GRANT INSERT,DELETE ON TABLE wh_auth_members  	TO "Admin";		-- Позволяет добавлять,удалять пользователей в группы
-GRANT USAGE ON TABLE wh_role_id_seq 		TO "Admin"; 		-- Позволяет читать,инкрементировать текущее значение очереди
+--Позволяет добавлять,удалять,редактировать пользователей
+GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE wh_role         TO "Admin" WITH GRANT OPTION;
+-- Позволяет добавлять,удалять пользователей в группы
+GRANT INSERT,DELETE                  ON TABLE wh_auth_members TO "Admin";
+-- Позволяет читать,инкрементировать текущее значение очереди
+GRANT USAGE                          ON TABLE wh_role_id_seq  TO "Admin"; 
 GRANT EXECUTE ON FUNCTION whgrant_grouptouser(name, name) TO "Admin" WITH GRANT OPTION;
 
 DROP FUNCTION UpdateWhGroup(IN _role NAME,IN _comment TEXT);
