@@ -122,6 +122,12 @@ public:
 		RegFunctor(name, functor,names...);
 	}
 
+	template<typename TConcrete, typename ...TArguments, typename ...N>
+	void RegFactoryNI(const TString& name, N... names)
+	{
+		RegFactory<TConcrete, TConcrete, TArguments...>(name, names...);
+	}
+
 	template<typename TInterface,typename TConcrete, typename ...TStaticArguments>
 	void RegFactoryBind(const TString& name, TStaticArguments... sa)
 	{

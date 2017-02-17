@@ -428,6 +428,8 @@ struct PageObjByType
 };
 //-----------------------------------------------------------------------------
 
+typedef PathItem PageDetail;
+
 struct PageHistory
 {
 };

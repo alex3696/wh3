@@ -497,10 +497,10 @@ void MoveObjView::OnCancel(wxCommandEvent& evt)
 void MoveObjView::OnOk(wxCommandEvent& evt)
 {
 	auto selected = mTree->GetSelection();
-	auto sel_node = (Node*)selected.GetID();
+	auto sel_node = static_cast<Node*>(selected.GetID());
 	if (selected && sel_node->mTypeId==20)
 	{
-		auto sel_obj = (Obj*)sel_node->mVal;
+		auto sel_obj = static_cast<Obj*>(sel_node->mVal);
 		wxString qty="1";
 		if (mqtySpin->IsShown() && !mqtyCtrl->IsShown())
 			qty = wxString::Format("%d", mqtySpin->GetValue());

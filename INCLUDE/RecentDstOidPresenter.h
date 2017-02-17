@@ -11,8 +11,6 @@ class RecentDstOidPresenter
 public:
 	RecentDstOidPresenter()
 	{
-		mModel = std::make_shared<RecentDstOidModel>();
-
 		namespace ph = std::placeholders;
 		auto fnAU = std::bind(&RecentDstOidPresenter::OnModelAfterUpdate, this, ph::_1);
 		//connModelAfterUpdate = mModel->ConnAU(fnAU);
@@ -32,15 +30,10 @@ public:
 	void SetRecentEnable(char enable){ mModel->SetRecentEnable(enable); }
 	void SetFilterEnable(char enable){ mModel->SetFilterEnable(enable); }
 private:
-	std::shared_ptr<wh::RecentDstOidModel> mModel = nullptr;
+	std::shared_ptr<wh::RecentDstOidModel> mModel = std::make_shared<RecentDstOidModel>();
 	IRecentDstOidView* mView = nullptr;
 
 	// View connector
-	sig::scoped_connection connViewDoUpdate;
-	inline void OnViewDoUpdate()
-	{
-		mModel->DoSigUpdate();
-	}
 
 	// Model connector
 	sig::scoped_connection connModelAfterUpdate;
