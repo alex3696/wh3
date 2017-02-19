@@ -46,9 +46,9 @@ private:
 	sig::scoped_connection mSSC_AfterChange_BaseGroup;
 	void OnSigAfterChange_BaseGroup(const wh::IModel*, const BaseGroup* const);
 
-	wxAuiManager	m_AuiMgr;
 	wxAuiNotebook*	m_Notebook;
 public:
+	wxAuiManager	m_AuiMgr;
 	wxAuiNotebook* GetNotebook()const { return m_Notebook; }
 
 	MainFrame( wxWindow* parent = NULL, wxWindowID id = wxID_ANY, 
@@ -57,8 +57,6 @@ public:
 		long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL);
 	~MainFrame();
 
-	void DoShowConnDlg(wxCommandEvent& evt = wxCommandEvent());
-	void DoMenuPreferences( wxCommandEvent& evt=wxCommandEvent() );
 	void OnCmd_ConnectDB(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_DisconnectDB(wxCommandEvent& evt=wxCommandEvent());
 

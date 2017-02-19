@@ -166,6 +166,24 @@
     <Filter Include="Отчёты\Вывод отчёта">
       <UniqueIdentifier>{7c2a21b6-25cd-42c9-8812-7ad0414d0fef}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MainFrame\MVP2">
+      <UniqueIdentifier>{08145cc8-3767-40e2-afd0-67cbe7cf8943}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\InterfacesWindow">
+      <UniqueIdentifier>{43ecdd62-b56a-4b89-bee4-d91b73557ff4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\BaseWindow">
+      <UniqueIdentifier>{587eb8a6-7372-4298-8074-0e2353ccbd79}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows">
+      <UniqueIdentifier>{63565c07-753f-4d70-85fa-e955b7d7b5ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\NotebookWindow">
+      <UniqueIdentifier>{c38d4098-8a0c-4383-84d3-e1d593ebd6c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\MainFrame">
+      <UniqueIdentifier>{fc26a495-b524-4cb7-9858-e947672ad79c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -176,9 +194,6 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\globaldata.cpp">
       <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\MainFrame.cpp">
-      <Filter>MainFrame</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\wxDataViewRenderer.cpp">
       <Filter>Controls\DataViewExtension</Filter>
@@ -483,6 +498,18 @@
     <ClCompile Include="..\..\SRC\ReportView.cpp">
       <Filter>Отчёты\Вывод отчёта</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\SRC\ViewNotebook.cpp">
+      <Filter>MainFrame\MVP2\NotebookWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ModelNotebook.cpp">
+      <Filter>MainFrame\MVP2\NotebookWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\CtrlNotebook.cpp">
+      <Filter>MainFrame\MVP2\NotebookWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MainFrame.cpp">
+      <Filter>MainFrame\MVP2\MainFrame</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\INCLUDE\_pch.h">
@@ -496,9 +523,6 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ResManager.h">
       <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MainFrame.h">
-      <Filter>MainFrame</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\wxDataViewRenderer.h">
       <Filter>Controls\DataViewExtension</Filter>
@@ -895,6 +919,54 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ReportView.h">
       <Filter>Отчёты\Вывод отчёта</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ICtrlWindow.h">
+      <Filter>MainFrame\MVP2\InterfacesWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\IViewWindow.h">
+      <Filter>MainFrame\MVP2\InterfacesWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\IModelWindow.h">
+      <Filter>MainFrame\MVP2\InterfacesWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\CtrlWindowBase.h">
+      <Filter>MainFrame\MVP2\BaseWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\IViewNotebook.h">
+      <Filter>MainFrame\MVP2\NotebookWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ViewNotebook.h">
+      <Filter>MainFrame\MVP2\NotebookWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ModelNotebook.h">
+      <Filter>MainFrame\MVP2\NotebookWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\CtrlNotebook.h">
+      <Filter>MainFrame\MVP2\NotebookWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MainFrame.h">
+      <Filter>MainFrame\MVP2\MainFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ViewMain.h">
+      <Filter>MainFrame\MVP2\MainFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\CtrlMain.h">
+      <Filter>MainFrame\MVP2\MainFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ModelMain.h">
+      <Filter>MainFrame\MVP2\MainFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\PageGroupList.h">
+      <Filter>MainFrame\MVP2\ContentWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\PageUserList.h">
+      <Filter>MainFrame\MVP2\ContentWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\PagePropList.h">
+      <Filter>MainFrame\MVP2\ContentWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\PageActList.h">
+      <Filter>MainFrame\MVP2\ContentWindows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

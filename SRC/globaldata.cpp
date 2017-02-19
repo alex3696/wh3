@@ -7,29 +7,39 @@
 #include "RecentDstOidPresenter.h"
 
 #include "globaldata.h"
-#include "MainFrame.h"
 #include "config.h"
+
+#include "CtrlMain.h"
+#include "ViewMain.h"
+
+#include "ViewNotebook.h"
+#include "CtrlNotebook.h"
+
+#include "PageUserList.h"
+#include "PageGroupList.h"
+#include "PagePropList.h"
+#include "PageActList.h"
+
 
 #include "MoveObjView.h"
 #include "MoveObjPresenter.h"
 
-
-#include "ReportListModel.h"
-
-#include "IReportListView.h"
 #include "ReportListView.h"
 #include "ReportListPresenter.h"
 
-#include "IReportEditorView.h"
 #include "ReportEditorView.h"
 #include "ReportEditorPresenter.h"
 
-#include "IReportView.h"
 #include "ReportView.h"
 #include "ReportPresenter.h"
 
+
+
+
+
+
+
 using namespace wh;
-//using namespace std;
 
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -40,9 +50,7 @@ Ftp::Ftp()
 {
 
 }
-
-
-
+//---------------------------------------------------------------------------
 void Ftp::DoConnect()
 {
 	const rec::FtpCfg& ftp_cfg_data = whDataMgr::GetInstance()->mDbCfg->mFtpCfg->GetData();
@@ -71,7 +79,6 @@ void Ftp::DoConnect()
 	}
 }
 //---------------------------------------------------------------------------
-
 void Ftp::DoChDir(const wxFileName& ftpfile, bool make_dirs)
 {
 	DoConnect();
@@ -111,9 +118,7 @@ void Ftp::DoChDir(const wxFileName& ftpfile, bool make_dirs)
 	}
 
 }
-
 //---------------------------------------------------------------------------
-
 void Ftp::Remove(const wxFileName& ftpfile)
 {
 	DoConnect();
@@ -131,7 +136,6 @@ void Ftp::Remove(const wxFileName& ftpfile)
 
 }//void Ftp::Remove(const wxFileName& file)
 //---------------------------------------------------------------------------
-
 void Ftp::Upload(const wxFileName& localfile,const wxFileName& ftpfile)
 {
 	wxOutputStream* ftp_stream=NULL;
@@ -178,7 +182,6 @@ void Ftp::Upload(const wxFileName& localfile,const wxFileName& ftpfile)
 
 	
 }
-
 //---------------------------------------------------------------------------
 void Ftp::Download(const wxFileName& localfile,const wxFileName& ftpfile)
 {
@@ -231,7 +234,6 @@ void Ftp::Download(const wxFileName& localfile,const wxFileName& ftpfile)
 
 }
 //---------------------------------------------------------------------------
-
 void Ftp::DoCopyFile(wxInputStream* src,wxOutputStream* dst,const size_t src_size,const wxString& msg)
 {
 	if (MAXINT == src_size )
@@ -278,7 +280,6 @@ void Ftp::DoCopyFile(wxInputStream* src,wxOutputStream* dst,const size_t src_siz
 
 }
 //---------------------------------------------------------------------------
-
 void Ftp::Rename(const wxFileName& ftpfile,const wxString& new_name)
 {
 	DoConnect();
@@ -331,8 +332,12 @@ void whDataMgr::OnConnectDb(const whDB& db)
 	if (mDb.IsOpen())
 	{
 		mDbCfg->Load();
-		mNotebookPresenter->Load();
+		//mNotebookPresenter->Load();
 		mRecentDstOidPresenter->GetFromConfig();
+		
+		auto ctrlMain = mContainer->GetObject<wh::CtrlMain>("CtrlMain");
+		if (ctrlMain)
+			ctrlMain->Load();
 	}
 		
 }
@@ -341,26 +346,84 @@ void whDataMgr::OnDicsonnectDb(const whDB& db)
 {
 	if (mDb.IsOpen())
 	{
-		mNotebookPresenter->Save();
+		//mNotebookPresenter->Save();
+
+		auto container = whDataMgr::GetInstance()->mContainer;
+		auto ctrlMain = container->GetObject<wh::CtrlMain>("CtrlMain");
+		if (ctrlMain)
+			ctrlMain->Save();
+
 		mRecentDstOidPresenter->SetToConfig();
 		mDbCfg->Save();
 	}
 		
 }
 //---------------------------------------------------------------------------
-void whDataMgr::SetMainFrame(MainFrame* wnd)
+void whDataMgr::InitContainer()
 {
-	m_MainFrame = wnd;
-	
-	mRootPresenter = std::make_unique<mvp::EmptyPresenter>(wnd);
-	mNotebookPresenter = std::make_unique<mvp::NotebookPresenter>(mRootPresenter.get());
-	
-	auto notebook_model = std::make_shared<mvp::NotebookModel>();
-	auto notebook_view = new mvp::NotebookView(m_MainFrame->GetNotebook());
+	//mContainer->RegInstanceDeferredNI<ViewMain>("ViewMain");
+	//mContainer->RegInstanceDeferredNI<ModelMain>("ModelMain");
+	//mContainer->RegInstanceDeferredNI<CtrlMain, ViewMain, ModelMain>
+	//	("CtrlMain", "ViewMain", "ModelMain");
 
-	mNotebookPresenter->SetView(notebook_view);
-	mNotebookPresenter->SetModel(notebook_model);
+	/////////////////
+	// Window list //
+	////////////////
+	//mContainer->RegInstanceDeferredNI<ModelNotebook>("ModelNotebook");
+	//mContainer->RegInstanceDeferred<IViewNotebook, ViewNotebook, IViewWindow>
+	//	("ViewNotebook", "ViewMain");
+	//mContainer->RegInstanceDeferredNI<CtrlNotebook, IViewNotebook, ModelNotebook>
+	//	("CtrlNotebook", "ViewNotebook", "ModelNotebook");
 	
+	
+	/////////////////
+	// page user  //
+	////////////////	
+	mContainer->RegInstanceDeferredNI<rec::PageUser >("DefaultUserListInfo");
+	mContainer->RegFactoryNI<ModelPageUserList, rec::PageUser >
+		("ModelPageUserList", "DefaultUserListInfo");
+	mContainer->RegFactoryNI<ViewPageUserList, IViewNotebook >
+		("ViewPageUserList", "ViewNotebook");
+	mContainer->RegFactory<ICtrlWindow, CtrlPageUserList, ViewPageUserList, ModelPageUserList >
+		("CtrlPageUserList", "ViewPageUserList", "ModelPageUserList");
+	
+	/////////////////
+	// page group  //
+	////////////////	
+	mContainer->RegInstanceDeferredNI<rec::PageGroup>("DefaultGroupListInfo");
+	mContainer->RegFactoryNI<ModelPageGroupList, rec::PageGroup >
+		("ModelPageGroupList", "DefaultGroupListInfo");
+	mContainer->RegFactoryNI<ViewPageGroupList, IViewNotebook >
+		("ViewPageGroupList", "ViewNotebook");
+	mContainer->RegFactory<ICtrlWindow, CtrlPageGroupList, ViewPageGroupList, ModelPageGroupList >
+		("CtrlPageGroupList", "ViewPageGroupList", "ModelPageGroupList");
+
+	/////////////////
+	// page act  //
+	////////////////	
+	mContainer->RegInstanceDeferredNI<rec::PageAct>("DefaultActListInfo");
+	mContainer->RegFactoryNI<ModelPageActList, rec::PageAct >
+		("ModelPageActList", "DefaultActListInfo");
+	mContainer->RegFactoryNI<ViewPageActList, IViewNotebook >
+		("ViewPageActList", "ViewNotebook");
+	mContainer->RegFactory<ICtrlWindow, CtrlPageActList, ViewPageActList, ModelPageActList >
+		("CtrlPageActList", "ViewPageActList", "ModelPageActList");
+
+	/////////////////
+	// page prop  //
+	////////////////	
+	mContainer->RegInstanceDeferredNI<rec::PageProp>("DefaultPropListInfo");
+	mContainer->RegFactoryNI<ModelPagePropList, rec::PageProp >
+		("ModelPagePropList", "DefaultPropListInfo");
+	mContainer->RegFactoryNI<ViewPagePropList, IViewNotebook >
+		("ViewPagePropList", "ViewNotebook");
+	mContainer->RegFactory<ICtrlWindow, CtrlPagePropList, ViewPagePropList, ModelPagePropList >
+		("CtrlPagePropList", "ViewPagePropList", "ModelPagePropList");
+
+	/*
+
+
+
 	auto pp = std::make_shared<wxWindow*>(m_MainFrame);
 	mContainer->RegInstance<wxWindow*>("MainFrameWnd", pp);
 
@@ -379,7 +442,7 @@ void whDataMgr::SetMainFrame(MainFrame* wnd)
 	/////////////////
 	// report list //
 	////////////////
-	mContainer->RegInstanceNI<ReportListModel>("ReportListModel");
+	mContainer->RegInstanceDeferredNI<ReportListModel>("ReportListModel");
 	mContainer->RegFactory<IReportListView, ReportListView, wxWindow*>
 		("ReportListView", "MainNotebookWnd");
 	mContainer->RegFactory<ReportListPresenter, ReportListPresenter, IReportListView, ReportListModel>
@@ -405,10 +468,23 @@ void whDataMgr::SetMainFrame(MainFrame* wnd)
 
 
 
-}
-//---------------------------------------------------------------------------
-MainFrame* whDataMgr::GetMainFrame()
-{
-	return m_MainFrame;
-}
 
+
+	*/
+
+	
+	
+	/*
+	auto m_MainFrame = dynamic_cast<MainFrame*>
+		(mContainer->GetObject<CtrlMain>("CtrlMain")->GetView()->GetWnd());
+
+	mRootPresenter = std::make_unique<mvp::EmptyPresenter>(m_MainFrame);
+	mNotebookPresenter = std::make_unique<mvp::NotebookPresenter>(mRootPresenter.get());
+
+	auto notebook_model = std::make_shared<mvp::NotebookModel>();
+	auto notebook_view = new mvp::NotebookView(m_MainFrame->GetNotebook());
+
+	mNotebookPresenter->SetView(notebook_view);
+	mNotebookPresenter->SetModel(notebook_model);
+	*/
+}

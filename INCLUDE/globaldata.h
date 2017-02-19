@@ -123,10 +123,9 @@ private:
 	void OnConnectDb(const whDB& db);
 	void OnDicsonnectDb(const whDB& db);
 
-	std::unique_ptr<mvp::EmptyPresenter>		mRootPresenter;
+	std::unique_ptr<mvp::EmptyPresenter>	mRootPresenter;
 	std::unique_ptr<mvp::EmptyView>			mRootView;
 
-	MainFrame*					m_MainFrame = nullptr;
 public:
 	static whDataMgr* GetInstance()
 	{
@@ -150,16 +149,12 @@ public:
 
 	
 
-	void SetMainFrame(MainFrame* wnd);
-	MainFrame* GetMainFrame();
-
-
 	static whDB& GetDB()
 	{	
 		return GetInstance()->mDb;
 	}
 
-
+	void InitContainer();
 
 	std::shared_ptr<IOCStrContainer<wxString>>	mContainer
 		= std::make_shared<IOCStrContainer<wxString>>();

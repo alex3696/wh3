@@ -230,6 +230,9 @@
     <ClCompile Include="..\..\SRC\VUserPanel.cpp" />
     <ClCompile Include="..\..\SRC\whParser.cpp" />
     <ClCompile Include="..\..\SRC\whPGFileLinkProperty.cpp" />
+    <ClCompile Include="..\..\SRC\ModelNotebook.cpp" />
+    <ClCompile Include="..\..\SRC\CtrlNotebook.cpp" />
+    <ClCompile Include="..\..\SRC\ViewNotebook.cpp" />
     <ClCompile Include="..\..\SRC\_pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -266,6 +269,7 @@
     <ClInclude Include="..\..\INCLUDE\BtnProperty.h" />
     <ClInclude Include="..\..\INCLUDE\config.h" />
     <ClInclude Include="..\..\INCLUDE\ConnectionCfgDlg.h" />
+    <ClInclude Include="..\..\INCLUDE\CtrlMain.h" />
     <ClInclude Include="..\..\INCLUDE\DActEditor.h" />
     <ClInclude Include="..\..\INCLUDE\dbFieldType.h" />
     <ClInclude Include="..\..\INCLUDE\db_data.h" />
@@ -276,6 +280,15 @@
     <ClInclude Include="..\..\INCLUDE\DetailActCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h" />
     <ClInclude Include="..\..\INCLUDE\EmptyPresenter.h" />
+    <ClInclude Include="..\..\INCLUDE\ICtrlWindow.h" />
+    <ClInclude Include="..\..\INCLUDE\IModelWindow.h" />
+    <ClInclude Include="..\..\INCLUDE\IViewWindow.h" />
+    <ClInclude Include="..\..\INCLUDE\ModelMain.h" />
+    <ClInclude Include="..\..\INCLUDE\PageActList.h" />
+    <ClInclude Include="..\..\INCLUDE\PagePropList.h" />
+    <ClInclude Include="..\..\INCLUDE\PageUserList.h" />
+    <ClInclude Include="..\..\INCLUDE\ModelNotebook.h" />
+    <ClInclude Include="..\..\INCLUDE\CtrlNotebook.h" />
     <ClInclude Include="..\..\INCLUDE\IMoveObjView.h" />
     <ClInclude Include="..\..\INCLUDE\ioc_strcontainer.h" />
     <ClInclude Include="..\..\INCLUDE\IPageView.h" />
@@ -283,10 +296,12 @@
     <ClInclude Include="..\..\INCLUDE\IReportEditorView.h" />
     <ClInclude Include="..\..\INCLUDE\IReportListView.h" />
     <ClInclude Include="..\..\INCLUDE\IReportView.h" />
+    <ClInclude Include="..\..\INCLUDE\IViewNotebook.h" />
     <ClInclude Include="..\..\INCLUDE\MoveObjData.h" />
     <ClInclude Include="..\..\INCLUDE\MoveObjModel.h" />
     <ClInclude Include="..\..\INCLUDE\MoveObjPresenter.h" />
     <ClInclude Include="..\..\INCLUDE\MoveObjView.h" />
+    <ClInclude Include="..\..\INCLUDE\PageGroupList.h" />
     <ClInclude Include="..\..\INCLUDE\PageModel.h" />
     <ClInclude Include="..\..\INCLUDE\IMVP.h" />
     <ClInclude Include="..\..\INCLUDE\INotebookView.h" />
@@ -356,6 +371,7 @@
     <ClInclude Include="..\..\INCLUDE\ReportPresenter.h" />
     <ClInclude Include="..\..\INCLUDE\ReportView.h" />
     <ClInclude Include="..\..\INCLUDE\ViewFactory.h" />
+    <ClInclude Include="..\..\INCLUDE\ViewMain.h" />
     <ClInclude Include="..\..\INCLUDE\VTableCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\TableRowEditor.h" />
     <ClInclude Include="..\..\INCLUDE\TModel.h" />
@@ -389,6 +405,8 @@
     <ClInclude Include="..\..\INCLUDE\VUserCtrlPanel.h" />
     <ClInclude Include="..\..\INCLUDE\VUserPanel.h" />
     <ClInclude Include="..\..\INCLUDE\whPGFileLinkProperty.h" />
+    <ClInclude Include="..\..\INCLUDE\ViewNotebook.h" />
+    <ClInclude Include="..\..\INCLUDE\CtrlWindowBase.h" />
     <ClInclude Include="..\..\INCLUDE\wxComboBtn.h" />
     <ClInclude Include="..\..\INCLUDE\_pch.h" />
     <ClInclude Include="..\..\INCLUDE\App.h" />

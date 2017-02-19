@@ -25,6 +25,7 @@
 #include "NotebookPresenter.h"
 #include "NotebookView.h"
 
+#include "CtrlNotebook.h"
 //---------------------------------------------------------------------------
 enum GUIID
 {
@@ -97,7 +98,7 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 	mSSC_AfterDbConnected = dmgr->GetDB().SigAfterConnect.connect(fnAC);
 	mSSC_BeforeDbDisconnect = dmgr->GetDB().SigBeforeDisconnect.connect(fnBD);
 
-
+	/*
 	m_Notebook = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize
 		, wxAUI_NB_DEFAULT_STYLE | wxNO_BORDER);
 	m_AuiMgr.AddPane(m_Notebook, wxAuiPaneInfo().
@@ -106,7 +107,11 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 		//.Layer(1).Position(1).CloseButton(true).MaximizeButton(true)
 		.PaneBorder(false)
 		);
+	*/
+
 	m_AuiMgr.Update();
+
+
 
 }
 //---------------------------------------------------------------------------
@@ -115,7 +120,6 @@ MainFrame::~MainFrame()
 	m_AuiMgr.UnInit();
 }
 //---------------------------------------------------------------------------
-
 void MainFrame::BuildMenu()
 {
 	wxMenuBar*	menu_bar = new wxMenuBar(0);
@@ -182,9 +186,6 @@ void MainFrame::BuildMenu()
 
 	SetMenuBar(menu_bar);
 
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::DoMenuPreferences, this, wxID_PREFERENCES);
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::DoShowConnDlg, this, wxID_SETUP);
-
 }
 //---------------------------------------------------------------------------
 void MainFrame::BuildToolbar()
@@ -247,19 +248,6 @@ void MainFrame::BuildStatusbar()
 }
 //---------------------------------------------------------------------------
 
-void MainFrame::DoShowConnDlg(wxCommandEvent& evt)
-{
-	ConnectionCfgDlg conn_dlg(this);
-	conn_dlg.ShowModal();
-}
-//---------------------------------------------------------------------------
-void MainFrame::DoMenuPreferences( wxCommandEvent& evt) 
-{
-
-}
-
-//---------------------------------------------------------------------------
-
 void MainFrame::OnCmd_ConnectDB(wxCommandEvent& evt)
 {
 	whLogin dlg(this);
@@ -319,6 +307,7 @@ void MainFrame::OnSig_AfterDbConnected(const whDB&)
 	}
 	if (m_MainToolBar)
 		m_MainToolBar->Enable();
+
 
 }
 //---------------------------------------------------------------------------
@@ -387,25 +376,41 @@ void MainFrame::OnSigAfterChange_BaseGroup(const wh::IModel*, const BaseGroup* c
 
 void MainFrame::OnCmd_MakePage_Group(wxCommandEvent& evt)
 {
-	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageGroup());
+	//whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageGroup());
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
+	if (nb2)
+		nb2->MkWindow("CtrlPageGroupList");
 }
 //---------------------------------------------------------------------------
 
 void MainFrame::OnCmd_MakePage_User(wxCommandEvent& evt)
 {
-	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageUser());
+	//whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageUser());
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
+	if (nb2)
+		nb2->MkWindow("CtrlPageUserList");
 }
 //---------------------------------------------------------------------------
 
 void MainFrame::OnCmd_MakePage_Prop(wxCommandEvent& evt)
 {
-	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageProp());
+	//whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageProp());
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
+	if (nb2)
+		nb2->MkWindow("CtrlPagePropList");
 }
 //---------------------------------------------------------------------------
 
 void MainFrame::OnCmd_MakePage_Act(wxCommandEvent& evt)
 {
-	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageAct());
+	//whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageAct());
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
+	if (nb2)
+		nb2->MkWindow("CtrlPageActList");
 }
 //---------------------------------------------------------------------------
 

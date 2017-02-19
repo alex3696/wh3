@@ -1,16 +1,15 @@
 #include "_pch.h"
 #include "App.h"
-#include "MainFrame.h"
-#include "ResManager.h" 
 #include "config.h" 
 
-#include "NotebookPresenter.h"
+#include "CtrlMain.h"
+
+#include "whLogin.h"
+#include "ConnectionCfgDlg.h"
+
 
 IMPLEMENT_APP( App );
-
-ResMgr*		mgr=NULL;
-whDataMgr*	gdm=NULL;
-
+//---------------------------------------------------------------------------
 class wxLogGuiError : public wxLogGui
 {
 public: 
@@ -72,26 +71,33 @@ bool App::OnInit()
 		mLogger = nullptr;
 	}
 
-	auto res_mgr = ResMgr::GetInstance();
-	auto data_mgr = whDataMgr::GetInstance();
+	// inint global data
+	auto gmgr = whDataMgr::GetInstance();
+	// Load local config
+	gmgr->mConnectCfg->Load();
+	// init factories
+	gmgr->InitContainer();
 
-	// загружаем конфиг
-	data_mgr->mConnectCfg->Load();
+	// init main controller
+	using namespace wh;
+	auto model_main = std::make_shared<ModelMain>();
+	auto view_main = std::make_shared<ViewMain>();
+	auto ctrl_main = std::make_shared<CtrlMain>(view_main, model_main);
+	gmgr->mContainer->RegInstance("CtrlMain", ctrl_main);
 	
-	// создаём вид
-	auto main_frame = new MainFrame(NULL);
-	data_mgr->SetMainFrame(main_frame);
-	SetTopWindow(main_frame);
-	main_frame->Show();
-	main_frame->OnCmd_ConnectDB();
+	SetTopWindow(view_main->GetWnd());
+	ctrl_main->Show();
+
+	whLogin dlg(ctrl_main->GetView()->GetWnd());
+	dlg.ShowModal();
+	//auto ctrl_login = data_mgr->mContainer->GetObject<ConnectionCfgDlg>("CtrlLogin");
+	//ctrl_login.ShowModal();
 
 	return true;
 }
 //---------------------------------------------------------------------------
 App::~App()
 {
-//	delete login;
-//	delete mainframe;
 }
 //---------------------------------------------------------------------------
 int App::OnExit()
@@ -110,9 +116,6 @@ int App::OnExit()
 
 	//delete mLogger;
 	mLogger = nullptr;
-
-	
-
 
 	return 0;
 }
