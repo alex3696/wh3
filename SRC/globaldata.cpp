@@ -1,9 +1,5 @@
 #include "_pch.h"
 
-#include "EmptyPresenter.h"
-#include "NotebookModel.h"
-#include "NotebookPresenter.h"
-#include "NotebookView.h"
 #include "RecentDstOidPresenter.h"
 
 #include "globaldata.h"
@@ -17,8 +13,11 @@
 
 #include "PageUserList.h"
 #include "PageGroupList.h"
-#include "PagePropList.h"
 #include "PageActList.h"
+#include "PagePropList.h"
+#include "PageLogList.h"
+#include "PageObjByTypeList.h"
+#include "PageObjByPathList.h"
 
 
 #include "MoveObjView.h"
@@ -419,6 +418,37 @@ void whDataMgr::InitContainer()
 		("ViewPagePropList", "ViewNotebook");
 	mContainer->RegFactory<ICtrlWindow, CtrlPagePropList, ViewPagePropList, ModelPagePropList >
 		("CtrlPagePropList", "ViewPagePropList", "ModelPagePropList");
+	/////////////////
+	// page log  //
+	////////////////	
+	mContainer->RegInstanceDeferredNI<rec::PageHistory>("DefaultLogListInfo");
+	mContainer->RegFactoryNI<ModelPageLogList, rec::PageHistory >
+		("ModelPageLogList", "DefaultLogListInfo");
+	mContainer->RegFactoryNI<ViewPageLogList, IViewNotebook >
+		("ViewPageLogList", "ViewNotebook");
+	mContainer->RegFactory<ICtrlWindow, CtrlPageLogList, ViewPageLogList, ModelPageLogList >
+		("CtrlPageLogList", "ViewPageLogList", "ModelPageLogList");
+	/////////////////
+	// page ObjByType  //
+	////////////////	
+	mContainer->RegInstanceDeferredNI<rec::PageObjByType>("DefaultObjByTypeListInfo");
+	mContainer->RegFactoryNI<ModelPageObjByTypeList, rec::PageObjByType>
+		("ModelPageObjByTypeList", "DefaultObjByTypeListInfo");
+	mContainer->RegFactoryNI<ViewPageObjByTypeList, IViewNotebook >
+		("ViewPageObjByTypeList", "ViewNotebook");
+	mContainer->RegFactory<ICtrlWindow, CtrlPageObjByTypeList, ViewPageObjByTypeList, ModelPageObjByTypeList >
+		("CtrlPageObjByTypeList", "ViewPageObjByTypeList", "ModelPageObjByTypeList");
+	////////////////////
+	// page ObjByPath //
+	////////////////////
+	mContainer->RegInstanceDeferredNI<rec::PageObjByPath>("DefaultObjByPathListInfo");
+	mContainer->RegFactoryNI<ModelPageObjByPathList, rec::PageObjByPath>
+		("ModelPageObjByPathList", "DefaultObjByPathListInfo");
+	mContainer->RegFactoryNI<ViewPageObjByPathList, IViewNotebook >
+		("ViewPageObjByPathList", "ViewNotebook");
+	mContainer->RegFactory<ICtrlWindow, CtrlPageObjByPathList, ViewPageObjByPathList, ModelPageObjByPathList >
+		("CtrlPageObjByPathList", "ViewPageObjByPathList", "ModelPageObjByPathList");
+
 
 	/*
 

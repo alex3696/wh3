@@ -10,8 +10,8 @@ namespace wh{
 //---------------------------------------------------------------------------
 class ModelPageActList : public IModelWindow
 {
-	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_classprop24;
-	const wxString mTitle = "Список групп";
+	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_act24;
+	const wxString mTitle = "Список действий";
 
 	std::shared_ptr<MActArray> mWhModel = std::make_shared<MActArray>();
 public:

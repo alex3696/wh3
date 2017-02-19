@@ -3,7 +3,7 @@
 
 #include "CtrlWindowBase.h"
 
-#include "MUser2.h"
+//#include "MUser2.h"
 #include "VUserCtrlPanel.h"
 
 namespace wh{

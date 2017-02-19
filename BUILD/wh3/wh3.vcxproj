@@ -285,6 +285,9 @@
     <ClInclude Include="..\..\INCLUDE\IViewWindow.h" />
     <ClInclude Include="..\..\INCLUDE\ModelMain.h" />
     <ClInclude Include="..\..\INCLUDE\PageActList.h" />
+    <ClInclude Include="..\..\INCLUDE\PageLogList.h" />
+    <ClInclude Include="..\..\INCLUDE\PageObjByPathList.h" />
+    <ClInclude Include="..\..\INCLUDE\PageObjByTypeList.h" />
     <ClInclude Include="..\..\INCLUDE\PagePropList.h" />
     <ClInclude Include="..\..\INCLUDE\PageUserList.h" />
     <ClInclude Include="..\..\INCLUDE\ModelNotebook.h" />

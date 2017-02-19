@@ -87,20 +87,6 @@ protected:
 //---------------------------------------------------------------------------
 
 
-
-
-
-
-
-
-
-
-namespace mvp{
-	class EmptyView;
-	class EmptyPresenter;
-	class NotebookPresenter;
-};
-
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 // whDataMgr
@@ -123,8 +109,6 @@ private:
 	void OnConnectDb(const whDB& db);
 	void OnDicsonnectDb(const whDB& db);
 
-	std::unique_ptr<mvp::EmptyPresenter>	mRootPresenter;
-	std::unique_ptr<mvp::EmptyView>			mRootView;
 
 public:
 	static whDataMgr* GetInstance()
@@ -143,11 +127,7 @@ public:
 	
 	std::shared_ptr<wh::MDbCfg>			mDbCfg;
 
-	std::unique_ptr<mvp::NotebookPresenter>		mNotebookPresenter;
 	std::unique_ptr<wh::RecentDstOidPresenter>	mRecentDstOidPresenter;
-	
-
-	
 
 	static whDB& GetDB()
 	{	

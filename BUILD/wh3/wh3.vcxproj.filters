@@ -968,6 +968,15 @@
     <ClInclude Include="..\..\INCLUDE\PageActList.h">
       <Filter>MainFrame\MVP2\ContentWindows</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\PageLogList.h">
+      <Filter>MainFrame\MVP2\ContentWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\PageObjByTypeList.h">
+      <Filter>MainFrame\MVP2\ContentWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\PageObjByPathList.h">
+      <Filter>MainFrame\MVP2\ContentWindows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wh3.rc">

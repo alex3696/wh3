@@ -375,6 +375,7 @@ void VObjCatalogCtrl::OnCmdUp(wxCommandEvent& evt)
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 {
+	/*
 	using namespace object_catalog;
 
 	auto objItem = GetSelectedObj();
@@ -392,7 +393,7 @@ void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 	oi.mObj = objItem->GetData();
 
 	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(oi);
-
+	*/
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdFavProp(wxCommandEvent& evt)

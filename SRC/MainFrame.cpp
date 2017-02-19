@@ -336,11 +336,7 @@ void MainFrame::OnSig_BeforeDbDisconnect(const whDB&)
 	if (m_MainToolBar)
 		m_MainToolBar->Disable();
 
-	while (m_Notebook->GetPageCount())
-	{
-		// TODO сохранить вкладки пользователя;
-		m_Notebook->DeletePage(0);
-	}
+	// TODO закрыть все вкладки пользователя
 
 }
 //---------------------------------------------------------------------------
@@ -416,20 +412,31 @@ void MainFrame::OnCmd_MakePage_Act(wxCommandEvent& evt)
 
 void MainFrame::OnCmd_MakePage_ObjByType(wxCommandEvent& evt)
 {
-	bool hideSysRoot = true;
-	const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
-	if ((int)bgUser < (int)currBaseGroup)
-		hideSysRoot = false;
 	
-	wh::rec::PageObjByType page_obj_by_type;
-	page_obj_by_type.mParent_Cid = hideSysRoot? "1" : "0";
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
+	if (nb2)
+		nb2->MkWindow("CtrlPageObjByTypeList");
 
-	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(page_obj_by_type);
+	//bool hideSysRoot = true;
+	//const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
+	//if ((int)bgUser < (int)currBaseGroup)
+	//	hideSysRoot = false;
+	//
+	//wh::rec::PageObjByType page_obj_by_type;
+	//page_obj_by_type.mParent_Cid = hideSysRoot? "1" : "0";
+
+	//whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(page_obj_by_type);
 }
 //---------------------------------------------------------------------------
 
 void MainFrame::OnCmd_MakePage_ObjByPath(wxCommandEvent& evt)
 {
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
+	if (nb2)
+		nb2->MkWindow("CtrlPageObjByPathList");
+	/*
 	bool hideSysRoot = true;
 	const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
 	if ((int)bgUser < (int)currBaseGroup)
@@ -439,16 +446,25 @@ void MainFrame::OnCmd_MakePage_ObjByPath(wxCommandEvent& evt)
 	page_obj_by_path.mParent_Oid = hideSysRoot ? "1" : "0";
 
 	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(page_obj_by_path);
+	*/
 }
 //---------------------------------------------------------------------------
 
 void MainFrame::OnCmd_MakePage_History(wxCommandEvent& evt)
 {
-	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageHistory());
+	//whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageHistory());
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
+	if (nb2)
+		nb2->MkWindow("CtrlPageLogList");
 }
 //---------------------------------------------------------------------------
 
 void MainFrame::OnCmd_MakePage_Report(wxCommandEvent& evt)
 {
-	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageReportList());
+	//whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageReportList());
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
+	if (nb2)
+		nb2->MkWindow("CtrlPageReportList");
 }

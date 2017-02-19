@@ -1,21 +1,21 @@
-#ifndef __PAGEGROUPLIST_H
-#define __PAGEGROUPLIST_H
+#ifndef __PAGELOGLIST_H
+#define __PAGELOGLIST_H
 
 #include "CtrlWindowBase.h"
 
-//#include "MGroup.h"
-#include "VGroupCtrlPanel.h"
+#include "MHistory.h"
+#include "VTablePanel.h"
 
 namespace wh{
 //---------------------------------------------------------------------------
-class ModelPageGroupList : public IModelWindow
+class ModelPageLogList : public IModelWindow
 {
-	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_usergroup24;
-	const wxString mTitle = "Список групп";
+	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_history24;
+	const wxString mTitle = "Вся история";
 
-	std::shared_ptr<MGroupArray> mWhModel = std::make_shared<MGroupArray>();
+	std::shared_ptr<MLogTable> mWhModel = std::make_shared<MLogTable>();
 public:
-	ModelPageGroupList(std::shared_ptr<rec::PageGroup> usr)
+	ModelPageLogList(std::shared_ptr<rec::PageHistory> usr)
 	{
 
 	}
@@ -28,15 +28,15 @@ public:
 		//ptree::value_type page = *page_val.begin();
 		//auto name = page.first.c_str();
 		//int val1 = page.second.get<int>("id", 0);
-		//int val2 = page_val.get<int>("CtrlPageGroupList.id", 0);
+		//int val2 = page_val.get<int>("CtrlPageLogList.id", 0);
 	}
 	virtual void Save(boost::property_tree::ptree& page_val)override
 	{
 		using ptree = boost::property_tree::ptree;
 		ptree content;
 		//content.put("id", (int)-1);
-		page_val.push_back(std::make_pair("CtrlPageGroupList", content));
-		//page_val.put("CtrlPageGroupList.id", 33);
+		page_val.push_back(std::make_pair("CtrlPageLogList", content));
+		//page_val.put("CtrlPageLogList.id", 33);
 	}
 
 	wh::SptrIModel GetWhModel()const
@@ -46,14 +46,18 @@ public:
 
 };
 //---------------------------------------------------------------------------
-class ViewPageGroupList : public IViewWindow
+class ViewPageLogList : public IViewWindow
 {
-	view::VGroupCtrlPanel* mPanel;
+	VTablePanel* mPanel;
 public:
-	ViewPageGroupList(std::shared_ptr<IViewNotebook> parent)
+	ViewPageLogList(std::shared_ptr<IViewNotebook> parent)
 	{
 		wxWindowUpdateLocker lock(parent->GetWnd());
-		mPanel = new view::VGroupCtrlPanel(parent->GetWnd());
+		mPanel = new VTablePanel(parent->GetWnd());
+		mPanel->mCtrl.fnOnCmdInsert = nullptr;
+		mPanel->mCtrl.fnOnCmdEdit = nullptr;
+		mPanel->mCtrl.fnOnCmdRemove = nullptr;
+		mPanel->mCtrl.fnOnCmdSave = nullptr;
 	}
 
 	virtual wxWindow* GetWnd()const override			{ return mPanel; }
@@ -62,11 +66,11 @@ public:
 };
 //---------------------------------------------------------------------------
 
-class CtrlPageGroupList : public CtrlWindowBase<ViewPageGroupList, ModelPageGroupList>
+class CtrlPageLogList : public CtrlWindowBase<ViewPageLogList, ModelPageLogList>
 {
 public:
-	CtrlPageGroupList(std::shared_ptr<ViewPageGroupList> view
-		, std::shared_ptr<ModelPageGroupList> model)
+	CtrlPageLogList(std::shared_ptr<ViewPageLogList> view
+		, std::shared_ptr<ModelPageLogList> model)
 		:CtrlWindowBase(view, model)
 	{
 		view->SetWhModel(model->GetWhModel());
