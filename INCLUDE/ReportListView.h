@@ -3,6 +3,7 @@
 //-----------------------------------------------------------------------------
 #include "_pch.h"
 #include "IReportListView.h"
+#include "IViewNotebook.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
@@ -11,9 +12,8 @@ class ReportListView : public IReportListView
 	wxPanel* mPanel;
 	wxDataViewCtrl* mTable;
 public:
-	ReportListView(std::shared_ptr<wxWindow*> wnd);
-	virtual void SetWnd(wxWindow* wnd)override;
-	virtual wxWindow* GetWnd() override;
+	ReportListView(std::shared_ptr<IViewNotebook> wnd);
+	virtual wxWindow* GetWnd()const override;
 
 	virtual void SetReportList(const rec::ReportList& rl) override;
 protected:

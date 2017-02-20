@@ -2,17 +2,14 @@
 #define __IREPORTLISTVIEW_H
 //-----------------------------------------------------------------------------
 #include "_pch.h"
-#include "IPageView.h"
+#include "IViewWindow.h"
 #include "ReportData.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
-class IReportListView : public mvp::IPageView
+class IReportListView : public IViewWindow
 {
 public:
-	virtual void SetWnd(wxWindow* wnd)override	{ throw; }
-	virtual wxWindow* GetWnd() override { throw;  return nullptr; }
-
 	virtual void SetReportList(const rec::ReportList& rl) = 0;
 
 

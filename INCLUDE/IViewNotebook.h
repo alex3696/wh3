@@ -5,7 +5,7 @@
 
 namespace wh{
 //---------------------------------------------------------------------------
-class IViewNotebook :public IViewWindow
+class IViewNotebook : public IViewWindow
 {
 public:
 	//IViewWindow virtual wxWindow* GetWnd() = 0;

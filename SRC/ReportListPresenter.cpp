@@ -7,9 +7,7 @@ using namespace wh;
 
 //---------------------------------------------------------------------------
 ReportListPresenter::ReportListPresenter(std::shared_ptr<IReportListView> view, std::shared_ptr<ReportListModel> model)
-	:mvp::PagePresenter(nullptr)
-	, mView(view)
-	, mModel(model)
+	: CtrlWindowBase(view, model)
 {
 	namespace ph = std::placeholders;
 
@@ -30,27 +28,12 @@ ReportListPresenter::ReportListPresenter(std::shared_ptr<IReportListView> view, 
 	connModelUpdate = model->sigListUpdated
 		.connect(std::bind(&ReportListPresenter::OnListUpdated, this, ph::_1));
 
+	UpdateList();
 }
 //---------------------------------------------------------------------------
-	
-void ReportListPresenter::SetView(mvp::IView* view)
-{
-	
-}
-//---------------------------------------------------------------------------
-void ReportListPresenter::SetModel(const std::shared_ptr<mvp::IModel>& model)
-{
-	mvp::PagePresenter::SetModel(model);
-}
-//---------------------------------------------------------------------------
-std::shared_ptr<mvp::IModel> ReportListPresenter::GetModel() 
-{
-	return mvp::PagePresenter::GetModel();
-}
-//---------------------------------------------------------------------------
-mvp::IView* ReportListPresenter::GetView() 
+std::shared_ptr<IViewWindow> ReportListPresenter::GetView()const
 { 
-	return mView.get(); 
+	return mView; 
 };
 //---------------------------------------------------------------------------
 void ReportListPresenter::UpdateList()
@@ -70,10 +53,12 @@ void ReportListPresenter::ExecReport(size_t idx)
 size_t ReportListPresenter::MkReport()
 {
 	auto controller = whDataMgr::GetInstance()->mContainer;
-	auto p = controller->GetObject<ReportEditorPresenter>("FactoryReportEditorPresenter");
-	p->ShowView();
-	
-	mModel->UpdateList();
+	auto peditor = controller->GetObject<ReportEditorPresenter>("FactoryReportEditorPresenter");
+	if (peditor)
+	{
+		peditor->ShowView();
+		mModel->UpdateList();
+	}
 	return 0;
 }
 //---------------------------------------------------------------------------
@@ -87,9 +72,12 @@ void ReportListPresenter::ChReport(size_t pos)
 {
 	auto controller = whDataMgr::GetInstance()->mContainer;
 	auto peditor = controller->GetObject<ReportEditorPresenter>("FactoryReportEditorPresenter");
-	peditor->SetItemPosition(pos);
-	peditor->ShowView();
-	mModel->UpdateList();
+	if (peditor)
+	{
+		peditor->SetItemPosition(pos);
+		peditor->ShowView();
+		mModel->UpdateList();
+	}
 }
 //---------------------------------------------------------------------------
 void ReportListPresenter::OnListUpdated(const rec::ReportList& rl)

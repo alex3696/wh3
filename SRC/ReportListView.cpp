@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "ReportListView.h"
+#include "ResManager.h"
 
 using namespace wh;
 
@@ -55,10 +56,10 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-ReportListView::ReportListView(std::shared_ptr<wxWindow*> wnd)
+ReportListView::ReportListView(std::shared_ptr<IViewNotebook> wnd)
 	:IReportListView()
 {
-	mPanel = new wxPanel(*wnd);
+	mPanel = new wxPanel(wnd->GetWnd());
 	mPanel->SetBackgroundColour(*wxRED);
 	
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportListView::OnCmd_UpdateList, this, wxID_REFRESH);
@@ -79,11 +80,7 @@ ReportListView::ReportListView(std::shared_ptr<wxWindow*> wnd)
 	mPanel->Layout();
 }
 //-----------------------------------------------------------------------------
-void ReportListView::SetWnd(wxWindow* wnd)
-{
-}
-//-----------------------------------------------------------------------------
-wxWindow* ReportListView::GetWnd() 
+wxWindow* ReportListView::GetWnd() const
 { 
 	return mPanel; 
 }

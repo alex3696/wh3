@@ -134,13 +134,12 @@ void NotebookPresenter::OnModelSig_AddPage(const NotebookModel& nb, const std::s
 	}
 	else
 	{
-		using namespace wh;
-		auto controller = whDataMgr::GetInstance()->mContainer;
-		auto report_presenter = controller->GetObject<ReportListPresenter>("FactoryReportListPresenter");
-		report_presenter->UpdateList();
-		
-		pp = report_presenter;
-		view = pp->GetView();
+		//using namespace wh;
+		//auto controller = whDataMgr::GetInstance()->mContainer;
+		//auto report_presenter = controller->GetObject<ReportListPresenter>("FactoryReportListPresenter");
+		//report_presenter->UpdateList();
+		//pp = report_presenter;
+		//view = pp->GetView();
 	}
 
 	if (view && view->GetWnd())

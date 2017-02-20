@@ -1,7 +1,5 @@
 #include "_pch.h"
-//#include "NotebookModel.h"
-#include "NotebookPresenter.h"
-//#include "NotebookView.h"
+#include "CtrlNotebook.h"
 
 #include "VObjCatalogCtrl.h"
 #include "MObjCatalog.h"
@@ -375,7 +373,6 @@ void VObjCatalogCtrl::OnCmdUp(wxCommandEvent& evt)
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 {
-	/*
 	using namespace object_catalog;
 
 	auto objItem = GetSelectedObj();
@@ -388,9 +385,23 @@ void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 	if (!typeItem)
 		return;
 	
-	rec::ObjInfo oi;
-	oi.mCls = typeItem->GetData();
-	oi.mObj = objItem->GetData();
+	auto container = whDataMgr::GetInstance()->mContainer;
+	
+	auto detail_obj = container->GetObject<wh::rec::ObjInfo>("DefaultDetailObjInfo");
+	if (!detail_obj)
+		return;
+
+	detail_obj->mCls = typeItem->GetData();
+	detail_obj->mObj = objItem->GetData();
+
+	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
+	if (nb2)
+	{
+		nb2->MkWindow("CtrlPageDetailObj");
+	}
+		
+
+	/*
 
 	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(oi);
 	*/

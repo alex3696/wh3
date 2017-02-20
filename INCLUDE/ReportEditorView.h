@@ -2,6 +2,8 @@
 #define __REPORTEDITORVIEW_H
 //-----------------------------------------------------------------------------
 #include "IReportEditorView.h"
+#include "IReportEditorView.h"
+#include "IViewWindow.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
@@ -19,7 +21,7 @@ class ReportEditorView : public IReportEditorView
 	void OnOk(wxCommandEvent& evt);
 	wxString mId;
 public:
-	ReportEditorView(std::shared_ptr<wxWindow*> wnd);
+	ReportEditorView(std::shared_ptr<IViewWindow> wnd);
 
 	virtual void SetReportItem(const rec::ReportItem&) override;
 

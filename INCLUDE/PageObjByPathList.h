@@ -58,6 +58,12 @@ public:
 
 	}
 
+
+	virtual void Show()override
+	{
+		mWhModel->Load();
+		sigShow();
+	}
 	virtual const wxIcon& GetIcon()const override { return mIco; }
 	virtual const wxString& GetTitle()const override { return mTitle; }
 
@@ -112,7 +118,6 @@ public:
 		:CtrlWindowBase(view, model)
 	{
 		view->SetWhModel(model->GetWhModel());
-		model->GetWhModel()->Load();
 	}
 
 };

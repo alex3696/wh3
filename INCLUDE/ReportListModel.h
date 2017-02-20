@@ -1,15 +1,33 @@
 #ifndef __REPORTLISTMODEL_H
 #define __REPORTLISTMODEL_H
 
-#include "PageModel.h"
+#include "IModelWindow.h"
 #include "ReportData.h"
+#include "ResManager.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
-class ReportListModel : public mvp::PageModel
+class ReportListModel : public IModelWindow
 {
+	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_report24;
+	const wxString mTitle = "Список отчётов";
+
+
 	rec::ReportList mRepList;
 public:
+	virtual const wxIcon& GetIcon()const override { return mIco; }
+	virtual const wxString& GetTitle()const override { return mTitle; }
+	virtual void Load(const boost::property_tree::ptree& page_val)override
+	{
+	}
+	virtual void Save(boost::property_tree::ptree& page_val)override
+	{
+		using ptree = boost::property_tree::ptree;
+		ptree content;
+		//content.put("id", (int)-1);
+		page_val.push_back(std::make_pair("CtrlPageReportList", content));
+	}
+
 	size_t Size()const { return mRepList.size();  }
 	void UpdateList();
 	void LoadAll(const size_t pos, const rec::ReportItem*& ret_item);

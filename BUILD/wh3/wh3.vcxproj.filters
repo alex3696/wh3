@@ -154,18 +154,6 @@
     <Filter Include="Каталог объектов\Диалог перемещения\Move MRU">
       <UniqueIdentifier>{62fb8ebb-31eb-46eb-8181-f405fd912880}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Отчёты">
-      <UniqueIdentifier>{a8a9311c-02a5-4fc9-b8ff-31c29728e6f1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Отчёты\Редактор отчёта">
-      <UniqueIdentifier>{2284c55b-cb88-410d-b47e-aa2a9e185938}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Отчёты\Список отчётов">
-      <UniqueIdentifier>{8d2739fa-b115-4f9a-b92d-3cc74b77ae42}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Отчёты\Вывод отчёта">
-      <UniqueIdentifier>{7c2a21b6-25cd-42c9-8812-7ad0414d0fef}</UniqueIdentifier>
-    </Filter>
     <Filter Include="MainFrame\MVP2">
       <UniqueIdentifier>{08145cc8-3767-40e2-afd0-67cbe7cf8943}</UniqueIdentifier>
     </Filter>
@@ -183,6 +171,18 @@
     </Filter>
     <Filter Include="MainFrame\MVP2\MainFrame">
       <UniqueIdentifier>{fc26a495-b524-4cb7-9858-e947672ad79c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Отчёты">
+      <UniqueIdentifier>{a8a9311c-02a5-4fc9-b8ff-31c29728e6f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Отчёты\Редактор отчёта">
+      <UniqueIdentifier>{2284c55b-cb88-410d-b47e-aa2a9e185938}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Отчёты\Список отчётов">
+      <UniqueIdentifier>{8d2739fa-b115-4f9a-b92d-3cc74b77ae42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Отчёты\Вывод отчёта">
+      <UniqueIdentifier>{7c2a21b6-25cd-42c9-8812-7ad0414d0fef}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -475,28 +475,28 @@
       <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ReportEditorView.cpp">
-      <Filter>Отчёты\Редактор отчёта</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Редактор отчёта</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ReportEditorPesenter.cpp">
-      <Filter>Отчёты\Редактор отчёта</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Редактор отчёта</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ReportListModel.cpp">
-      <Filter>Отчёты\Список отчётов</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Список отчётов</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ReportListPresenter.cpp">
-      <Filter>Отчёты\Список отчётов</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Список отчётов</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ReportListView.cpp">
-      <Filter>Отчёты\Список отчётов</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Список отчётов</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ReportModel.cpp">
-      <Filter>Отчёты\Вывод отчёта</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Вывод отчёта</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ReportPresenter.cpp">
-      <Filter>Отчёты\Вывод отчёта</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Вывод отчёта</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ReportView.cpp">
-      <Filter>Отчёты\Вывод отчёта</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Вывод отчёта</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ViewNotebook.cpp">
       <Filter>MainFrame\MVP2\NotebookWindow</Filter>
@@ -885,40 +885,40 @@
       <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\IReportEditorView.h">
-      <Filter>Отчёты\Редактор отчёта</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Редактор отчёта</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ReportEditorView.h">
-      <Filter>Отчёты\Редактор отчёта</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Редактор отчёта</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ReportEditorPresenter.h">
-      <Filter>Отчёты\Редактор отчёта</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Редактор отчёта</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\IReportListView.h">
-      <Filter>Отчёты\Список отчётов</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Список отчётов</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ReportData.h">
-      <Filter>Отчёты\Список отчётов</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Список отчётов</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ReportListModel.h">
-      <Filter>Отчёты\Список отчётов</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Список отчётов</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ReportListPresenter.h">
-      <Filter>Отчёты\Список отчётов</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Список отчётов</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ReportListView.h">
-      <Filter>Отчёты\Список отчётов</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Список отчётов</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ReportPresenter.h">
-      <Filter>Отчёты\Вывод отчёта</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Вывод отчёта</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\IReportView.h">
-      <Filter>Отчёты\Вывод отчёта</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Вывод отчёта</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ReportModel.h">
-      <Filter>Отчёты\Вывод отчёта</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Вывод отчёта</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ReportView.h">
-      <Filter>Отчёты\Вывод отчёта</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Вывод отчёта</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ICtrlWindow.h">
       <Filter>MainFrame\MVP2\InterfacesWindow</Filter>
@@ -975,6 +975,9 @@
       <Filter>MainFrame\MVP2\ContentWindows</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\PageObjByPathList.h">
+      <Filter>MainFrame\MVP2\ContentWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\PageDetailObj.h">
       <Filter>MainFrame\MVP2\ContentWindows</Filter>
     </ClInclude>
   </ItemGroup>

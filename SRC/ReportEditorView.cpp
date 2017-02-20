@@ -4,9 +4,9 @@
 using namespace wh;
 
 //-----------------------------------------------------------------------------
-ReportEditorView::ReportEditorView(std::shared_ptr<wxWindow*> wnd)
+ReportEditorView::ReportEditorView(std::shared_ptr<IViewWindow> wnd)
 {
-	mFrame = new wxDialog(*wnd,wxID_ANY, "Редактирование отчёта"
+	mFrame = new wxDialog(wnd->GetWnd(),wxID_ANY, "Редактирование отчёта"
 		,wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
 
 	wxBoxSizer* mMainSizer;

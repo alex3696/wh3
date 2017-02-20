@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "ReportListModel.h"
+#include "globaldata.h"
 
 using namespace wh;
 

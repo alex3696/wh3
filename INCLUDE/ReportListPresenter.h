@@ -1,13 +1,13 @@
 #ifndef __REPORTLISTPRESENTER_H
 #define __REPORTLISTPRESENTER_H
 
-#include "PagePresenter.h"
+#include "CtrlWindowBase.h"
 #include "IReportListView.h"
 #include "ReportListModel.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
-class ReportListPresenter : public mvp::PagePresenter
+class ReportListPresenter : public CtrlWindowBase<IReportListView, ReportListModel>
 {
 	sig::scoped_connection connViewUpdateList;
 	sig::scoped_connection connViewExecReport;
@@ -17,17 +17,14 @@ class ReportListPresenter : public mvp::PagePresenter
 
 	sig::scoped_connection connModelUpdate;
 	
-	std::shared_ptr<IReportListView> mView;
-	std::shared_ptr<ReportListModel> mModel;
+	//std::shared_ptr<IReportListView> mView;
+	//std::shared_ptr<ReportListModel> mModel;
 
 	void OnListUpdated(const rec::ReportList&);
 public:
 	ReportListPresenter(std::shared_ptr<IReportListView> view, std::shared_ptr<ReportListModel> model);
 
-	virtual void SetView(mvp::IView* view) override;
-	virtual void SetModel(const std::shared_ptr<mvp::IModel>& model)override;
-	virtual std::shared_ptr<mvp::IModel> GetModel() override;
-	virtual mvp::IView* GetView() override;
+	virtual std::shared_ptr<IViewWindow> GetView()const override;
 
 	void UpdateList();
 	void ExecReport(size_t idx);

@@ -108,9 +108,9 @@ try{
 			auto ctrl = MkWindowNoSignal(name);
 			if (ctrl)
 			{
-				ctrl->Load(v.second);
 				wxWindow* wnd = ctrl->GetView()->GetWnd();
 				sigAfterMkWindow(ctrl->GetView()->GetWnd());
+				ctrl->Load(v.second);
 				ctrl->UpdateTitle();
 			}
 		}//for 

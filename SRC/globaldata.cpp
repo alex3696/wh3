@@ -18,6 +18,7 @@
 #include "PageLogList.h"
 #include "PageObjByTypeList.h"
 #include "PageObjByPathList.h"
+#include "PageDetailObj.h"
 
 
 #include "MoveObjView.h"
@@ -450,6 +451,37 @@ void whDataMgr::InitContainer()
 		("CtrlPageObjByPathList", "ViewPageObjByPathList", "ModelPageObjByPathList");
 
 
+	/////////////////
+	// report list //
+	////////////////
+	mContainer->RegInstanceDeferredNI<ReportListModel>("ModelPageReportList");
+	mContainer->RegFactory<IReportListView, ReportListView, IViewNotebook>
+		("ViewPageReportList", "ViewNotebook");
+	mContainer->RegFactory<ICtrlWindow, ReportListPresenter, IReportListView, ReportListModel>
+		("CtrlPageReportList", "ViewPageReportList", "ModelPageReportList");
+	////////////////////
+	// report editor //
+	///////////////////
+	mContainer->RegFactory<ReportItemModel, ReportItemModel, ReportListModel>
+		("ReportItemModel", "ModelPageReportList");
+	mContainer->RegInstanceDeferred<IReportEditorView, ReportEditorView, IViewWindow>
+		("ReportEditor", "ViewNotebook");
+	mContainer->RegFactory<ReportEditorPresenter, ReportEditorPresenter, IReportEditorView, ReportItemModel>
+		("FactoryReportEditorPresenter", "ReportEditor", "ReportItemModel");
+
+
+	////////////////////
+	// detail //
+	///////////////////
+	mContainer->RegInstanceDeferredNI<wh::rec::ObjInfo>("DefaultDetailObjInfo");
+	mContainer->RegFactoryNI<ModelPageDetailObj, rec::ObjInfo>
+		("ModelPageDetailObj", "DefaultDetailObjInfo");
+	mContainer->RegFactoryNI<ViewPageDetailObj, IViewNotebook >
+		("ViewPageDetailObj", "ViewNotebook");
+	mContainer->RegFactory<ICtrlWindow, CtrlPageDetailObj, ViewPageDetailObj, ModelPageDetailObj >
+		("CtrlPageDetailObj", "ViewPageDetailObj", "ModelPageDetailObj");
+
+
 	/*
 
 
@@ -469,23 +501,7 @@ void whDataMgr::InitContainer()
 	mContainer->RegFactory<MoveObjPresenter, MoveObjPresenter, IMoveObjView, rec::PathItem>
 		("MoveObjPresenter", "MoveObjView", "MoveableObj");
 
-	/////////////////
-	// report list //
-	////////////////
-	mContainer->RegInstanceDeferredNI<ReportListModel>("ReportListModel");
-	mContainer->RegFactory<IReportListView, ReportListView, wxWindow*>
-		("ReportListView", "MainNotebookWnd");
-	mContainer->RegFactory<ReportListPresenter, ReportListPresenter, IReportListView, ReportListModel>
-		("FactoryReportListPresenter", "ReportListView", "ReportListModel");
-	////////////////////
-	// report editor //
-	///////////////////
-	mContainer->RegFactory<ReportItemModel, ReportItemModel, ReportListModel>
-		("ReportItemModel", "ReportListModel");
-	mContainer->RegInstanceDeferred<IReportEditorView, ReportEditorView, wxWindow*>
-		("ReportEditor", "MainFrameWnd");
-	mContainer->RegFactory<ReportEditorPresenter, ReportEditorPresenter, IReportEditorView, ReportItemModel>
-		("FactoryReportEditorPresenter", "ReportEditor", "ReportItemModel");
+
 	////////////////////
 	// report output //
 	///////////////////
@@ -495,26 +511,5 @@ void whDataMgr::InitContainer()
 		("ReportView", "MainNotebookWnd");
 	mContainer->RegFactory<ReportPresenter, ReportPresenter, IReportView, ReportModel>
 		("FactoryReportPresenter", "ReportView", "ReportModel");
-
-
-
-
-
-	*/
-
-	
-	
-	/*
-	auto m_MainFrame = dynamic_cast<MainFrame*>
-		(mContainer->GetObject<CtrlMain>("CtrlMain")->GetView()->GetWnd());
-
-	mRootPresenter = std::make_unique<mvp::EmptyPresenter>(m_MainFrame);
-	mNotebookPresenter = std::make_unique<mvp::NotebookPresenter>(mRootPresenter.get());
-
-	auto notebook_model = std::make_shared<mvp::NotebookModel>();
-	auto notebook_view = new mvp::NotebookView(m_MainFrame->GetNotebook());
-
-	mNotebookPresenter->SetView(notebook_view);
-	mNotebookPresenter->SetModel(notebook_model);
 	*/
 }
