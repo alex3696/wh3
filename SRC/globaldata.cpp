@@ -323,8 +323,8 @@ whDataMgr::whDataMgr()
 //---------------------------------------------------------------------------
 whDataMgr::~whDataMgr()
 {
-	mDb.Close();
-	mContainer->Clear();
+	//mDb.Close();
+	//mContainer->Clear();
 }
 //---------------------------------------------------------------------------
 void whDataMgr::OnConnectDb(const whDB& db)
@@ -380,7 +380,7 @@ void whDataMgr::InitContainer()
 	// page user  //
 	////////////////	
 	mContainer->RegInstanceDeferredNI<rec::PageUser >("DefaultUserListInfo");
-	mContainer->RegFactoryNI<ModelPageUserList, rec::PageUser >
+	mContainer->RegInstanceDeferredNI<ModelPageUserList, rec::PageUser >
 		("ModelPageUserList", "DefaultUserListInfo");
 	mContainer->RegFactoryNI<ViewPageUserList, IViewNotebook >
 		("ViewPageUserList", "ViewNotebook");
@@ -391,7 +391,7 @@ void whDataMgr::InitContainer()
 	// page group  //
 	////////////////	
 	mContainer->RegInstanceDeferredNI<rec::PageGroup>("DefaultGroupListInfo");
-	mContainer->RegFactoryNI<ModelPageGroupList, rec::PageGroup >
+	mContainer->RegInstanceDeferredNI<ModelPageGroupList, rec::PageGroup >
 		("ModelPageGroupList", "DefaultGroupListInfo");
 	mContainer->RegFactoryNI<ViewPageGroupList, IViewNotebook >
 		("ViewPageGroupList", "ViewNotebook");
@@ -402,7 +402,7 @@ void whDataMgr::InitContainer()
 	// page act  //
 	////////////////	
 	mContainer->RegInstanceDeferredNI<rec::PageAct>("DefaultActListInfo");
-	mContainer->RegFactoryNI<ModelPageActList, rec::PageAct >
+	mContainer->RegInstanceDeferredNI<ModelPageActList, rec::PageAct >
 		("ModelPageActList", "DefaultActListInfo");
 	mContainer->RegFactoryNI<ViewPageActList, IViewNotebook >
 		("ViewPageActList", "ViewNotebook");
@@ -413,7 +413,7 @@ void whDataMgr::InitContainer()
 	// page prop  //
 	////////////////	
 	mContainer->RegInstanceDeferredNI<rec::PageProp>("DefaultPropListInfo");
-	mContainer->RegFactoryNI<ModelPagePropList, rec::PageProp >
+	mContainer->RegInstanceDeferredNI<ModelPagePropList, rec::PageProp >
 		("ModelPagePropList", "DefaultPropListInfo");
 	mContainer->RegFactoryNI<ViewPagePropList, IViewNotebook >
 		("ViewPagePropList", "ViewNotebook");
@@ -454,10 +454,10 @@ void whDataMgr::InitContainer()
 	/////////////////
 	// report list //
 	////////////////
-	mContainer->RegFactoryNI<ReportListModel>("ModelPageReportList");
+	mContainer->RegInstanceDeferredNI<ReportListModel>("ModelPageReportList");
 	mContainer->RegFactory<IReportListView, ReportListView, IViewNotebook>
 		("ViewPageReportList", "ViewNotebook");
-	mContainer->RegFactory<ICtrlWindow, ReportListPresenter, IReportListView, ReportListModel>
+	mContainer->RegInstanceDeferred<ICtrlWindow, ReportListPresenter, IReportListView, ReportListModel>
 		("CtrlPageReportList", "ViewPageReportList", "ModelPageReportList");
 	////////////////////
 	// report editor //

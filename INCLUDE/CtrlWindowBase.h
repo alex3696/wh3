@@ -23,36 +23,75 @@ protected:
 	sig::scoped_connection connModelClose;
 	sig::scoped_connection connModelShow;
 
-	sig::scoped_connection connCtrlUpdateTitle;
-	sig::scoped_connection connCtrlClose;
-	sig::scoped_connection connCtrlShow;
+	void OnSig_ModelUpdateTitle(const wxString& title, const wxIcon& ico)
+	{
+		mView->OnUpdateTitle(title, ico);
+		sigUpdateTitle(this, title, ico);
+	}
+	void OnSig_ModelShow()
+	{
+		mView->OnShow();
+		sigShow(this);
+	}
+	void OnSig_ModelClose()
+	{
+		mView->OnCloseModel();
+		sigCloseModel(this);
 
+		DisconnectModel();
+	}
+
+
+	void OnSig_OnCloseView()
+	{
+		//mModel->OnCloseView();
+		sigCloseView(this);
+		DisconnectView();
+	}
+
+	virtual void ConnectView()
+	{
+		if (!mView)
+			return;
+		namespace ph = std::placeholders;
+		connViewUpdateTitle = mView->sigUpdateTitle
+			.connect(std::bind(&IModelWindow::UpdateTitle, mModel.get()));
+		connViewClose = mView->sigClose
+			.connect(std::bind(&CtrlWindowBase::OnSig_OnCloseView, this));
+		connViewShow = mView->sigShow
+			.connect(std::bind(&IModelWindow::Show, mModel.get()));
+	}
+	virtual void DisconnectView()
+	{
+		connViewUpdateTitle.disconnect();
+		connViewClose.disconnect();
+		connViewShow.disconnect();
+	}
+
+	virtual void ConnectModel()
+	{
+		namespace ph = std::placeholders;
+		connModelUpdateTitle = mModel->sigUpdateTitle
+			.connect(std::bind(&CtrlWindowBase::OnSig_ModelUpdateTitle, this, ph::_1, ph::_2));
+		connModelClose = mModel->sigClose
+			.connect(std::bind(&CtrlWindowBase::OnSig_ModelClose, this));
+		connModelShow = mModel->sigShow
+			.connect(std::bind(&CtrlWindowBase::OnSig_ModelShow, this));
+	}
+	virtual void DisconnectModel()
+	{
+		connModelUpdateTitle.disconnect();
+		connModelClose.disconnect();
+		connModelShow.disconnect();;
+	}
 public:
 	CtrlWindowBase(std::shared_ptr<TVIEW> view, std::shared_ptr<TMODEL> model)
 		:mView(view)
 		, mModel(model)
 	{
-		namespace ph = std::placeholders;
-		connViewUpdateTitle = mView->sigUpdateTitle
-			.connect(std::bind(&IModelWindow::UpdateTitle, mModel.get()));
-		connViewClose = mView->sigClose
-			.connect(std::bind(&IModelWindow::Close, mModel.get()));
-		connViewShow = mView->sigShow
-			.connect(std::bind(&IModelWindow::Show, mModel.get()));
+		ConnectModel();
+		ConnectView();
 
-		connModelUpdateTitle = mModel->sigUpdateTitle
-			.connect(std::bind(&IViewWindow::OnUpdateTitle, mView.get(), ph::_1, ph::_2));
-		connModelClose = mModel->sigClose
-			.connect(std::bind(&IViewWindow::OnClose, mView.get()));
-		connModelShow = mModel->sigShow
-			.connect(std::bind(&IViewWindow::OnShow, mView.get()));
-
-		connCtrlUpdateTitle = mModel->sigUpdateTitle
-			.connect(std::bind(std::ref(sigUpdateTitle), this, ph::_1, ph::_2));
-		connCtrlClose = mModel->sigClose
-			.connect(std::bind(std::ref(sigClose), this));
-		connCtrlShow = mModel->sigShow
-			.connect(std::bind(std::ref(sigShow), this));
 	}
 
 	//virtual std::shared_ptr<IModelWindow > GetModel()const override	{ return mModel; }
@@ -60,7 +99,11 @@ public:
 
 	virtual void UpdateTitle()override	{ mModel->UpdateTitle(); }
 	virtual void Show()override			{ mModel->Show(); }
-	virtual void Close()override		{ mModel->Close(); }
+	virtual void RmView()override		
+	{ 
+		mModel->OnCloseView(); 
+		DisconnectView();
+	}
 
 	virtual void Load(const boost::property_tree::ptree& val) override
 	{

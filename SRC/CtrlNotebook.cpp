@@ -89,7 +89,7 @@ void CtrlNotebook::Show()
 }
 //-----------------------------------------------------------------------------
 //virtual override
-void CtrlNotebook::Close()
+void CtrlNotebook::RmView()
 {
 
 }

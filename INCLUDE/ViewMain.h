@@ -31,7 +31,6 @@ public:
 	virtual wxWindow* GetWnd()const override { return mMainFrame; }
 	//IViewWindow virtual void OnUpdateTitle(const wxString&, const wxIcon&) {};
 	virtual void OnShow()  override {	mMainFrame->Show();	}
-	virtual void OnClose() override	{	mMainFrame->Close();}
 
 	std::shared_ptr<IViewNotebook> GetViewNotebook()const
 	{

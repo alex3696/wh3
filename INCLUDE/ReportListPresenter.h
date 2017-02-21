@@ -21,6 +21,9 @@ class ReportListPresenter : public CtrlWindowBase<IReportListView, ReportListMod
 	//std::shared_ptr<ReportListModel> mModel;
 
 	void OnListUpdated(const rec::ReportList&);
+
+	virtual void ConnectView()override;
+	virtual void DisconnectView()override;
 public:
 	ReportListPresenter(std::shared_ptr<IReportListView> view, std::shared_ptr<ReportListModel> model);
 
@@ -31,6 +34,9 @@ public:
 	size_t MkReport();
 	void RmReport(size_t idx);
 	void ChReport(size_t idx);
+
+	virtual void RmView()override;
+	virtual void MkView()override;
 
 };
 //-----------------------------------------------------------------------------

@@ -19,6 +19,8 @@ class CtrlMain :public ICtrlWindow
 	sig::scoped_connection connModelClose;
 	sig::scoped_connection connModelShow;
 
+	sig::scoped_connection connCtrlClose;
+	
 	sig::scoped_connection connModelAfterMkNotebook;
 
 	
@@ -27,6 +29,16 @@ class CtrlMain :public ICtrlWindow
 
 
 	std::shared_ptr<CtrlNotebook> mCtrlNotebook;
+
+	void OnSig_ModelClose()
+	{
+		mView->OnCloseModel();
+		sigCloseModel(this);
+
+		connModelUpdateTitle.disconnect();
+		connModelClose.disconnect();
+		connModelShow.disconnect();;
+	}
 public:
 	CtrlMain(std::shared_ptr<ViewMain> view, std::shared_ptr<ModelMain> model)
 		: mView(view)
@@ -36,16 +48,19 @@ public:
 		connViewUpdateTitle = mView->sigUpdateTitle
 			.connect(std::bind(&IModelWindow::UpdateTitle, mModel.get()));
 		connViewClose = mView->sigClose
-			.connect(std::bind(&IModelWindow::Close, mModel.get()));
+			.connect(std::bind(&IModelWindow::OnCloseView, mModel.get()));
 		connViewShow = mView->sigShow
 			.connect(std::bind(&IModelWindow::Show, mModel.get()));
 
 		connModelUpdateTitle = mModel->sigUpdateTitle
 			.connect(std::bind(&IViewWindow::OnUpdateTitle, mView.get(), ph::_1, ph::_2));
 		connModelClose = mModel->sigClose
-			.connect(std::bind(&IViewWindow::OnClose, mView.get()));
+			.connect(std::bind(&IViewWindow::OnCloseModel, mView.get()));
 		connModelShow = mModel->sigShow
 			.connect(std::bind(&IViewWindow::OnShow, mView.get()));
+
+		connCtrlClose = mModel->sigClose
+			.connect(std::bind(&CtrlMain::OnSig_ModelClose, this));
 
 
 		auto view_notebook = mView->GetViewNotebook();
@@ -62,7 +77,7 @@ public:
 
 	virtual void UpdateTitle() override { mModel->UpdateTitle(); }
 	virtual void Show() override{ mModel->Show(); }
-	virtual void Close() override{ mModel->Close();  }
+	virtual void RmView() override{ mModel->OnCloseView(); }
 	
 	virtual void Load(const boost::property_tree::ptree& app_cfg) override
 	{

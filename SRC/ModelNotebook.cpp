@@ -2,11 +2,12 @@
 #include "ModelNotebook.h"
 #include "globaldata.h"
 #include "config.h"
+#include "ReportListPresenter.h"
 
 using namespace wh;
 
 
-std::shared_ptr<ICtrlWindow> ModelNotebook::MkWindowNoSignal(const wxString& name)
+std::shared_ptr<ICtrlWindow> ModelNotebook::MkCtrl(const wxString& name)
 {
 	namespace ph = std::placeholders;
 
@@ -16,40 +17,41 @@ std::shared_ptr<ICtrlWindow> ModelNotebook::MkWindowNoSignal(const wxString& nam
 
 	if (!ctrl)
 		return ctrl;
-	
+
+	auto& ptrIdx = mWindowList.get<2>();
+	auto it = ptrIdx.find(ctrl.get());
+	if (ptrIdx.end() != it)
+		return ctrl;
+
 	auto item = std::make_shared<WindowItem>(ctrl);
-
-	//item->connModelChTitle = ctrl->sigUpdateTitle.connect
-	//	(std::bind(&WindowListModel::OnSigUpdate, this, ph::_1, ph::_2, ph::_3));
-	//item->connModelShow = ctrl->sigShow.connect
-	//	(std::bind(&WindowListModel::OnSigShow, this, ph::_1));
-	//item->connModelClose = ctrl->sigClose.connect
-	//	(std::bind(&WindowListModel::OnSigClose, this, ph::_1));
-
 	item->connModelChTitle = ctrl->sigUpdateTitle.connect(sigAfterChWindow);
 	item->connModelShow = ctrl->sigShow.connect(sigShowWindow);
-	item->connModelClose = ctrl->sigClose.connect(sigBeforeRmWindow);
-	item->connRmCtrl  =ctrl->sigClose.connect([this](ICtrlWindow* ctrl)
-	{
-		auto& wndIdx = mWindowList.get<1>();
-		wxWindow* wnd = ctrl->GetView()->GetWnd();
-		wndIdx.erase(wnd);
-	});
+	item->connModelClose = ctrl->sigCloseView
+		.connect(std::bind(&ModelNotebook::RmCtrl, this, ph::_1));
+	
+	ctrl->MkView();
 	mWindowList.emplace_back(item);
+	sigAfterMkWindow(ctrl.get());
 	return ctrl;
 }
 //-----------------------------------------------------------------------------
 void ModelNotebook::MkWindow(const wxString& factory)
 {
-	auto ctrl = MkWindowNoSignal(factory);
+	auto ctrl = MkCtrl(factory);
 	if (ctrl)
 	{
-		wxWindow* wnd = ctrl->GetView()->GetWnd();
-		sigAfterMkWindow(ctrl.get());
 		ctrl->UpdateTitle();
 		ctrl->Show();	
 	}
+}
+//-----------------------------------------------------------------------------
+void ModelNotebook::RmCtrl(ICtrlWindow* ctrl)
+{
+	sigBeforeRmWindow(ctrl);
+	mWindowList.get<2>().erase(ctrl);
 
+	ctrl->RmView();
+	
 }
 //-----------------------------------------------------------------------------
 void ModelNotebook::RmWindow(wxWindow* wnd)
@@ -59,7 +61,8 @@ void ModelNotebook::RmWindow(wxWindow* wnd)
 	auto it = wndIdx.find(wnd);
 	if (wndIdx.end() != it)
 	{
-		(*it)->mCtrlWindow->Close();
+		auto ctrl = (*it)->mCtrlWindow;
+		RmCtrl(ctrl.get());
 	}
 	
 }
@@ -94,11 +97,9 @@ try{
 			ptree::value_type page = *v.second.begin();
 			auto name = page.first.c_str();
 			//auto name = v.second.get<std::string>("Name", "");
-			auto ctrl = MkWindowNoSignal(name);
+			auto ctrl = MkCtrl(name);
 			if (ctrl)
 			{
-				wxWindow* wnd = ctrl->GetView()->GetWnd();
-				sigAfterMkWindow(ctrl.get());
 				ctrl->Load(v.second);
 				ctrl->UpdateTitle();
 			}

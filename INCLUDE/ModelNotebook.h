@@ -20,7 +20,6 @@ class ModelNotebook : public IModelWindow
 		sig::scoped_connection			connModelChTitle;
 		sig::scoped_connection			connModelShow;
 		sig::scoped_connection			connModelClose;
-		sig::scoped_connection			connRmCtrl;
 		std::shared_ptr<ICtrlWindow>	mCtrlWindow;
 	};
 
@@ -32,6 +31,15 @@ class ModelNotebook : public IModelWindow
 			return r->mCtrlWindow->GetView()->GetWnd();
 		}
 	};
+	struct extr_ptr
+	{
+		typedef const void* result_type;
+		inline result_type operator()(const std::shared_ptr<WindowItem>& r)const
+		{
+			return r->mCtrlWindow.get();
+		}
+	};
+
 
 	using CtrlStore = boost::multi_index_container
 	<
@@ -40,6 +48,7 @@ class ModelNotebook : public IModelWindow
 		<
 		   random_access<> 
 		   , ordered_unique< extr_wnd >
+		   , ordered_unique< extr_ptr >
 		>
 	>;
 
@@ -47,7 +56,9 @@ class ModelNotebook : public IModelWindow
 
 	void ShowWindowByPos(size_t pos);
 
-	std::shared_ptr<ICtrlWindow> MkWindowNoSignal(const wxString& name);
+	std::shared_ptr<ICtrlWindow> MkCtrl(const wxString& name);
+
+	void RmCtrl(ICtrlWindow* wnd);
 public:
 	void MkWindow(const wxString& wi);
 	void RmWindow(wxWindow* wnd);

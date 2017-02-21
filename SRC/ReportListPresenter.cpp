@@ -85,3 +85,55 @@ void ReportListPresenter::OnListUpdated(const rec::ReportList& rl)
 	if (mView)
 		mView->SetReportList(rl);
 }
+//-----------------------------------------------------------------------------
+void ReportListPresenter::ConnectView()
+{
+	if (!mView)
+		return;
+	
+	CtrlWindowBase<IReportListView, ReportListModel>::ConnectView();
+
+	namespace ph = std::placeholders;
+
+	connViewUpdateList = mView->sigUpdateList
+		.connect(std::bind(&ReportListPresenter::UpdateList, this));
+
+	connViewExecReport = mView->sigExecReport
+		.connect(std::bind(&ReportListPresenter::ExecReport, this, ph::_1));
+
+	connViewMkReport = mView->sigMkReport
+		.connect(std::bind(&ReportListPresenter::MkReport, this));
+	connViewRmReport = mView->sigRmReport
+		.connect(std::bind(&ReportListPresenter::RmReport, this, ph::_1));
+	connViewChReport = mView->sigChReport
+		.connect(std::bind(&ReportListPresenter::ChReport, this, ph::_1));
+
+}
+//-----------------------------------------------------------------------------
+void ReportListPresenter::DisconnectView()
+{
+	CtrlWindowBase<IReportListView, ReportListModel>::DisconnectView();
+
+	connViewUpdateList.disconnect();
+	connViewExecReport.disconnect();
+	connViewMkReport.disconnect();
+	connViewRmReport.disconnect();
+	connViewChReport.disconnect();
+
+}
+//-----------------------------------------------------------------------------
+void ReportListPresenter::RmView()
+{
+	DisconnectView();
+	mView.reset();
+}
+//-----------------------------------------------------------------------------
+void ReportListPresenter::MkView()
+{
+	if (!mView)
+	{
+		mView = whDataMgr::GetInstance()->mContainer->GetObject<IReportListView>("ViewPageReportList");
+		ConnectView();
+		UpdateList();
+	}
+}

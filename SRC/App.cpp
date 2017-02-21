@@ -106,7 +106,9 @@ int App::OnExit()
 	auto data_mgr = whDataMgr::GetInstance();
 
 	data_mgr->mConnectCfg->Save();
-	
+	data_mgr->mDb.Close();
+	data_mgr->mContainer->Clear();
+
 	// отключаем логер
 	mLogger->Flush();
 	wxLog::EnableLogging(false);

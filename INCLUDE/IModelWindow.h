@@ -8,7 +8,10 @@ namespace wh{
 class IModelWindow
 {
 public:
-	virtual ~IModelWindow(){}
+	virtual ~IModelWindow()
+	{
+		sigClose();
+	}
 
 	sig::signal<void(const wxString&, const wxIcon&)>	sigUpdateTitle;
 	sig::signal<void()>	sigClose;
@@ -21,24 +24,14 @@ public:
 	{
 		sigUpdateTitle(GetTitle(), GetIcon());
 	}
-	virtual void Close() 
-	{
-		sigClose();
-	}
 	virtual void Show()
 	{
 		sigShow();
 	}
 
-	virtual void Load(const boost::property_tree::ptree& val)
-	{
-
-	}
-
-	virtual void Save(boost::property_tree::ptree& val) 
-	{
-
-	}
+	virtual void OnCloseView()									{}
+	virtual void Load(const boost::property_tree::ptree& val)	{}
+	virtual void Save(boost::property_tree::ptree& val) 		{}
 
 };
 //---------------------------------------------------------------------------

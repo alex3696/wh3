@@ -41,7 +41,7 @@ public:
 	std::shared_ptr<IViewWindow> GetView()const override;
 	virtual void UpdateTitle()override;
 	virtual void Show()override;
-	virtual void Close()override;
+	virtual void RmView()override;
 	virtual void Load(const boost::property_tree::ptree& val)override;
 	virtual void Save(boost::property_tree::ptree& val)override;
 
