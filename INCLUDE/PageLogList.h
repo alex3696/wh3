@@ -11,7 +11,7 @@ namespace wh{
 class ModelPageLogList : public IModelWindow
 {
 	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_history24;
-	const wxString mTitle = "Вся история";
+	const wxString mTitle = "История";
 
 	std::shared_ptr<MLogTable> mWhModel = std::make_shared<MLogTable>();
 public:

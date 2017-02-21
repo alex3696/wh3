@@ -11,7 +11,7 @@ namespace wh{
 class ModelPagePropList : public IModelWindow
 {
 	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_classprop24;
-	const wxString mTitle = "Список свойств";
+	const wxString mTitle = "Свойства";
 
 	std::shared_ptr<MPropTable> mWhModel = std::make_shared<MPropTable>();
 public:

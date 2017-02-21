@@ -122,12 +122,6 @@ void ReportListPresenter::DisconnectView()
 
 }
 //-----------------------------------------------------------------------------
-void ReportListPresenter::RmView()
-{
-	DisconnectView();
-	mView.reset();
-}
-//-----------------------------------------------------------------------------
 void ReportListPresenter::MkView()
 {
 	if (!mView)

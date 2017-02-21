@@ -34,8 +34,7 @@ public:
 	size_t MkReport();
 	void RmReport(size_t idx);
 	void ChReport(size_t idx);
-
-	virtual void RmView()override;
+		
 	virtual void MkView()override;
 
 };

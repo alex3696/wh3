@@ -5,8 +5,7 @@ using namespace wh;
 //-----------------------------------------------------------------------------
 CtrlNotebook::CtrlNotebook(std::shared_ptr<IViewNotebook> view
 										, std::shared_ptr<ModelNotebook> model)
-	: mView(view)
-	, mModel(model)
+	: CtrlWindowBase(view, model)
 {
 	namespace ph = std::placeholders;
 
@@ -71,38 +70,14 @@ void CtrlNotebook::RmWindow(wxWindow* wnd)
 }
 //-----------------------------------------------------------------------------
 //virtual override
-std::shared_ptr<IViewWindow> CtrlNotebook::GetView()const
-{ 
-	return mView; 
-}
-//-----------------------------------------------------------------------------
-//virtual override
-void CtrlNotebook::UpdateTitle()
-{
-
-}
-//-----------------------------------------------------------------------------
-//virtual override
-void CtrlNotebook::Show()
-{
-
-}
-//-----------------------------------------------------------------------------
-//virtual override
-void CtrlNotebook::RmView()
-{
-
-}
-//-----------------------------------------------------------------------------
-//virtual override
 void CtrlNotebook::Load(const boost::property_tree::ptree& val)
 {
 	wxWindowUpdateLocker lock(mView->GetWnd());
-	mModel->Load(val);
+	CtrlWindowBase::Load(val);
 }
 //-----------------------------------------------------------------------------
-//virtual override
-void CtrlNotebook::Save(boost::property_tree::ptree& val)
-{
-	mModel->Save(val);
-};
+////virtual override
+//void CtrlNotebook::Save(boost::property_tree::ptree& val)
+//{
+//	CtrlWindowBase::Save(val);
+//};

@@ -11,7 +11,7 @@ namespace wh{
 class ModelPageGroupList : public IModelWindow
 {
 	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_usergroup24;
-	const wxString mTitle = "Список групп";
+	const wxString mTitle = "Группы";
 
 	std::shared_ptr<MGroupArray> mWhModel = std::make_shared<MGroupArray>();
 public:

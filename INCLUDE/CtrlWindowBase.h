@@ -103,6 +103,7 @@ public:
 	{ 
 		mModel->OnCloseView(); 
 		DisconnectView();
+		mView.reset();
 	}
 
 	virtual void Load(const boost::property_tree::ptree& val) override

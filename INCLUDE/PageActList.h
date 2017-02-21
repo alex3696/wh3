@@ -11,7 +11,7 @@ namespace wh{
 class ModelPageActList : public IModelWindow
 {
 	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_act24;
-	const wxString mTitle = "Список действий";
+	const wxString mTitle = "Действия";
 
 	std::shared_ptr<MActArray> mWhModel = std::make_shared<MActArray>();
 public:

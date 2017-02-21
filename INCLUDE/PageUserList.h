@@ -11,7 +11,7 @@ namespace wh{
 class ModelPageUserList : public IModelWindow
 {
 	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_user24;
-	const wxString mTitle = "Список пользователей";
+	const wxString mTitle = "Пользователи";
 public:
 	ModelPageUserList(std::shared_ptr<rec::PageUser> usr)
 	{

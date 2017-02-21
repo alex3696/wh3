@@ -4,11 +4,11 @@
 
 #include "IViewNotebook.h"
 #include "ModelNotebook.h"
-#include "ICtrlWindow.h"
+#include "CtrlWindowBase.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
-class CtrlNotebook : public ICtrlWindow
+class CtrlNotebook : public CtrlWindowBase<IViewNotebook, ModelNotebook>
 {
 	sig::scoped_connection connViewMkWindow;
 	sig::scoped_connection connViewRmWindow;
@@ -18,10 +18,6 @@ class CtrlNotebook : public ICtrlWindow
 	sig::scoped_connection connModelAfterChWindow;
 	sig::scoped_connection connModelBeforeRmWindow;
 	sig::scoped_connection connModelShowWindow;
-	
-	
-	std::shared_ptr<IViewNotebook> mView;
-	std::shared_ptr<ModelNotebook> mModel;
 
 	void OnSig_MkChild(ICtrlWindow*);
 	void OnSig_RmChild(ICtrlWindow*);
@@ -38,12 +34,8 @@ public:
 	void ShowWindow(wxWindow* wnd);
 
 	//ICtrlWindow
-	std::shared_ptr<IViewWindow> GetView()const override;
-	virtual void UpdateTitle()override;
-	virtual void Show()override;
-	virtual void RmView()override;
 	virtual void Load(const boost::property_tree::ptree& val)override;
-	virtual void Save(boost::property_tree::ptree& val)override;
+	//virtual void Save(boost::property_tree::ptree& val)override;
 
 	
 

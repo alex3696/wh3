@@ -9,60 +9,14 @@
 
 namespace wh{
 //---------------------------------------------------------------------------
-class CtrlMain :public ICtrlWindow
+class CtrlMain : public CtrlWindowBase<ViewMain, ModelMain>
 {
-	sig::scoped_connection connViewUpdateTitle;
-	sig::scoped_connection connViewClose;
-	sig::scoped_connection connViewShow;
-
-	sig::scoped_connection connModelUpdateTitle;
-	sig::scoped_connection connModelClose;
-	sig::scoped_connection connModelShow;
-
-	sig::scoped_connection connCtrlClose;
-	
-	sig::scoped_connection connModelAfterMkNotebook;
-
-	
-	std::shared_ptr<ViewMain>	mView;
-	std::shared_ptr<ModelMain>	mModel;
-
-
 	std::shared_ptr<CtrlNotebook> mCtrlNotebook;
 
-	void OnSig_ModelClose()
-	{
-		mView->OnCloseModel();
-		sigCloseModel(this);
-
-		connModelUpdateTitle.disconnect();
-		connModelClose.disconnect();
-		connModelShow.disconnect();;
-	}
 public:
 	CtrlMain(std::shared_ptr<ViewMain> view, std::shared_ptr<ModelMain> model)
-		: mView(view)
-		, mModel(model)
+		: CtrlWindowBase(view, model)
 	{
-		namespace ph = std::placeholders;
-		connViewUpdateTitle = mView->sigUpdateTitle
-			.connect(std::bind(&IModelWindow::UpdateTitle, mModel.get()));
-		connViewClose = mView->sigClose
-			.connect(std::bind(&IModelWindow::OnCloseView, mModel.get()));
-		connViewShow = mView->sigShow
-			.connect(std::bind(&IModelWindow::Show, mModel.get()));
-
-		connModelUpdateTitle = mModel->sigUpdateTitle
-			.connect(std::bind(&IViewWindow::OnUpdateTitle, mView.get(), ph::_1, ph::_2));
-		connModelClose = mModel->sigClose
-			.connect(std::bind(&IViewWindow::OnCloseModel, mView.get()));
-		connModelShow = mModel->sigShow
-			.connect(std::bind(&IViewWindow::OnShow, mView.get()));
-
-		connCtrlClose = mModel->sigClose
-			.connect(std::bind(&CtrlMain::OnSig_ModelClose, this));
-
-
 		auto view_notebook = mView->GetViewNotebook();
 		auto model_notebook = std::make_shared<ModelNotebook>();
 
@@ -73,12 +27,6 @@ public:
 
 	}
 
-	virtual std::shared_ptr<IViewWindow> GetView()const override { return mView; }
-
-	virtual void UpdateTitle() override { mModel->UpdateTitle(); }
-	virtual void Show() override{ mModel->Show(); }
-	virtual void RmView() override{ mModel->OnCloseView(); }
-	
 	virtual void Load(const boost::property_tree::ptree& app_cfg) override
 	{
 		mModel->Load(app_cfg);
@@ -113,10 +61,6 @@ public:
 		whDataMgr::GetInstance()->mDbCfg->mGuiCfg->SetData(app_cfg);
 	}
 
-
-	//sig::signal<void(wxWindow*, const wxString&, const wxIcon&)>	sigUpdateTitle;
-	//sig::signal<void(wxWindow*)>	sigClose;
-	//sig::signal<void(wxWindow*)>	sigShow;
 
 };
 

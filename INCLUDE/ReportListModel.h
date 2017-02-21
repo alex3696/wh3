@@ -10,7 +10,7 @@ namespace wh{
 class ReportListModel : public IModelWindow
 {
 	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_report24;
-	const wxString mTitle = "Список отчётов";
+	const wxString mTitle = "Отчёты";
 
 
 	rec::ReportList mRepList;
