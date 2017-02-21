@@ -52,7 +52,6 @@ class ViewPagePropList : public IViewWindow
 public:
 	ViewPagePropList(std::shared_ptr<IViewNotebook> parent)
 	{
-		wxWindowUpdateLocker lock(parent->GetWnd());
 		mPanel = new VTablePanel(parent->GetWnd());
 	}
 

@@ -165,6 +165,7 @@ GRANT USAGE ON TABLE seq_obj_id  TO "ObjDesigner";
 GRANT USAGE ON TABLE seq_log_id  TO "User";
 GRANT USAGE ON TABLE seq_perm_id TO "TypeDesigner";
 GRANT USAGE ON TABLE favorite_prop_id_seq  TO "User";
+GRANT USAGE ON TABLE seq_rep_id  TO "TypeDesigner";
 
 ---------------------------------------------------------------------------------------------------
 -- перечень всех классов
@@ -671,7 +672,7 @@ GRANT DELETE        ON TABLE app_config TO "Admin";
 ---------------------------------------------------------------------------------------------------
 --DROP TABLE IF EXISTS report CASCADE;
 CREATE TABLE report(
- id     BIGINT NOT NULL DEFAULT nextval('seq_rep_id') CHECK ( id>=0 )
+ id     BIGINT NOT NULL DEFAULT nextval('seq_rep_id')
 ,title  NAME   NOT NULL
 ,note   TEXT
 ,script TEXT

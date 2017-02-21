@@ -454,7 +454,7 @@ void whDataMgr::InitContainer()
 	/////////////////
 	// report list //
 	////////////////
-	mContainer->RegInstanceDeferredNI<ReportListModel>("ModelPageReportList");
+	mContainer->RegFactoryNI<ReportListModel>("ModelPageReportList");
 	mContainer->RegFactory<IReportListView, ReportListView, IViewNotebook>
 		("ViewPageReportList", "ViewNotebook");
 	mContainer->RegFactory<ICtrlWindow, ReportListPresenter, IReportListView, ReportListModel>

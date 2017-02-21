@@ -93,7 +93,6 @@ class ViewPageObjByTypeList : public IViewWindow
 public:
 	ViewPageObjByTypeList(std::shared_ptr<IViewNotebook> parent)
 	{
-		wxWindowUpdateLocker lock(parent->GetWnd());
 		mPanel = new view::VObjCatalogCtrl(parent->GetWnd());
 		mPanel->HideCatalogSelect(true);
 	}

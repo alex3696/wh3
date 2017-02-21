@@ -52,7 +52,6 @@ class ViewPageActList : public IViewWindow
 public:
 	ViewPageActList(std::shared_ptr<IViewNotebook> parent)
 	{
-		wxWindowUpdateLocker lock(parent->GetWnd());
 		mPanel = new view::VActCtrlPanel(parent->GetWnd());
 	}
 

@@ -399,12 +399,6 @@ void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 	{
 		nb2->MkWindow("CtrlPageDetailObj");
 	}
-		
-
-	/*
-
-	whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(oi);
-	*/
 }
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdFavProp(wxCommandEvent& evt)

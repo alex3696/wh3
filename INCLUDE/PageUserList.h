@@ -23,27 +23,14 @@ public:
 
 	virtual void Load(const boost::property_tree::ptree& page_val)override
 	{
-		using ptree = boost::property_tree::ptree;
-
-		ptree::value_type page = *page_val.begin();
-		auto name = page.first.c_str();
-
-		int val1 = page.second.get<int>("id", 0);
-
-		int val2 = page_val.get<int>("CtrlPageUserList.id", 0);
 		
 	}
 
 	virtual void Save(boost::property_tree::ptree& page_val)override
 	{
 		using ptree = boost::property_tree::ptree;
-
 		ptree content;
-		content.put("id", (int)-1);
 		page_val.push_back(std::make_pair("CtrlPageUserList", content));
-
-		page_val.put("CtrlPageUserList.id", 33);
-
 	}
 
 
@@ -61,8 +48,6 @@ class ViewPageUserList : public IViewWindow
 public:
 	ViewPageUserList(std::shared_ptr<IViewNotebook> parent)
 	{
-		//mPanel = new wxPanel(parent->GetWnd());
-		wxWindowUpdateLocker lock(parent->GetWnd());
 		mPanel = new view::VUserCtrlPanel(parent->GetWnd());
 	}
 

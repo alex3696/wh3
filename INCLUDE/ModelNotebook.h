@@ -20,6 +20,7 @@ class ModelNotebook : public IModelWindow
 		sig::scoped_connection			connModelChTitle;
 		sig::scoped_connection			connModelShow;
 		sig::scoped_connection			connModelClose;
+		sig::scoped_connection			connRmCtrl;
 		std::shared_ptr<ICtrlWindow>	mCtrlWindow;
 	};
 
@@ -55,10 +56,11 @@ public:
 	virtual void Load(const boost::property_tree::ptree& val)override;
 	virtual void Save(boost::property_tree::ptree& val)override;
 
-	sig::signal<void(wxWindow*)>								sigAfterMkWindow;
-	sig::signal<void(wxWindow*,const wxString&,const wxIcon&)>	sigAfterChWindow;
-	sig::signal<void(wxWindow*)>								sigBeforeRmWindow;
-	sig::signal<void(wxWindow*)>								sigShowWindow;
+	sig::signal<void(ICtrlWindow*)>									sigAfterMkWindow;
+	sig::signal<void(ICtrlWindow*)>									sigBeforeRmWindow;
+	sig::signal<void(ICtrlWindow*)>									sigShowWindow;
+	sig::signal<void(ICtrlWindow*, const wxString&, const wxIcon&)>	sigAfterChWindow;
+	
 
 };
 

@@ -52,7 +52,6 @@ class ViewPageLogList : public IViewWindow
 public:
 	ViewPageLogList(std::shared_ptr<IViewNotebook> parent)
 	{
-		wxWindowUpdateLocker lock(parent->GetWnd());
 		mPanel = new VTablePanel(parent->GetWnd());
 		mPanel->mCtrl.fnOnCmdInsert = nullptr;
 		mPanel->mCtrl.fnOnCmdEdit = nullptr;

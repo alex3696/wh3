@@ -29,6 +29,12 @@ std::shared_ptr<ICtrlWindow> ModelNotebook::MkWindowNoSignal(const wxString& nam
 	item->connModelChTitle = ctrl->sigUpdateTitle.connect(sigAfterChWindow);
 	item->connModelShow = ctrl->sigShow.connect(sigShowWindow);
 	item->connModelClose = ctrl->sigClose.connect(sigBeforeRmWindow);
+	item->connRmCtrl  =ctrl->sigClose.connect([this](ICtrlWindow* ctrl)
+	{
+		auto& wndIdx = mWindowList.get<1>();
+		wxWindow* wnd = ctrl->GetView()->GetWnd();
+		wndIdx.erase(wnd);
+	});
 	mWindowList.emplace_back(item);
 	return ctrl;
 }
@@ -39,7 +45,7 @@ void ModelNotebook::MkWindow(const wxString& factory)
 	if (ctrl)
 	{
 		wxWindow* wnd = ctrl->GetView()->GetWnd();
-		sigAfterMkWindow(ctrl->GetView()->GetWnd());
+		sigAfterMkWindow(ctrl.get());
 		ctrl->UpdateTitle();
 		ctrl->Show();	
 	}
@@ -54,24 +60,7 @@ void ModelNotebook::RmWindow(wxWindow* wnd)
 	if (wndIdx.end() != it)
 	{
 		(*it)->mCtrlWindow->Close();
-		wndIdx.erase(it);
 	}
-	/*
-
-	auto it = mWindowList.begin();
-	auto it_end = mWindowList.end();
-	while (it != it_end)
-	{
-		if ((*it)->mCtrlWindow->GetView()->GetWnd() == wnd)
-		{
-			(*it)->mCtrlWindow->Close();
-			//sigBeforeRmWindow(wnd);
-			mWindowList.erase(it);
-			break;
-		}
-		++it;
-	}
-	*/
 	
 }
 //-----------------------------------------------------------------------------
@@ -109,7 +98,7 @@ try{
 			if (ctrl)
 			{
 				wxWindow* wnd = ctrl->GetView()->GetWnd();
-				sigAfterMkWindow(ctrl->GetView()->GetWnd());
+				sigAfterMkWindow(ctrl.get());
 				ctrl->Load(v.second);
 				ctrl->UpdateTitle();
 			}

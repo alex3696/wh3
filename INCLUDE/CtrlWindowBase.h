@@ -27,23 +27,6 @@ protected:
 	sig::scoped_connection connCtrlClose;
 	sig::scoped_connection connCtrlShow;
 
-	/*
-	virtual void OnModelSig_Update(const wxString& title, const wxIcon& ico)
-	{
-		mView->UpdateTitle(title, ico);
-		sigUpdateTitle(mView->GetWnd(), title, ico);
-	}
-	virtual void OnModelSig_Show()
-	{
-		mView->Show();
-		sigShow(mView->GetWnd());
-	}
-	virtual void OnModelSig_Close()
-	{
-		mView->Close();
-		sigClose(mView->GetWnd());
-	}
-	*/
 public:
 	CtrlWindowBase(std::shared_ptr<TVIEW> view, std::shared_ptr<TMODEL> model)
 		:mView(view)
@@ -65,19 +48,11 @@ public:
 			.connect(std::bind(&IViewWindow::OnShow, mView.get()));
 
 		connCtrlUpdateTitle = mModel->sigUpdateTitle
-			.connect(std::bind(std::ref(sigUpdateTitle), mView->GetWnd(), ph::_1, ph::_2));
+			.connect(std::bind(std::ref(sigUpdateTitle), this, ph::_1, ph::_2));
 		connCtrlClose = mModel->sigClose
-			.connect(std::bind(std::ref(sigClose), mView->GetWnd()));
+			.connect(std::bind(std::ref(sigClose), this));
 		connCtrlShow = mModel->sigShow
-			.connect(std::bind(std::ref(sigShow), mView->GetWnd()));
-
-		//connModelUpdateTitle = mModel->sigUpdateTitle
-		//	.connect(std::bind(&CtrlWindowBase::OnModelSig_Update, this, ph::_1, ph::_2));
-		//connModelClose = mModel->sigClose
-		//	.connect(std::bind(&CtrlWindowBase::OnModelSig_Close, this));
-		//connModelShow = mModel->sigShow
-		//	.connect(std::bind(&CtrlWindowBase::OnModelSig_Show, this));
-
+			.connect(std::bind(std::ref(sigShow), this));
 	}
 
 	//virtual std::shared_ptr<IModelWindow > GetModel()const override	{ return mModel; }

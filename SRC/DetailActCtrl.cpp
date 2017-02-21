@@ -83,9 +83,15 @@ void DetailActCtrl::OnCmdMove(wxCommandEvent& WXUNUSED(evt))
 	try
 	{
 		auto moveable_sp = ctrl->GetObject<rec::PathItem>("MoveableObj");
+		if (!moveable_sp)
+			return;
+
 		*moveable_sp = mObjModel->GetData();
 			
 		auto presenter = ctrl->GetObject<MoveObjPresenter>("MoveObjPresenter");
+		if (!presenter)
+			return;
+
 		wxLogMessage(wxString::Format("%d \t MoveObj \t init", GetTickCount() - p0));
 		
 		auto busyCursor = std::make_unique<wxBusyCursor>();

@@ -18,18 +18,9 @@ public:
 	virtual void Load(const boost::property_tree::ptree&) = 0;
 	virtual void Save(boost::property_tree::ptree&) = 0;
 
-	sig::signal<void(wxWindow*, const wxString&, const wxIcon&)>	sigUpdateTitle;
-	sig::signal<void(wxWindow*)>	sigClose;
-	sig::signal<void(wxWindow*)>	sigShow;
-
-	//sig::signal<void(const ICtrlWindow*, const wxString&, const wxIcon&)>	sigUpdateTitle;
-	//sig::signal<void(const ICtrlWindow*)>	sigClose;
-	//sig::signal<void(const ICtrlWindow*)>	sigShow;
-	//protected:
-	//virtual void OnModelSig_Update(const wxString&, const wxIcon&) = 0;
-	//virtual void OnModelSig_Show() = 0;
-	//virtual void OnModelSig_Close() = 0;
-
+	sig::signal<void(ICtrlWindow*, const wxString&, const wxIcon&)>	sigUpdateTitle;
+	sig::signal<void(ICtrlWindow*)>	sigClose;
+	sig::signal<void(ICtrlWindow*)>	sigShow;
 
 };
 //---------------------------------------------------------------------------

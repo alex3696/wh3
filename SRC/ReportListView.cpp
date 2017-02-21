@@ -1,6 +1,8 @@
 #include "_pch.h"
 #include "ReportListView.h"
-#include "ResManager.h"
+
+#include "globaldata.h"
+#include "config.h"
 
 using namespace wh;
 
@@ -60,13 +62,6 @@ ReportListView::ReportListView(std::shared_ptr<IViewNotebook> wnd)
 	:IReportListView()
 {
 	mPanel = new wxPanel(wnd->GetWnd());
-	mPanel->SetBackgroundColour(*wxRED);
-	
-	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportListView::OnCmd_UpdateList, this, wxID_REFRESH);
-	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportListView::OnCmd_ExecReport, this, wxID_EXECUTE);
-	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportListView::OnCmd_MkReport, this, wxID_ADD);
-	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportListView::OnCmd_RmReport, this, wxID_REMOVE);
-	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportListView::OnCmd_ChReport, this, wxID_EDIT);
 	
 	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
 	
@@ -78,6 +73,13 @@ ReportListView::ReportListView(std::shared_ptr<IViewNotebook> wnd)
 
 	mPanel->SetSizer(szrMain);
 	mPanel->Layout();
+
+	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportListView::OnCmd_UpdateList, this, wxID_REFRESH);
+	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportListView::OnCmd_ExecReport, this, wxID_EXECUTE);
+	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportListView::OnCmd_MkReport, this, wxID_ADD);
+	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportListView::OnCmd_RmReport, this, wxID_REMOVE);
+	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportListView::OnCmd_ChReport, this, wxID_EDIT);
+
 }
 //-----------------------------------------------------------------------------
 wxWindow* ReportListView::GetWnd() const
@@ -96,9 +98,16 @@ wxAuiToolBar* ReportListView::BuildToolBar(wxWindow* parent)
 	tool_bar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh24);
 	tool_bar->AddTool(wxID_EXECUTE, "Выполнить", mgr->m_ico_act24);
 
-	tool_bar->AddTool(wxID_ADD, "Создать", mgr->m_ico_create24);
-	tool_bar->AddTool(wxID_EDIT, "Редактировать", mgr->m_ico_edit24);
-	tool_bar->AddTool(wxID_REMOVE, "Удалить", mgr->m_ico_delete24);
+	
+	const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
+	if ((int)currBaseGroup >= (int)bgTypeDesigner)
+	{
+		tool_bar->AddSeparator();
+		tool_bar->AddTool(wxID_ADD, "Создать", mgr->m_ico_create24);
+		tool_bar->AddTool(wxID_EDIT, "Редактировать", mgr->m_ico_edit24);
+		tool_bar->AddTool(wxID_REMOVE, "Удалить", mgr->m_ico_delete24);
+	}
+
 	tool_bar->Realize();
 
 	return tool_bar;

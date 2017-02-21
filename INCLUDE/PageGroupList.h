@@ -52,7 +52,6 @@ class ViewPageGroupList : public IViewWindow
 public:
 	ViewPageGroupList(std::shared_ptr<IViewNotebook> parent)
 	{
-		wxWindowUpdateLocker lock(parent->GetWnd());
 		mPanel = new view::VGroupCtrlPanel(parent->GetWnd());
 	}
 
