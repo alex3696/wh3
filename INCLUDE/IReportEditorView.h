@@ -2,7 +2,6 @@
 #define __IREPORTEDITORVIEW_H
 //-----------------------------------------------------------------------------
 #include "_pch.h"
-#include "IPageView.h"
 #include "ReportData.h"
 
 namespace wh{

@@ -156,8 +156,6 @@
     <ClCompile Include="..\..\SRC\MoveObjModel.cpp" />
     <ClCompile Include="..\..\SRC\MoveObjPresenter.cpp" />
     <ClCompile Include="..\..\SRC\MoveObjView.cpp" />
-    <ClCompile Include="..\..\SRC\NotebookModel.cpp" />
-    <ClCompile Include="..\..\SRC\NotebookPresenter.cpp" />
     <ClCompile Include="..\..\SRC\ObjDetailPGView.cpp" />
     <ClCompile Include="..\..\SRC\detail_ctrlpnl.cpp" />
     <ClCompile Include="..\..\SRC\detail_model_ClsPropArray.cpp" />
@@ -184,7 +182,6 @@
     <ClCompile Include="..\..\SRC\MHistory.cpp" />
     <ClCompile Include="..\..\SRC\MLogProp.cpp" />
     <ClCompile Include="..\..\SRC\MProp2.cpp" />
-    <ClCompile Include="..\..\SRC\PagePresenter.cpp" />
     <ClCompile Include="..\..\SRC\PathPattern_model.cpp" />
     <ClCompile Include="..\..\SRC\DUserEditor.cpp" />
     <ClCompile Include="..\..\SRC\DUserGroupEditor.cpp" />
@@ -216,7 +213,6 @@
     <ClCompile Include="..\..\SRC\ReportModel.cpp" />
     <ClCompile Include="..\..\SRC\ReportPresenter.cpp" />
     <ClCompile Include="..\..\SRC\ReportView.cpp" />
-    <ClCompile Include="..\..\SRC\ViewFactory.cpp" />
     <ClCompile Include="..\..\SRC\VTableCtrl.cpp" />
     <ClCompile Include="..\..\SRC\TableRowEditor.cpp" />
     <ClCompile Include="..\..\SRC\VActPanel.cpp" />
@@ -279,7 +275,6 @@
     <ClInclude Include="..\..\INCLUDE\DClsPropEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DetailActCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h" />
-    <ClInclude Include="..\..\INCLUDE\EmptyPresenter.h" />
     <ClInclude Include="..\..\INCLUDE\ICtrlWindow.h" />
     <ClInclude Include="..\..\INCLUDE\IModelWindow.h" />
     <ClInclude Include="..\..\INCLUDE\IViewWindow.h" />
@@ -295,7 +290,6 @@
     <ClInclude Include="..\..\INCLUDE\CtrlNotebook.h" />
     <ClInclude Include="..\..\INCLUDE\IMoveObjView.h" />
     <ClInclude Include="..\..\INCLUDE\ioc_strcontainer.h" />
-    <ClInclude Include="..\..\INCLUDE\IPageView.h" />
     <ClInclude Include="..\..\INCLUDE\IRecentDstOidView.h" />
     <ClInclude Include="..\..\INCLUDE\IReportEditorView.h" />
     <ClInclude Include="..\..\INCLUDE\IReportListView.h" />
@@ -306,18 +300,12 @@
     <ClInclude Include="..\..\INCLUDE\MoveObjPresenter.h" />
     <ClInclude Include="..\..\INCLUDE\MoveObjView.h" />
     <ClInclude Include="..\..\INCLUDE\PageGroupList.h" />
-    <ClInclude Include="..\..\INCLUDE\PageModel.h" />
-    <ClInclude Include="..\..\INCLUDE\IMVP.h" />
-    <ClInclude Include="..\..\INCLUDE\INotebookView.h" />
-    <ClInclude Include="..\..\INCLUDE\NotebookPresenter.h" />
     <ClInclude Include="..\..\INCLUDE\MFavFilterCls.h" />
     <ClInclude Include="..\..\INCLUDE\MFavFilterPath.h" />
     <ClInclude Include="..\..\INCLUDE\MFav.h" />
     <ClInclude Include="..\..\INCLUDE\MFavViewPropActCommon.h" />
     <ClInclude Include="..\..\INCLUDE\MFavViewPropActUsr.h" />
     <ClInclude Include="..\..\INCLUDE\MFavViewPropCls.h" />
-    <ClInclude Include="..\..\INCLUDE\NotebookModel.h" />
-    <ClInclude Include="..\..\INCLUDE\NotebookView.h" />
     <ClInclude Include="..\..\INCLUDE\ObjDetailPGView.h" />
     <ClInclude Include="..\..\INCLUDE\detail_ctrlpnl.h" />
     <ClInclude Include="..\..\INCLUDE\detail_model.h" />
@@ -343,7 +331,6 @@
     <ClInclude Include="..\..\INCLUDE\MHistory.h" />
     <ClInclude Include="..\..\INCLUDE\MLogProp.h" />
     <ClInclude Include="..\..\INCLUDE\MProp2.h" />
-    <ClInclude Include="..\..\INCLUDE\PagePresenter.h" />
     <ClInclude Include="..\..\INCLUDE\PathPattern_model.h" />
     <ClInclude Include="..\..\INCLUDE\DUserEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DUserGroupEditor.h" />
@@ -374,7 +361,6 @@
     <ClInclude Include="..\..\INCLUDE\ReportModel.h" />
     <ClInclude Include="..\..\INCLUDE\ReportPresenter.h" />
     <ClInclude Include="..\..\INCLUDE\ReportView.h" />
-    <ClInclude Include="..\..\INCLUDE\ViewFactory.h" />
     <ClInclude Include="..\..\INCLUDE\ViewMain.h" />
     <ClInclude Include="..\..\INCLUDE\VTableCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\TableRowEditor.h" />

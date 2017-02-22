@@ -12,7 +12,6 @@ class ReportView : public IReportView
 	wxDataViewCtrl* mTable;
 public:
 	ReportView(std::shared_ptr<wxWindow*> wnd);
-	virtual void SetWnd(wxWindow* wnd)override;
 	virtual wxWindow* GetWnd() override;
 
 	virtual void SetReportTable(const rec::ReportTable& rt) override;

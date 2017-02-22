@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "ReportView.h"
+#include "globaldata.h"
 
 using namespace wh;
 
@@ -74,10 +75,6 @@ ReportView::ReportView(std::shared_ptr<wxWindow*> wnd)
 
 	mPanel->SetSizer(szrMain);
 	mPanel->Layout();
-}
-//-----------------------------------------------------------------------------
-void ReportView::SetWnd(wxWindow* wnd)
-{
 }
 //-----------------------------------------------------------------------------
 wxWindow* ReportView::GetWnd()

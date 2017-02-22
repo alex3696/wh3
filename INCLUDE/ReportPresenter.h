@@ -1,13 +1,12 @@
 #ifndef __REPORTPRESENTER_H
 #define __REPORTPRESENTER_H
 
-#include "PagePresenter.h"
 #include "IReportView.h"
 #include "ReportModel.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
-class ReportPresenter : public mvp::PagePresenter
+class ReportPresenter 
 {
 	sig::scoped_connection connViewUpdate;
 	sig::scoped_connection connViewExport;
@@ -19,10 +18,7 @@ class ReportPresenter : public mvp::PagePresenter
 public:
 	ReportPresenter(std::shared_ptr<IReportView> view, std::shared_ptr<ReportModel> model);
 
-	virtual void SetView(mvp::IView* view) override;
-	virtual void SetModel(const std::shared_ptr<mvp::IModel>& model)override;
-	virtual std::shared_ptr<mvp::IModel> GetModel() override;
-	virtual mvp::IView* GetView() override;
+	virtual std::shared_ptr<IReportView> GetView();
 
 	void Update();
 	void Export();

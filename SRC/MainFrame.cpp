@@ -20,11 +20,6 @@
 
 #include "detail_ctrlpnl.h"
 
-#include "EmptyPresenter.h"
-#include "NotebookModel.h"
-#include "NotebookPresenter.h"
-#include "NotebookView.h"
-
 #include "CtrlNotebook.h"
 //---------------------------------------------------------------------------
 enum GUIID

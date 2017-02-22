@@ -2,6 +2,7 @@
 #include "ReportListPresenter.h"
 #include "ReportEditorPresenter.h"
 #include "ReportPresenter.h"
+#include "globaldata.h"
 
 using namespace wh;
 
@@ -91,7 +92,7 @@ void ReportListPresenter::ConnectView()
 	if (!mView)
 		return;
 	
-	CtrlWindowBase<IReportListView, ReportListModel>::ConnectView();
+	CtrlWindowBase::ConnectView();
 
 	namespace ph = std::placeholders;
 
@@ -112,7 +113,7 @@ void ReportListPresenter::ConnectView()
 //-----------------------------------------------------------------------------
 void ReportListPresenter::DisconnectView()
 {
-	CtrlWindowBase<IReportListView, ReportListModel>::DisconnectView();
+	CtrlWindowBase::DisconnectView();
 
 	connViewUpdateList.disconnect();
 	connViewExecReport.disconnect();

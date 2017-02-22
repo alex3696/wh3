@@ -1,12 +1,11 @@
 #ifndef __REPORTMODEL_H
 #define __REPORTMODEL_H
 
-#include "PageModel.h"
 #include "ReportData.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
-class ReportModel : public mvp::PageModel
+class ReportModel 
 {
 public:
 	void Update();

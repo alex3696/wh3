@@ -6,8 +6,7 @@ using namespace wh;
 //---------------------------------------------------------------------------
 ReportPresenter::ReportPresenter(std::shared_ptr<IReportView> view
 								, std::shared_ptr<ReportModel> model)
-	:mvp::PagePresenter(nullptr)
-	, mView(view)
+	: mView(view)
 	, mModel(model)
 
 {
@@ -24,24 +23,9 @@ ReportPresenter::ReportPresenter(std::shared_ptr<IReportView> view
 
 }
 //---------------------------------------------------------------------------
-void ReportPresenter::SetView(mvp::IView* view)
+std::shared_ptr<IReportView> ReportPresenter::GetView()
 {
-
-}
-//---------------------------------------------------------------------------
-void ReportPresenter::SetModel(const std::shared_ptr<mvp::IModel>& model)
-{
-	mvp::PagePresenter::SetModel(model);
-}
-//---------------------------------------------------------------------------
-std::shared_ptr<mvp::IModel> ReportPresenter::GetModel()
-{
-	return mvp::PagePresenter::GetModel();
-}
-//---------------------------------------------------------------------------
-mvp::IView* ReportPresenter::GetView()
-{
-	return mView.get();
+	return mView;
 };
 //---------------------------------------------------------------------------
 void ReportPresenter::Update()

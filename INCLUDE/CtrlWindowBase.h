@@ -37,14 +37,12 @@ protected:
 	{
 		mView->OnCloseModel();
 		sigCloseModel(this);
-
 		DisconnectModel();
 	}
 
 
 	void OnSig_OnCloseView()
 	{
-		//mModel->OnCloseView();
 		sigCloseView(this);
 		DisconnectView();
 	}
@@ -101,7 +99,6 @@ public:
 	virtual void Show()override			{ mModel->Show(); }
 	virtual void RmView()override		
 	{ 
-		mModel->OnCloseView(); 
 		DisconnectView();
 		mView.reset();
 	}

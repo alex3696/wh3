@@ -142,12 +142,6 @@
     <Filter Include="Панель избранного\view">
       <UniqueIdentifier>{0afd9a5a-23e7-4e85-bed9-0215001a1bc5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MainFrame\MVP">
-      <UniqueIdentifier>{73e38e76-123c-4eaf-b4a0-f0b553637b10}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="MainFrame\MVP\Page">
-      <UniqueIdentifier>{c3872949-0465-4523-816c-69bcca189947}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Common\RecentDstOid">
       <UniqueIdentifier>{4d4fdce2-59b3-4a35-a763-93c5bd70ff51}</UniqueIdentifier>
     </Filter>
@@ -449,18 +443,6 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\config.cpp">
       <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\PagePresenter.cpp">
-      <Filter>MainFrame\MVP\Page</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\NotebookPresenter.cpp">
-      <Filter>MainFrame\MVP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\ViewFactory.cpp">
-      <Filter>MainFrame\MVP</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\NotebookModel.cpp">
-      <Filter>MainFrame\MVP</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\RecentDstOidModel.cpp">
       <Filter>Common\RecentDstOid</Filter>
@@ -826,36 +808,6 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\config.h">
       <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\IMVP.h">
-      <Filter>MainFrame\MVP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\EmptyPresenter.h">
-      <Filter>MainFrame\MVP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\INotebookView.h">
-      <Filter>MainFrame\MVP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\NotebookModel.h">
-      <Filter>MainFrame\MVP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\NotebookView.h">
-      <Filter>MainFrame\MVP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\NotebookPresenter.h">
-      <Filter>MainFrame\MVP</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\IPageView.h">
-      <Filter>MainFrame\MVP\Page</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\PageModel.h">
-      <Filter>MainFrame\MVP\Page</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\PagePresenter.h">
-      <Filter>MainFrame\MVP\Page</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\ViewFactory.h">
-      <Filter>MainFrame\MVP</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\RecentDstOidModel.h">
       <Filter>Common\RecentDstOid</Filter>

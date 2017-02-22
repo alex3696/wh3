@@ -2,16 +2,14 @@
 #define __IREPORTVIEW_H
 //-----------------------------------------------------------------------------
 #include "_pch.h"
-#include "IPageView.h"
 #include "ReportData.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
-class IReportView : public mvp::IPageView
+class IReportView 
 {
 public:
-	virtual void SetWnd(wxWindow* wnd)override	{ throw; }
-	virtual wxWindow* GetWnd() override { throw;  return nullptr; }
+	virtual wxWindow* GetWnd() { throw;  return nullptr; }
 
 	virtual void SetReportTable(const rec::ReportTable& rt) = 0;
 
