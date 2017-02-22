@@ -1,13 +1,7 @@
 #include "_pch.h"
 #include "config.h"
 
-#include "wx/wfstream.h"
-#include "wx/datstrm.h"
-#include "wx/txtstrm.h"
-#include "wx/mstream.h"
-
 using namespace wh;
-
 
 //-----------------------------------------------------------------------------
 MGuiCfg::MGuiCfg(const char option)

@@ -250,33 +250,7 @@ wxArrayString wh::Sql2ArrayString(const wxString& sql_str)
 	return arr;
 }
 
-//-----------------------------------------------------------------------------
-wxArrayString Sql2ArrayString_old(const wxString& str_sql_value)
-{
-	wxArrayString arr;
 
-	wxRegEx cut_arr("([^{|}$]+)");
-	if (cut_arr.Matches(str_sql_value))
-	{
-		wxString curr = cut_arr.GetMatch(str_sql_value);
-
-		wxRegEx re("([^,]+|\"[^\"]*\")");
-		size_t start = 0;
-
-		while (start < curr.Len())
-		{
-			curr = curr.Mid(start); //SubString(start, str_sql_value.Len());
-			if (re.Matches(curr))
-			{
-				wxString s = re.GetMatch(curr);
-				arr.push_back(s);
-				start = s.Len() + 1;
-			}
-		}
-	}
-
-	return arr;
-}
 //-----------------------------------------------------------------------------
 wxString wh::ArrayString2Sql(const wxArrayString& arr)
 {

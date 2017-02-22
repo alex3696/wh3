@@ -4,7 +4,6 @@
 #include "_pch.h"
 #include "whDB.h"
 #include "ResManager.h"
-#include "wxComboBtn.h"
 #include "ioc_strcontainer.h"
 
 //----------------------------------------------------------------------------
