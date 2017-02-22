@@ -84,6 +84,7 @@ bool App::OnInit()
 	auto view_main = std::make_shared<ViewMain>();
 	auto ctrl_main = std::make_shared<CtrlMain>(view_main, model_main);
 	gmgr->mContainer->RegInstance("CtrlMain", ctrl_main);
+	gmgr->mContainer->RegInstance("ViewMain", view_main);
 	
 	SetTopWindow(view_main->GetWnd());
 	ctrl_main->Show();

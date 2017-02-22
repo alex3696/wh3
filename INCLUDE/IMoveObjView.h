@@ -1,7 +1,7 @@
 #ifndef __IMOVEOBJVIEW_H
 #define __IMOVEOBJVIEW_H
 
-#include "_pch.h"
+#include "IViewWindow.h"
 #include "MoveObjData.h"
 
 namespace wh{

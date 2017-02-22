@@ -6,9 +6,7 @@ using namespace wh;
 //---------------------------------------------------------------------------
 ReportPresenter::ReportPresenter(std::shared_ptr<IReportView> view
 								, std::shared_ptr<ReportModel> model)
-	: mView(view)
-	, mModel(model)
-
+	: CtrlWindowBase(view, model)
 {
 	namespace ph = std::placeholders;
 
@@ -22,11 +20,6 @@ ReportPresenter::ReportPresenter(std::shared_ptr<IReportView> view
 		.connect(std::bind(&ReportPresenter::SetParam, this));
 
 }
-//---------------------------------------------------------------------------
-std::shared_ptr<IReportView> ReportPresenter::GetView()
-{
-	return mView;
-};
 //---------------------------------------------------------------------------
 void ReportPresenter::Update()
 {

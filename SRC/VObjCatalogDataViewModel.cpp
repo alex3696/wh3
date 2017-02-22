@@ -62,7 +62,7 @@ bool VObjCatalogDataViewModel::IsContainer(const wxDataViewItem &dataViewItem)co
 void VObjCatalogDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem &dataViewItem, unsigned int col) const
 {
 	wxString val;
-	wxIcon*  ico(&wxNullIcon);
+	const wxIcon*  ico(&wxNullIcon);
 	
 	
 	auto modelInterface = static_cast<IModel*> (dataViewItem.GetID());

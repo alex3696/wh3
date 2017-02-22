@@ -13,11 +13,43 @@ class ModelPageDetailObj : public IModelWindow
 	const wxString mTitle = "Подробности...";
 
 	std::shared_ptr<detail::model::Obj> mWhModel = std::make_shared<detail::model::Obj>();
+
+	sig::scoped_connection connUpdateObj;
+
+
+	void OnSigDetailObjUpdate(const wh::IModel*, const wh::rec::ObjInfo* const oi)
+	{
+		const wxString lbl = wxString::Format("[%s]%s (%s %s)"
+			, oi->mCls.mLabel.toStr()
+			, oi->mObj.mLabel.toStr()
+			, oi->mObj.mQty.toStr()
+			, oi->mCls.mMeasure.toStr()
+			);
+		const wxIcon*  ico(&wxNullIcon);
+		if (!oi->mCls.mType.IsNull())
+			switch (oi->mCls.GetClsType())
+		{
+			default:
+				ico = &ResMgr::GetInstance()->m_ico_type_abstract24;
+				break;
+			case wh::ctQtyByFloat:	case wh::ctQtyByOne:
+				ico = &ResMgr::GetInstance()->m_ico_obj_qty24;
+				break;
+			case wh::ctSingle:
+				ico = &ResMgr::GetInstance()->m_ico_obj_num24;
+				break;
+		}//switch
+		sigUpdateTitle(lbl, *ico);
+	}
 public:
 	ModelPageDetailObj(std::shared_ptr<rec::ObjInfo> oi)
 	{
 		if (oi)
 			mWhModel->SetObject(*oi);
+		
+		auto fnOnChObj = std::bind(&ModelPageDetailObj::OnSigDetailObjUpdate, this
+			, std::placeholders::_1, std::placeholders::_2);
+		connUpdateObj = mWhModel->DoConnect(wh::ModelOperation::moAfterUpdate, fnOnChObj);
 	}
 
 	virtual void Show()override
@@ -28,6 +60,12 @@ public:
 
 	virtual const wxIcon& GetIcon()const override { return mIco; }
 	virtual const wxString& GetTitle()const override { return mTitle; }
+	
+	virtual void UpdateTitle()override
+	{
+		OnSigDetailObjUpdate(mWhModel.get(), &mWhModel->GetData());
+	}
+	
 	virtual void Load(const boost::property_tree::ptree& page_val)override
 	{
 		wh::rec::ObjInfo  detail;

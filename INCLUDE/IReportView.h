@@ -1,16 +1,15 @@
 #ifndef __IREPORTVIEW_H
 #define __IREPORTVIEW_H
 //-----------------------------------------------------------------------------
-#include "_pch.h"
+
+#include "IViewWindow.h"
 #include "ReportData.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
-class IReportView 
+class IReportView : public IViewWindow
 {
 public:
-	virtual wxWindow* GetWnd() { throw;  return nullptr; }
-
 	virtual void SetReportTable(const rec::ReportTable& rt) = 0;
 
 	sig::signal<void()> sigUpdate;

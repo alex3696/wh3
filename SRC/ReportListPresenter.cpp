@@ -3,6 +3,7 @@
 #include "ReportEditorPresenter.h"
 #include "ReportPresenter.h"
 #include "globaldata.h"
+#include "CtrlNotebook.h"
 
 using namespace wh;
 
@@ -44,11 +45,10 @@ void ReportListPresenter::UpdateList()
 //---------------------------------------------------------------------------
 void ReportListPresenter::ExecReport(size_t idx)
 {
-	auto controller = whDataMgr::GetInstance()->mContainer;
-	auto presenter = controller->GetObject<ReportPresenter>("FactoryReportPresenter");
-
-	//rec::PageReport pr;
-	//whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(pr);
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto nb2 = container->GetObject<CtrlNotebook>("CtrlNotebook");
+	if (nb2)
+		nb2->MkWindow("CtrlPageReport");
 }
 //---------------------------------------------------------------------------
 size_t ReportListPresenter::MkReport()

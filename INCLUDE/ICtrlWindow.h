@@ -1,7 +1,7 @@
 #ifndef __ICTRLWINDOW_H
 #define __ICTRLWINDOW_H
 
-#include "_pch.h"
+#include "IViewWindow.h"
 
 namespace wh{
 //---------------------------------------------------------------------------

@@ -145,9 +145,6 @@
     <Filter Include="Common\RecentDstOid">
       <UniqueIdentifier>{4d4fdce2-59b3-4a35-a763-93c5bd70ff51}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Каталог объектов\Диалог перемещения\Move MRU">
-      <UniqueIdentifier>{62fb8ebb-31eb-46eb-8181-f405fd912880}</UniqueIdentifier>
-    </Filter>
     <Filter Include="MainFrame\MVP2">
       <UniqueIdentifier>{08145cc8-3767-40e2-afd0-67cbe7cf8943}</UniqueIdentifier>
     </Filter>
@@ -447,15 +444,6 @@
     <ClCompile Include="..\..\SRC\RecentDstOidModel.cpp">
       <Filter>Common\RecentDstOid</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SRC\MoveObjModel.cpp">
-      <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\MoveObjPresenter.cpp">
-      <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\MoveObjView.cpp">
-      <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\ReportEditorView.cpp">
       <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Редактор отчёта</Filter>
     </ClCompile>
@@ -491,6 +479,15 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\MainFrame.cpp">
       <Filter>MainFrame\MVP2\MainFrame</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MoveObjView.cpp">
+      <Filter>Каталог объектов\Диалог перемещения</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MoveObjPresenter.cpp">
+      <Filter>Каталог объектов\Диалог перемещения</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\MoveObjModel.cpp">
+      <Filter>Каталог объектов\Диалог перемещения</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -818,23 +815,8 @@
     <ClInclude Include="..\..\INCLUDE\IRecentDstOidView.h">
       <Filter>Common\RecentDstOid</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MoveObjModel.h">
-      <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MoveObjPresenter.h">
-      <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\IMoveObjView.h">
-      <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MoveObjView.h">
-      <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ioc_strcontainer.h">
       <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MoveObjData.h">
-      <Filter>Каталог объектов\Диалог перемещения\Move MRU</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\IReportEditorView.h">
       <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Редактор отчёта</Filter>
@@ -931,6 +913,21 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\PageDetailObj.h">
       <Filter>MainFrame\MVP2\ContentWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MoveObjView.h">
+      <Filter>Каталог объектов\Диалог перемещения</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MoveObjPresenter.h">
+      <Filter>Каталог объектов\Диалог перемещения</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MoveObjModel.h">
+      <Filter>Каталог объектов\Диалог перемещения</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\MoveObjData.h">
+      <Filter>Каталог объектов\Диалог перемещения</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\IMoveObjView.h">
+      <Filter>Каталог объектов\Диалог перемещения</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

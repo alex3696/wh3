@@ -171,14 +171,6 @@ void MainFrame::BuildMenu()
 	dir->Append(item);
 	menu_bar->Append(dir, "Каталоги");
 
-	wxMenu* menu_report = new wxMenu();
-	item = new wxMenuItem(menu_report, wxID_ANY, "Редактор отчётов");
-	menu_report->Append(item);
-	item = new wxMenuItem(menu_report, wxID_ANY, "Список отчётов");
-	menu_report->Append(item);
-	menu_bar->Append(menu_report, "Отчёты");
-
-
 	SetMenuBar(menu_bar);
 
 }
@@ -211,7 +203,7 @@ void MainFrame::BuildToolbar()
 	m_MainToolBar->AddTool(CMD_PNLSHOWPROP, "Свойства", m_ResMgr->m_ico_list_prop24);
 	m_MainToolBar->AddTool(CMD_PNLSHOWACT, "Действия", m_ResMgr->m_ico_acts24);
 	m_MainToolBar->AddTool(CMD_MAKEHISTORYWND, "История", m_ResMgr->m_ico_history24);
-	m_MainToolBar->AddTool(CMD_MKPAGE_REPORT, "Отчёты", m_ResMgr->m_ico_report24);
+	m_MainToolBar->AddTool(CMD_MKPAGE_REPORT, "Отчёты", m_ResMgr->m_ico_report_list24);
 
 
 	

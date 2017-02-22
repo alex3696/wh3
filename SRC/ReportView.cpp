@@ -56,14 +56,14 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-ReportView::ReportView(std::shared_ptr<wxWindow*> wnd)
+ReportView::ReportView(std::shared_ptr<IViewWindow> parent)
 	:IReportView()
 {
-	mPanel = new wxPanel(*wnd);
+	mPanel = new wxPanel(parent->GetWnd());
 	mPanel->SetBackgroundColour(*wxRED);
 
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportView::OnCmd_Update, this, wxID_REFRESH);
-	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportView::OnCmd_Export, this, wxID_DUPLICATE);
+	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportView::OnCmd_Export, this, wxID_FILE);
 
 	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
 
@@ -77,7 +77,7 @@ ReportView::ReportView(std::shared_ptr<wxWindow*> wnd)
 	mPanel->Layout();
 }
 //-----------------------------------------------------------------------------
-wxWindow* ReportView::GetWnd()
+wxWindow* ReportView::GetWnd()const
 {
 	return mPanel;
 }
@@ -92,7 +92,7 @@ wxAuiToolBar* ReportView::BuildToolBar(wxWindow* parent)
 
 	tool_bar->AddTool(wxID_REFRESH, "ќбновить", mgr->m_ico_refresh24);
 
-	tool_bar->AddTool(wxID_ADD, "Ёкспорт в Excel", mgr->m_ico_back24);
+	tool_bar->AddTool(wxID_ADD, "Ёкспорт в Excel", mgr->m_ico_export_excel24);
 	tool_bar->Realize();
 
 	return tool_bar;

@@ -82,8 +82,8 @@ public:
 		mWxView = nullptr;
 	}
 
-	XMoveObjView(std::shared_ptr<wxWindow*> sp)
-		:mWxView(new MoveObjView(*sp))
+	XMoveObjView(std::shared_ptr<IViewWindow> parent)
+		:mWxView(new MoveObjView(parent->GetWnd()))
 	{
 		mWxView->sigUpdate.connect([this](){ sigUpdate(); });
 		mWxView->sigEnableRecent.connect([this](bool enable){ sigEnableRecent(enable); });

@@ -468,6 +468,15 @@ void whDataMgr::InitContainer()
 		("ReportEditor", "ViewNotebook");
 	mContainer->RegFactory<ReportEditorPresenter, ReportEditorPresenter, IReportEditorView, ReportItemModel>
 		("FactoryReportEditorPresenter", "ReportEditor", "ReportItemModel");
+	////////////////////
+	// report output //
+	///////////////////
+	mContainer->RegFactory<ReportModel, ReportModel>
+		("ModelReport");
+	mContainer->RegFactory<IReportView, ReportView, IViewWindow>
+		("ViewReport", "ViewMain");
+	mContainer->RegFactory<ReportPresenter, ReportPresenter, IReportView, ReportModel>
+		("CtrlPageReport", "ViewReport", "ModelReport");
 
 
 	////////////////////
@@ -481,35 +490,13 @@ void whDataMgr::InitContainer()
 	mContainer->RegFactory<ICtrlWindow, CtrlPageDetailObj, ViewPageDetailObj, ModelPageDetailObj >
 		("CtrlPageDetailObj", "ViewPageDetailObj", "ModelPageDetailObj");
 
-
-	/*
-
-
-
-	auto pp = std::make_shared<wxWindow*>(m_MainFrame);
-	mContainer->RegInstance<wxWindow*>("MainFrameWnd", pp);
-
-	auto np = std::make_shared<wxWindow*>(m_MainFrame->GetNotebook());
-	mContainer->RegInstance<wxWindow*>("MainNotebookWnd", np);
-
-
-	mContainer->RegInstanceDeferred<IMoveObjView, XMoveObjView, wxWindow*>
-		("MoveObjView", "MainFrameWnd");
-
+	////////////////////
+	// move dialog //
+	///////////////////
 	mContainer->RegInstanceDeferredNI<rec::PathItem>("MoveableObj");
-
+	mContainer->RegInstanceDeferred<IMoveObjView, XMoveObjView, IViewWindow>
+		("MoveObjView", "ViewMain");
 	mContainer->RegFactory<MoveObjPresenter, MoveObjPresenter, IMoveObjView, rec::PathItem>
 		("MoveObjPresenter", "MoveObjView", "MoveableObj");
 
-
-	////////////////////
-	// report output //
-	///////////////////
-	mContainer->RegFactory<ReportModel, ReportModel>
-		("ReportModel");
-	mContainer->RegFactory<IReportView, ReportView, wxWindow*>
-		("ReportView", "MainNotebookWnd");
-	mContainer->RegFactory<ReportPresenter, ReportPresenter, IReportView, ReportModel>
-		("FactoryReportPresenter", "ReportView", "ReportModel");
-	*/
 }

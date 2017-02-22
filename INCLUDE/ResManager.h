@@ -3,7 +3,7 @@
 
 #include "_pch.h"
 
-#define DEFINE_ICO(name,size)	wxIcon  m_ico_##name##size	
+#define DEFINE_ICO(name,size)	const wxIcon  m_ico_##name##size	
 #define LOAD_ICO(name,size,pos)	m_ico_##name##size.CopyFromBitmap( wxImage( "..\\..\\RESOURCES\\"#name".ico",wxBITMAP_TYPE_ANY,##pos))
 
 #define DEFINE_ICO_ALL(name) \
@@ -16,7 +16,7 @@
 	LOAD_ICO(name,24,1);	\
 	LOAD_ICO(name,16,2);	
 
-#define DEF_INIT_ICO(name,size)	wxIcon  m_ico_##name##size = wxIcon("..\\..\\RESOURCES\\"#size"\\"#name".ico", wxBITMAP_TYPE_ANY, ##size, ##size);	
+#define DEF_INIT_ICO(name,size)	const wxIcon  m_ico_##name##size = wxIcon("..\\..\\RESOURCES\\"#size"\\"#name".ico", wxBITMAP_TYPE_ANY, ##size, ##size);	
 #define DEF_INIT_ICO16(name)	DEF_INIT_ICO(name,16)
 #define DEF_INIT_ICO24(name)	DEF_INIT_ICO(name,24)
 #define DEF_INIT_ICO32(name)	DEF_INIT_ICO(name,32)
@@ -104,6 +104,8 @@ public:
 	DEF_INIT_ICO24(favprop_select);
 	DEF_INIT_ICO24(list_prop);
 	DEF_INIT_ICO24(report);
+	DEF_INIT_ICO24(report_list);
+	DEF_INIT_ICO24(export_excel);
 	
 
 	DEF_INIT_ICO16(connect);

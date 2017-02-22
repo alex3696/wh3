@@ -9,7 +9,7 @@ namespace wh{
 //-----------------------------------------------------------------------------
 class ReportListModel : public IModelWindow
 {
-	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_report24;
+	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_report_list24;
 	const wxString mTitle = "־עק¸עû";
 
 
