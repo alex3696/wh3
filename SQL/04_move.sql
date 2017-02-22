@@ -776,12 +776,16 @@ DECLARE
   
   
 BEGIN
-  IF OLD.timemark < CURRENT_TIMESTAMP - '3 00:00:00'::interval THEN
-    RAISE EXCEPTION ' %: can`t delete time is up log_rec=% ',TG_NAME, OLD;
+  PERFORM FROM wh_membership WHERE groupname='Admin' AND username= CURRENT_USER;
+  IF NOT FOUND THEN -- если не в группе 'Admin', проверяем ограничения по времени и своей учётки
+    IF OLD.timemark < CURRENT_TIMESTAMP - '7 00:00:00'::interval THEN
+      RAISE EXCEPTION ' %: can`t delete time is up log_rec=% ',TG_NAME, OLD;
+    END IF;
+    IF OLD.username <> CURRENT_USER THEN
+      RAISE EXCEPTION ' %: can`t delete wrong user log_rec=% ',TG_NAME, OLD;
+    END IF;
   END IF;
-  IF OLD.username <> CURRENT_USER THEN
-    RAISE EXCEPTION ' %: can`t delete wrong user log_rec=% ',TG_NAME, OLD;
-  END IF;
+
   PERFORM FROM log_main WHERE obj_id=OLD.obj_id AND timemark > OLD.timemark;
   IF FOUND THEN
     RAISE EXCEPTION ' %: can`t delete log was updated log_rec=%',TG_NAME, OLD;
