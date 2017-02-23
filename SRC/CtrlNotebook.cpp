@@ -69,6 +69,11 @@ void CtrlNotebook::RmWindow(wxWindow* wnd)
 	mModel->RmWindow(wnd);
 }
 //-----------------------------------------------------------------------------
+void CtrlNotebook::CloseAllPages()
+{
+	mModel->RmAll();
+}
+//-----------------------------------------------------------------------------
 //virtual override
 void CtrlNotebook::Load(const boost::property_tree::ptree& val)
 {
@@ -81,3 +86,10 @@ void CtrlNotebook::Load(const boost::property_tree::ptree& val)
 //{
 //	CtrlWindowBase::Save(val);
 //};
+//-----------------------------------------------------------------------------
+////virtual override
+void CtrlNotebook::RmView()
+{
+	mModel->RmAll();
+	CtrlWindowBase::RmView();
+}

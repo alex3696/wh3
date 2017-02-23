@@ -102,13 +102,6 @@ private:
 	whDataMgr(whDataMgr const&) = delete;
 	void operator=(whDataMgr const&) = delete;
 
-	boost::signals2::scoped_connection mSSC_AfterDbConnected;
-	boost::signals2::scoped_connection mSSC_BeforeDbDisconnected;
-
-	void OnConnectDb(const whDB& db);
-	void OnDicsonnectDb(const whDB& db);
-
-
 public:
 	static whDataMgr* GetInstance()
 	{

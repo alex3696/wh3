@@ -6,6 +6,7 @@
 
 #include "ICtrlWindow.h"
 #include "ModelMain.h"
+#include "RecentDstOidPresenter.h"
 
 namespace wh{
 //---------------------------------------------------------------------------
@@ -13,6 +14,24 @@ class CtrlMain : public CtrlWindowBase<ViewMain, ModelMain>
 {
 	std::shared_ptr<CtrlNotebook> mCtrlNotebook;
 
+	sig::scoped_connection connAfterDbConnected;
+	sig::scoped_connection connBeforeDbDisconnected;
+
+	void OnConnectDb(const whDB& db)
+	{
+		mCtrlNotebook->CloseAllPages();
+		whDataMgr::GetInstance()->mDbCfg->Load();
+		whDataMgr::GetInstance()->mRecentDstOidPresenter->GetFromConfig();
+		Load();
+	}
+
+	void OnDicsonnectDb(const whDB& db)
+	{
+		Save();
+		whDataMgr::GetInstance()->mRecentDstOidPresenter->SetToConfig();
+		whDataMgr::GetInstance()->mDbCfg->Save();
+		mCtrlNotebook->CloseAllPages();
+	}
 public:
 	CtrlMain(std::shared_ptr<ViewMain> view, std::shared_ptr<ModelMain> model)
 		: CtrlWindowBase(view, model)
@@ -25,7 +44,22 @@ public:
 		
 		whDataMgr::GetInstance()->mContainer->RegInstance("CtrlNotebook", mCtrlNotebook);
 
+
+		auto& db = whDataMgr::GetInstance()->GetDB();
+		connAfterDbConnected = db.SigAfterConnect
+			.connect(std::bind(&CtrlMain::OnConnectDb, this, std::placeholders::_1));
+		connBeforeDbDisconnected = db.SigBeforeDisconnect
+			.connect(std::bind(&CtrlMain::OnDicsonnectDb, this, std::placeholders::_1));
 	}
+
+	virtual void RmView()override
+	{
+		whDataMgr::GetInstance()->GetDB().Close();
+		//Save();
+		mCtrlNotebook->RmView();
+		CtrlWindowBase::RmView();
+	}
+
 
 	virtual void Load(const boost::property_tree::ptree& app_cfg) override
 	{
@@ -62,6 +96,7 @@ public:
 	}
 
 
+	std::shared_ptr<CtrlNotebook> GetNotebook() { return mCtrlNotebook; }
 };
 
 

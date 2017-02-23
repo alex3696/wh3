@@ -30,12 +30,14 @@ public:
 	// command to model
 	void MkWindow(const wxString& wi);
 	void RmWindow(wxWindow* wnd);
+	void CloseAllPages();
 	void ChWindow(wxWindow* wnd, const wxString& title, const wxIcon& ico);
 	void ShowWindow(wxWindow* wnd);
 
 	//ICtrlWindow
 	virtual void Load(const boost::property_tree::ptree& val)override;
 	//virtual void Save(boost::property_tree::ptree& val)override;
+	virtual void RmView()override;
 
 	
 

@@ -309,15 +309,6 @@ whDataMgr::whDataMgr()
 	rec::ConnectCfg  default_connect_cfg;
 	mConnectCfg->SetData(default_connect_cfg);
 
-	mSSC_AfterDbConnected = mDb.SigAfterConnect
-		.connect(std::bind(&whDataMgr::OnConnectDb, this, std::placeholders::_1));
-
-
-	mSSC_BeforeDbDisconnected = mDb.SigBeforeDisconnect
-		.connect(std::bind(&whDataMgr::OnDicsonnectDb, this, std::placeholders::_1));
-
-
-
 
 }
 //---------------------------------------------------------------------------
@@ -325,38 +316,6 @@ whDataMgr::~whDataMgr()
 {
 	//mDb.Close();
 	//mContainer->Clear();
-}
-//---------------------------------------------------------------------------
-void whDataMgr::OnConnectDb(const whDB& db)
-{
-	if (mDb.IsOpen())
-	{
-		mDbCfg->Load();
-		//mNotebookPresenter->Load();
-		mRecentDstOidPresenter->GetFromConfig();
-		
-		auto ctrlMain = mContainer->GetObject<wh::CtrlMain>("CtrlMain");
-		if (ctrlMain)
-			ctrlMain->Load();
-	}
-		
-}
-//---------------------------------------------------------------------------
-void whDataMgr::OnDicsonnectDb(const whDB& db)
-{
-	if (mDb.IsOpen())
-	{
-		//mNotebookPresenter->Save();
-
-		auto container = whDataMgr::GetInstance()->mContainer;
-		auto ctrlMain = container->GetObject<wh::CtrlMain>("CtrlMain");
-		if (ctrlMain)
-			ctrlMain->Save();
-
-		mRecentDstOidPresenter->SetToConfig();
-		mDbCfg->Save();
-	}
-		
 }
 //---------------------------------------------------------------------------
 void whDataMgr::InitContainer()

@@ -62,6 +62,7 @@ class ModelNotebook : public IModelWindow
 public:
 	void MkWindow(const wxString& wi);
 	void RmWindow(wxWindow* wnd);
+	void RmAll();
 	void ShowWindow(wxWindow* wnd);
 	
 	virtual void Load(const boost::property_tree::ptree& val)override;

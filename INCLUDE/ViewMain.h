@@ -26,6 +26,14 @@ public:
 		mMainFrame->m_AuiMgr.Update();
 
 		whDataMgr::GetInstance()->mContainer->RegInstance("ViewNotebook", mViewNotebook);
+
+		mMainFrame->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent&)
+		{ 
+			sigClose(); 
+			mMainFrame->Destroy();
+			mMainFrame = nullptr;
+		});
+
 	}
 
 	virtual wxWindow* GetWnd()const override { return mMainFrame; }

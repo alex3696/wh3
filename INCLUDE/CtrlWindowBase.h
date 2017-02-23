@@ -44,7 +44,7 @@ protected:
 	void OnSig_OnCloseView()
 	{
 		sigCloseView(this);
-		DisconnectView();
+		RmView();
 	}
 
 	virtual void ConnectView()
