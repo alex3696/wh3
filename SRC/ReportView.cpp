@@ -4,32 +4,25 @@
 
 using namespace wh;
 
-class ReportListDv
+class ReportDv
 	: public wxDataViewIndexListModel
 {
-	const rec::ReportList* mReportList = nullptr;
+	rec::ReportTable mReportTable;
 public:
-	ReportListDv(){}
+	ReportDv(){}
 	//virtual bool  GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr &attr) const override	{}
 	//virtual bool  IsEnabledByRow(unsigned int row, unsigned int col) const override {}
 
 	virtual unsigned int  GetCount() const override
 	{
-		return mReportList ? mReportList->size() : 0;
+		return mReportTable.mRowList.size();
 	}
 
 	virtual void  GetValueByRow(wxVariant &variant, unsigned int row, unsigned int col) const override
 	{
-		if (!mReportList || mReportList->size() <= row)
+		if (mReportTable.mRowList.size() <= row)
 			return;
-
-		switch (col)
-		{
-		case 1: variant = mReportList->at(row)->mId; break;
-		case 2: variant = mReportList->at(row)->mTitle; break;
-		case 3: variant = mReportList->at(row)->mNote; break;
-		default:break;
-		}
+		variant = mReportTable.mRowList.at(row).at(col); 
 	}
 
 	virtual bool  SetValueByRow(const wxVariant &variant, unsigned int row, unsigned int col)
@@ -39,17 +32,17 @@ public:
 
 	virtual unsigned int	GetColumnCount() const override
 	{
-		return 3;
+		return mReportTable.mColNames.size();
 	}
 	virtual wxString		GetColumnType(unsigned int col) const override
 	{
 		return "string";
 	}
 
-	void SetReportList(const rec::ReportList& rl)
+	void SetReportList(const rec::ReportTable& rt)
 	{
-		mReportList = &rl;
-		Reset(rl.size());
+		mReportTable = rt;
+		Reset(rt.mRowList.size());
 	}
 
 
@@ -60,10 +53,9 @@ ReportView::ReportView(std::shared_ptr<IViewWindow> parent)
 	:IReportView()
 {
 	mPanel = new wxPanel(parent->GetWnd());
-	mPanel->SetBackgroundColour(*wxRED);
 
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportView::OnCmd_Update, this, wxID_REFRESH);
-	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportView::OnCmd_Export, this, wxID_FILE);
+	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportView::OnCmd_Export, this, wxID_CONVERT);
 
 	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
 
@@ -92,7 +84,7 @@ wxAuiToolBar* ReportView::BuildToolBar(wxWindow* parent)
 
 	tool_bar->AddTool(wxID_REFRESH, "ќбновить", mgr->m_ico_refresh24);
 
-	tool_bar->AddTool(wxID_ADD, "Ёкспорт в Excel", mgr->m_ico_export_excel24);
+	tool_bar->AddTool(wxID_CONVERT, "Ёкспорт в Excel", mgr->m_ico_export_excel24);
 	tool_bar->Realize();
 
 	return tool_bar;
@@ -104,29 +96,22 @@ wxAuiToolBar* ReportView::BuildToolBar(wxWindow* parent)
 wxDataViewCtrl* ReportView::BuildReportTable(wxWindow* parent)
 {
 	auto table = new wxDataViewCtrl(mPanel, wxID_ANY);
-
-	//auto dv_model = new ReportListDv();
-	//table->AssociateModel(dv_model);
-	//dv_model->DecRef();
-
-	auto col_id = table->AppendTextColumn("ID", 1, wxDATAVIEW_CELL_INERT, 50);
-	col_id->SetHidden(true);
-	auto col_name = table->AppendTextColumn("»м€", 2, wxDATAVIEW_CELL_INERT, 200,
-		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
-	//col_name->SetSortOrder(1);
-	table->AppendTextColumn("ќписание", 3, wxDATAVIEW_CELL_INERT);
-
-
-	int ch = table->GetCharHeight();
-	table->SetRowHeight(ch * 2 + 2);
-
+	auto dv_model = new ReportDv();
+	table->AssociateModel(dv_model);
+	dv_model->DecRef();
 	return table;
 }
 //-----------------------------------------------------------------------------
 void ReportView::SetReportTable(const rec::ReportTable& rt)
 {
-	//auto dv = dynamic_cast<ReportListDv*>(mTable->GetModel());
-	//dv->SetReportList(rl);
+	auto dv = dynamic_cast<ReportDv*>(mTable->GetModel());
+	
+	mTable->ClearColumns();
+
+	for (size_t i = 0; i < rt.mColNames.size() ; i++)
+		auto col_id = mTable->AppendTextColumn(rt.mColNames[i], i, wxDATAVIEW_CELL_INERT);
+	
+	dv->SetReportList(rt);
 
 }
 //-----------------------------------------------------------------------------
@@ -137,6 +122,7 @@ void ReportView::OnCmd_Update(wxCommandEvent& evt)
 	sigUpdate();
 }
 //-----------------------------------------------------------------------------
+
 void ReportView::OnCmd_Export(wxCommandEvent& evt)
 {
 	sigExport();

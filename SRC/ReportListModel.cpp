@@ -3,8 +3,15 @@
 #include "globaldata.h"
 
 using namespace wh;
-
 //-----------------------------------------------------------------------------
+
+ReportListModel::ReportListModel()
+	//:IModelWindow()
+{
+
+}
+//-----------------------------------------------------------------------------
+
 void ReportListModel::UpdateList()
 {
 	{
