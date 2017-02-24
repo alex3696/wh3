@@ -11,19 +11,15 @@ class IReportListView : public IViewWindow
 {
 public:
 	virtual void SetReportList(const rec::ReportList& rl) = 0;
-
-
-	using SigUpdateList = sig::signal<void()>;
-	using SigExecReport = sig::signal<void(size_t)>;
-	using SigMakeReport = sig::signal<size_t()>;
-	using SigRemoveReport = sig::signal<void(size_t idx)>;
-	using SigChangeReport = sig::signal<void(size_t idx)>;
+	virtual void OnMkReport(const std::shared_ptr<const rec::ReportItem>&) = 0;
+	virtual void OnRmReport(const std::shared_ptr<const rec::ReportItem>&) = 0;
+	virtual void OnChReport(const std::shared_ptr<const rec::ReportItem>&, const wxString& old_rep_id) = 0;
 	
-	SigUpdateList	sigUpdateList;
-	SigExecReport	sigExecReport;
-	SigMakeReport	sigMkReport;
-	SigRemoveReport sigRmReport;
-	SigChangeReport sigChReport;
+	sig::signal<void()>					sigUpdateList;
+	sig::signal<void(const wxString&)>	sigExecReport;
+	sig::signal<void()>					sigMkReport;
+	sig::signal<void(const wxString&)>	sigRmReport;
+	sig::signal<void(const wxString&)>	sigChReport;
 
 };
 

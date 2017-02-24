@@ -23,7 +23,7 @@ public:
 	void ShowView();
 	void CloseView();
 
-	void SetItemPosition(const size_t pos);
+	void SetRepId(const wxString& rep_id);
 
 
 

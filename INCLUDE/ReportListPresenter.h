@@ -16,11 +16,14 @@ class ReportListPresenter : public CtrlWindowBase<IReportListView, ReportListMod
 	sig::scoped_connection connViewChReport;
 
 	sig::scoped_connection connModelUpdate;
+	sig::scoped_connection connModelMk;
+	sig::scoped_connection connModelRm;
+	sig::scoped_connection connModelCh;
 	
-	//std::shared_ptr<IReportListView> mView;
-	//std::shared_ptr<ReportListModel> mModel;
-
 	void OnListUpdated(const rec::ReportList&);
+	void OnMkReport(const std::shared_ptr<const rec::ReportItem>&);
+	void OnRmReport(const std::shared_ptr<const rec::ReportItem>&);
+	void OnChReport(const std::shared_ptr<const rec::ReportItem>&, const wxString& old_rep_id);
 
 	virtual void ConnectView()override;
 	virtual void DisconnectView()override;
@@ -30,10 +33,10 @@ public:
 	virtual std::shared_ptr<IViewWindow> GetView()const override;
 
 	void UpdateList();
-	void ExecReport(size_t idx);
-	size_t MkReport();
-	void RmReport(size_t idx);
-	void ChReport(size_t idx);
+	void ExecReport(const wxString& rep_id);
+	void MkReport();
+	void RmReport(const wxString& rep_id);
+	void ChReport(const wxString& rep_id);
 		
 	virtual void MkView()override;
 

@@ -16,6 +16,11 @@ public:
 	virtual wxWindow* GetWnd()const override;
 
 	virtual void SetReportList(const rec::ReportList& rl) override;
+	virtual void OnMkReport(const std::shared_ptr<const rec::ReportItem>&) override;
+	virtual void OnRmReport(const std::shared_ptr<const rec::ReportItem>&) override;
+	virtual void OnChReport(const std::shared_ptr<const rec::ReportItem>&, const wxString& old_rep_id) override;
+
+	void OnActivated(wxDataViewEvent &evt = wxDataViewEvent());
 protected:
 	void OnCmd_UpdateList(wxCommandEvent& evt);
 	void OnCmd_ExecReport(wxCommandEvent& evt);

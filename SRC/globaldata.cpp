@@ -1,7 +1,5 @@
 #include "_pch.h"
 
-#include "RecentDstOidPresenter.h"
-
 #include "globaldata.h"
 #include "config.h"
 
@@ -421,20 +419,21 @@ void whDataMgr::InitContainer()
 	////////////////////
 	// report editor //
 	///////////////////
-	mContainer->RegFactory<ReportItemModel, ReportItemModel, ReportListModel>
+	mContainer->RegFactoryNI<ReportItemModel, ReportListModel>
 		("ReportItemModel", "ModelPageReportList");
 	mContainer->RegInstanceDeferred<IReportEditorView, ReportEditorView, IViewWindow>
 		("ReportEditor", "ViewNotebook");
-	mContainer->RegFactory<ReportEditorPresenter, ReportEditorPresenter, IReportEditorView, ReportItemModel>
+	mContainer->RegFactoryNI<ReportEditorPresenter, IReportEditorView, ReportItemModel>
 		("FactoryReportEditorPresenter", "ReportEditor", "ReportItemModel");
 	////////////////////
 	// report output //
 	///////////////////
-	mContainer->RegFactory<ReportModel, ReportModel>
-		("ModelReport");
+	mContainer->RegInstanceDeferredNI<wxString>("CurrReportId");
+	mContainer->RegFactoryNI<ReportModel, wxString>
+		("ModelReport", "CurrReportId");
 	mContainer->RegFactory<IReportView, ReportView, IViewWindow>
 		("ViewReport", "ViewMain");
-	mContainer->RegFactory<ReportPresenter, ReportPresenter, IReportView, ReportModel>
+	mContainer->RegFactoryNI<ReportPresenter, IReportView, ReportModel>
 		("CtrlPageReport", "ViewReport", "ModelReport");
 
 

@@ -25,9 +25,9 @@ public:
 
 		switch (col)
 		{
-		case 1: variant = mReportList->at(row).mId; break;
-		case 2: variant = mReportList->at(row).mTitle; break;
-		case 3: variant = mReportList->at(row).mNote; break;
+		case 1: variant = mReportList->at(row)->mId; break;
+		case 2: variant = mReportList->at(row)->mTitle; break;
+		case 3: variant = mReportList->at(row)->mNote; break;
 		default:break;
 		}
 	}
@@ -105,9 +105,9 @@ wxDataViewCtrl* ReportView::BuildReportTable(wxWindow* parent)
 {
 	auto table = new wxDataViewCtrl(mPanel, wxID_ANY);
 
-	auto dv_model = new ReportListDv();
-	table->AssociateModel(dv_model);
-	dv_model->DecRef();
+	//auto dv_model = new ReportListDv();
+	//table->AssociateModel(dv_model);
+	//dv_model->DecRef();
 
 	auto col_id = table->AppendTextColumn("ID", 1, wxDATAVIEW_CELL_INERT, 50);
 	col_id->SetHidden(true);

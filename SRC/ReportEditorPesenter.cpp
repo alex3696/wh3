@@ -16,14 +16,17 @@ ReportEditorPresenter::ReportEditorPresenter(std::shared_ptr<IReportEditorView> 
 //-----------------------------------------------------------------------------
 void ReportEditorPresenter::ChangeItem(const rec::ReportItem& ri)
 {
-	mModel->SetValue(ri);
+	mModel->SetValue(std::make_shared<rec::ReportItem>(ri));
 }
 //-----------------------------------------------------------------------------
 void ReportEditorPresenter::ShowView()
 {
-	const auto& item = (mModel->IsOk()) ? mModel->GetValue() : rec::ReportItem();
-	
-	mView->SetReportItem(item);
+	auto item = mModel->GetValue();
+	if (item)
+		mView->SetReportItem(*item);
+	else
+		mView->SetReportItem(rec::ReportItem());
+
 	mView->Show();
 	
 }
@@ -34,7 +37,7 @@ void ReportEditorPresenter::CloseView()
 
 }
 //-----------------------------------------------------------------------------
-void ReportEditorPresenter::SetItemPosition(const size_t pos)
+void ReportEditorPresenter::SetRepId(const wxString& rep_id)
 {
-	mModel->SetPosition(pos);
-}
+	mModel->SetRepId(rep_id);
+} 

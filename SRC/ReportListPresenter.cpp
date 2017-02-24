@@ -30,6 +30,14 @@ ReportListPresenter::ReportListPresenter(std::shared_ptr<IReportListView> view, 
 	connModelUpdate = model->sigListUpdated
 		.connect(std::bind(&ReportListPresenter::OnListUpdated, this, ph::_1));
 
+	connModelMk = model->sigMkReport
+		.connect(std::bind(&ReportListPresenter::OnMkReport, this, ph::_1));
+	connModelRm = model->sigRmReport
+		.connect(std::bind(&ReportListPresenter::OnRmReport, this, ph::_1));
+	connModelCh = model->sigChReport
+		.connect(std::bind(&ReportListPresenter::OnChReport, this, ph::_1, ph::_2));
+
+
 	UpdateList();
 }
 //---------------------------------------------------------------------------
@@ -43,41 +51,57 @@ void ReportListPresenter::UpdateList()
 	mModel->UpdateList();
 }
 //---------------------------------------------------------------------------
-void ReportListPresenter::ExecReport(size_t idx)
+void ReportListPresenter::OnMkReport(const std::shared_ptr<const rec::ReportItem>& ri)
+{
+	mView->OnMkReport(ri);
+}
+//---------------------------------------------------------------------------
+void ReportListPresenter::OnRmReport(const std::shared_ptr<const rec::ReportItem>& ri)
+{
+	mView->OnRmReport(ri);
+}
+//---------------------------------------------------------------------------
+void ReportListPresenter::OnChReport(const std::shared_ptr<const rec::ReportItem>& ri, const wxString& old_rep_id)
+{
+	mView->OnChReport(ri, old_rep_id);
+}
+//---------------------------------------------------------------------------
+void ReportListPresenter::ExecReport(const wxString& rep_id)
 {
 	auto container = whDataMgr::GetInstance()->mContainer;
 	auto nb2 = container->GetObject<CtrlNotebook>("CtrlNotebook");
 	if (nb2)
+	{
+		auto rep_id_s = container->GetObject<wxString>("CurrReportId");
+		(*rep_id_s) = rep_id;
 		nb2->MkWindow("CtrlPageReport");
-}
-//---------------------------------------------------------------------------
-size_t ReportListPresenter::MkReport()
-{
-	auto controller = whDataMgr::GetInstance()->mContainer;
-	auto peditor = controller->GetObject<ReportEditorPresenter>("FactoryReportEditorPresenter");
-	if (peditor)
-	{
-		peditor->ShowView();
-		mModel->UpdateList();
 	}
-	return 0;
+		
 }
 //---------------------------------------------------------------------------
-void ReportListPresenter::RmReport(size_t idx)
-{
-	mModel->Rm(idx);
-	mModel->UpdateList();
-}
-//---------------------------------------------------------------------------
-void ReportListPresenter::ChReport(size_t pos)
+void ReportListPresenter::MkReport()
 {
 	auto controller = whDataMgr::GetInstance()->mContainer;
 	auto peditor = controller->GetObject<ReportEditorPresenter>("FactoryReportEditorPresenter");
 	if (peditor)
 	{
-		peditor->SetItemPosition(pos);
 		peditor->ShowView();
-		mModel->UpdateList();
+	}
+}
+//---------------------------------------------------------------------------
+void ReportListPresenter::RmReport(const wxString& rep_id)
+{
+	mModel->Rm(rep_id);
+}
+//---------------------------------------------------------------------------
+void ReportListPresenter::ChReport(const wxString& rep_id)
+{
+	auto controller = whDataMgr::GetInstance()->mContainer;
+	auto peditor = controller->GetObject<ReportEditorPresenter>("FactoryReportEditorPresenter");
+	if (peditor)
+	{
+		peditor->SetRepId(rep_id);
+		peditor->ShowView();
 	}
 }
 //---------------------------------------------------------------------------

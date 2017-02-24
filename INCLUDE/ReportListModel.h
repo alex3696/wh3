@@ -30,63 +30,60 @@ public:
 
 	size_t Size()const { return mRepList.size();  }
 	void UpdateList();
-	void LoadAll(const size_t pos, const rec::ReportItem*& ret_item);
+	std::shared_ptr<const rec::ReportItem> LoadAll(const wxString& rep_id);
 
-	void GetItemByIdx(const size_t idx, const rec::ReportItem*& item)const;
+	std::shared_ptr<const rec::ReportItem> GetRep(const wxString& rep_id)const;
 
-	void Mk(const rec::ReportItem& item);
-	void Rm(const size_t idx);
-	void Ch(const size_t idx, const rec::ReportItem& item);
+	void Mk(const std::shared_ptr<rec::ReportItem>& rep);
+	void Rm(const wxString& rep_id);
+	void Ch(const wxString& rep_id, const std::shared_ptr<rec::ReportItem>& rep);
 
 	
-	using SigListUpdated = sig::signal<void(const rec::ReportList&)>;
-	SigListUpdated sigListUpdated;
+	sig::signal<void(const rec::ReportList&)>					sigListUpdated;
 
-	sig::signal<void(const rec::ReportItem&)>				sigMkReport;
-	sig::signal<void(const size_t)>							sigRmReport;
-	sig::signal<void(const size_t, const rec::ReportItem&)> sigChReport;
+	sig::signal<void(const std::shared_ptr<const rec::ReportItem>&)>	sigMkReport;
+	sig::signal<void(const std::shared_ptr<const rec::ReportItem>&)>	sigRmReport;
+	sig::signal<void(const std::shared_ptr<const rec::ReportItem>&, const wxString& old_rep_id)> sigChReport;
 
 };
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 class ReportItemModel
 {
 	std::shared_ptr<ReportListModel> mList;
-	size_t mPosition = -1;
+	wxString mRepId;
+
 public:
 	ReportItemModel(std::shared_ptr<ReportListModel> list)
 		:mList(list)
 	{
+
 	}
 
-	const size_t GetPosition()const
+	inline const wxString& GetRepId()const
 	{
-		return mPosition;
+		return mRepId;
 	}
 
-	void SetPosition(const size_t& pos)
+	inline void SetRepId(const wxString& rep_id)
 	{
-		mPosition = pos;
+		mRepId = rep_id;
 	}
 
-	bool IsOk()
+	inline std::shared_ptr<const rec::ReportItem> GetValue()const
 	{
-		return mList->Size() > mPosition;
+		return mList->LoadAll(mRepId);
 	}
 
-	const rec::ReportItem& GetValue()const
+	void SetValue(const std::shared_ptr<rec::ReportItem>& rep)
 	{
-		const rec::ReportItem* item = nullptr;
-		mList->LoadAll(mPosition, item);
-		//mList->GetItemByIdx(mPosition, item);
-		return *item;
-	}
-
-	void SetValue(const rec::ReportItem& item)
-	{
-		if (IsOk())
-			mList->Ch(mPosition, item);
+		const auto& ri = mList->GetRep(mRepId);
+		if (ri)
+			mList->Ch(mRepId, rep);
 		else
-			mList->Mk(item);
+			mList->Mk(rep);
 	}
 };
 

@@ -35,10 +35,10 @@ void ReportListModel::UpdateList()
 			mRepList.reserve(rowQty);
 			for (unsigned int i = 0; i < rowQty; ++i)
 			{
-				rec::ReportItem item;
-				table->GetAsString(0, i, item.mId);
-				table->GetAsString(1, i, item.mTitle);
-				table->GetAsString(2, i, item.mNote);
+				auto item = std::make_shared<rec::ReportItem>();
+				table->GetAsString(0, i, item->mId);
+				table->GetAsString(1, i, item->mTitle);
+				table->GetAsString(2, i, item->mNote);
 				//table->GetAsString(3, i, item.mScript);
 				mRepList.emplace_back(std::move(item));
 			}//for
@@ -51,82 +51,114 @@ void ReportListModel::UpdateList()
 	sigListUpdated(mRepList);
 }
 //-----------------------------------------------------------------------------
-void ReportListModel::LoadAll(const size_t pos, const rec::ReportItem*& item)
+std::shared_ptr<const rec::ReportItem> ReportListModel::LoadAll(const wxString& rep_id)
 {
-	GetItemByIdx(pos, item);
-	if (!item)
-		return;
+	auto& idxRepId = mRepList.get<1>();
+	auto& it = idxRepId.find(rep_id);
+	if (idxRepId.end() == it)
+		return nullptr;
+
+	rec::ReportItem new_rep;
+	new_rep.mId = rep_id;
+
+	std::shared_ptr<const rec::ReportItem> rep = *it ;
 
 	wxString query = wxString::Format(
-		" SELECT script "
+		" SELECT title, note, script "
 		" FROM report "
 		" WHERE id = %s "
-		, item->mId
+		, rep_id
 		);
 
 	whDataMgr::GetDB().BeginTransaction();
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
 	if (table && table->GetRowCount())
-		table->GetAsString(0, 0, mRepList.at(pos).mScript);
+	{
+		
+		table->GetAsString(0, 0, new_rep.mTitle);
+		table->GetAsString(1, 0, new_rep.mNote);
+		table->GetAsString(2, 0, new_rep.mScript);
+	}
 	whDataMgr::GetDB().Commit();
-}
-//-----------------------------------------------------------------------------
-void ReportListModel::GetItemByIdx(const size_t idx, const rec::ReportItem*& item)const
-{
-	item = (idx <= mRepList.size()) ? &mRepList.at(idx) : nullptr;
-}
-//-----------------------------------------------------------------------------
-void ReportListModel::Mk(const rec::ReportItem& item)
-{
-	rec::ReportItem new_item(item);
 	
+	auto ni = std::make_shared<const rec::ReportItem>(std::move(new_rep));
+	idxRepId.replace(it, ni );
+	sigChReport(rep, rep_id);
+	return rep;
+	
+}
+//-----------------------------------------------------------------------------
+std::shared_ptr<const rec::ReportItem> ReportListModel::GetRep(const wxString& rep_id)const
+{
+	const auto& idxRepId = mRepList.get<1>();
+	const auto& it = idxRepId.find(rep_id);
+	if (idxRepId.end() == it)
+		return nullptr;
+	return *it;
+}
+//-----------------------------------------------------------------------------
+void ReportListModel::Mk(const std::shared_ptr<rec::ReportItem>& rep)
+{
 	wxString query = wxString::Format(
 		" INSERT INTO public.report(title, note, script) "
 		" VALUES('%s', '%s', '%s') RETURNING id"
-		, new_item.mTitle, new_item.mNote, new_item.mScript
+		, rep->mTitle, rep->mNote, rep->mScript
 		);
 
 	whDataMgr::GetDB().BeginTransaction();
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
 	if (table && table->GetRowCount())
-		table->GetAsString(0, 0, new_item.mId);
+		table->GetAsString(0, 0, rep->mId);
 	whDataMgr::GetDB().Commit();
 	
-	mRepList.emplace_back(std::move(new_item));
-	sigMkReport(new_item);
+	auto ins_it = mRepList.emplace_back(rep);
+	sigMkReport( (*ins_it.first) );
 	
 }
 //-----------------------------------------------------------------------------
-void ReportListModel::Rm(const size_t idx)
+void ReportListModel::Rm(const wxString& rep_id)
 {
+	auto& idxRepId = mRepList.get<1>();
+	auto& it = idxRepId.find(rep_id);
+	if (idxRepId.end() == it)
+		return;
+
+	const auto& rep = *it;
+	
 	wxString query = wxString::Format(
 		" DELETE FROM report WHERE id = %s "
-		, mRepList[idx].mId
+		, rep->mId
 		);
 
 	whDataMgr::GetDB().BeginTransaction();
 	whDataMgr::GetDB().Exec(query);
 	whDataMgr::GetDB().Commit();
 
-	sigRmReport(idx);
-	mRepList.erase(mRepList.begin() + idx);
+	sigRmReport(rep);
+	idxRepId.erase(it);
 }
 //-----------------------------------------------------------------------------
-void ReportListModel::Ch(const size_t idx, const rec::ReportItem& item)
+void ReportListModel::Ch(const wxString& rep_id, const std::shared_ptr<rec::ReportItem>& rep)
 {
+	auto& idxRepId = mRepList.get<1>();
+	auto& it = idxRepId.find(rep_id);
+	if (idxRepId.end() == it)
+		return;
+
 	wxString query = wxString::Format(
 		" UPDATE report "
 		" SET title = '%s' , note = '%s' , script = '%s' "
 		" WHERE id = %s "
-		, item.mTitle, item.mNote, item.mScript
-		, item.mId
+		, rep->mTitle, rep->mNote, rep->mScript
+		, rep_id
 		);
 
 	whDataMgr::GetDB().BeginTransaction();
 	whDataMgr::GetDB().Exec(query);
 	whDataMgr::GetDB().Commit();
 
-	mRepList[idx] = item;
-	sigChReport(idx, item);
+	idxRepId.replace(it, rep);
+
+	sigChReport(rep, rep_id);
 }
 //-----------------------------------------------------------------------------
