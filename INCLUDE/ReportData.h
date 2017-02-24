@@ -38,7 +38,12 @@ boost::multi_index_container
 
 class ReportTable
 {
+public:
+	std::vector<wxString> mColNames;
 
+	typedef std::vector<wxString> Row;
+
+	std::vector<Row> mRowList;
 };
 
 //---------------------------------------------------------------------------

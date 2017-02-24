@@ -16,13 +16,15 @@ class ReportModel : public IModelWindow
 	sig::scoped_connection connListItemChange;
 	sig::scoped_connection connListItemRemove;
 	sig::scoped_connection connListItemUpdate;
+
+	rec::ReportTable mReportTable;
 public:
 	ReportModel(std::shared_ptr<wxString> rep_id);
 
 	void Update();
 	void Export();
 	void SetParam();
-	//using SigUpdated = sig::signal<void(const rec::ReportList&)>;
+	sig::signal<void(const rec::ReportTable&)> sigExecuted;
 
 	// IModelWindow
 	virtual const wxIcon& GetIcon()const override { return mIco; }

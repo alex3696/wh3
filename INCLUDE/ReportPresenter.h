@@ -13,6 +13,7 @@ class ReportPresenter : public CtrlWindowBase<IReportView, ReportModel>
 	sig::scoped_connection connViewExport;
 	sig::scoped_connection connViewSetParam;
 
+	sig::scoped_connection connModelExecuted;
 public:
 	ReportPresenter(std::shared_ptr<IReportView> view, std::shared_ptr<ReportModel> model);
 
