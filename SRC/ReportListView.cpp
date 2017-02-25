@@ -154,8 +154,9 @@ wxAuiToolBar* ReportListView::BuildToolBar(wxWindow* parent)
 		wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_PLAIN_BACKGROUND | wxAUI_TB_TEXT | wxAUI_TB_OVERFLOW);
 
 	tool_bar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh24);
-	tool_bar->AddTool(wxID_EXECUTE, "Выполнить", mgr->m_ico_act24);
+	tool_bar->AddTool(wxID_EXECUTE, "Открыть", wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_TOOLBAR));
 
+	
 	
 	const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
 	if ((int)currBaseGroup >= (int)bgTypeDesigner)
@@ -176,7 +177,8 @@ wxAuiToolBar* ReportListView::BuildToolBar(wxWindow* parent)
 
 wxDataViewCtrl* ReportListView::BuildReportList(wxWindow* parent)
 {
-	auto table = new wxDataViewCtrl(mPanel, wxID_ANY);
+	auto table = new wxDataViewCtrl(mPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize
+		, wxDV_ROW_LINES | wxDV_VERT_RULES /*| wxDV_HORIZ_RULES*/);
 	
 	auto dv_model = new ReportListDv();
 	table->AssociateModel(dv_model);

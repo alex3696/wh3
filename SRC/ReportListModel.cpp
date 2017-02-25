@@ -65,10 +65,8 @@ std::shared_ptr<const rec::ReportItem> ReportListModel::LoadAll(const wxString& 
 	if (idxRepId.end() == it)
 		return nullptr;
 
-	rec::ReportItem new_rep;
-	new_rep.mId = rep_id;
-
-	std::shared_ptr<const rec::ReportItem> rep = *it ;
+	auto rep = std::make_shared<rec::ReportItem>();
+	rep->mId = rep_id;
 
 	wxString query = wxString::Format(
 		" SELECT title, note, script "
@@ -82,17 +80,15 @@ std::shared_ptr<const rec::ReportItem> ReportListModel::LoadAll(const wxString& 
 	if (table && table->GetRowCount())
 	{
 		
-		table->GetAsString(0, 0, new_rep.mTitle);
-		table->GetAsString(1, 0, new_rep.mNote);
-		table->GetAsString(2, 0, new_rep.mScript);
+		table->GetAsString(0, 0, rep->mTitle);
+		table->GetAsString(1, 0, rep->mNote);
+		table->GetAsString(2, 0, rep->mScript);
 	}
 	whDataMgr::GetDB().Commit();
 	
-	auto ni = std::make_shared<const rec::ReportItem>(std::move(new_rep));
-	idxRepId.replace(it, ni );
+	idxRepId.replace(it, rep );
 	sigChReport(rep, rep_id);
-	return rep;
-	
+	return rep;	
 }
 //-----------------------------------------------------------------------------
 std::shared_ptr<const rec::ReportItem> ReportListModel::GetRep(const wxString& rep_id)const
@@ -106,10 +102,13 @@ std::shared_ptr<const rec::ReportItem> ReportListModel::GetRep(const wxString& r
 //-----------------------------------------------------------------------------
 void ReportListModel::Mk(const std::shared_ptr<rec::ReportItem>& rep)
 {
+	wxString s = rep->mScript;
+	s.Replace("'", "''");
+
 	wxString query = wxString::Format(
 		" INSERT INTO public.report(title, note, script) "
 		" VALUES('%s', '%s', '%s') RETURNING id"
-		, rep->mTitle, rep->mNote, rep->mScript
+		, rep->mTitle, rep->mNote, s
 		);
 
 	whDataMgr::GetDB().BeginTransaction();
@@ -152,11 +151,14 @@ void ReportListModel::Ch(const wxString& rep_id, const std::shared_ptr<rec::Repo
 	if (idxRepId.end() == it)
 		return;
 
+	wxString s = rep->mScript;
+	s.Replace("'", "''");
+
 	wxString query = wxString::Format(
 		" UPDATE report "
 		" SET title = '%s' , note = '%s' , script = '%s' "
 		" WHERE id = %s "
-		, rep->mTitle, rep->mNote, rep->mScript
+		, rep->mTitle, rep->mNote, s
 		, rep_id
 		);
 

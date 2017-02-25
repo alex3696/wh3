@@ -95,7 +95,8 @@ wxAuiToolBar* ReportView::BuildToolBar(wxWindow* parent)
 
 wxDataViewCtrl* ReportView::BuildReportTable(wxWindow* parent)
 {
-	auto table = new wxDataViewCtrl(mPanel, wxID_ANY);
+	auto table = new wxDataViewCtrl(mPanel, wxID_ANY,wxDefaultPosition,wxDefaultSize
+		,wxDV_ROW_LINES | wxDV_VERT_RULES | wxDV_HORIZ_RULES);
 	auto dv_model = new ReportDv();
 	table->AssociateModel(dv_model);
 	dv_model->DecRef();
@@ -118,6 +119,7 @@ void ReportView::SetReportTable(const rec::ReportTable& rt)
 
 void ReportView::OnCmd_Update(wxCommandEvent& evt)
 {
+	wxBusyCursor busyCursor;
 	sigSetParam();
 	sigUpdate();
 }

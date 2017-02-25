@@ -16,7 +16,7 @@ ReportModel::ReportModel(std::shared_ptr<wxString> rep_id)
 	connListItemChange = modelRepList->sigChReport.connect
 		([this](const std::shared_ptr<const rec::ReportItem>& ri, const wxString& old_rep_id)
 	{
-		Update();
+		UpdateTitle();
 	});
 
 	connListItemRemove = modelRepList->sigRmReport.connect
@@ -30,18 +30,25 @@ ReportModel::ReportModel(std::shared_ptr<wxString> rep_id)
 	connListItemUpdate = modelRepList->sigListUpdated.connect
 		([this](const rec::ReportList& rl)
 	{
-		Update();
+		UpdateTitle();
 	});
 
 }
 //-----------------------------------------------------------------------------
 void ReportModel::Update()
 {
+
 	UpdateTitle();
 
-	wxString query = wxString::Format(
-		" SELECT * FROM prop "
-		);
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto modelRepList = container->GetObject<ReportListModel>("ModelPageReportList");
+	auto ri = modelRepList->LoadAll(mRepId);
+	if (!ri)
+		return;
+
+	wxString query = ri->mScript;
+
+	//wxString query = wxString::Format(" SELECT * FROM prop ");
 
 	rec::ReportTable& rt = mReportTable;
 
@@ -52,19 +59,24 @@ void ReportModel::Update()
 	whDataMgr::GetDB().BeginTransaction();
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
 
-	for (size_t i = 0; i < table->GetColumnCount(); i++)
-	{
-		rt.mColNames.emplace_back(table->GetColumnName(i));
-	}
-
-
 	if (table && table->GetRowCount())
 	{
-		for (size_t r = 0; r < table->GetRowCount(); r++)
+		const size_t col_qty = table->GetColumnCount();
+		const size_t row_qty = table->GetRowCount();
+
+		rt.mColNames.reserve(col_qty);
+
+		for (size_t i = 0; i < col_qty; i++)
 		{
-			auto qty = table->GetColumnCount();
-			rec::ReportTable::Row row(qty);
-			for (size_t i = 0; i < table->GetColumnCount(); i++)
+			rt.mColNames.emplace_back(table->GetColumnName(i));
+		}
+
+		rt.mRowList.reserve(col_qty);
+		
+		for (size_t r = 0; r < row_qty; r++)
+		{
+			rec::ReportTable::Row row(col_qty);
+			for (size_t i = 0; i < col_qty; i++)
 			{
 				table->GetAsString(i, r, row[i]);
 			}
