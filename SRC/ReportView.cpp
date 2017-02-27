@@ -55,6 +55,7 @@ ReportView::ReportView(std::shared_ptr<IViewWindow> parent)
 	mPanel = new wxPanel(parent->GetWnd());
 
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportView::OnCmd_Update, this, wxID_REFRESH);
+	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportView::OnCmd_Execute, this, wxID_EXECUTE);
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ReportView::OnCmd_Export, this, wxID_CONVERT);
 
 	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
@@ -83,6 +84,7 @@ wxAuiToolBar* ReportView::BuildToolBar(wxWindow* parent)
 		wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_PLAIN_BACKGROUND | wxAUI_TB_TEXT | wxAUI_TB_OVERFLOW);
 
 	tool_bar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh24);
+	tool_bar->AddTool(wxID_EXECUTE, "Выполнить", mgr->m_ico_act24);
 
 	tool_bar->AddTool(wxID_CONVERT, "Экспорт в Excel", mgr->m_ico_export_excel24);
 	tool_bar->Realize();
@@ -116,12 +118,25 @@ void ReportView::SetReportTable(const rec::ReportTable& rt)
 
 }
 //-----------------------------------------------------------------------------
+void ReportView::SetFilterTable(const rec::ReportFilterTable& ft)
+{
+
+
+}
+
+//-----------------------------------------------------------------------------
 
 void ReportView::OnCmd_Update(wxCommandEvent& evt)
 {
 	wxBusyCursor busyCursor;
-	sigSetParam();
+	
 	sigUpdate();
+}
+//-----------------------------------------------------------------------------
+void ReportView::OnCmd_Execute(wxCommandEvent& evt)
+{
+	wxBusyCursor busyCursor;
+	sigExecute();
 }
 //-----------------------------------------------------------------------------
 

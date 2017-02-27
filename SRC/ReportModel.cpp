@@ -16,33 +16,59 @@ ReportModel::ReportModel(std::shared_ptr<wxString> rep_id)
 	connListItemChange = modelRepList->sigChReport.connect
 		([this](const std::shared_ptr<const rec::ReportItem>& ri, const wxString& old_rep_id)
 	{
-		UpdateTitle();
+		if (old_rep_id != mRepId)
+			return;
+		sigUpdateTitle(ri->mTitle, mIco);
+		DoUpdateView();
 	});
 
 	connListItemRemove = modelRepList->sigRmReport.connect
 		([this](const std::shared_ptr<const rec::ReportItem>& ri)
 	{
-		
+		if (ri->mId != mRepId)
+			return;
 		sigUpdateTitle("Îò÷¸ò óäàë¸í", mIco);
+		sigExecuted(rec::ReportTable());
+		sigSetFilterTable(rec::ReportFilterTable());
 	});
 
 
 	connListItemUpdate = modelRepList->sigListUpdated.connect
 		([this](const rec::ReportList& rl)
 	{
-		UpdateTitle();
+		Update();
 	});
+
+}
+//-----------------------------------------------------------------------------
+void ReportModel::DoUpdateView()
+{
+	rec::ReportTable& rt = mReportTable;
+	rt.mColNames.clear();
+	rt.mRowList.clear();
+	sigExecuted(rt);
+
+	sigSetFilterTable(rec::ReportFilterTable());
 
 }
 //-----------------------------------------------------------------------------
 void ReportModel::Update()
 {
-
-	UpdateTitle();
-
 	auto container = whDataMgr::GetInstance()->mContainer;
 	auto modelRepList = container->GetObject<ReportListModel>("ModelPageReportList");
 	auto ri = modelRepList->LoadAll(mRepId);
+	if (!ri)
+		return;
+	//DoUpdateView();
+
+
+}
+//-----------------------------------------------------------------------------
+void ReportModel::Execute()
+{
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto modelRepList = container->GetObject<ReportListModel>("ModelPageReportList");
+	auto ri = modelRepList->GetRep(mRepId);
 	if (!ri)
 		return;
 
@@ -72,7 +98,7 @@ void ReportModel::Update()
 		}
 
 		rt.mRowList.reserve(col_qty);
-		
+
 		for (size_t r = 0; r < row_qty; r++)
 		{
 			rec::ReportTable::Row row(col_qty);
@@ -84,7 +110,7 @@ void ReportModel::Update()
 		}
 
 	}
-		
+
 	whDataMgr::GetDB().Commit();
 	sigExecuted(rt);
 }
@@ -170,15 +196,16 @@ void ReportModel::Export()
 
 }
 //-----------------------------------------------------------------------------
-void ReportModel::SetParam()
-{
 
-}
-//-----------------------------------------------------------------------------
 void ReportModel::Load(const boost::property_tree::ptree& page_val)
 {
 	mRepId = page_val.get<std::string>("CtrlPageReport.RepId");
 
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto modelRepList = container->GetObject<ReportListModel>("ModelPageReportList");
+	auto ri = modelRepList->LoadAll(mRepId);
+	if (!ri)
+		return;
 }
 //-----------------------------------------------------------------------------
 void ReportModel::Save(boost::property_tree::ptree& page_val)
@@ -187,11 +214,22 @@ void ReportModel::Save(boost::property_tree::ptree& page_val)
 	ptree content;
 	content.put("RepId", mRepId.c_str());
 	page_val.push_back(std::make_pair("CtrlPageReport", content));
-	//page_val.put("CtrlPageGroupList.id", 33);
+	
+}
+//-----------------------------------------------------------------------------
+void ReportModel::Show()
+{
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto modelRepList = container->GetObject<ReportListModel>("ModelPageReportList");
+	auto ri = modelRepList->LoadAll(mRepId);
+	if (!ri)
+		return;
+	sigShow();
 }
 //-----------------------------------------------------------------------------
 void ReportModel::UpdateTitle()
 {
+	/*
 	wxString lbl = mTitle;
 	
 	auto container = whDataMgr::GetInstance()->mContainer;
@@ -203,6 +241,8 @@ void ReportModel::UpdateTitle()
 		lbl = ri->mTitle;
 	}
 
-	sigUpdateTitle(lbl, mIco);
 
+
+	sigUpdateTitle(lbl, mIco);
+	*/
 }

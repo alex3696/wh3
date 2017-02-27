@@ -46,6 +46,18 @@ public:
 	std::vector<Row> mRowList;
 };
 
+
+
+class ReportFilter
+{
+	wxString mName;
+	wxString mType;
+	wxString mDefault;
+};
+
+typedef std::vector<ReportFilter> ReportFilterTable;
+
+
 //---------------------------------------------------------------------------
 } //namespace rec{
 } //namespace wh{

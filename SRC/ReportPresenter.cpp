@@ -13,11 +13,12 @@ ReportPresenter::ReportPresenter(std::shared_ptr<IReportView> view
 	connViewUpdate = mView->sigUpdate
 		.connect(std::bind(&ReportPresenter::Update, this));
 
+	connViewExecute = mView->sigExecute
+		.connect(std::bind(&ReportPresenter::Execute, this));
+
+
 	connViewExport = mView->sigExport
 		.connect(std::bind(&ReportPresenter::Export, this));
-
-	connViewSetParam = mView->sigSetParam
-		.connect(std::bind(&ReportPresenter::SetParam, this));
 
 
 	connModelExecuted = mModel->sigExecuted.connect
@@ -25,6 +26,13 @@ ReportPresenter::ReportPresenter(std::shared_ptr<IReportView> view
 		{ 
 			mView->SetReportTable(rt);
 		});
+
+	connModelShowFilterTable = mModel->sigSetFilterTable.connect
+		([this](const rec::ReportFilterTable& ft)
+	{
+		mView->SetFilterTable(ft);
+	});
+		
 }
 //---------------------------------------------------------------------------
 void ReportPresenter::Update()
@@ -32,14 +40,13 @@ void ReportPresenter::Update()
 	mModel->Update();
 }
 //---------------------------------------------------------------------------
+void ReportPresenter::Execute()
+{
+	mModel->Execute();
+}
+//---------------------------------------------------------------------------
 void ReportPresenter::Export()
 {
 	mModel->Export();
 }
-//---------------------------------------------------------------------------
-void ReportPresenter::SetParam()
-{
-
-}
-
 

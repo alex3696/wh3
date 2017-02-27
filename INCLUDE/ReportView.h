@@ -15,8 +15,10 @@ public:
 	virtual wxWindow* GetWnd()const override;
 
 	virtual void SetReportTable(const rec::ReportTable& rt) override;
+	virtual void SetFilterTable(const rec::ReportFilterTable& ft) override;
 protected:
 	void OnCmd_Update(wxCommandEvent& evt);
+	void OnCmd_Execute(wxCommandEvent& evt);
 	void OnCmd_Export(wxCommandEvent& evt);
 private:
 	wxAuiToolBar*	BuildToolBar(wxWindow* parent);

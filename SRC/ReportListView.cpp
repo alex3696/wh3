@@ -197,6 +197,27 @@ wxDataViewCtrl* ReportListView::BuildReportList(wxWindow* parent)
 	int ch = table->GetCharHeight();
 	table->SetRowHeight(ch * 2 + 2);
 
+
+	table->GetTargetWindow()->SetToolTip("msg");
+	std::function<void(wxMouseEvent&)> on_move = [this,table](wxMouseEvent& evt)
+	{
+		wxDataViewColumn* col = nullptr;
+		wxDataViewItem item(nullptr);
+		auto pos = evt.GetPosition();
+		table->HitTest(pos, item, col);
+		wxString str;
+		if (col && item.IsOk())
+		{
+			wxVariant var;
+			table->GetModel()->GetValue(var, item, col->GetModelColumn());
+			str = var.GetString();
+		}
+		table->GetTargetWindow()->GetToolTip()->SetTip(str);
+
+	};
+	table->GetTargetWindow()->Bind(wxEVT_MOTION, on_move);
+
+
 	return table;
 }
 //-----------------------------------------------------------------------------
@@ -265,12 +286,21 @@ void ReportListView::OnCmd_MkReport(wxCommandEvent& evt)
 //-----------------------------------------------------------------------------
 void ReportListView::OnCmd_RmReport(wxCommandEvent& evt)
 {
-	auto sel_item = mTable->GetSelection();
-	if (!sel_item.IsOk())
-		return;
-	
-	auto dv = dynamic_cast<ReportListDv*>(mTable->GetModel());
-	sigRmReport(dv->GetRepId(sel_item));
+	wxMessageDialog dialog(mPanel,
+		"Удалить отчёт, вы уверены?", "Подтверждение"
+		, wxCENTRE | wxNO_DEFAULT | wxYES_NO | wxICON_QUESTION);
+	auto modalResult = dialog.ShowModal();
+
+	if (wxID_YES == modalResult)
+	{
+		auto sel_item = mTable->GetSelection();
+		if (!sel_item.IsOk())
+			return;
+
+		auto dv = dynamic_cast<ReportListDv*>(mTable->GetModel());
+		sigRmReport(dv->GetRepId(sel_item));
+	}
+
 }
 //-----------------------------------------------------------------------------
 void ReportListView::OnCmd_ChReport(wxCommandEvent& evt)

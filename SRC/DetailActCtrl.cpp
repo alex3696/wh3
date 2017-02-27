@@ -142,7 +142,7 @@ void DetailActCtrl::OnCmdAction(wxCommandEvent& WXUNUSED(evt))
 	catch (...)
 	{
 		// Transaction already rollbacked, dialog was destroyed, so nothinh to do
-		wxLogError("Бла, бла - вобщем кто-то уже юзает этот объект");
+		wxLogError("Объект занят другим пользователем (см.подробности)");
 	}
 
 }
