@@ -15,12 +15,13 @@ class ReportPresenter : public CtrlWindowBase<IReportView, ReportModel>
 
 	sig::scoped_connection connModelExecuted;
 	sig::scoped_connection connModelShowFilterTable;
+	sig::scoped_connection connModelShowNote;
 public:
 	ReportPresenter(std::shared_ptr<IReportView> view, std::shared_ptr<ReportModel> model);
 
 
 	void Update();
-	void Execute();
+	void Execute(const std::vector<wxString>& filter_vec);
 	void Export();
 
 };

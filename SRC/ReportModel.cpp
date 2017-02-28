@@ -19,7 +19,9 @@ ReportModel::ReportModel(std::shared_ptr<wxString> rep_id)
 		if (old_rep_id != mRepId)
 			return;
 		sigUpdateTitle(ri->mTitle, mIco);
+		sigSetNote(ri->mNote);
 		DoUpdateView();
+		
 	});
 
 	connListItemRemove = modelRepList->sigRmReport.connect
@@ -28,8 +30,10 @@ ReportModel::ReportModel(std::shared_ptr<wxString> rep_id)
 		if (ri->mId != mRepId)
 			return;
 		sigUpdateTitle("Отчёт удалён", mIco);
+		sigSetNote(wxEmptyString);
 		sigExecuted(rec::ReportTable());
 		sigSetFilterTable(rec::ReportFilterTable());
+		
 	});
 
 
@@ -41,6 +45,43 @@ ReportModel::ReportModel(std::shared_ptr<wxString> rep_id)
 
 }
 //-----------------------------------------------------------------------------
+void ReportModel::BuildFilterTable(rec::ReportFilterTable& rft)
+{
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto modelRepList = container->GetObject<ReportListModel>("ModelPageReportList");
+	auto ri = modelRepList->GetRep(mRepId);
+	if (ri)
+	{
+		const wxChar term = '?';
+		size_t pos = 0;
+		size_t start = pos;
+		while (pos < ri->mScript.size())
+		{
+
+			if (term == ri->mScript[pos])
+			{
+				rec::ReportFilter fi;
+				start = pos++;
+				while (ri->mScript[pos] != term && pos < ri->mScript.size())
+					++pos;
+				fi.mName = ri->mScript.SubString(start + 1, pos - 1);
+				start = pos++;
+				while (ri->mScript[pos] != term && pos < ri->mScript.size())
+					++pos;
+				fi.mType = ri->mScript.SubString(start + 1, pos - 1);
+				start = pos++;
+				while (ri->mScript[pos] != term && pos < ri->mScript.size())
+					++pos;
+				fi.mDefault = ri->mScript.SubString(start + 1, pos - 1);
+				rft.emplace_back(fi);
+			}
+			pos++;
+
+		}
+
+	}
+}
+//-----------------------------------------------------------------------------
 void ReportModel::DoUpdateView()
 {
 	rec::ReportTable& rt = mReportTable;
@@ -48,8 +89,11 @@ void ReportModel::DoUpdateView()
 	rt.mRowList.clear();
 	sigExecuted(rt);
 
-	sigSetFilterTable(rec::ReportFilterTable());
+	rec::ReportFilterTable rft;
+	BuildFilterTable(rft);
+	sigSetFilterTable(rft);
 
+	
 }
 //-----------------------------------------------------------------------------
 void ReportModel::Update()
@@ -64,7 +108,7 @@ void ReportModel::Update()
 
 }
 //-----------------------------------------------------------------------------
-void ReportModel::Execute()
+void ReportModel::Execute(const std::vector<wxString>& filter_vec)
 {
 	auto container = whDataMgr::GetInstance()->mContainer;
 	auto modelRepList = container->GetObject<ReportListModel>("ModelPageReportList");
@@ -73,6 +117,18 @@ void ReportModel::Execute()
 		return;
 
 	wxString query = ri->mScript;
+	
+	rec::ReportFilterTable rft;
+	BuildFilterTable(rft);
+	if (rft.size() == filter_vec.size())
+	{
+		for (size_t i = 0; i < rft.size(); ++i)
+		{
+			wxString str_to_replace = wxString::Format("?%s?%s?%s?"
+				, rft[i].mName, rft[i].mType, rft[i].mDefault);
+			query.Replace(str_to_replace, filter_vec[i]);
+		}
+	}
 
 	//wxString query = wxString::Format(" SELECT * FROM prop ");
 

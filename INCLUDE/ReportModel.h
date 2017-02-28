@@ -20,14 +20,16 @@ class ReportModel : public IModelWindow
 	rec::ReportTable mReportTable;
 
 	void DoUpdateView();
+	void BuildFilterTable(rec::ReportFilterTable& ft);
 public:
 	ReportModel(std::shared_ptr<wxString> rep_id);
 
 	void Update();
-	void Execute();
+	void Execute(const std::vector<wxString>& filter_vec);
 	void Export();
 	sig::signal<void(const rec::ReportTable&)>			sigExecuted;
 	sig::signal<void(const rec::ReportFilterTable&)>	sigSetFilterTable;
+	sig::signal<void(const wxString&)>					sigSetNote;
 	
 
 	// IModelWindow

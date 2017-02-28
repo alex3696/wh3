@@ -140,10 +140,9 @@ wxPGProperty* FilterArrayEditor::MakeProperty(const wh::Field& field)
 	case ftTime:
 	case ftDate:	pgp = new wxDateProperty(field.mTitle);
 		pgp->SetAttribute(wxPG_DATE_PICKER_STYLE
-			, (long)(wxDP_DROPDOWN |
-			wxDP_SHOWCENTURY |
-			wxDP_ALLOWNONE));
-		pgp->SetAttribute(wxPG_DATE_FORMAT, wxS("%Y.%m.%d"));
+			, (long)(wxDP_DROPDOWN | wxDP_SHOWCENTURY | 	wxDP_ALLOWNONE));
+		pgp->SetAttribute(wxPG_DATE_FORMAT
+			, wxLocale::GetOSInfo(wxLOCALE_SHORT_DATE_FMT, wxLOCALE_CAT_DATE));
 		break;
 	case ftLink:	pgp = new wxStringProperty(field.mTitle, wxPG_LABEL, first_filter_val);  break;
 	case ftFile:	pgp = new wxStringProperty(field.mTitle, wxPG_LABEL, first_filter_val);  break;

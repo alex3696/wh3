@@ -14,7 +14,7 @@ ReportPresenter::ReportPresenter(std::shared_ptr<IReportView> view
 		.connect(std::bind(&ReportPresenter::Update, this));
 
 	connViewExecute = mView->sigExecute
-		.connect(std::bind(&ReportPresenter::Execute, this));
+		.connect(std::bind(&ReportPresenter::Execute, this, ph::_1));
 
 
 	connViewExport = mView->sigExport
@@ -33,6 +33,13 @@ ReportPresenter::ReportPresenter(std::shared_ptr<IReportView> view
 		mView->SetFilterTable(ft);
 	});
 		
+	connModelShowNote = mModel->sigSetNote.connect
+		([this](const wxString& note)
+	{
+		mView->SetNote(note);
+	});
+
+
 }
 //---------------------------------------------------------------------------
 void ReportPresenter::Update()
@@ -40,9 +47,9 @@ void ReportPresenter::Update()
 	mModel->Update();
 }
 //---------------------------------------------------------------------------
-void ReportPresenter::Execute()
+void ReportPresenter::Execute(const std::vector<wxString>& filter_vec)
 {
-	mModel->Execute();
+	mModel->Execute(filter_vec);
 }
 //---------------------------------------------------------------------------
 void ReportPresenter::Export()

@@ -50,6 +50,7 @@ public:
 
 class ReportFilter
 {
+public:
 	wxString mName;
 	wxString mType;
 	wxString mDefault;
