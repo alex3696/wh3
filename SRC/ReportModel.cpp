@@ -137,6 +137,22 @@ void ReportModel::Execute(const std::vector<wxString>& filter_vec)
 	rt.mColNames.clear();
 	rt.mRowList.clear();
 
+	
+	/*
+	COLUMN_UNKNOWN = 0,
+	COLUMN_NULL,
+	COLUMN_INTEGER,
+	COLUMN_STRING,
+	COLUMN_DOUBLE,
+	COLUMN_BOOL,
+	COLUMN_BLOB,
+	COLUMN_DATE,
+
+	*/
+	wxLocale loc;
+	loc.Init(wxLocale::GetSystemLanguage());
+	wxString format = wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER);
+	//wxString format1 = wxLocale::GetOSInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER);
 
 	whDataMgr::GetDB().BeginTransaction();
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
@@ -148,8 +164,10 @@ void ReportModel::Execute(const std::vector<wxString>& filter_vec)
 
 		rt.mColNames.reserve(col_qty);
 
+		//int ctype = 0;
 		for (size_t i = 0; i < col_qty; i++)
 		{
+			//ctype = table->GetColumnType(i);
 			rt.mColNames.emplace_back(table->GetColumnName(i));
 		}
 
@@ -161,6 +179,11 @@ void ReportModel::Execute(const std::vector<wxString>& filter_vec)
 			for (size_t i = 0; i < col_qty; i++)
 			{
 				table->GetAsString(i, r, row[i]);
+				if (1700 == table->GetColumnType(i))
+				{ 
+					row[i].Replace('.', format);
+				}
+				
 			}
 			rt.mRowList.emplace_back(std::move(row));
 		}

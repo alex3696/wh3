@@ -320,6 +320,7 @@ wxString whTable::GetColumnName(unsigned int col)
 		{
 			md = m_Result->GetMetaData();
 			colname = md->GetColumnName(col+1);
+			
 			m_Result->CloseMetaData(md);
 		}
 		catch(DatabaseLayerException & e)
@@ -332,6 +333,31 @@ wxString whTable::GetColumnName(unsigned int col)
 	}
 	return colname;
 }
+//------------------------------------------------------------------------------
+int whTable::GetColumnType(int col)
+{
+	int coltype=-1;
+	ResultSetMetaData* md(NULL);
+	if (m_Result)
+	{
+		try
+		{
+			md = m_Result->GetMetaData();
+			coltype = md->GetColumnType(col + 1);
+
+			m_Result->CloseMetaData(md);
+		}
+		catch (DatabaseLayerException & e)
+		{
+			wxString str = wxString::Format(("%d %s"), e.GetErrorCode(), e.GetErrorMessage().GetData());
+			wxMessageBox(str);
+			coltype = -1;
+		}
+
+	}
+	return coltype;
+}
+
 //------------------------------------------------------------------------------
 unsigned int whTable::GetRowCount()const
 {

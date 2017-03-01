@@ -96,6 +96,7 @@ public:
 
 	/*virtual*/ unsigned int GetColumnCount()const;
 	/*virtual*/ wxString GetColumnName(unsigned int col);
+	            int      GetColumnType(int col);
 
 	/*virtual*/ unsigned int	GetRowCount()const;
 	/*virtual*/ wxString		GetAsString(unsigned int col,unsigned int row);
