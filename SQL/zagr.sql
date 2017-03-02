@@ -44,10 +44,10 @@ END;
 $BODY$ LANGUAGE plpgsql STABLE  COST 1000 ROWS 1000;
 
 /**
-SELECT obj_name.title,cls.* 
+SELECT obj_name.id AS oid,obj_name.title,cls.* 
 FROM pg_temp.get_childs_cls_info(101) cls
 LEFT  JOIN obj_name ON obj_name.cls_id=cls._id
-ORDER BY _arr_id,(substring(obj_name.title, '^[0-9]+')::INT, obj_name.title) ASC 
+ORDER BY _path,(substring(obj_name.title, '^[0-9]+')::INT, obj_name.title) ASC 
 */
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
@@ -89,12 +89,15 @@ BEGIN
       AND act_id IS NULL
       AND log_dt<=_begin
       ORDER BY log_dt DESC LIMIT 1;
+    IF prev_src_oid IS NULL OR cid IS NULL THEN 
+      SELECT obj.pid,obj.cls_id INTO prev_src_oid,cid FROM obj WHERE id=_oid;
+    END IF;
   ELSE
     cid          := rec.mcls_id;
     prev_src_oid := rec.src_oid;
     prev_place   := rec.dst_oid;
   END IF;
-  RAISE NOTICE  'rec=%', rec;
+  --RAISE NOTICE  'rec=%', rec;
   --IF rec IS NOT NULL THEN RAISE NOTICE  'NOT NULL'; ELSE RAISE NOTICE  'IS NULL'; END IF;
   WHILE prev_src_oid IS NOT NULL LOOP
     --RAISE NOTICE  'prev_dt=%   prev_place=%',prev_dt,prev_place ;
@@ -124,6 +127,8 @@ $BODY$ LANGUAGE plpgsql STABLE  COST 1000 ROWS 1000;
 
 /**
 SELECT * FROM pg_temp.place_time (3626,'2016.09.10 12:00+5','2017.02.27 20:00+5');
+
+SELECT * FROM pg_temp.place_time (3934,'2017.01.01 00:00+5','2017.02.27 20:00+5');
 
 SELECT *,obj_name.title FROM pg_temp.place_time (3782,'2017.01.31 00:00+5','2017.02.27 20:00+5') ss
 LEFT  JOIN obj_name ON obj_name.id=ss.dst_oid
@@ -185,23 +190,21 @@ BEGIN
   distance := _end - _begin;
   RAISE NOTICE  'distance = %',distance;
   FOR obj IN _obj_cursor LOOP
-    otitle:=  obj.otitle;
+    
     ctitle:=  obj.ctitle;
     ipath:=   obj.arr_id;
     path:=    obj.path;
     ckind:=   obj.ckind;
     cid :=    obj.cid;
+    oid :=    obj.oid;
+    otitle:=  obj.otitle;
     IF ckind=0 THEN 
-      --cid:=NULL;
-      oid:=NULL;
       dst_oid:=NULL;
       dst_time:=NULL;
       dst_percent:=NULL;
       RETURN NEXT;
     ELSE
       FOR stat IN _stat_cursor(obj.oid,_begin,_end) LOOP
-        --cid:=stat.cid;
-        oid:=stat.oid;
         dst_oid:=stat.dst_oid;
         dst_time:=stat.dst_time;
         dst_percent:= EXTRACT(EPOCH FROM stat.dst_time)/ EXTRACT(EPOCH FROM distance) * 100;
@@ -215,7 +218,7 @@ RETURN;
 END; 
 $BODY$ LANGUAGE plpgsql STABLE  COST 1000 ROWS 1000;
 /**
-    SELECT * FROM pg_temp.place_stat(112,'2016.09.10 12:00+5','2017.02.27 20:00+5')
+    SELECT * FROM pg_temp.place_stat(101,'2017.01.01 00:00+5','2017.02.27 20:00+5')
     order by ipath,oid
 
 
@@ -270,15 +273,15 @@ DECLARE
     ORDER BY dst_oid
     --path,(substring(otitle, '^[0-9]+')::INT, otitle) ASC , dst_oid
     ;
-
-  curr_otitle NAME;
-  curr_rec    RECORD;
-
-  update_str TEXT;
 BEGIN
-  _begin := '2016.12.31 00:00'::TIMESTAMP;
-  _end := '2017.02.27 00:00'::TIMESTAMP;
-  _cid := 433 ;
+  --_begin := '?Начало периода?DATE?2017.01.01? 00:00:00'::TIMESTAMP ;
+  --_end := '?Конец периода?DATE?2017.12.31? 23:59:56'::TIMESTAMP ;
+  
+  _begin := '2017.01.01 00:00'::TIMESTAMP;
+  _end := '2017.02.27 23:59'::TIMESTAMP;
+  _cid := 101 ;
+
+  _end := CASE WHEN _end > CURRENT_TIMESTAMP THEN CURRENT_TIMESTAMP ELSE _end END;
 
   drop table IF EXISTS place_time;
   
@@ -291,49 +294,55 @@ BEGIN
                ,ipath    BIGINT[]
                ,path     TEXT
    );
+   
   FOR stat IN _stat_cursor2(_cid,_begin,_end) LOOP
     IF stat.ckind=0 THEN
       INSERT INTO place_time(cid,ctitle,ckind,ipath,path) 
                     VALUES (stat.cid,stat.ctitle,stat.ckind,stat.ipath,stat.path) ;
     ELSE
-      RAISE NOTICE  'stat=%   ',stat;
-      curr_otitle:=stat.otitle;
-      WHILE curr_otitle=stat.otitle AND curr_otitle IS NOT NULL LOOP
-        PERFORM FROM information_schema.columns 
-          WHERE table_name   = 'place_time'  AND table_schema ~~* 'pg_temp%'
-          AND column_name ILIKE stat.dst_title||'(perc)';
-        IF NOT FOUND THEN 
-          --EXECUTE 'ALTER TABLE pg_temp.place_time ADD COLUMN "'||stat.dst_title||'(sec)" DOUBLE PRECISION';
-          EXECUTE 'ALTER TABLE pg_temp.place_time ADD COLUMN "'||stat.dst_title||'(perc)" NUMERIC';
-        END IF;
-        PERFORM FROM pg_temp.place_time WHERE cid=stat.cid AND oid=stat.oid;
-        IF NOT FOUND THEN 
-          INSERT INTO place_time(cid,ctitle,ckind,ipath,path,oid,otitle) 
-                      VALUES (stat.cid,stat.ctitle,stat.ckind,stat.ipath,stat.path,stat.oid,stat.otitle) ;
-        END IF;
-        --RAISE NOTICE  'stat.dst_percent=%   ',stat.dst_percent;
-        --update_str :=round(stat.dst_percent,2);
-        EXECUTE 'UPDATE pg_temp.place_time SET "'||stat.dst_title||'(perc)"='||round(stat.dst_percent::NUMERIC,3)
-         ||' WHERE pg_temp.place_time.cid='||stat.cid||' AND pg_temp.place_time.oid='||stat.oid;
-      --INSERT  INTO place_time VALUES stat;
-        FETCH _stat_cursor2 INTO stat;
-        curr_otitle:=stat.otitle;
-      END LOOP;
-    END IF;
+      --RAISE NOTICE  'stat=%   ',stat;
+      PERFORM FROM information_schema.columns 
+        WHERE table_name   = 'place_time'  AND table_schema ~~* 'pg_temp%'
+        AND column_name ILIKE stat.dst_title||'(perc)';
+      IF NOT FOUND THEN 
+        --EXECUTE 'ALTER TABLE pg_temp.place_time ADD COLUMN "'||stat.dst_title||'(sec)" DOUBLE PRECISION';
+        EXECUTE 'ALTER TABLE pg_temp.place_time ADD COLUMN "'||stat.dst_title||'(perc)" NUMERIC';
+      END IF;
+      PERFORM FROM pg_temp.place_time WHERE cid=stat.cid AND oid=stat.oid;
+      IF NOT FOUND THEN 
+        INSERT INTO place_time(cid,ctitle,ckind,ipath,path,oid,otitle) 
+                    VALUES (stat.cid,stat.ctitle,stat.ckind,stat.ipath,stat.path,stat.oid,stat.otitle) ;
+      END IF;
+      --RAISE NOTICE  'stat.dst_percent=%   ',stat.dst_percent;
+      EXECUTE 'UPDATE pg_temp.place_time SET "'||stat.dst_title||'(perc)"='||round(stat.dst_percent::NUMERIC,3)
+       ||' WHERE pg_temp.place_time.cid='||stat.cid||' AND pg_temp.place_time.oid='||stat.oid;
+        
+    END IF; --FOR --FETCH _stat_cursor2 INTO stat;
    END LOOP; --FOR stat IN _stat_cursor(obj.oid,_begin,_end) LOOP
 
 END $$;
 
 
-select 
+select * 
+  from pg_temp.place_time 
+  ORDER BY path,(substring(otitle, '^[0-9]+')::INT, otitle) ASC 
 
-* 
+/*
+SELECT 
+    obj_name.id AS oid 
+   ,obj_name.title AS otitle
+   ,cls._id AS cid
+   ,cls._path AS path
+    FROM pg_temp.get_childs_cls_info(101) cls
+    LEFT  JOIN obj_name ON obj_name.cls_id=cls._id
+    --ORDER BY _path,(substring(obj_name.title, '^[0-9]+')::INT, obj_name.title) ASC 
+EXCEPT
+select oid, otitle, cid, path
 from pg_temp.place_time 
- ORDER BY path,(substring(otitle, '^[0-9]+')::INT, otitle) ASC 
+ --ORDER BY path,(substring(otitle, '^[0-9]+')::INT, otitle) ASC 
+*/
 
 
-
--- SELECT ROUND(02.19::NUMERIC(10,4),3)
 
 
 
