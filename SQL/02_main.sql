@@ -673,7 +673,7 @@ GRANT DELETE        ON TABLE app_config TO "Admin";
 --DROP TABLE IF EXISTS report CASCADE;
 CREATE TABLE report(
  id     BIGINT NOT NULL DEFAULT nextval('seq_rep_id')
-,title  NAME   NOT NULL
+,title  TEXT   NOT NULL
 ,note   TEXT
 ,script TEXT
 
