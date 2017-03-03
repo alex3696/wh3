@@ -45,6 +45,9 @@ CREATE OR REPLACE FUNCTION get_childs_cls(IN _obj_id BIGINT)
   ,_note  TEXT
   ,_measure WHNAME
   ,_dobj  BIGINT
+  ,_path  TEXT
+  --,_arr_id  BIGINT[]
+  --,_arr_title NAME[]  
 ) AS $BODY$ 
 BEGIN
 RETURN QUERY(
@@ -52,23 +55,29 @@ RETURN QUERY(
     SELECT id,  title, kind, pid,  note, measure,dobj
            ,ARRAY[id]                            AS exist
            ,FALSE                                AS cycle
+           , '' AS path
+           --, ARRAY[id] AS arr_id
+           --, ARRAY[title::NAME] AS arr_title
     FROM acls
     WHERE id = _obj_id
     UNION ALL
         SELECT t.id, t.title, t.kind, t.pid, t.note, t.measure, t.dobj
                ,exist || t.id 
                ,t.id = ANY(exist)
+               , c.path||'/'||t.title
+               --, c.arr_id     || ARRAY[t.id]::BIGINT[]
+               --, c.arr_title  || ARRAY[t.title::NAME]::NAME[]
         FROM children AS c, 
              acls  AS t
         WHERE t.pid = c.id AND 
               NOT cycle 
               --AND array_length(exist, 1) < 1000 -- глубина дерева
 )
-SELECT id,  title, kind, pid,  note, measure,dobj
+SELECT id,  title, kind, pid,  note, measure,dobj,path--,arr_id --,arr_title
     FROM children WHERE NOT cycle --ORDER BY ord LIMIT 100;
     );
 END; 
-$BODY$ LANGUAGE plpgsql STABLE  COST 1000 ROWS 1000;
+$BODY$ LANGUAGE plpgsql STABLE  COST 100 ROWS 2000;
 GRANT EXECUTE ON FUNCTION get_childs_cls(BIGINT) TO "Guest";
 
 SELECT * FROM get_childs_cls(101);
