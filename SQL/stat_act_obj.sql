@@ -1,8 +1,8 @@
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS pg_temp.stat_act_absrtact() CASCADE;
-CREATE OR REPLACE FUNCTION pg_temp.stat_act_absrtact() 
+DROP FUNCTION IF EXISTS pg_temp.stat_act_obj() CASCADE;
+CREATE OR REPLACE FUNCTION pg_temp.stat_act_obj() 
  RETURNS VOID
 AS $BODY$ 
 DECLARE
@@ -75,5 +75,5 @@ $BODY$ LANGUAGE plpgsql VOLATILE COST 2000
 -- ROWS 3000
 ;
 
-select * from pg_temp.stat_act_absrtact();
+select * from pg_temp.stat_act_obj();
 select * from pg_temp.stat_act ORDER BY path, (substring(otitle, '^[0-9]+')::INT, otitle) ASC 

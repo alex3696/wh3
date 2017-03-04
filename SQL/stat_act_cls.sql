@@ -1,8 +1,8 @@
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS pg_temp.stat_act_absrtact() CASCADE;
-CREATE OR REPLACE FUNCTION pg_temp.stat_act_absrtact() 
+DROP FUNCTION IF EXISTS pg_temp.stat_act_cls() CASCADE;
+CREATE OR REPLACE FUNCTION pg_temp.stat_act_cls() 
  RETURNS VOID
 AS $BODY$ 
 DECLARE
@@ -43,7 +43,7 @@ BEGIN
             ,cls._title     AS ctitle
             ,cls._kind      AS ckind
             ,cls._path      AS path
-            ,(SELECT sum(qty) FROM obj WHERE cls_id IN (SELECT id FROM acls WHERE kind=1 AND pid=cls._id)) as oqty
+            ,(SELECT sum(qty) FROM obj WHERE cls_id=cls._id) as oqty
         FROM get_childs_cls(_cid) cls
         --ORDER BY path 
       );
@@ -71,7 +71,7 @@ $BODY$ LANGUAGE plpgsql VOLATILE COST 2000
 -- ROWS 3000
 ;
 
-select * from pg_temp.stat_act_absrtact();
+select * from pg_temp.stat_act_cls();
 select * from pg_temp.stat_act ORDER BY path;
 
 
