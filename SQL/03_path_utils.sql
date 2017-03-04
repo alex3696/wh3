@@ -35,8 +35,8 @@ DROP FUNCTION IF EXISTS ftr_bu_any_obj() CASCADE;
 -------------------------------------------------------------------------------
 -- поиск всех дочерних классов
 -------------------------------------------------------------------------------
-DROP FUNCTION IF EXISTS get_childs_cls(IN _obj_id BIGINT) CASCADE;
-CREATE OR REPLACE FUNCTION get_childs_cls(IN _obj_id BIGINT)
+DROP FUNCTION IF EXISTS get_childs_cls(IN _obj_id BIGINT,_ckind INTEGER) CASCADE;
+CREATE OR REPLACE FUNCTION get_childs_cls(IN _obj_id BIGINT, _ckind INTEGER DEFAULT 5)
  RETURNS TABLE(
   _id    BIGINT
   ,_title WHNAME
@@ -71,6 +71,7 @@ RETURN QUERY(
              acls  AS t
         WHERE t.pid = c.id AND 
               NOT cycle 
+              AND t.kind<=_ckind
               --AND array_length(exist, 1) < 1000 -- глубина дерева
 )
 SELECT id,  title, kind, pid,  note, measure,dobj,path--,arr_id --,arr_title
@@ -78,10 +79,10 @@ SELECT id,  title, kind, pid,  note, measure,dobj,path--,arr_id --,arr_title
     );
 END; 
 $BODY$ LANGUAGE plpgsql STABLE  COST 100 ROWS 2000;
-GRANT EXECUTE ON FUNCTION get_childs_cls(BIGINT) TO "Guest";
+GRANT EXECUTE ON FUNCTION get_childs_cls(BIGINT,INTEGER) TO "Guest";
 
 SELECT * FROM get_childs_cls(101);
-SELECT * FROM get_childs_cls(0);
+SELECT * FROM get_childs_cls(0,0);
 
 
 
