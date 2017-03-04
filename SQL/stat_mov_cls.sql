@@ -146,14 +146,14 @@ BEGIN
                ,constraint pk_sum_dst_time_cls PRIMARY KEY(cid,dst_oid)
    );
 
-  drop table IF EXISTS stat_move_cls;
-  create temporary TABLE stat_move_cls( 
+  drop table IF EXISTS stat_mov;
+  create temporary TABLE stat_mov( 
                 cid      BIGINT 
                ,ctitle   NAME
                ,ckind    SMALLINT
                ,path     TEXT
                ,oqty     BIGINT
-               --,CONSTRAINT uk_stat_move_cls UNIQUE (path)
+               --,CONSTRAINT uk_stat_mov UNIQUE (path)
    );
    
    -- iterate CLS
@@ -173,12 +173,11 @@ BEGIN
           ;
       END LOOP;--FOR stat_row
     END LOOP;--FOR obj_row
-    INSERT INTO stat_move_cls (cid,ctitle,ckind,path,oqty)
+    --insert type
+    INSERT INTO stat_mov (cid,ctitle,ckind,path,oqty)
       VALUES(cls_row.cid, cls_row.ctitle, cls_row.ckind,cls_row.path,CASE WHEN cls_row.ckind=0 THEN NULL ELSE curr_oqty END);
-
   END LOOP;--FOR cls_row
 
-  
   -- adding missing columns
   FOR mov_row IN (SELECT ss.*,obj_name.title AS dst_otitle FROM _sum_dst_time_cls ss
                     LEFT JOIN obj_name ON obj_name.id=ss.dst_oid 
@@ -186,18 +185,19 @@ BEGIN
                     ORDER BY dst_oid,dst_otitle
                  )LOOP
     PERFORM FROM information_schema.columns 
-      WHERE table_name   = 'stat_move_cls'  AND table_schema ~~* 'pg_temp%'
+      WHERE table_name   = 'stat_mov'  AND table_schema ~~* 'pg_temp%'
       AND column_name ILIKE mov_row.dst_otitle||'(%)';
     IF NOT FOUND THEN 
-      EXECUTE 'ALTER TABLE pg_temp.stat_move_cls ADD COLUMN "'||mov_row.dst_otitle||'(%)" NUMERIC';
+      EXECUTE 'ALTER TABLE pg_temp.stat_mov ADD COLUMN "'||mov_row.dst_otitle||'(%)" NUMERIC';
     END IF;
     SELECT sum(qty) INTO curr_oqty FROM obj WHERE cls_id=mov_row.cid;
     curr_perc:= EXTRACT(EPOCH FROM mov_row.sum_dst_time)/ EXTRACT(EPOCH FROM distance)/curr_oqty * 100;
-    EXECUTE 'UPDATE pg_temp.stat_move_cls SET "'
+    EXECUTE 'UPDATE pg_temp.stat_mov SET "'
       ||mov_row.dst_otitle||'(%)"='||round(curr_perc,3)
-      ||' WHERE pg_temp.stat_move_cls.cid='||mov_row.cid;
+      ||' WHERE pg_temp.stat_mov.cid='||mov_row.cid
+      ;
   END LOOP;--FOR mov_row
-  
+
 
   drop table IF EXISTS _sum_dst_time_cls CASCADE;
 --RETURN;
@@ -205,37 +205,6 @@ END;
 $BODY$ LANGUAGE plpgsql VOLATILE COST 2000
 -- ROWS 3000
 ;
-/**
-    SELECT cls._id        AS cid
-          ,cls._title     AS ctitle
-          ,cls._kind      AS ckind
-          ,cls._path      AS path
-    FROM pg_temp.get_childs_cls_info(113) cls
 
-    SELECT * FROM obj WHERE cls_id =209
-
-    select SUM(ostat.dst_time) AS dst_time,ostat.dst_oid,ostat.cid,ostat.oid 
-    from pg_temp.stat_mov_obj_all (2091,'2017.01.01 00:00+5','2017.02.27 20:00+5') ostat
-    GROUP BY ostat.dst_oid,ostat.cid,ostat.oid 
-
-*/
 select * from pg_temp.stat_mov_cls();
-select * from pg_temp.stat_move_cls ORDER BY path;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+select * from pg_temp.stat_mov ORDER BY path;
