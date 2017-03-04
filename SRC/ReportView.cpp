@@ -164,10 +164,14 @@ void ReportView::SetReportTable(const rec::ReportTable& rt)
 	
 	mTable->ClearColumns();
 
-	for (size_t i = 0; i < rt.mColNames.size() ; i++)
-		auto col_id = mTable->AppendTextColumn(rt.mColNames[i], i, wxDATAVIEW_CELL_INERT);
-	
+	for (size_t i = 0; i < rt.mColNames.size(); i++)
+		auto col_id = mTable->AppendTextColumn(rt.mColNames[i], i, wxDATAVIEW_CELL_INERT
+			, -1, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_REORDERABLE);
+
 	dv->SetReportList(rt);
+
+	for (size_t i = 0; i < mTable->GetColumnCount(); i++)
+		mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
 
 }
 //-----------------------------------------------------------------------------
