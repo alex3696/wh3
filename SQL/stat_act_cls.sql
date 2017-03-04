@@ -23,6 +23,7 @@ DECLARE
       order BY act.title
     ;
 
+    col_name  NAME;
 BEGIN 
   --_begin := '?Начало периода?DATE?2017.01.01? 00:00:00'::TIMESTAMP ;
   --_end := '?Конец периода?DATE?2017.12.31? 23:59:56'::TIMESTAMP ;
@@ -50,16 +51,17 @@ BEGIN
 
   -- adding missing columns
   FOR act_row IN cursor_stat_act_acls(_cid, _begin, _end) LOOP
+    col_name:='(#'||act_row.act_id||')'||act_row.atitle;
     PERFORM FROM information_schema.columns 
       WHERE table_name   = 'stat_act'  AND table_schema ~~* 'pg_temp%'
-      AND column_name ILIKE act_row.atitle||'(#)';
+      AND column_name = col_name;
     IF NOT FOUND THEN 
-      EXECUTE 'ALTER TABLE pg_temp.stat_act ADD COLUMN "'||act_row.atitle||'(#)" NUMERIC';
+      EXECUTE 'ALTER TABLE pg_temp.stat_act ADD COLUMN "'||col_name||'" NUMERIC';
     END IF;
     --SELECT sum(qty) INTO curr_oqty FROM obj WHERE cls_id IN (SELECT id FROM acls WHERE kind=1 AND pid=mov_row.cid);
     --curr_perc:= EXTRACT(EPOCH FROM mov_row.sum_dst_time)/ EXTRACT(EPOCH FROM distance)/curr_oqty * 100;
     EXECUTE 'UPDATE pg_temp.stat_act SET "'
-      ||act_row.atitle||'(#)"='||act_row.sum
+      ||col_name||'"='||act_row.sum
       ||' WHERE pg_temp.stat_act.cid='||act_row.cid
       ;
   END LOOP;--FOR mov_row

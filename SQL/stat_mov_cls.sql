@@ -125,6 +125,7 @@ DECLARE
   curr_oqty BIGINT;
   mov_row   RECORD;
   curr_perc NUMERIC;
+  col_name  NAME;
 BEGIN 
   --_begin := '?Начало периода?DATE?2017.01.01? 00:00:00'::TIMESTAMP ;
   --_end := '?Конец периода?DATE?2017.12.31? 23:59:56'::TIMESTAMP ;
@@ -184,16 +185,17 @@ BEGIN
                     --WHERE ss.cid = cls_row.cid
                     ORDER BY dst_oid,dst_otitle
                  )LOOP
+    col_name:='(%'||mov_row.dst_oid||')'||mov_row.dst_otitle;
     PERFORM FROM information_schema.columns 
       WHERE table_name   = 'stat_mov'  AND table_schema ~~* 'pg_temp%'
-      AND column_name ILIKE mov_row.dst_otitle||'(%)';
+      AND column_name = col_name;
     IF NOT FOUND THEN 
-      EXECUTE 'ALTER TABLE pg_temp.stat_mov ADD COLUMN "'||mov_row.dst_otitle||'(%)" NUMERIC';
+      EXECUTE 'ALTER TABLE pg_temp.stat_mov ADD COLUMN "'||col_name||'" NUMERIC';
     END IF;
     SELECT sum(qty) INTO curr_oqty FROM obj WHERE cls_id=mov_row.cid;
     curr_perc:= EXTRACT(EPOCH FROM mov_row.sum_dst_time)/ EXTRACT(EPOCH FROM distance)/curr_oqty * 100;
     EXECUTE 'UPDATE pg_temp.stat_mov SET "'
-      ||mov_row.dst_otitle||'(%)"='||round(curr_perc,3)
+      ||col_name||'"='||round(curr_perc,3)
       ||' WHERE pg_temp.stat_mov.cid='||mov_row.cid
       ;
   END LOOP;--FOR mov_row
