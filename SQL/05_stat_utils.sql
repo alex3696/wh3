@@ -7,7 +7,7 @@ SET client_min_messages = 'notice';
 --SHOW client_min_messages;
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
-/**
+
 DROP FUNCTION IF EXISTS stat_get_obj_location(_oid BIGINT,_begin TIMESTAMP) CASCADE;
 CREATE OR REPLACE FUNCTION stat_get_obj_location(_oid BIGINT,_begin TIMESTAMP) 
   RETURNS BIGINT AS
@@ -22,7 +22,7 @@ $BODY$
 $BODY$
 LANGUAGE sql STABLE COST 10;
 GRANT EXECUTE ON FUNCTION stat_get_obj_location(_oid BIGINT,_begin TIMESTAMP) TO "Guest";
-
+/**
 SELECT * FROM stat_get_obj_location(3883,'2015.02.10 00:00+5');
 SELECT * FROM stat_get_obj_location(3883,'2015.04.10 00:00+5');
 SELECT * FROM stat_get_obj_location(3883,'2017.04.10 00:00+5');

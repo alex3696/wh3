@@ -49,7 +49,10 @@ BEGIN
             ,cls._title     AS ctitle
             ,cls._kind      AS ckind
             ,cls._path      AS path
-            ,(SELECT sum(qty) FROM obj WHERE cls_id IN (SELECT id FROM acls WHERE kind=1 AND pid=cls._id)) as oqty
+            ,(SELECT sum(qty) FROM obj 
+                WHERE cls_id IN (SELECT id FROM acls WHERE kind=1 AND pid=cls._id)
+                  AND stat_get_obj_location(obj.id,_end) IS NOT NULL
+              ) as oqty
         FROM get_childs_cls(_cid,0) cls
         --ORDER BY path 
       );

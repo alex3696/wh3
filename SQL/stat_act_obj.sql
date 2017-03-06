@@ -49,6 +49,7 @@ BEGIN
             ,obj.qty        AS oqty   
         FROM get_childs_cls(_cid) cls
         LEFT JOIN obj ON obj.cls_id=cls._id
+        WHERE stat_get_obj_location(obj.id,_end) IS NOT NULL OR cls._kind=0
         --ORDER BY path, (substring(obj.title, '^[0-9]+')::INT, obj.title) ASC 
       );
 
