@@ -13,37 +13,16 @@ class ViewMain :public IViewWindow
 	MainFrame* mMainFrame;
 
 	std::shared_ptr<IViewNotebook> mViewNotebook;
+
+	void OnCmd_MkPage_History(wxCommandEvent& evt);
 public:
-	ViewMain()
-		:mMainFrame(new MainFrame(NULL))
-	{
-		mViewNotebook = std::make_shared<ViewNotebook>(mMainFrame);
-		mMainFrame->m_AuiMgr.AddPane(mViewNotebook->GetWnd(), wxAuiPaneInfo().
-			Name(wxT("NotebookPane")).Caption(wxT("NotebookPane")).
-			CenterPane()
-			.PaneBorder(false)
-			);
-		mMainFrame->m_AuiMgr.Update();
+	ViewMain();
 
-		whDataMgr::GetInstance()->mContainer->RegInstance("ViewNotebook", mViewNotebook);
-
-		mMainFrame->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent&)
-		{ 
-			sigClose(); 
-			mMainFrame->Destroy();
-			mMainFrame = nullptr;
-		});
-
-	}
-
-	virtual wxWindow* GetWnd()const override { return mMainFrame; }
+	virtual wxWindow* GetWnd()const override;
 	//IViewWindow virtual void OnUpdateTitle(const wxString&, const wxIcon&) {};
-	virtual void OnShow()  override {	mMainFrame->Show();	}
+	virtual void OnShow()  override;
 
-	std::shared_ptr<IViewNotebook> GetViewNotebook()const
-	{
-		return mViewNotebook;
-	}
+	std::shared_ptr<IViewNotebook> GetViewNotebook()const;
 
 
 	//sig::signal<void()>	sigUpdateTitle;

@@ -31,6 +31,8 @@
 #include "ReportView.h"
 #include "ReportPresenter.h"
 
+#include "ViewHistory.h"
+#include "CtrlHistory.h"
 
 
 
@@ -457,4 +459,15 @@ void whDataMgr::InitContainer()
 	mContainer->RegFactory<MoveObjPresenter, MoveObjPresenter, IMoveObjView, rec::PathItem>
 		("MoveObjPresenter", "MoveObjView", "MoveableObj");
 
+
+	////////////////////
+	// Hystory  TEST  //
+	///////////////////
+	mContainer->RegInstanceDeferredNI<rec::PageHistory>("DefaultLogListInfo");
+	mContainer->RegFactoryNI<ModelPageHistory, rec::PageHistory >
+		("ModelPageHistory", "DefaultLogListInfo");
+	mContainer->RegFactory<IViewHistory, ViewHistory, IViewNotebook >
+		("ViewHistory", "ViewNotebook");
+	mContainer->RegFactory<ICtrlWindow, CtrlPageHistory, IViewHistory, ModelPageHistory >
+		("CtrlPageHistory", "ViewHistory", "ModelPageHistory");
 }

@@ -666,6 +666,9 @@ CREATE OR REPLACE VIEW log AS
  ,(SELECT path FROM tmppath_to_2id_info(lm.src_path::TEXT,1)) AS src_path
  ,(SELECT path FROM tmppath_to_2id_info(lmd.dst_path::TEXT,1)) AS dst_path
 
+ ,lmd.prop_lid AS prop_lid
+ ,mcls.kind    AS mcls_kind
+ ,mcls.measure AS mcls_measure
 FROM log_main lm
   LEFT JOIN log_detail_act  lad ON lad.id=lm.id
   LEFT JOIN log_detail_move lmd ON lmd.id=lm.id

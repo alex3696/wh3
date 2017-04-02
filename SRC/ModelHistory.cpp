@@ -1,0 +1,233 @@
+#include "_pch.h"
+#include "ModelHistory.h"
+
+using namespace wh;
+
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+ModelPageHistory::ModelPageHistory(std::shared_ptr<rec::PageHistory> data)
+	:IModelWindow(), mGuiModel(*data)
+{
+	mDataModel.SetRowsPerPage(10);
+}
+//---------------------------------------------------------------------------
+
+void ModelPageHistory::Update()
+{
+	mDataModel.Load();
+}
+//---------------------------------------------------------------------------
+
+//virtual 
+void ModelPageHistory::UpdateTitle() //override;
+{
+	sigUpdateTitle(mTitle, mIco);
+}
+//---------------------------------------------------------------------------
+//virtual 
+void ModelPageHistory::Show()//override;
+{
+
+}
+//---------------------------------------------------------------------------
+//virtual 
+void ModelPageHistory::Load(const boost::property_tree::ptree& page_val)//override;
+{
+
+}
+//---------------------------------------------------------------------------
+//virtual 
+void ModelPageHistory::Save(boost::property_tree::ptree& page_val)//override;
+{
+	using ptree = boost::property_tree::ptree;
+	ptree content;
+	//content.put("id", (int)-1);
+	page_val.push_back(std::make_pair("CtrlPageHistory", content));
+	//page_val.put("CtrlPageLogList.id", 33);
+
+}
+//---------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+class MHTDImpl :public ModelHistoryTableData
+{
+	const LogTable&		mLog;
+public:
+	MHTDImpl(const LogTable& log)
+		:mLog(log)
+	{
+	}
+
+	virtual size_t size()const override
+	{
+		return mLog.size();
+	}
+	virtual const wxString& GetLogId(const size_t row)const override
+	{
+		return mLog[row]->mId;
+	}
+	virtual const wxString& GetUser(const size_t row)const override
+	{
+		return mLog[row]->mUser;
+	}
+	virtual const wxString& GetDate(const size_t row)const override
+	{
+		return mLog[row]->mTimestamp;
+	}
+
+	virtual const wxString& GetCId(const size_t row)const override
+	{
+		return mLog[row]->mObj->mCls->mId;
+	}
+	virtual const wxString& GetCTiltle(const size_t row)const override
+	{
+		return mLog[row]->mObj->mCls->mTitle;
+	}
+	virtual const wxString& GetCKind(const size_t row)const override
+	{
+		return mLog[row]->mObj->mCls->mKind;
+	}
+	virtual const wxString& GetCMeasure(const size_t row)const override
+	{
+		return mLog[row]->mObj->mCls->mMeasure;
+	}
+	virtual const wxString& GetOId(const size_t row)const override
+	{
+		return mLog[row]->mObj->mId;
+	}
+	virtual const wxString& GetOTiltle(const size_t row)const override
+	{
+		return mLog[row]->mObj->mTitle;
+	}
+	virtual const wxString& GetQty(const size_t row)const override
+	{
+		return mLog[row]->mDetail->GetQty();
+	}
+
+	virtual const ActRec& GetActRec(const size_t row)const override
+	{
+		return mLog[row]->mDetail->GetActRec();
+	}
+
+	virtual const wxString& GetSrcPath(const size_t row)const 
+	{ 
+		return mLog[row]->mDetail->GetSrcPath();
+	};
+	virtual const wxString& GetDstPath(const size_t row)const 
+	{ 
+		return mLog[row]->mDetail->GetDstPath();
+	};
+
+
+};
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+ModelHistory::ModelHistory()
+	:mRowsPerPage(0)
+{
+
+}
+//-----------------------------------------------------------------------------
+void ModelHistory::Load()
+{
+	mLog.clear();
+	
+	
+	auto p0 = GetTickCount();
+	wxLogMessage(wxString::Format("%d \t ModelHistory \t clear list", GetTickCount() - p0));
+
+	wxString query = wxString::Format(
+		"SELECT log_id, log_dt, log_user"
+		" ,mcls_id, mcls_title, mobj_id, mobj_title, qty"
+		" ,act_id, act_title, act_color, prop"
+		" ,src_cid, src_oid, src_ipath, src_path"
+		" ,dst_cid, dst_oid, dst_ipath, dst_path"
+		" ,prop_lid, mcls_kind, mcls_measure "
+		//" ,log_date, log_time "
+		" FROM log "
+		" WHERE log_dt  > '2017.01.02' "
+		" ORDER BY log_dt DESC "
+		);
+	
+	if (mRowsPerPage > 0)
+		query += wxString::Format(" LIMIT %d", mRowsPerPage);
+
+
+	whDataMgr::GetDB().BeginTransaction();
+	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+	if (table && table->GetRowCount())
+	{
+		unsigned int rowQty = table->GetRowCount();
+		if (rowQty)
+		{
+			//mRepList.reserve(rowQty);
+			for (unsigned int i = 0; i < rowQty; ++i)
+			{
+				auto log_rec = std::make_shared<LogRec>();
+				table->GetAsString(0, i, log_rec->mId);
+				table->GetAsString(1, i, log_rec->mTimestamp);
+				table->GetAsString(2, i, log_rec->mUser);
+				log_rec = *mLog.emplace_back(log_rec).first;
+
+				auto cls_rec = std::make_shared<ClsRec>();
+				table->GetAsString(3, i, cls_rec->mId);
+				table->GetAsString(4, i, cls_rec->mTitle);
+				table->GetAsString(21, i, cls_rec->mKind);
+				table->GetAsString(22, i, cls_rec->mMeasure);
+				cls_rec = *mCls.emplace_back(cls_rec).first;
+				
+				auto obj_rec = std::make_shared<ObjRec>();
+				table->GetAsString(5, i, obj_rec->mId);
+				table->GetAsString(6, i, obj_rec->mTitle);
+
+				obj_rec->mCls = cls_rec;
+				obj_rec = *mObj.emplace_back(obj_rec).first;
+
+				log_rec->mObj = obj_rec;
+
+				wxString aid;
+				table->GetAsString(8, i, aid);
+
+				if (aid.empty())
+				{
+					auto log_mov_rec = std::make_shared<LogMovRec>();
+					
+					auto md = std::make_shared<LogMovRec>();
+					table->GetAsString(7, i, log_mov_rec->mQty);
+					table->GetAsString(19, i, log_mov_rec->mDstPath);
+					table->GetAsString(20, i, log_mov_rec->mPropLId);
+					//table->GetAsString(11, i, *log_mov_rec->mProperties);
+					
+					log_rec->mDetail = log_mov_rec;
+				}
+				else
+				{
+					auto act_rec = std::make_shared<ActRec>();
+					act_rec->mId = aid;
+					table->GetAsString(9, i, act_rec->mTitle);
+					table->GetAsString(10, i, act_rec->mColour);
+					act_rec = *mAct.emplace_back(act_rec).first;
+
+					auto log_act_rec = std::make_shared<LogActRec>();
+					log_act_rec->mActRec = act_rec;
+					//table->GetAsString(11, i, *log_act_rec->mProperties);
+					
+					log_rec->mDetail = log_act_rec;
+				}
+
+
+
+				table->GetAsString(15, i, log_rec->mDetail->mSrcPath);
+
+			}
+		}
+		
+
+	}
+	whDataMgr::GetDB().Commit();
+	wxLogMessage(wxString::Format("%d \t ModelHistory \t download results", GetTickCount() - p0));
+
+	auto sigData = std::make_shared<MHTDImpl>(mLog);
+	sigAfterLoad(sigData);
+}
