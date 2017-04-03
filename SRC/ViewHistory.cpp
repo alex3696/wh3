@@ -1,7 +1,7 @@
 #include "_pch.h"
 #include "ViewHistory.h"
 #include "globaldata.h"
-#include "wxDataViewMLTextRenderer.h"
+#include "wxDataViewIconMLTextRenderer.h"
 
 using namespace wh;
 //-----------------------------------------------------------------------------
@@ -46,6 +46,10 @@ public:
 	{
 		if (!mTD || mTD->size() <= row)
 			return;
+		wxString		str;
+		const wxIcon*	ico = &wxNullIcon;
+		wxIcon			icoHolder;
+
 		switch (col)
 		{
 		case 1:
@@ -63,15 +67,13 @@ public:
 				wxDateTime dt;
 				dt.ParseDateTime(mTD->GetDate(row));
 
-				variant = wxString::Format("%s\n%s\n%s" 
-				, dt.Format(format_ld)
-				, dt.Format(format_t)
-				, mTD->GetUser(row)
-				
-				);
+				str = wxString::Format("%s\n%s\n%s"
+					, dt.Format(format_ld)
+					, dt.Format(format_t)
+					, mTD->GetUser(row));
 			}
 			break;
-		case 2: variant = wxString::Format("%s\n%s"
+		case 2: str = wxString::Format("%s\n%s"
 			, mTD->GetCTiltle(row), mTD->GetOTiltle(row)
 			);
 			break;
@@ -80,20 +82,25 @@ public:
 			const auto& act = mTD->GetActRec(row);
 			if (act.mId.IsEmpty())
 			{
-				variant = wxString::Format("Перемещение: %s (%s)\n%s\n%s"
-					//, mTD->GetCKind(row) != "1" ? mTD->GetQty(row) : wxEmptyString
+				str = wxString::Format("Перемещение:\n%s\n%s\n%s (%s)"
+					, mTD->GetDstPath(row), mTD->GetSrcPath(row)
 					, mTD->GetQty(row), mTD->GetCMeasure(row)
-					, mTD->GetDstPath(row), mTD->GetSrcPath(row));
+					);
+				icoHolder = wxArtProvider::GetIcon(wxART_REDO, wxART_TOOLBAR);
+				ico = &icoHolder;
+
 			}
 			else
 			{
-				variant = wxString::Format("%s:\n...\n%s"
-					, mTD->GetActRec(row).mTitle, mTD->GetSrcPath(row));
+				str = wxString::Format("%s:\n...\n%s"
+					, act.mTitle, mTD->GetSrcPath(row));
+				//ico = &ResMgr::GetInstance()->m_ico_act24;
 			}
 		}
 		break;
 		default:break;
 		}
+		variant << wxDataViewIconText(str, *ico);
 	}
 
 	virtual bool  SetValueByRow(const wxVariant &variant, unsigned int row, unsigned int col)
@@ -107,7 +114,8 @@ public:
 	}
 	virtual wxString		GetColumnType(unsigned int col) const override
 	{
-		return "string";
+		//return "string";
+		return "wxDataViewIconText";
 	}
 
 	void SetTable(const std::shared_ptr<const ModelHistoryTableData>& rt)
@@ -210,18 +218,18 @@ wxDataViewCtrl* ViewHistory::BuildTable(wxWindow* parent)
 	int ch = table->GetCharHeight();
 	table->SetRowHeight(ch * 5 + 2);
 
-	auto renderer1 = new wxDataViewMLTextRenderer();
+	auto renderer1 = new wxDataViewIconMLTextRenderer();
 	renderer1->SetAlignment(wxALIGN_TOP);
 	auto attr = renderer1->GetAttr();
 	attr.SetColour(*wxBLACK);
 	renderer1->SetAttr(attr);
 
-	auto renderer2 = new wxDataViewMLTextRenderer();
+	auto renderer2 = new wxDataViewIconMLTextRenderer();
 	renderer2->SetAlignment(wxALIGN_TOP);
-	auto renderer3 = new wxDataViewMLTextRenderer();
+	auto renderer3 = new wxDataViewIconMLTextRenderer();
 	renderer3->SetAlignment(wxALIGN_TOP);
 
-	auto col1 = new wxDataViewColumn("Дата Время"
+	auto col1 = new wxDataViewColumn("Время Пользователь"
 		, renderer1, 1, -1, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
 	table->AppendColumn(col1);
 	auto col2 = new wxDataViewColumn("Тип Объект"

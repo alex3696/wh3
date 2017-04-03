@@ -233,7 +233,7 @@
     <ClCompile Include="..\..\SRC\ModelNotebook.cpp" />
     <ClCompile Include="..\..\SRC\CtrlNotebook.cpp" />
     <ClCompile Include="..\..\SRC\ViewNotebook.cpp" />
-    <ClCompile Include="..\..\SRC\wxDataViewMLTextRenderer.cpp" />
+    <ClCompile Include="..\..\SRC\wxDataViewIconMLTextRenderer.cpp" />
     <ClCompile Include="..\..\SRC\_pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -408,7 +408,7 @@
     <ClInclude Include="..\..\INCLUDE\ViewNotebook.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlWindowBase.h" />
     <ClInclude Include="..\..\INCLUDE\wxComboBtn.h" />
-    <ClInclude Include="..\..\INCLUDE\wxDataViewMLTextRenderer.h" />
+    <ClInclude Include="..\..\INCLUDE\wxDataViewIconMLTextRenderer.h" />
     <ClInclude Include="..\..\INCLUDE\_pch.h" />
     <ClInclude Include="..\..\INCLUDE\App.h" />
     <ClInclude Include="..\..\INCLUDE\globaldata.h" />
