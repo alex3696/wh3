@@ -92,8 +92,18 @@ public:
 			}
 			else
 			{
-				str = wxString::Format("%s:\n...\n%s"
-					, act.mTitle, mTD->GetSrcPath(row));
+				wxString prop_str;
+				const auto& props = mTD->GetProperties(row);
+				for (const auto& p : props)
+				{
+					prop_str += wxString::Format("%s: %s\n"
+						,p->mProp->mTitle, p->mVal);
+				}
+				
+				str = wxString::Format("%s:\n%s\n%s"
+					, act.mTitle
+					, prop_str
+					, mTD->GetSrcPath(row));
 				//ico = &ResMgr::GetInstance()->m_ico_act24;
 			}
 		}
@@ -216,7 +226,7 @@ wxDataViewCtrl* ViewHistory::BuildTable(wxWindow* parent)
 	dv_model->DecRef();
 
 	int ch = table->GetCharHeight();
-	table->SetRowHeight(ch * 5 + 2);
+	table->SetRowHeight(ch * 10 + 2);
 
 	auto renderer1 = new wxDataViewIconMLTextRenderer();
 	renderer1->SetAlignment(wxALIGN_TOP);

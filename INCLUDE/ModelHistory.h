@@ -44,66 +44,8 @@ boost::multi_index_container
 		, ordered_unique< BOOST_MULTI_INDEX_MEMBER(ObjRec, wxString, mId)>
 	>
 >;
+
 //-----------------------------------------------------------------------------
-
-using ActTable =
-boost::multi_index_container
-<
-	std::shared_ptr<ActRec>,
-	indexed_by
-	<
-		random_access<> //SQL order
-		, ordered_unique< BOOST_MULTI_INDEX_MEMBER(ActRec, wxString, mId)>
-		, ordered_unique< BOOST_MULTI_INDEX_MEMBER(ActRec, wxString, mTitle)>
-	>
->;
-//-----------------------------------------------------------------------------
-/*
-class PropRec
-{
-public:
-	wxString	mId;
-	wxString	mTitle;
-	FieldType	mType;
-	wxString	mVarArray;
-	wxString	mVarStrict;
-
-};
-
-
-using PropTable =
-boost::multi_index_container
-<
-	std::shared_ptr<PropRec>,
-	indexed_by
-	<
-		random_access<> //SQL order
-		, ordered_unique< BOOST_MULTI_INDEX_MEMBER(PropRec, wxString, mId)>
-		, ordered_unique< BOOST_MULTI_INDEX_MEMBER(PropRec, wxString, mTitle)>
-	>
->;
-//-----------------------------------------------------------------------------
-
-struct PropValRec
-{
-	PropRec*	mProp;
-	wxString	mVal;
-};
-
-
-using ObjPropList =
-boost::multi_index_container
-<
-	PropValRec,
-	indexed_by
-	<
-		random_access<> //SQL order
-		, ordered_unique< BOOST_MULTI_INDEX_MEMBER(PropValRec, PropRec*, mProp) >
-	>
->;
-*/
-typedef wxString PropsVal;
-
 static ActRec mMoveActRec;
 
 class LogDetails
@@ -116,7 +58,7 @@ public:
 	virtual const wxString&		GetSrcPath()const	{ return mSrcPath; };
 	virtual const wxString&		GetDstPath()const	{ return wxEmptyString2; };
 	virtual const wxString&		GetQty()const		{ return wxEmptyString2; };
-	virtual const PropsVal&		GetProperties()const{ return wxEmptyString2; };
+	virtual const PropValTable&	GetProperties()const = 0;
 };
 
 
@@ -124,11 +66,11 @@ class LogActRec : public LogDetails
 {
 public:
 	//wxString mLId;
-	std::shared_ptr<ActRec>		mActRec;
-	std::shared_ptr<PropsVal>	mProperties;
+	std::shared_ptr<ActRec>			mActRec;
+	std::shared_ptr<PropValTable>	mProperties;
 
 	virtual const ActRec&	GetActRec()const override	 { return *mActRec;	};
-	virtual const PropsVal& GetProperties()const override{ return *mProperties; };
+	virtual const PropValTable& GetProperties()const override{ return *mProperties; };
 
 };
 
@@ -139,11 +81,11 @@ public:
 	wxString mDstPath;
 	wxString mQty;
 	wxString mPropLId;
-	std::shared_ptr<PropsVal>		mProperties;
+	std::shared_ptr<PropValTable>	mProperties;
 
 	virtual const wxString& GetDstPath()const override	{ return mDstPath; };
 	virtual const wxString& GetQty()const override		{ return mQty; };
-	virtual const PropsVal& GetProperties()const override{return *mProperties; };
+	virtual const PropValTable& GetProperties()const override{ return *mProperties; };
 
 };
 
@@ -181,7 +123,7 @@ class ModelHistory
 
 	ClsTable	mCls;
 	ObjTable	mObj;
-	//PropTable	mProp;
+	PropTable	mProp;
 	ActTable	mAct;
 	LogTable	mLog;
 

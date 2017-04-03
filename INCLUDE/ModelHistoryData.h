@@ -14,6 +14,60 @@ public:
 	wxString	mColour;
 };
 
+using ActTable =
+boost::multi_index_container
+<
+	std::shared_ptr<ActRec>,
+	indexed_by
+	<
+		random_access<> //SQL order
+		, ordered_unique< BOOST_MULTI_INDEX_MEMBER(ActRec, wxString, mId)>
+		, ordered_unique< BOOST_MULTI_INDEX_MEMBER(ActRec, wxString, mTitle)>
+	>
+>;
+//-----------------------------------------------------------------------------
+
+class PropRec
+{
+public:
+	wxString	mId;
+	wxString	mTitle;
+	wxString	mKind;
+	//wxString	mVarArray;
+	//wxString	mVarStrict;
+
+};
+using PropTable =
+boost::multi_index_container
+<
+	std::shared_ptr<PropRec>,
+	indexed_by
+	<
+		random_access<> //SQL order
+		, ordered_unique< BOOST_MULTI_INDEX_MEMBER(PropRec, wxString, mId)>
+		//, ordered_unique< BOOST_MULTI_INDEX_MEMBER(PropRec, wxString, mTitle)>
+	>
+>;
+//-----------------------------------------------------------------------------
+
+struct PropValRec
+{
+	std::shared_ptr<PropRec>	mProp;
+	wxString					mVal;
+};
+
+
+using PropValTable =
+boost::multi_index_container
+<
+	std::shared_ptr<PropValRec>,
+	indexed_by
+	<
+		random_access<> //SQL order
+	>
+>;
+//-----------------------------------------------------------------------------
+
 class ModelHistoryTableData
 {
 public:
@@ -33,6 +87,7 @@ public:
 	virtual const wxString& GetQty(const size_t row)const = 0;
 
 	virtual const ActRec& GetActRec(const size_t row)const = 0;
+	virtual const PropValTable& GetProperties(const size_t row)const = 0;
 
 	virtual const wxString& GetSrcPath(const size_t row)const { return wxEmptyString2; };
 	virtual const wxString& GetDstPath(const size_t row)const { return wxEmptyString2; };

@@ -109,6 +109,10 @@ public:
 	{
 		return mLog[row]->mDetail->GetActRec();
 	}
+	virtual const PropValTable& GetProperties(const size_t row)const override
+	{
+		return mLog[row]->mDetail->GetProperties();
+	}
 
 	virtual const wxString& GetSrcPath(const size_t row)const 
 	{ 
@@ -211,7 +215,33 @@ void ModelHistory::Load()
 
 					auto log_act_rec = std::make_shared<LogActRec>();
 					log_act_rec->mActRec = act_rec;
-					//table->GetAsString(11, i, *log_act_rec->mProperties);
+					// load properties
+					boost::property_tree::wptree prop_arr;
+					wxString json_prop;
+					table->GetAsString(11, i, json_prop);
+					if (!json_prop.IsEmpty())
+					{
+						std::wstringstream ss; ss << json_prop;
+						boost::property_tree::read_json(ss, prop_arr);
+					}
+
+					auto propval_table = std::make_shared<PropValTable >();
+					for (const auto& pv : prop_arr)
+					{
+						auto prop_rec = std::make_shared<PropRec>();
+						prop_rec->mId = wxString(pv.first.c_str());
+						prop_rec = *mProp.emplace_back(prop_rec).first;
+
+						auto propval_rec = std::make_shared<PropValRec>();
+						propval_rec->mProp = prop_rec;
+						propval_rec->mVal = pv.second.get_value<std::wstring>();
+
+						propval_table->emplace_back(propval_rec);
+						
+					}
+					log_act_rec->mProperties = propval_table;
+						
+
 					
 					log_rec->mDetail = log_act_rec;
 				}
@@ -225,6 +255,42 @@ void ModelHistory::Load()
 		
 
 	}
+
+	wxString where_prop_id;
+	for (const auto& prop : mProp)
+		where_prop_id += wxString::Format("OR id=%s ", prop->mId );
+
+	where_prop_id.Replace("OR", "WHERE", false);
+
+	query = wxString::Format(
+		"SELECT id, title, kind, var "//, var_strict
+		" FROM prop "
+		" %s "
+		, where_prop_id);
+	table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+	if (table && table->GetRowCount())
+	{
+		unsigned int rowQty = table->GetRowCount();
+		if (rowQty)
+		{
+			//mRepList.reserve(rowQty);
+			for (unsigned int i = 0; i < rowQty; ++i)
+			{
+				wxString id;
+				table->GetAsString(0, i, id);
+				auto it = mProp.get<1>().find(id);
+				if (it != mProp.get<1>().end())
+				{
+					table->GetAsString(1, i, (*it)->mTitle);
+					table->GetAsString(2, i, (*it)->mKind);
+				}
+			}
+		}
+	}
+
+
+
+
 	whDataMgr::GetDB().Commit();
 	wxLogMessage(wxString::Format("%d \t ModelHistory \t download results", GetTickCount() - p0));
 
