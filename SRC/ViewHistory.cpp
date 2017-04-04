@@ -82,9 +82,9 @@ public:
 			const auto& act = mTD->GetActRec(row);
 			if (act.mId.IsEmpty())
 			{
-				str = wxString::Format("Перемещение:\n%s\n%s\n%s (%s)"
-					, mTD->GetDstPath(row), mTD->GetSrcPath(row)
+				str = wxString::Format("Перемещение: %s (%s)\n%s\n%s\n"
 					, mTD->GetQty(row), mTD->GetCMeasure(row)
+					, mTD->GetDstPath(row), mTD->GetSrcPath(row)
 					);
 				icoHolder = wxArtProvider::GetIcon(wxART_REDO, wxART_TOOLBAR);
 				ico = &icoHolder;
@@ -93,14 +93,14 @@ public:
 			else
 			{
 				wxString prop_str;
-				const auto& props = mTD->GetProperties(row);
+				const auto& props = mTD->GetActProperties(row).get<1>();
 				for (const auto& p : props)
 				{
 					prop_str += wxString::Format("%s: %s\n"
 						,p->mProp->mTitle, p->mVal);
 				}
 				
-				str = wxString::Format("%s:\n%s\n%s"
+				str = wxString::Format("%s:\n%sМестонахождение: %s"
 					, act.mTitle
 					, prop_str
 					, mTD->GetSrcPath(row));
@@ -110,7 +110,7 @@ public:
 		break;
 		default:break;
 		}
-		variant << wxDataViewIconText(str, *ico);
+		variant << wxDataViewIconText2(std::move(str), *ico);
 	}
 
 	virtual bool  SetValueByRow(const wxVariant &variant, unsigned int row, unsigned int col)
@@ -226,7 +226,7 @@ wxDataViewCtrl* ViewHistory::BuildTable(wxWindow* parent)
 	dv_model->DecRef();
 
 	int ch = table->GetCharHeight();
-	table->SetRowHeight(ch * 10 + 2);
+	table->SetRowHeight(ch * 5 + 2);
 
 	auto renderer1 = new wxDataViewIconMLTextRenderer();
 	renderer1->SetAlignment(wxALIGN_TOP);
@@ -265,15 +265,20 @@ void ViewHistory::OnCmd_Update(wxCommandEvent& evt)
 //virtual 
 void ViewHistory::SetHistoryTable(const std::shared_ptr<const ModelHistoryTableData>& rt) //override;
 {
-	
 	auto dv = dynamic_cast<wxDataViewModelMediator*>(mTable->GetModel());
 	if (!dv || !rt)
 		return;
-	
+
+	auto p0 = GetTickCount();
+
+
 	dv->SetTable(rt);
+	wxLogMessage(wxString::Format("%d \t ViewHistoryTable : \t SetTable", GetTickCount() - p0));
+	p0 = GetTickCount();
 
 	for (size_t i = 0; i < mTable->GetColumnCount(); i++)
 		mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
 	
 
+	wxLogMessage(wxString::Format("%d \t ViewHistoryTable : \t SetBestColumnWidth", GetTickCount() - p0));
 }

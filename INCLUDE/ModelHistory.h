@@ -6,6 +6,56 @@
 
 namespace wh{
 //-----------------------------------------------------------------------------
+class ActPropRec
+{
+public:
+	std::shared_ptr<ActRec> mAct;
+	std::shared_ptr<PropRec> mProp;
+
+};
+
+struct extr_pid
+{
+	typedef const wxString& result_type;
+	inline result_type operator()(const std::shared_ptr<ActPropRec>& r)const
+	{
+		return r->mProp->mId;
+	}
+};
+
+struct extr_aid
+{
+	typedef const wxString& result_type;
+	inline result_type operator()(const std::shared_ptr<ActPropRec>& r)const
+	{
+		return r->mAct->mId;
+	}
+};
+
+struct extr_pid_aid_ActPropRec
+{
+	typedef std::pair<const wxString&,const wxString&> result_type;
+	inline result_type operator()(const std::shared_ptr<ActPropRec>& r)const
+	{
+		return std::make_pair(r->mProp->mId, r->mAct->mId);
+	}
+};
+
+
+using ActPropTable =
+boost::multi_index_container
+<
+	std::shared_ptr<ActPropRec>,
+	indexed_by
+	<
+		 ordered_non_unique< extr_aid >
+		,ordered_non_unique< extr_pid >
+		, ordered_unique<extr_pid_aid_ActPropRec  >
+		//,ordered_unique<composite_key< extr_pid	,extr_aid> >
+		
+	>
+>;
+//-----------------------------------------------------------------------------
 class ClsRec
 {
 public:
@@ -53,25 +103,30 @@ class LogDetails
 public:
 	virtual ~LogDetails(){}
 	wxString mSrcPath;
-	//wxString mLId;
+	std::shared_ptr<PropValTable>	mProperties;
+	std::shared_ptr<PropValTable>	mActProperties;
+	wxString mPropLId;
+
 	virtual const ActRec&		GetActRec()const	{ return mMoveActRec; };
-	virtual const wxString&		GetSrcPath()const	{ return mSrcPath; };
 	virtual const wxString&		GetDstPath()const	{ return wxEmptyString2; };
 	virtual const wxString&		GetQty()const		{ return wxEmptyString2; };
-	virtual const PropValTable&	GetProperties()const = 0;
+			const wxString&		GetLId()const 			{ return mPropLId; };
+			const wxString&		GetSrcPath()const	{ return mSrcPath; };
+			const PropValTable& GetProperties()const{ return *mProperties; };
+			const PropValTable& GetActProperties()const{ return *mActProperties; };
+			void SetActProperties(const std::shared_ptr<PropValTable>& act_prop)
+			{
+				mActProperties = act_prop;
+			};
+			
 };
 
 
 class LogActRec : public LogDetails
 {
 public:
-	//wxString mLId;
 	std::shared_ptr<ActRec>			mActRec;
-	std::shared_ptr<PropValTable>	mProperties;
-
 	virtual const ActRec&	GetActRec()const override	 { return *mActRec;	};
-	virtual const PropValTable& GetProperties()const override{ return *mProperties; };
-
 };
 
 
@@ -80,13 +135,11 @@ class LogMovRec : public LogDetails
 public:
 	wxString mDstPath;
 	wxString mQty;
-	wxString mPropLId;
-	std::shared_ptr<PropValTable>	mProperties;
+	
 
 	virtual const wxString& GetDstPath()const override	{ return mDstPath; };
 	virtual const wxString& GetQty()const override		{ return mQty; };
-	virtual const PropValTable& GetProperties()const override{ return *mProperties; };
-
+	
 };
 
 //-----------------------------------------------------------------------------
@@ -117,16 +170,21 @@ boost::multi_index_container
 
 
 
+//-----------------------------------------------------------------------------
 class ModelHistory
 {
 	unsigned int mRowsPerPage;
 
-	ClsTable	mCls;
-	ObjTable	mObj;
-	PropTable	mProp;
-	ActTable	mAct;
-	LogTable	mLog;
+	ClsTable		mCls;
+	ObjTable		mObj;
+	PropTable		mProp;
+	ActTable		mAct;
+	LogTable		mLog;
+	ActPropTable	mActProp;
 
+	void LoadPropertyDetails(PropTable& prop_table);
+	void LoadActProp(ActPropTable& act_prop_table);
+	void PrepareProperties();
 public:
 	ModelHistory();
 

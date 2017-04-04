@@ -45,7 +45,7 @@ boost::multi_index_container
 	<
 		random_access<> //SQL order
 		, ordered_unique< BOOST_MULTI_INDEX_MEMBER(PropRec, wxString, mId)>
-		//, ordered_unique< BOOST_MULTI_INDEX_MEMBER(PropRec, wxString, mTitle)>
+		
 	>
 >;
 //-----------------------------------------------------------------------------
@@ -56,6 +56,24 @@ struct PropValRec
 	wxString					mVal;
 };
 
+struct extr_pid_PropValRec
+{
+	typedef const wxString& result_type;
+	inline result_type operator()(const std::shared_ptr<PropValRec>& r)const
+	{
+		return r->mProp->mId;
+	}
+};
+
+struct extr_ptitle_PropValRec
+{
+	typedef const wxString& result_type;
+	inline result_type operator()(const std::shared_ptr<PropValRec>& r)const
+	{
+		return r->mProp->mTitle;
+	}
+};
+
 
 using PropValTable =
 boost::multi_index_container
@@ -63,9 +81,14 @@ boost::multi_index_container
 	std::shared_ptr<PropValRec>,
 	indexed_by
 	<
-		random_access<> //SQL order
+		  ordered_unique< extr_pid_PropValRec >
+		, random_access<> //SQL order
+		//, ordered_unique< extr_ptitle_PropValRec >
+		
 	>
 >;
+
+
 //-----------------------------------------------------------------------------
 
 class ModelHistoryTableData
@@ -88,6 +111,7 @@ public:
 
 	virtual const ActRec& GetActRec(const size_t row)const = 0;
 	virtual const PropValTable& GetProperties(const size_t row)const = 0;
+	virtual const PropValTable& GetActProperties(const size_t row)const = 0;
 
 	virtual const wxString& GetSrcPath(const size_t row)const { return wxEmptyString2; };
 	virtual const wxString& GetDstPath(const size_t row)const { return wxEmptyString2; };

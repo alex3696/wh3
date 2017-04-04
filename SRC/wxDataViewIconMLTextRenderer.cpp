@@ -1,6 +1,9 @@
 #include "_pch.h"
 #include "wxDataViewIconMLTextRenderer.h"
 
+wxIMPLEMENT_DYNAMIC_CLASS(wxDataViewIconText2, wxObject);
+
+IMPLEMENT_VARIANT_OBJECT(wxDataViewIconText2)
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 wxDataViewIconMLTextRenderer::wxDataViewIconMLTextRenderer(
@@ -89,7 +92,8 @@ void wxDataViewIconMLTextRenderer::RenderText(const wxString& text,
 //virtual 
 wxSize wxDataViewIconMLTextRenderer::GetSize() const //override;
 {
-	wxString m_text = m_value.GetText();
+	//wxString m_text = m_value.GetText();
+	const wxString& m_text = m_value.GetText();
 	if (!m_text.empty())
 	{
 		size_t sz = m_text.size();

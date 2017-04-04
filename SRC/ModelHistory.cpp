@@ -8,7 +8,7 @@ using namespace wh;
 ModelPageHistory::ModelPageHistory(std::shared_ptr<rec::PageHistory> data)
 	:IModelWindow(), mGuiModel(*data)
 {
-	mDataModel.SetRowsPerPage(10);
+	mDataModel.SetRowsPerPage(100);
 }
 //---------------------------------------------------------------------------
 
@@ -113,6 +113,10 @@ public:
 	{
 		return mLog[row]->mDetail->GetProperties();
 	}
+	virtual const PropValTable& GetActProperties(const size_t row)const override
+	{
+		return mLog[row]->mDetail->GetActProperties();
+	}
 
 	virtual const wxString& GetSrcPath(const size_t row)const 
 	{ 
@@ -135,11 +139,15 @@ ModelHistory::ModelHistory()
 //-----------------------------------------------------------------------------
 void ModelHistory::Load()
 {
-	mLog.clear();
-	
-	
 	auto p0 = GetTickCount();
-	wxLogMessage(wxString::Format("%d \t ModelHistory \t clear list", GetTickCount() - p0));
+	mCls.clear();
+	mObj.clear();
+	mProp.clear();
+	mAct.clear();
+	mLog.clear();
+	mActProp.clear();
+		
+	wxLogMessage(wxString::Format("%d \t ModelHistory : \t clear list", GetTickCount() - p0));
 
 	wxString query = wxString::Format(
 		"SELECT log_id, log_dt, log_user"
@@ -236,7 +244,7 @@ void ModelHistory::Load()
 						propval_rec->mProp = prop_rec;
 						propval_rec->mVal = pv.second.get_value<std::wstring>();
 
-						propval_table->emplace_back(propval_rec);
+						propval_table->emplace(propval_rec);
 						
 					}
 					log_act_rec->mProperties = propval_table;
@@ -256,44 +264,136 @@ void ModelHistory::Load()
 
 	}
 
+	LoadPropertyDetails(mProp);
+	LoadActProp(mActProp);
+
+	whDataMgr::GetDB().Commit();
+	wxLogMessage(wxString::Format("%d \t ModelHistory : \t download results", GetTickCount() - p0));
+	
+	PrepareProperties();
+	
+	auto sigData = std::make_shared<MHTDImpl>(mLog);
+	sigAfterLoad(sigData);
+}
+//---------------------------------------------------------------------------
+void ModelHistory::LoadPropertyDetails(PropTable& prop_table)
+{
 	wxString where_prop_id;
-	for (const auto& prop : mProp)
-		where_prop_id += wxString::Format("OR id=%s ", prop->mId );
+	for (const auto& prop : prop_table)
+		where_prop_id += wxString::Format("OR id=%s ", prop->mId);
 
 	where_prop_id.Replace("OR", "WHERE", false);
 
-	query = wxString::Format(
+	wxString query = wxString::Format(
 		"SELECT id, title, kind, var "//, var_strict
 		" FROM prop "
 		" %s "
 		, where_prop_id);
-	table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
-	if (table && table->GetRowCount())
+	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+	if (!table || !table->GetRowCount())
+		return;
+	
+	unsigned int rowQty = table->GetRowCount();
+	if (!rowQty)
+		return;
+
+	for (unsigned int i = 0; i < rowQty; ++i)
 	{
-		unsigned int rowQty = table->GetRowCount();
-		if (rowQty)
+		wxString id;
+		table->GetAsString(0, i, id);
+		auto it = prop_table.get<1>().find(id);
+		if (it != prop_table.get<1>().end())
 		{
-			//mRepList.reserve(rowQty);
-			for (unsigned int i = 0; i < rowQty; ++i)
-			{
-				wxString id;
-				table->GetAsString(0, i, id);
-				auto it = mProp.get<1>().find(id);
-				if (it != mProp.get<1>().end())
-				{
-					table->GetAsString(1, i, (*it)->mTitle);
-					table->GetAsString(2, i, (*it)->mKind);
-				}
-			}
+			table->GetAsString(1, i, (*it)->mTitle);
+			table->GetAsString(2, i, (*it)->mKind);
+		}//if (it != prop_table.get<1>().end())
+	}//for (unsigned int i = 0; i < rowQty; ++i)
+
+}
+//---------------------------------------------------------------------------
+void ModelHistory::LoadActProp(ActPropTable& act_prop_table)
+{
+	wxString where_act_id;
+	for (const auto& act : mAct)
+		where_act_id += wxString::Format("OR act_id=%s ", act->mId);
+
+	where_act_id.Replace("OR", "WHERE", false);
+
+	wxString query = wxString::Format(
+		"SELECT id, act_id, prop_id "
+		" FROM ref_act_prop "
+		" %s "
+		, where_act_id);
+	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+	if (!table || !table->GetRowCount())
+		return;
+
+	unsigned int rowQty = table->GetRowCount();
+	if (!rowQty)
+		return;
+
+
+	const auto& aid_idx = mAct.get<1>();
+	const auto& pid_idx = mProp.get<1>();
+
+	for (unsigned int i = 0; i < rowQty; ++i)
+	{
+		
+		wxString aid,pid;
+		table->GetAsString(1, i, aid);
+		table->GetAsString(2, i, pid);
+		auto aid_it = aid_idx.find(aid);
+		auto pid_it = pid_idx.find(pid);
+		if (aid_idx.end() != aid_it && pid_idx.end() != pid_it)
+		{
+			auto act_prop = std::make_shared<ActPropRec>();
+			act_prop->mAct = *aid_it;
+			act_prop->mProp = *pid_it;
+			mActProp.emplace(act_prop);
 		}
+		
+	}//for (unsigned int i = 0; i < rowQty; ++i)
+}
+//---------------------------------------------------------------------------
+void ModelHistory::PrepareProperties()
+{
+	auto p0 = GetTickCount();
+
+	for (const auto& log_rec : mLog)
+	{
+		const wxString& aid = log_rec->mDetail->GetActRec().mId;
+		if (!aid.IsEmpty())
+		{
+			log_rec->mDetail->mActProperties = std::make_shared<PropValTable>();
+
+			auto range = mActProp.get<0>().equal_range(aid);
+			while (range.first != range.second)
+			{
+				const wxString pid = (*range.first)->mProp->mId;
+				const auto& pid_idx_allprop = log_rec->mDetail->mProperties->get<0>();
+				auto it = pid_idx_allprop.find(pid);
+				if (pid_idx_allprop.end() != it)
+				{
+					log_rec->mDetail->mActProperties->emplace(*it);
+				}
+				++range.first;
+			}
+
+			struct title_sorter {
+				bool operator() (const std::shared_ptr<PropValRec>& v1, const std::shared_ptr<PropValRec>& v2)const
+				{
+					return v1->mProp->mTitle < v2->mProp->mTitle;
+				}
+			} sorter;
+
+			auto& title_idx_actprop = log_rec->mDetail->mActProperties->get<1>();
+			title_idx_actprop.sort(sorter);
+
+		}
+
 	}
 
 
+	wxLogMessage(wxString::Format("%d \t ModelHistory : \t prepare properties", GetTickCount() - p0));
 
-
-	whDataMgr::GetDB().Commit();
-	wxLogMessage(wxString::Format("%d \t ModelHistory \t download results", GetTickCount() - p0));
-
-	auto sigData = std::make_shared<MHTDImpl>(mLog);
-	sigAfterLoad(sigData);
 }

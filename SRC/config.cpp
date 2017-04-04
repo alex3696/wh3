@@ -16,12 +16,12 @@ void MGuiCfg::LoadData()
 		using ptree = boost::property_tree::ptree;
 		ptree	app_cfg;
 		//boost::property_tree::read_json(std::string("notepad_cfg.txt"), notepad_cfg);
-		whDataMgr::GetDB().BeginTransaction();
+		//whDataMgr::GetDB().BeginTransaction();
 		wxString query = "SELECT cfg FROM app_config WHERE usr = CURRENT_USER";
 		auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
 		wxString str_app_config;
 		table->GetAsString(0, 0, str_app_config);
-		whDataMgr::GetDB().Commit();
+		//whDataMgr::GetDB().Commit();
 		std::stringstream ss(str_app_config.ToStdString());
 		boost::property_tree::read_json(ss, app_cfg);
 		this->SetData(app_cfg, true);
@@ -48,13 +48,13 @@ void MGuiCfg::SaveData()
 		wxString s;
 		s = ss.str();
 
-		whDataMgr::GetDB().BeginTransaction();
+		//whDataMgr::GetDB().BeginTransaction();
 		wxString query = wxString::Format(
 			"INSERT INTO app_config(cfg)VALUES('%s')"
 			" ON CONFLICT(usr) DO UPDATE SET cfg = EXCLUDED.cfg "
 			, s);
 		whDataMgr::GetDB().Exec(query);
-		whDataMgr::GetDB().Commit();
+		//whDataMgr::GetDB().Commit();
 
 	}//try
 	catch (boost::exception & e)
