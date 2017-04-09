@@ -5,7 +5,7 @@
 
 using namespace wh;
 //-----------------------------------------------------------------------------
-ReportModel::ReportModel(std::shared_ptr<wxString> rep_id)
+ReportModel::ReportModel(const std::shared_ptr<wxString>& rep_id)
 	:IModelWindow(), mRepId(*rep_id)
 {
 	auto container = whDataMgr::GetInstance()->mContainer;
@@ -62,15 +62,15 @@ void ReportModel::BuildFilterTable(rec::ReportFilterTable& rft)
 			{
 				rec::ReportFilter fi;
 				start = pos++;
-				while (ri->mScript[pos] != term && pos < ri->mScript.size())
+				while (pos < ri->mScript.size() && ri->mScript[pos] != term)
 					++pos;
 				fi.mName = ri->mScript.SubString(start + 1, pos - 1);
 				start = pos++;
-				while (ri->mScript[pos] != term && pos < ri->mScript.size())
+				while (pos < ri->mScript.size() && ri->mScript[pos] != term)
 					++pos;
 				fi.mType = ri->mScript.SubString(start + 1, pos - 1);
 				start = pos++;
-				while (ri->mScript[pos] != term && pos < ri->mScript.size())
+				while (pos < ri->mScript.size() && ri->mScript[pos] != term)
 					++pos;
 				fi.mDefault = ri->mScript.SubString(start + 1, pos - 1);
 				rft.emplace_back(fi);

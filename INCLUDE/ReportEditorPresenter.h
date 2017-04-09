@@ -14,8 +14,8 @@ class ReportEditorPresenter
 	std::shared_ptr<ReportItemModel>	mModel;
 
 public:
-	ReportEditorPresenter(std::shared_ptr<IReportEditorView> view
-		, std::shared_ptr<ReportItemModel> model);
+	ReportEditorPresenter(const std::shared_ptr<IReportEditorView>& view
+		, const  std::shared_ptr<ReportItemModel>& model);
 
 
 	void ChangeItem(const rec::ReportItem& ri);

@@ -4,8 +4,8 @@
 using namespace wh;
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
-CtrlPageHistory::CtrlPageHistory( std::shared_ptr<IViewHistory> view
-								, std::shared_ptr<ModelPageHistory> model)
+CtrlPageHistory::CtrlPageHistory(const std::shared_ptr<IViewHistory>& view
+	, const std::shared_ptr<ModelPageHistory>& model)
 	: CtrlWindowBase(view, model)
 {
 	namespace ph = std::placeholders;

@@ -12,7 +12,7 @@ namespace wh{
 class T_AddFunctor
 {
 public:
-	void operator()(std::shared_ptr<IModel>	vecModel,
+	void operator()(const std::shared_ptr<IModel>&	vecModel,
 					T_View&					itemEditor,
 					bool mExecSave = 1)const
 	{
@@ -40,7 +40,7 @@ public:
 class T_EditFunctor
 {
 public:
-	void operator()(std::shared_ptr<IModel>		vecModel,
+	void operator()(const std::shared_ptr<IModel>&	vecModel,
 					T_View&						itemEditor,
 					T_VecView&					vecView,
 					bool mExecSave = 1)const
@@ -64,7 +64,7 @@ public:
 class T_RemoveFunctor
 {
 public:
-	void operator()(std::shared_ptr<IModel>	vecModel,
+	void operator()(const std::shared_ptr<IModel>& vecModel,
 		T_VecView&							vecView,
 		bool mExecSave = 1)const
 	{
@@ -127,7 +127,7 @@ class T_PresenterEditor
 		mView = nullptr;
 	}
 public:
-	T_PresenterEditor(std::shared_ptr<T_Model> model, T_View* view)
+	T_PresenterEditor(const std::shared_ptr<T_Model>& model, T_View* view)
 		//:mChaneSlot([this](const T_Model& data){ SetModelToView(); })
 	{
 		Present(model, view);

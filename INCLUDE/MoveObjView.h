@@ -82,7 +82,7 @@ public:
 		mWxView = nullptr;
 	}
 
-	XMoveObjView(std::shared_ptr<IViewWindow> parent)
+	XMoveObjView(const std::shared_ptr<IViewWindow>& parent)
 		:mWxView(new MoveObjView(parent->GetWnd()))
 	{
 		mWxView->sigUpdate.connect([this](){ sigUpdate(); });

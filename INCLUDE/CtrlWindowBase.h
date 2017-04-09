@@ -83,7 +83,7 @@ protected:
 		connModelShow.disconnect();;
 	}
 public:
-	CtrlWindowBase(std::shared_ptr<TVIEW> view, std::shared_ptr<TMODEL> model)
+	CtrlWindowBase(const std::shared_ptr<TVIEW>& view, const std::shared_ptr<TMODEL>& model)
 		:mView(view)
 		, mModel(model)
 	{

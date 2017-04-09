@@ -32,7 +32,7 @@ class ModelPageObjByPathList : public IModelWindow
 
 
 public:
-	ModelPageObjByPathList(std::shared_ptr<rec::PageObjByPath> cfg)
+	ModelPageObjByPathList(const std::shared_ptr<rec::PageObjByPath>& cfg)
 	{
 		bool hideSysRoot = true;
 		const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();

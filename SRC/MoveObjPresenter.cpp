@@ -4,7 +4,8 @@
 using namespace wh;
 
 //-----------------------------------------------------------------------------
-MoveObjPresenter::MoveObjPresenter(std::shared_ptr<IMoveObjView> view, std::shared_ptr<rec::PathItem> moveable)
+MoveObjPresenter::MoveObjPresenter(const std::shared_ptr<IMoveObjView>& view
+								, const  std::shared_ptr<rec::PathItem>& moveable)
 {
 	SetMoveable(*moveable);
 	SetView(view.get());

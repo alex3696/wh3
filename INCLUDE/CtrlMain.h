@@ -33,7 +33,7 @@ class CtrlMain : public CtrlWindowBase<ViewMain, ModelMain>
 		mCtrlNotebook->CloseAllPages();
 	}
 public:
-	CtrlMain(std::shared_ptr<ViewMain> view, std::shared_ptr<ModelMain> model)
+	CtrlMain(const std::shared_ptr<ViewMain>& view, const std::shared_ptr<ModelMain>& model)
 		: CtrlWindowBase(view, model)
 	{
 		auto view_notebook = mView->GetViewNotebook();

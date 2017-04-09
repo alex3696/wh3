@@ -13,7 +13,7 @@ class CtrlPageHistory : public CtrlWindowBase<IViewHistory, ModelPageHistory>
 
 	sig::scoped_connection connModel_LoadedHistoryTable;
 public:
-	CtrlPageHistory(std::shared_ptr<IViewHistory> view, std::shared_ptr<ModelPageHistory> model);
+	CtrlPageHistory(const std::shared_ptr<IViewHistory>& view, const  std::shared_ptr<ModelPageHistory>& model);
 
 	void Update();
 

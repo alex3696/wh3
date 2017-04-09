@@ -4,8 +4,9 @@
 using namespace wh;
 
 //-----------------------------------------------------------------------------
-ReportEditorPresenter::ReportEditorPresenter(std::shared_ptr<IReportEditorView> view
-											, std::shared_ptr<ReportItemModel> model)
+ReportEditorPresenter::ReportEditorPresenter(
+	const std::shared_ptr<IReportEditorView>& view
+	, const  std::shared_ptr<ReportItemModel>& model)
 	:mView(view), mModel(model)
 {
 	namespace ph = std::placeholders;

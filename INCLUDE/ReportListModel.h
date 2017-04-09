@@ -57,7 +57,7 @@ class ReportItemModel
 	wxString mRepId;
 
 public:
-	ReportItemModel(std::shared_ptr<ReportListModel> list)
+	ReportItemModel(const std::shared_ptr<ReportListModel>& list)
 		:mList(list)
 	{
 

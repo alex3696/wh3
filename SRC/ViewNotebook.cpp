@@ -4,7 +4,7 @@
 using namespace wh;
 
 //-----------------------------------------------------------------------------
-ViewNotebook::ViewNotebook(std::shared_ptr<IViewWindow> parent)
+ViewNotebook::ViewNotebook(const std::shared_ptr<IViewWindow>& parent)
 	:IViewNotebook(), mNotebook(new wxAuiNotebook(parent->GetWnd()))
 {
 	mNotebook->Bind(wxEVT_AUINOTEBOOK_PAGE_CLOSE, 

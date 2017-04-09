@@ -206,7 +206,7 @@ class ModelPageHistory : public IModelWindow
 	rec::PageHistory	mGuiModel;
 	ModelHistory		mDataModel;
 public:
-	ModelPageHistory(std::shared_ptr<rec::PageHistory> data);
+	ModelPageHistory(const std::shared_ptr<rec::PageHistory>& data);
 
 	ModelHistory& GetModelHistory(){ return mDataModel; }
 

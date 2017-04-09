@@ -15,7 +15,7 @@ class ModelPageActList : public IModelWindow
 
 	std::shared_ptr<MActArray> mWhModel = std::make_shared<MActArray>();
 public:
-	ModelPageActList(std::shared_ptr<rec::PageAct> usr)
+	ModelPageActList(const std::shared_ptr<rec::PageAct>& usr)
 	{
 
 	}

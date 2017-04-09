@@ -5,10 +5,10 @@ using namespace wh;
 
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
-ModelPageHistory::ModelPageHistory(std::shared_ptr<rec::PageHistory> data)
+ModelPageHistory::ModelPageHistory(const std::shared_ptr<rec::PageHistory>& data)
 	:IModelWindow(), mGuiModel(*data)
 {
-	mDataModel.SetRowsPerPage(100);
+	mDataModel.SetRowsPerPage(25);
 }
 //---------------------------------------------------------------------------
 

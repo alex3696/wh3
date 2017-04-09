@@ -12,7 +12,7 @@ class ModelNotebook : public IModelWindow
 	class WindowItem
 	{
 	public:
-		WindowItem(std::shared_ptr<ICtrlWindow> ctrl)
+		WindowItem(const std::shared_ptr<ICtrlWindow>& ctrl)
 			:mCtrlWindow(ctrl)
 		{
 

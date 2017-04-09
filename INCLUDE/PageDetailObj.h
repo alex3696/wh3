@@ -42,7 +42,7 @@ class ModelPageDetailObj : public IModelWindow
 		sigUpdateTitle(lbl, *ico);
 	}
 public:
-	ModelPageDetailObj(std::shared_ptr<rec::ObjInfo> oi)
+	ModelPageDetailObj(const std::shared_ptr<rec::ObjInfo>& oi)
 	{
 		if (oi)
 			mWhModel->SetObject(*oi);

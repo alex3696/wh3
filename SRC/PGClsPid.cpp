@@ -37,7 +37,7 @@ const wxString& name, const wh_rec_Base& value)
 //-----------------------------------------------------------------------------
 wxPGPBaseProperty::~wxPGPBaseProperty() { }
 //-----------------------------------------------------------------------------
-void wxPGPBaseProperty::SetCatalog(std::shared_ptr<MCat> cat, bool isTargetObj)
+void wxPGPBaseProperty::SetCatalog(const std::shared_ptr<MCat>& cat, bool isTargetObj)
 {
 
 	std::function<bool(wxPGProperty*)> selecFunc = [this, cat, isTargetObj](wxPGProperty* prop)

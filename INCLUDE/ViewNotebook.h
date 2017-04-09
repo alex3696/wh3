@@ -10,7 +10,7 @@ class ViewNotebook : public IViewNotebook
 {
 	wxAuiNotebook* mNotebook;
 public:
-	ViewNotebook(std::shared_ptr<IViewWindow> parent);
+	ViewNotebook(const std::shared_ptr<IViewWindow>& parent);
 	ViewNotebook(wxWindow* parent);
 
 	virtual wxWindow* GetWnd()const override;

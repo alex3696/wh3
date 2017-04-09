@@ -3,8 +3,8 @@
 
 using namespace wh;
 //-----------------------------------------------------------------------------
-CtrlNotebook::CtrlNotebook(std::shared_ptr<IViewNotebook> view
-										, std::shared_ptr<ModelNotebook> model)
+CtrlNotebook::CtrlNotebook(const std::shared_ptr<IViewNotebook>& view
+	, const  std::shared_ptr<ModelNotebook>& model)
 	: CtrlWindowBase(view, model)
 {
 	namespace ph = std::placeholders;
