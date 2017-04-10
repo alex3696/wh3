@@ -8,7 +8,6 @@ using namespace wh;
 ModelPageHistory::ModelPageHistory(const std::shared_ptr<rec::PageHistory>& data)
 	:IModelWindow(), mGuiModel(*data)
 {
-	mDataModel.SetRowsPerPage(25);
 }
 //---------------------------------------------------------------------------
 
@@ -17,23 +16,47 @@ void ModelPageHistory::Update()
 	mDataModel.Load();
 }
 //---------------------------------------------------------------------------
-
+void ModelPageHistory::PageForward()
+{
+	auto offset = mDataModel.GetRowsOffset();
+	const auto rpp = mDataModel.GetRowsLimit();
+	offset += rpp;
+	mDataModel.SetRowsOffset(offset);
+}
+//---------------------------------------------------------------------------
+void ModelPageHistory::PageBackward()
+{
+	auto offset = mDataModel.GetRowsOffset();
+	const auto rpp = mDataModel.GetRowsLimit();
+	if (offset > rpp)
+		offset -= rpp;
+	else
+		offset = 0;
+	mDataModel.SetRowsOffset(offset);
+}
+//---------------------------------------------------------------------------
 //virtual 
 void ModelPageHistory::UpdateTitle() //override;
 {
 	sigUpdateTitle(mTitle, mIco);
+	Update();
 }
 //---------------------------------------------------------------------------
 //virtual 
 void ModelPageHistory::Show()//override;
 {
-
+	//Update();
+	sigShow();
 }
 //---------------------------------------------------------------------------
 //virtual 
 void ModelPageHistory::Load(const boost::property_tree::ptree& page_val)//override;
 {
-
+	size_t offset = page_val.get<size_t>("CtrlPageHistory.Offset", 0);
+	size_t limit = page_val.get<size_t>("CtrlPageHistory.Limit", 20);
+	mDataModel.SetRowsOffset(offset);
+	mDataModel.SetRowsLimit(limit);
+	//Update();
 }
 //---------------------------------------------------------------------------
 //virtual 
@@ -41,7 +64,8 @@ void ModelPageHistory::Save(boost::property_tree::ptree& page_val)//override;
 {
 	using ptree = boost::property_tree::ptree;
 	ptree content;
-	//content.put("id", (int)-1);
+	content.put("Offset", mDataModel.GetRowsOffset());
+	content.put("Limit", mDataModel.GetRowsLimit());
 	page_val.push_back(std::make_pair("CtrlPageHistory", content));
 	//page_val.put("CtrlPageLogList.id", 33);
 
@@ -132,7 +156,7 @@ public:
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 ModelHistory::ModelHistory()
-	:mRowsPerPage(0)
+	:mRowsLimit(50), mRowsOffset(0)
 {
 
 }
@@ -158,16 +182,21 @@ void ModelHistory::Load()
 		" ,prop_lid, mcls_kind, mcls_measure "
 		//" ,log_date, log_time "
 		" FROM log "
-		" WHERE log_dt  > '2017.01.02' "
+		//" WHERE log_dt  > '2017.01.02' "
 		" ORDER BY log_dt DESC "
 		);
 	
-	if (mRowsPerPage > 0)
-		query += wxString::Format(" LIMIT %d", mRowsPerPage);
+	if (mRowsLimit > 0)
+		query += wxString::Format(" LIMIT %d", mRowsLimit);
+
+	if (mRowsOffset > 0)
+		query += wxString::Format(" OFFSET %d", mRowsOffset);
 
 
 	whDataMgr::GetDB().BeginTransaction();
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+
+	p0 = GetTickCount();
 	if (table && table->GetRowCount())
 	{
 		unsigned int rowQty = table->GetRowCount();

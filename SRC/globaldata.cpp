@@ -309,7 +309,7 @@ whDataMgr::whDataMgr()
 	rec::ConnectCfg  default_connect_cfg;
 	mConnectCfg->SetData(default_connect_cfg);
 
-
+	mLocale.Init(wxLocale::GetSystemLanguage());
 }
 //---------------------------------------------------------------------------
 whDataMgr::~whDataMgr()

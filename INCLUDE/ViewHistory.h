@@ -12,18 +12,27 @@ class ViewHistory : public IViewHistory
 	wxAuiManager*   mAuiMgr;
 	wxDataViewCtrl* mTable;
 	wxAuiToolBar*	mToolbar;
+	wxStaticText*	mPageLabel;
 public:
 	ViewHistory(std::shared_ptr<IViewWindow> parent);
 	virtual wxWindow* GetWnd()const override;
 
 	virtual void SetHistoryTable(const std::shared_ptr<const ModelHistoryTableData>& rt) override;
-	//virtual void SetFilterTable(const rec::ReportFilterTable& ft) override;
-	//virtual void SetNote(const wxString&) override;
+	virtual void SetRowsOffset(const size_t& offset) override;
+	virtual void SetRowsLimit(const size_t& limit) override;
 protected:
-	void OnCmd_Update(wxCommandEvent& evt);
+	void OnCmd_Update(wxCommandEvent& evt = wxCommandEvent());
+	void OnCmd_Backward(wxCommandEvent& evt);
+	void OnCmd_Forward(wxCommandEvent& evt);
+	void OnCmd_Filter(wxCommandEvent& evt);
+	
+	virtual void OnShow()override;
 private:
 	wxAuiToolBar*	BuildToolBar(wxWindow* parent);
 	wxDataViewCtrl* BuildTable(wxWindow* parent);
+
+	size_t mOffset;
+	size_t mLimit;
 };
 
 

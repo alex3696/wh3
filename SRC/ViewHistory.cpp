@@ -7,7 +7,7 @@ using namespace wh;
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 class wxDataViewModelMediator
-	: public wxDataViewIndexListModel
+	: public wxDataViewVirtualListModel
 {
 	std::shared_ptr<const ModelHistoryTableData> mTD;
 public:
@@ -17,7 +17,7 @@ public:
 
 	virtual unsigned int  GetCount() const override
 	{
-		return mTD->size();
+		return mTD ? mTD->size() : 0;
 	}
 
 	virtual bool  GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr &attr) const override	
@@ -55,20 +55,19 @@ public:
 		case 1:
 			{
 				
-				wxLocale loc;
-				loc.Init(wxLocale::GetSystemLanguage());
-				wxString format_dt = wxLocale::GetInfo(wxLOCALE_DATE_TIME_FMT);
+				//wxLocale loc;
+				//loc.Init(wxLocale::GetSystemLanguage());
+				//wxString format_dt = wxLocale::GetInfo(wxLOCALE_DATE_TIME_FMT);
 				wxString format_d = wxLocale::GetInfo(wxLOCALE_SHORT_DATE_FMT, wxLOCALE_CAT_DATE);
-				wxString format_ld = wxLocale::GetInfo(wxLOCALE_LONG_DATE_FMT);
+				//wxString format_ld = wxLocale::GetInfo(wxLOCALE_LONG_DATE_FMT);
 				wxString format_t = wxLocale::GetInfo(wxLOCALE_TIME_FMT);
-
 				//wxString format_date = wxLocale::GetOSInfo(wxLOCALE_SHORT_DATE_FMT, wxLOCALE_CAT_DATE);
 				
 				wxDateTime dt;
 				dt.ParseDateTime(mTD->GetDate(row));
 
-				str = wxString::Format("%s\n%s\n%s"
-					, dt.Format(format_ld)
+				str = wxString::Format("%s\n%s\n\n%s"
+					, dt.Format(format_d)
 					, dt.Format(format_t)
 					, mTD->GetUser(row));
 			}
@@ -157,7 +156,8 @@ public:
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 ViewHistory::ViewHistory(std::shared_ptr<IViewWindow> parent)
-	:IViewHistory()
+	:IViewHistory(), mOffset(0), mLimit(0)
+
 {
 	auto panel = new wxAuiPanel(parent->GetWnd());
 
@@ -191,6 +191,9 @@ ViewHistory::ViewHistory(std::shared_ptr<IViewWindow> parent)
 
 	panel->mAuiMgr.Update();
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_Update, this, wxID_REFRESH);
+	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_Backward, this, wxID_BACKWARD);
+	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_Forward, this, wxID_FORWARD);
+	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_Filter, this, wxID_SETUP);
 
 }
 //-----------------------------------------------------------------------------
@@ -208,7 +211,18 @@ wxAuiToolBar* ViewHistory::BuildToolBar(wxWindow* parent)
 	auto tool_bar = new wxAuiToolBar(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
 		wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_PLAIN_BACKGROUND | wxAUI_TB_TEXT /*| wxAUI_TB_OVERFLOW*/);
 
+	
+	mPageLabel = new wxStaticText(tool_bar, wxID_ANY, "00000 - 00000", wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
+
 	tool_bar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh24);
+	tool_bar->AddTool(wxID_BACKWARD, "Назад", wxArtProvider::GetIcon(wxART_GO_BACK, wxART_TOOLBAR));
+	tool_bar->AddControl(mPageLabel, "Показаны строки");
+	tool_bar->AddTool(wxID_FORWARD, "Вперёд", wxArtProvider::GetIcon(wxART_GO_FORWARD, wxART_TOOLBAR));
+	tool_bar->AddTool(wxID_SETUP, "Фильтр", mgr->m_ico_filter24);
+	tool_bar->AddTool(wxID_SETUP, "Настройки", wxArtProvider::GetIcon(wxART_HELP_PAGE, wxART_TOOLBAR));
+
+
+
 	tool_bar->Realize();
 
 	return tool_bar;
@@ -249,17 +263,9 @@ wxDataViewCtrl* ViewHistory::BuildTable(wxWindow* parent)
 		, renderer3, 3, -1, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
 	table->AppendColumn(col3);
 	
-	table->SetCanFocus(false);
+	//table->SetCanFocus(false);
 
 	return table;
-}
-//-----------------------------------------------------------------------------
-
-void ViewHistory::OnCmd_Update(wxCommandEvent& evt)
-{
-	wxBusyCursor busyCursor;
-
-	sigUpdate();
 }
 //-----------------------------------------------------------------------------
 //virtual 
@@ -271,14 +277,68 @@ void ViewHistory::SetHistoryTable(const std::shared_ptr<const ModelHistoryTableD
 
 	auto p0 = GetTickCount();
 
-
 	dv->SetTable(rt);
+	
+	
 	wxLogMessage(wxString::Format("%d \t ViewHistoryTable : \t SetTable", GetTickCount() - p0));
 	p0 = GetTickCount();
 
-	for (size_t i = 0; i < mTable->GetColumnCount(); i++)
-		mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
+	//for (size_t i = 0; i < mTable->GetColumnCount(); i++)
+	//	mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
 	
-
+	mTable->EnsureVisible(dv->GetItem(0));
 	wxLogMessage(wxString::Format("%d \t ViewHistoryTable : \t SetBestColumnWidth", GetTickCount() - p0));
+}
+//-----------------------------------------------------------------------------
+//virtual 
+void ViewHistory::SetRowsOffset(const size_t& offset) //override;
+{
+	mOffset = offset;
+	const auto str = wxString::Format("%d - %d", mOffset, mOffset + mLimit);
+	mPageLabel->SetLabel(str);
+}
+//-----------------------------------------------------------------------------
+//virtual 
+void ViewHistory::SetRowsLimit(const size_t& limit) //override;
+{
+	mLimit = limit;
+	const auto str = wxString::Format("%d - %d", mOffset, mOffset + mLimit);
+	mPageLabel->SetLabel(str);
+}
+
+//-----------------------------------------------------------------------------
+
+void ViewHistory::OnCmd_Update(wxCommandEvent& evt)
+{
+	wxBusyCursor busyCursor;
+	wxWindowUpdateLocker lock(mTable);
+
+	sigUpdate();
+}
+//-----------------------------------------------------------------------------
+
+void ViewHistory::OnCmd_Backward(wxCommandEvent& evt)
+{
+	sigPageBackward(); 
+	OnCmd_Update();
+}
+//-----------------------------------------------------------------------------
+
+void ViewHistory::OnCmd_Forward(wxCommandEvent& evt)
+{
+	sigPageForward();
+	OnCmd_Update();
+}
+//-----------------------------------------------------------------------------
+
+void ViewHistory::OnCmd_Filter(wxCommandEvent& evt)
+{
+	sigFilter();
+	OnCmd_Update();
+}
+//-----------------------------------------------------------------------------
+//IViewWindow virtual 
+void ViewHistory::OnShow()//override 
+{
+	//OnCmd_Update(); 
 }

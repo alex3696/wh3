@@ -173,7 +173,8 @@ boost::multi_index_container
 //-----------------------------------------------------------------------------
 class ModelHistory
 {
-	unsigned int mRowsPerPage;
+	size_t mRowsLimit;
+	size_t mRowsOffset;
 
 	ClsTable		mCls;
 	ObjTable		mObj;
@@ -190,10 +191,24 @@ public:
 
 	void Load();
 	
-	void SetRowsPerPage(size_t rpp){ mRowsPerPage = rpp; }
-	size_t GetRowsPerPage()const{ return mRowsPerPage; }
+	void SetRowsLimit(size_t rpp)
+	{ 
+		mRowsLimit = rpp; 
+		sigRowsLimit(mRowsLimit);
+	}
+	size_t GetRowsLimit()const{ return mRowsLimit; }
+	void SetRowsOffset(size_t offset)
+	{ 
+		mRowsOffset = offset; 
+		sigRowsOffset(mRowsOffset);
+	}
+	size_t GetRowsOffset()const{ return mRowsOffset; }
+
 
 	sig::signal<void(const std::shared_ptr<const ModelHistoryTableData>&)>	 sigAfterLoad;
+
+	sig::signal<void(const size_t&)>	sigRowsOffset;
+	sig::signal<void(const size_t&)>	sigRowsLimit;
 };
 //---------------------------------------------------------------------------
 class ModelPageHistory : public IModelWindow
@@ -211,6 +226,8 @@ public:
 	ModelHistory& GetModelHistory(){ return mDataModel; }
 
 	void Update();
+	void PageForward();
+	void PageBackward();
 
 
 	// IModelWindow
