@@ -54,7 +54,7 @@ public:
 
 	virtual void Show()override
 	{
-		mWhModel->Load();
+		//mWhModel->Load();
 		sigShow();
 	}
 
@@ -63,6 +63,7 @@ public:
 	
 	virtual void UpdateTitle()override
 	{
+		mWhModel->Load();
 		OnSigDetailObjUpdate(mWhModel.get(), &mWhModel->GetData());
 	}
 	
@@ -73,7 +74,7 @@ public:
 		detail.mObj.mId = page_val.get<std::string>("CtrlPageDetailObj.Oid");
 		detail.mObj.mParent.mId = page_val.get<std::string>("CtrlPageDetailObj.ParentOid");
 		mWhModel->SetObject(detail);
-		mWhModel->Load();
+		//mWhModel->Load();
 	}
 	virtual void Save(boost::property_tree::ptree& page_val)override
 	{

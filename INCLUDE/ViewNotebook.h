@@ -22,6 +22,7 @@ protected:
 	void OnCmd_MkWindow(wxCommandEvent& evt);
 
 	void OnEvt_ClosePage(wxAuiNotebookEvent& evt);
+	void OnEvt_ShowPage(wxAuiNotebookEvent& evt);
 
 };
 
