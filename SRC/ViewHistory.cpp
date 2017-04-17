@@ -28,9 +28,9 @@ public:
 		{
 		case 3:
 		{
-			const auto& act = mTD->GetActRec(row);
-			wxColour clr(act.mColour);
-			if (!act.mId.IsEmpty() && *wxWHITE != clr)
+			const auto& act = mTD->GetAct(row);
+			wxColour clr(act.GetColour() );
+			if (!act.GetId().IsEmpty() && *wxWHITE != clr)
 			{
 				attr.SetBackgroundColour(clr);
 				return true;
@@ -49,6 +49,7 @@ public:
 		wxString		str;
 		const wxIcon*	ico = &wxNullIcon;
 		wxIcon			icoHolder;
+		const auto&		obj = mTD->GetObj(row);
 
 		switch (col)
 		{
@@ -73,17 +74,17 @@ public:
 			}
 			break;
 		case 2: str = wxString::Format("%s\n%s"
-			, mTD->GetCTiltle(row), mTD->GetOTiltle(row)
+			, obj.GetCls().GetTitle(), obj.GetTitle()
 			);
 			break;
 		case 3:
 		{
-			const auto& act = mTD->GetActRec(row);
-			if (act.mId.IsEmpty())
+			const auto& act = mTD->GetAct(row);
+			if (act.GetId().IsEmpty())
 			{
 				str = wxString::Format("Перемещение: %s (%s)\n%s\n%s\n"
-					, mTD->GetQty(row), mTD->GetCMeasure(row)
-					, mTD->GetDstPath(row), mTD->GetSrcPath(row)
+					, obj.GetQty(), obj.GetCls().GetMeasure()
+					, mTD->GetDstPath(row).AsString(), obj.GetPath().AsString()
 					);
 				icoHolder = wxArtProvider::GetIcon(wxART_REDO, wxART_TOOLBAR);
 				ico = &icoHolder;
@@ -96,13 +97,14 @@ public:
 				for (const auto& p : props)
 				{
 					prop_str += wxString::Format("%s: %s\n"
-						,p->mProp->mTitle, p->mVal);
+						,p->GetProp().GetTitle(), p->GetValue());
 				}
 				
 				str = wxString::Format("%s:\n%sМестонахождение: %s"
-					, act.mTitle
+					, act.GetTitle()
 					, prop_str
-					, mTD->GetSrcPath(row));
+					, obj.GetPath().AsString()
+					);
 				//ico = &ResMgr::GetInstance()->m_ico_act24;
 			}
 		}

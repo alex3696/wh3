@@ -100,53 +100,21 @@ public:
 		return mLog[row]->mTimestamp;
 	}
 
-	virtual const wxString& GetCId(const size_t row)const override
+	virtual const IObj& GetObj(const size_t row)const override
 	{
-		return mLog[row]->mObj->mCls->mId;
-	}
-	virtual const wxString& GetCTiltle(const size_t row)const override
-	{
-		return mLog[row]->mObj->mCls->mTitle;
-	}
-	virtual const wxString& GetCKind(const size_t row)const override
-	{
-		return mLog[row]->mObj->mCls->mKind;
-	}
-	virtual const wxString& GetCMeasure(const size_t row)const override
-	{
-		return mLog[row]->mObj->mCls->mMeasure;
-	}
-	virtual const wxString& GetOId(const size_t row)const override
-	{
-		return mLog[row]->mObj->mId;
-	}
-	virtual const wxString& GetOTiltle(const size_t row)const override
-	{
-		return mLog[row]->mObj->mTitle;
-	}
-	virtual const wxString& GetQty(const size_t row)const override
-	{
-		return mLog[row]->mDetail->GetQty();
+		return *mLog[row]->mObj;
 	}
 
-	virtual const ActRec& GetActRec(const size_t row)const override
+	virtual const IAct& GetAct(const size_t row)const override
 	{
 		return mLog[row]->mDetail->GetActRec();
-	}
-	virtual const PropValTable& GetProperties(const size_t row)const override
-	{
-		return mLog[row]->mDetail->GetProperties();
 	}
 	virtual const PropValTable& GetActProperties(const size_t row)const override
 	{
 		return mLog[row]->mDetail->GetActProperties();
 	}
 
-	virtual const wxString& GetSrcPath(const size_t row)const 
-	{ 
-		return mLog[row]->mDetail->GetSrcPath();
-	};
-	virtual const wxString& GetDstPath(const size_t row)const 
+	virtual const IObjPath& GetDstPath(const size_t row)const
 	{ 
 		return mLog[row]->mDetail->GetDstPath();
 	};
@@ -221,6 +189,7 @@ void ModelHistory::Load()
 				auto obj_rec = std::make_shared<ObjRec>();
 				table->GetAsString(5, i, obj_rec->mId);
 				table->GetAsString(6, i, obj_rec->mTitle);
+				table->GetAsString(7, i, obj_rec->mQty);
 
 				obj_rec->mCls = cls_rec;
 				obj_rec = *mObj.emplace_back(obj_rec).first;
@@ -235,8 +204,7 @@ void ModelHistory::Load()
 					auto log_mov_rec = std::make_shared<LogMovRec>();
 					
 					auto md = std::make_shared<LogMovRec>();
-					table->GetAsString(7, i, log_mov_rec->mQty);
-					table->GetAsString(19, i, log_mov_rec->mDstPath);
+					table->GetAsString(19, i, log_mov_rec->mDstPath.mPath);
 					table->GetAsString(20, i, log_mov_rec->mPropLId);
 					//table->GetAsString(11, i, *log_mov_rec->mProperties);
 					
@@ -276,7 +244,7 @@ void ModelHistory::Load()
 						propval_table->emplace(propval_rec);
 						
 					}
-					log_act_rec->mProperties = propval_table;
+					obj_rec->mProperties = propval_table;
 						
 
 					
@@ -285,7 +253,7 @@ void ModelHistory::Load()
 
 
 
-				table->GetAsString(15, i, log_rec->mDetail->mSrcPath);
+				table->GetAsString(15, i, obj_rec->mPath.mPath);
 
 			}
 		}
@@ -399,7 +367,7 @@ void ModelHistory::PrepareProperties()
 			while (range.first != range.second)
 			{
 				const wxString pid = (*range.first)->mProp->mId;
-				const auto& pid_idx_allprop = log_rec->mDetail->mProperties->get<0>();
+				const auto& pid_idx_allprop = log_rec->mObj->mProperties->get<0>();
 				auto it = pid_idx_allprop.find(pid);
 				if (pid_idx_allprop.end() != it)
 				{
@@ -409,9 +377,10 @@ void ModelHistory::PrepareProperties()
 			}
 
 			struct title_sorter {
-				bool operator() (const std::shared_ptr<PropValRec>& v1, const std::shared_ptr<PropValRec>& v2)const
+				bool operator() (const std::shared_ptr<IPropVal>& v1
+					, const std::shared_ptr<IPropVal>& v2)const
 				{
-					return v1->mProp->mTitle < v2->mProp->mTitle;
+					return v1->GetProp().GetTitle() < v2->GetProp().GetTitle();
 				}
 			} sorter;
 
