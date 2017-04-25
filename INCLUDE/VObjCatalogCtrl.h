@@ -22,6 +22,8 @@ class VObjCatalogCtrl
 	
 	wxAuiToolBar*		mToolBar = nullptr;
 	wxTextCtrl*			mPathSring = nullptr;
+
+	wxTextCtrl*			mFindCtrl;
 	
 	VObjCatalogTable*	mTableView = nullptr;
 

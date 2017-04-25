@@ -70,6 +70,7 @@ public:
 	
 	void DoUp();
 	
+	void Find(const wxString& cls);
 protected:
 	std::shared_ptr<MFilterArray>	mFilter;
 	std::shared_ptr<MFilter>		mFilterCat;

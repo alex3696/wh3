@@ -44,6 +44,19 @@ MObjCatalog::MObjCatalog(const char option)
 		mFilter->CreateItem(
 			FilterData("0", "acls.id", ftLong, foEq, fcAND, false), true));
 
+	// 2
+	{
+		FilterData fd;
+		fd.mConn = fcAND;
+		fd.mFieldName = "acls.title";
+		fd.mOp = foLike;
+		fd.mVal = "";
+		fd.mFieldType = ftText;
+		fd.mIsEnabled = false;
+		auto item = mFilter->CreateItem(fd, true);
+		mFilter->Insert(item);
+	}
+
 }
 //-------------------------------------------------------------------------
 
@@ -249,4 +262,24 @@ wxString MObjCatalog::GetFilterCat()const
 {
 	return mFilterCat->GetData().GetSqlString();
 }
+//-------------------------------------------------------------------------
+void MObjCatalog::Find(const wxString& cls_filter)
+{
+	auto cfilter = std::dynamic_pointer_cast<MFilter>(mFilter->GetChild(2));
+	auto cfilter_data = cfilter->GetData();
+	cfilter_data.mVal = cls_filter;
+	cfilter_data.mIsEnabled = true;
+	cfilter->SetData(cfilter_data, true);
 
+	auto cat_old = mFilterCat->GetData();
+	wh::FilterData cat_filter = cat_old;
+	cat_filter.mIsEnabled = false;
+	mFilterCat->SetData(cat_filter);
+	
+	Load();
+
+	cfilter_data.mIsEnabled = false;
+	cfilter->SetData(cfilter_data, true);
+
+	mFilterCat->SetData(cat_old, true);
+}

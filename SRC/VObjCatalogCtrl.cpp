@@ -41,17 +41,18 @@ VObjCatalogCtrl::VObjCatalogCtrl(wxWindow* parent,
 	mTableView = new VObjCatalogTable(this);
 	GetSizer()->Add(mTableView, 1, wxALL | wxEXPAND, 0);
 	
-	wxAcceleratorEntry entries[1];
-	entries[0].Set(wxACCEL_NORMAL, WXK_BACK, wxID_BACKWARD); // , KEY_SPACE);
-	wxAcceleratorTable accel(1, entries);
-	SetAcceleratorTable(accel);
-
 	//Bind(wxEVT_COMMAND_DATAVIEW_ITEM_CONTEXT_MENU, &VObjCatalogCtrl::OnContextMenu, this);
 	Bind(wxEVT_COMMAND_DATAVIEW_SELECTION_CHANGED, &VObjCatalogCtrl::OnSelect, this);
-	Bind(wxEVT_MENU, &VObjCatalogCtrl::OnCmdUp, this, wxID_BACKWARD);
 	Bind(wxEVT_COMMAND_DATAVIEW_ITEM_ACTIVATED, &VObjCatalogCtrl::OnActivated, this);
 	Bind(wxEVT_COMMAND_DATAVIEW_ITEM_EXPANDING, &VObjCatalogCtrl::OnExpanding, this);
-	
+
+	mTableView->GetTargetWindow()->Bind(wxEVT_KEY_DOWN, 
+		[this](wxKeyEvent& evt)
+		{
+			if (WXK_BACK == evt.GetKeyCode())
+				this->OnCmdUp(wxCommandEvent());
+			evt.Skip();
+		});
 	mTableView->GetTargetWindow()->Bind(wxEVT_MIDDLE_UP, &VObjCatalogCtrl::OnMiddleUpTable, this);
 	
 	AppendBitmapMenu(&mCatalogToolMenu, whID_CATALOG_TYPE, "по &типу"
@@ -151,6 +152,26 @@ void VObjCatalogCtrl::BuildToolbar(bool is_dlg)
 			Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnDelete, this, wxID_DELETE);
 		}
 	}
+
+	auto fn = [this](wxCommandEvent& evt)
+	{
+		const wxString ss = mFindCtrl->GetValue();
+		if (!ss.IsEmpty())
+		{
+			const wxString str = wxString::Format("%%%s%%", ss);
+			mCatalogModel->Find(str);
+			wxDataViewItemArray itemArray;
+			//mTableView->GetModel()->GetChildren(wxDataViewItem(NULL), itemArray);
+			//for (const auto& item : itemArray)
+			//	mTableView->Expand(item);
+		}
+	};
+	mFindCtrl = new wxTextCtrl(mToolBar, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+	mFindCtrl->Bind(wxEVT_COMMAND_TEXT_ENTER, fn);
+	mFindCtrl->SetHint("имя типа");
+	mToolBar->AddControl(mFindCtrl, wxEmptyString);
+	mToolBar->AddTool(wxID_FIND, "Фильтр по типу", m_ResMgr->m_ico_filter24);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, fn, wxID_FIND);
 
 	mToolBar->Realize();
 	UpdateToolsStates();
@@ -353,6 +374,8 @@ void VObjCatalogCtrl::OnCmdReload(wxCommandEvent& evt)
 	if (!mCatalogModel)
 		return;
 
+	mFindCtrl->Clear();
+
 	mCatalogModel->Load();
 	mTableView->ExpandAll();
 
@@ -365,7 +388,10 @@ void VObjCatalogCtrl::OnCmdUp(wxCommandEvent& evt)
 {
 	if (mCatalogModel)
 	{
-		mCatalogModel->DoUp();
+		if (!mFindCtrl->GetValue().IsEmpty())
+			OnCmdReload(wxCommandEvent());
+		else
+			mCatalogModel->DoUp();
 		//wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, wxID_REFRESH);
 		//this->ProcessEvent(evt);
 	}
@@ -686,8 +712,14 @@ void VObjCatalogCtrl::SetModel(std::shared_ptr<IModel> model)
 	mCatalogModel = std::dynamic_pointer_cast<wh::object_catalog::MObjCatalog>(model);
 	if (mCatalogModel)
 	{
-		if(mCatalogModel->IsObjTree())
+		if (mCatalogModel->IsObjTree())
+		{
 			mToolBar->SetToolBitmap(whID_CATALOG_SELECT, m_ResMgr->m_ico_folder_obj24);
+			mFindCtrl->Hide();
+			auto tool = mToolBar->FindTool(wxID_FIND);
+			if (tool)
+				mToolBar->DeleteTool(wxID_FIND);
+		}
 		else
 			mToolBar->SetToolBitmap(whID_CATALOG_SELECT, m_ResMgr->m_ico_folder_type24);
 				
