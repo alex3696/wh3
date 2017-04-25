@@ -112,6 +112,8 @@ public:
 
 	struct data_is_null: virtual exception_base { };
 
+	wxLocale mLocale;
+
 	whDB	mDb;
 	Ftp		mFtp;
 	

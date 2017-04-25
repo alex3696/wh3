@@ -151,14 +151,8 @@
     <Filter Include="MainFrame\MVP2\InterfacesWindow">
       <UniqueIdentifier>{43ecdd62-b56a-4b89-bee4-d91b73557ff4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MainFrame\MVP2\BaseWindow">
-      <UniqueIdentifier>{587eb8a6-7372-4298-8074-0e2353ccbd79}</UniqueIdentifier>
-    </Filter>
     <Filter Include="MainFrame\MVP2\ContentWindows">
       <UniqueIdentifier>{63565c07-753f-4d70-85fa-e955b7d7b5ac}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="MainFrame\MVP2\NotebookWindow">
-      <UniqueIdentifier>{c38d4098-8a0c-4383-84d3-e1d593ebd6c6}</UniqueIdentifier>
     </Filter>
     <Filter Include="MainFrame\MVP2\MainFrame">
       <UniqueIdentifier>{fc26a495-b524-4cb7-9858-e947672ad79c}</UniqueIdentifier>
@@ -174,6 +168,15 @@
     </Filter>
     <Filter Include="MainFrame\MVP2\ContentWindows\Отчёты\Вывод отчёта">
       <UniqueIdentifier>{7c2a21b6-25cd-42c9-8812-7ad0414d0fef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\InterfacesWindow\BaseWindow">
+      <UniqueIdentifier>{587eb8a6-7372-4298-8074-0e2353ccbd79}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\История3">
+      <UniqueIdentifier>{5b057b3b-8ba3-4506-b4e9-4327e7f17402}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\MainFrame\NotebookWindow">
+      <UniqueIdentifier>{c38d4098-8a0c-4383-84d3-e1d593ebd6c6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -469,13 +472,13 @@
       <Filter>MainFrame\MVP2\ContentWindows\Отчёты\Вывод отчёта</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ViewNotebook.cpp">
-      <Filter>MainFrame\MVP2\NotebookWindow</Filter>
+      <Filter>MainFrame\MVP2\MainFrame\NotebookWindow</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ModelNotebook.cpp">
-      <Filter>MainFrame\MVP2\NotebookWindow</Filter>
+      <Filter>MainFrame\MVP2\MainFrame\NotebookWindow</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\CtrlNotebook.cpp">
-      <Filter>MainFrame\MVP2\NotebookWindow</Filter>
+      <Filter>MainFrame\MVP2\MainFrame\NotebookWindow</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\MainFrame.cpp">
       <Filter>MainFrame\MVP2\MainFrame</Filter>
@@ -488,6 +491,21 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\MoveObjModel.cpp">
       <Filter>Каталог объектов\Диалог перемещения</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ViewMain.cpp">
+      <Filter>MainFrame\MVP2\MainFrame</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\CtrlHistory.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\История3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ModelHistory.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\История3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ViewHistory.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\История3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\wxDataViewIconMLTextRenderer.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\История3</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -864,19 +882,19 @@
       <Filter>MainFrame\MVP2\InterfacesWindow</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\CtrlWindowBase.h">
-      <Filter>MainFrame\MVP2\BaseWindow</Filter>
+      <Filter>MainFrame\MVP2\InterfacesWindow\BaseWindow</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\IViewNotebook.h">
-      <Filter>MainFrame\MVP2\NotebookWindow</Filter>
+      <Filter>MainFrame\MVP2\MainFrame\NotebookWindow</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ViewNotebook.h">
-      <Filter>MainFrame\MVP2\NotebookWindow</Filter>
+      <Filter>MainFrame\MVP2\MainFrame\NotebookWindow</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ModelNotebook.h">
-      <Filter>MainFrame\MVP2\NotebookWindow</Filter>
+      <Filter>MainFrame\MVP2\MainFrame\NotebookWindow</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\CtrlNotebook.h">
-      <Filter>MainFrame\MVP2\NotebookWindow</Filter>
+      <Filter>MainFrame\MVP2\MainFrame\NotebookWindow</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MainFrame.h">
       <Filter>MainFrame\MVP2\MainFrame</Filter>
@@ -928,6 +946,24 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\IMoveObjView.h">
       <Filter>Каталог объектов\Диалог перемещения</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ViewHistory.h">
+      <Filter>MainFrame\MVP2\ContentWindows\История3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\IViewHistory.h">
+      <Filter>MainFrame\MVP2\ContentWindows\История3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\CtrlHistory.h">
+      <Filter>MainFrame\MVP2\ContentWindows\История3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ModelHistory.h">
+      <Filter>MainFrame\MVP2\ContentWindows\История3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ModelHistoryData.h">
+      <Filter>MainFrame\MVP2\ContentWindows\История3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\wxDataViewIconMLTextRenderer.h">
+      <Filter>MainFrame\MVP2\ContentWindows\История3</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

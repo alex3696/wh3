@@ -140,6 +140,7 @@
     <ClCompile Include="..\..\SRC\BtnProperty.cpp" />
     <ClCompile Include="..\..\SRC\config.cpp" />
     <ClCompile Include="..\..\SRC\ConnectionCfgDlg.cpp" />
+    <ClCompile Include="..\..\SRC\CtrlHistory.cpp" />
     <ClCompile Include="..\..\SRC\DActEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsActEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsEditor.cpp" />
@@ -153,6 +154,7 @@
     <ClCompile Include="..\..\SRC\MFavViewPropActCommon.cpp" />
     <ClCompile Include="..\..\SRC\MFavViewPropActUsr.cpp" />
     <ClCompile Include="..\..\SRC\MFavViewPropCls.cpp" />
+    <ClCompile Include="..\..\SRC\ModelHistory.cpp" />
     <ClCompile Include="..\..\SRC\MoveObjModel.cpp" />
     <ClCompile Include="..\..\SRC\MoveObjPresenter.cpp" />
     <ClCompile Include="..\..\SRC\MoveObjView.cpp" />
@@ -213,6 +215,8 @@
     <ClCompile Include="..\..\SRC\ReportModel.cpp" />
     <ClCompile Include="..\..\SRC\ReportPresenter.cpp" />
     <ClCompile Include="..\..\SRC\ReportView.cpp" />
+    <ClCompile Include="..\..\SRC\ViewHistory.cpp" />
+    <ClCompile Include="..\..\SRC\ViewMain.cpp" />
     <ClCompile Include="..\..\SRC\VTableCtrl.cpp" />
     <ClCompile Include="..\..\SRC\TableRowEditor.cpp" />
     <ClCompile Include="..\..\SRC\VActPanel.cpp" />
@@ -229,6 +233,7 @@
     <ClCompile Include="..\..\SRC\ModelNotebook.cpp" />
     <ClCompile Include="..\..\SRC\CtrlNotebook.cpp" />
     <ClCompile Include="..\..\SRC\ViewNotebook.cpp" />
+    <ClCompile Include="..\..\SRC\wxDataViewIconMLTextRenderer.cpp" />
     <ClCompile Include="..\..\SRC\_pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -265,6 +270,7 @@
     <ClInclude Include="..\..\INCLUDE\BtnProperty.h" />
     <ClInclude Include="..\..\INCLUDE\config.h" />
     <ClInclude Include="..\..\INCLUDE\ConnectionCfgDlg.h" />
+    <ClInclude Include="..\..\INCLUDE\CtrlHistory.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlMain.h" />
     <ClInclude Include="..\..\INCLUDE\DActEditor.h" />
     <ClInclude Include="..\..\INCLUDE\dbFieldType.h" />
@@ -275,7 +281,11 @@
     <ClInclude Include="..\..\INCLUDE\DClsPropEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DetailActCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h" />
+    <ClInclude Include="..\..\INCLUDE\ModelHistory.h" />
+    <ClInclude Include="..\..\INCLUDE\ModelHistoryData.h" />
+    <ClInclude Include="..\..\INCLUDE\ViewHistory.h" />
     <ClInclude Include="..\..\INCLUDE\ICtrlWindow.h" />
+    <ClInclude Include="..\..\INCLUDE\IViewHistory.h" />
     <ClInclude Include="..\..\INCLUDE\IModelWindow.h" />
     <ClInclude Include="..\..\INCLUDE\IViewWindow.h" />
     <ClInclude Include="..\..\INCLUDE\ModelMain.h" />
@@ -398,6 +408,7 @@
     <ClInclude Include="..\..\INCLUDE\ViewNotebook.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlWindowBase.h" />
     <ClInclude Include="..\..\INCLUDE\wxComboBtn.h" />
+    <ClInclude Include="..\..\INCLUDE\wxDataViewIconMLTextRenderer.h" />
     <ClInclude Include="..\..\INCLUDE\_pch.h" />
     <ClInclude Include="..\..\INCLUDE\App.h" />
     <ClInclude Include="..\..\INCLUDE\globaldata.h" />

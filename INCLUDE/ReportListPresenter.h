@@ -28,7 +28,7 @@ class ReportListPresenter : public CtrlWindowBase<IReportListView, ReportListMod
 	virtual void ConnectView()override;
 	virtual void DisconnectView()override;
 public:
-	ReportListPresenter(std::shared_ptr<IReportListView> view, std::shared_ptr<ReportListModel> model);
+	ReportListPresenter(const std::shared_ptr<IReportListView>& view,const std::shared_ptr<ReportListModel>& model);
 
 	virtual std::shared_ptr<IViewWindow> GetView()const override;
 

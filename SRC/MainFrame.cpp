@@ -34,6 +34,7 @@ enum GUIID
 	CMD_MAKETYPEWND,
 	CMD_MAKEOBJWND,
 	CMD_MAKEHISTORYWND,
+	CMD_MKPAGE_HISTORY,
 
 	CMD_VIEW_TOOGLE_MAINTOOLBAR,
 
@@ -69,6 +70,7 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_ObjByType, this, CMD_MAKETYPEWND);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_ObjByPath, this, CMD_MAKEOBJWND);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_History, this, CMD_MAKEHISTORYWND);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MkPage_History, this, CMD_MKPAGE_HISTORY);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_Report, this, CMD_MKPAGE_REPORT);
 	
 
@@ -203,6 +205,7 @@ void MainFrame::BuildToolbar()
 	m_MainToolBar->AddTool(CMD_PNLSHOWPROP, "Свойства", m_ResMgr->m_ico_list_prop24);
 	m_MainToolBar->AddTool(CMD_PNLSHOWACT, "Действия", m_ResMgr->m_ico_acts24);
 	m_MainToolBar->AddTool(CMD_MAKEHISTORYWND, "История", m_ResMgr->m_ico_history24);
+	//m_MainToolBar->AddTool(CMD_MKPAGE_HISTORY, "История 3", m_ResMgr->m_ico_type24);
 	m_MainToolBar->AddTool(CMD_MKPAGE_REPORT, "Отчёты", m_ResMgr->m_ico_report_list24);
 
 
@@ -439,17 +442,24 @@ void MainFrame::OnCmd_MakePage_ObjByPath(wxCommandEvent& evt)
 
 void MainFrame::OnCmd_MakePage_History(wxCommandEvent& evt)
 {
-	//whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageHistory());
 	auto container = whDataMgr::GetInstance()->mContainer;
 	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
 	if (nb2)
 		nb2->MkWindow("CtrlPageLogList");
 }
 //---------------------------------------------------------------------------
+void MainFrame::OnCmd_MkPage_History(wxCommandEvent& evt)
+{
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
+	if (nb2)
+		nb2->MkWindow("CtrlPageLogList");
+}
+
+//---------------------------------------------------------------------------
 
 void MainFrame::OnCmd_MakePage_Report(wxCommandEvent& evt)
 {
-	//whDataMgr::GetInstance()->mNotebookPresenter->DoAddPage(wh::rec::PageReportList());
 	auto container = whDataMgr::GetInstance()->mContainer;
 	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
 	if (nb2)

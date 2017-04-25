@@ -4,11 +4,15 @@
 using namespace wh;
 
 //-----------------------------------------------------------------------------
-ViewNotebook::ViewNotebook(std::shared_ptr<IViewWindow> parent)
+ViewNotebook::ViewNotebook(const std::shared_ptr<IViewWindow>& parent)
 	:IViewNotebook(), mNotebook(new wxAuiNotebook(parent->GetWnd()))
 {
 	mNotebook->Bind(wxEVT_AUINOTEBOOK_PAGE_CLOSE, 
 		&ViewNotebook::OnEvt_ClosePage, this);
+
+	//mNotebook->Bind(wxEVT_AUINOTEBOOK_PAGE_CHANGING,
+	//	&ViewNotebook::OnEvt_ShowPage, this);
+
 }
 //-----------------------------------------------------------------------------
 
@@ -16,7 +20,10 @@ ViewNotebook::ViewNotebook(wxWindow* parent_wnd)
 	:IViewNotebook(), mNotebook(new wxAuiNotebook(parent_wnd))
 {
 	mNotebook->Bind(wxEVT_AUINOTEBOOK_PAGE_CLOSE,
-	&ViewNotebook::OnEvt_ClosePage, this);
+		&ViewNotebook::OnEvt_ClosePage, this);
+
+	//mNotebook->Bind(wxEVT_AUINOTEBOOK_PAGE_CHANGING,
+	//	&ViewNotebook::OnEvt_ShowPage, this);
 
 }
 //-----------------------------------------------------------------------------
@@ -40,6 +47,16 @@ void ViewNotebook::OnEvt_ClosePage(wxAuiNotebookEvent& evt)
 	sigRmWindow(wnd_to_close);
 	evt.Veto();
 }
+//-----------------------------------------------------------------------------
+void ViewNotebook::OnEvt_ShowPage(wxAuiNotebookEvent& evt)
+{
+	int page_idx = evt.GetSelection();
+	BOOST_ASSERT_MSG(wxNOT_FOUND != page_idx, "page not found?!");
+	auto wnd = mNotebook->GetPage(page_idx);
+	sigShowWindow(wnd);
+	evt.Veto();
+}
+
 //-----------------------------------------------------------------------------
 
 void ViewNotebook::MkPage(wxWindow* wnd)

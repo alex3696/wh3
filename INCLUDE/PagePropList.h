@@ -15,7 +15,7 @@ class ModelPagePropList : public IModelWindow
 
 	std::shared_ptr<MPropTable> mWhModel = std::make_shared<MPropTable>();
 public:
-	ModelPagePropList(std::shared_ptr<rec::PageProp> usr)
+	ModelPagePropList(const std::shared_ptr<rec::PageProp>& usr)
 	{
 
 	}

@@ -10,7 +10,7 @@ namespace wh{
 class MoveObjPresenter
 {
 public:
-	MoveObjPresenter(std::shared_ptr<IMoveObjView> view, std::shared_ptr<rec::PathItem> moveable);
+	MoveObjPresenter(const std::shared_ptr<IMoveObjView>& view,const std::shared_ptr<rec::PathItem>& moveable);
 	~MoveObjPresenter();
 	
 	void ShowDialog();

@@ -230,7 +230,7 @@ void VTableCtrl::OnCmdBackward(wxCommandEvent& WXUNUSED(evt))
 {
 	if (!mTableModel)
 		return;
-	const auto& limit = mTableModel->mPageLimit->GetData();
+	//const auto& limit = mTableModel->mPageLimit->GetData();
 	const auto& no = mTableModel->mPageNo->GetData();
 
 	if (no > 0)

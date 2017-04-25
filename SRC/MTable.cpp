@@ -130,7 +130,7 @@ bool ITableRow::GetUpdateQuery(wxString& query)const
 	auto mtable = dynamic_cast<ITable*>(data_arr->GetParent());
 	if (!mtable)
 		return false;
-	const wxString& table = mtable->mTableName->GetData();
+	//const wxString& table = mtable->mTableName->GetData();
 	const auto& field_vec = mtable->mFieldVec;
 	const auto& row_data = GetData();
 	const auto& stored_row_data = GetStored();

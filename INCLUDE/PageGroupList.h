@@ -15,7 +15,7 @@ class ModelPageGroupList : public IModelWindow
 
 	std::shared_ptr<MGroupArray> mWhModel = std::make_shared<MGroupArray>();
 public:
-	ModelPageGroupList(std::shared_ptr<rec::PageGroup> usr)
+	ModelPageGroupList(const std::shared_ptr<rec::PageGroup>& usr)
 	{
 
 	}

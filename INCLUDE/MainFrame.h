@@ -14,11 +14,7 @@ class MainFrame :  public wxFrame, public ctrlWithResMgr
 // соблюдать порядок наследования: первыми идут WX классы
 private:
 
-	wxAuiToolBar*		m_MainToolBar = nullptr;
 
-	wxAuiToolBarItem*	m_btnFavorites = nullptr;;
-
-	wxWindow*			m_wndFavorites = nullptr;;
 
 	void BuildMenu();
 	void BuildToolbar();
@@ -32,6 +28,7 @@ private:
 	void OnCmd_MakePage_ObjByType(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_MakePage_ObjByPath(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_MakePage_History(wxCommandEvent& evt = wxCommandEvent());
+	void OnCmd_MkPage_History(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_MakePage_Report(wxCommandEvent& evt = wxCommandEvent());
 
 	void OnCmd_MkTabFaforite(wxCommandEvent& evt = wxCommandEvent());
@@ -46,9 +43,8 @@ private:
 	sig::scoped_connection mSSC_AfterChange_BaseGroup;
 	void OnSigAfterChange_BaseGroup(const wh::IModel*, const BaseGroup* const);
 
-	wxAuiNotebook*	m_Notebook;
 public:
-	wxAuiManager	m_AuiMgr;
+
 	wxAuiNotebook* GetNotebook()const { return m_Notebook; }
 
 	MainFrame( wxWindow* parent = NULL, wxWindowID id = wxID_ANY, 
@@ -59,6 +55,10 @@ public:
 
 	void OnCmd_ConnectDB(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_DisconnectDB(wxCommandEvent& evt=wxCommandEvent());
+
+	wxAuiToolBar*	m_MainToolBar = nullptr;
+	wxAuiNotebook*	m_Notebook;
+	wxAuiManager	m_AuiMgr;
 
 	
 	

@@ -8,7 +8,8 @@
 using namespace wh;
 
 //---------------------------------------------------------------------------
-ReportListPresenter::ReportListPresenter(std::shared_ptr<IReportListView> view, std::shared_ptr<ReportListModel> model)
+ReportListPresenter::ReportListPresenter(const std::shared_ptr<IReportListView>& view
+										,const std::shared_ptr<ReportListModel>& model)
 	: CtrlWindowBase(view, model)
 {
 	namespace ph = std::placeholders;

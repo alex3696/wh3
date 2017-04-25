@@ -27,7 +27,7 @@ public:
 		int childIndex, wxVariant& childValue) const;
 	virtual void RefreshChildren();
 
-	void SetCatalog(std::shared_ptr<MCat> cat, bool isTargetObj);
+	void SetCatalog(const std::shared_ptr<MCat>& cat, bool isTargetObj);
 protected:
 	virtual wxString  ValueToString(wxVariant &  value, int  argFlags = 0)  const;
 

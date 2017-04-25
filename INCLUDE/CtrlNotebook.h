@@ -25,7 +25,8 @@ class CtrlNotebook : public CtrlWindowBase<IViewNotebook, ModelNotebook>
 	void OnSig_ChTitleChild(ICtrlWindow*, const wxString&, const wxIcon&);
 	
 public:
-	CtrlNotebook(std::shared_ptr<IViewNotebook> view, std::shared_ptr<ModelNotebook> model);
+	CtrlNotebook(const std::shared_ptr<IViewNotebook>& view
+		, const  std::shared_ptr<ModelNotebook>& model);
 
 	// command to model
 	void MkWindow(const wxString& wi);

@@ -77,7 +77,7 @@ void FilterArrayEditor::SetModel(std::shared_ptr<ITable> newModel)
 //---------------------------------------------------------------------------
 void FilterArrayEditor::OnApply(wxCommandEvent& evt)
 {
-	bool hasEmpty = false;
+	//bool hasEmpty = false;
 
 	for (unsigned int i = 0; i < mMTable->mFieldVec->size(); ++i)
 	{
@@ -87,7 +87,7 @@ void FilterArrayEditor::OnApply(wxCommandEvent& evt)
 			const wh::Field& oldFldData = fld->GetData();
 			auto fldData = fld->GetData();
 
-			bool ok = GetFilterValue(fldData);
+			//bool ok = GetFilterValue(fldData);
 			if (fldData != oldFldData )
 				fld->SetData(fldData);
 		}//if (fld)

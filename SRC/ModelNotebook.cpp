@@ -56,16 +56,18 @@ void ModelNotebook::RmCtrl(ICtrlWindow* ctrl)
 //-----------------------------------------------------------------------------
 void ModelNotebook::RmAll()
 {
-	for (const auto& item : mWindowList)
+	while (mWindowList.size())
 	{
-		auto ctrl = item->mCtrlWindow;
-		sigBeforeRmWindow(item->mCtrlWindow.get());
+		const auto& item = *mWindowList.cbegin();
 		//item->connModelChTitle.disconnect();
 		//item->connModelClose.disconnect();
 		//item->connModelShow.disconnect();
-		item->mCtrlWindow->RmView();
+		auto ctrl = item->mCtrlWindow;
+		sigBeforeRmWindow(ctrl.get());
+		ctrl->RmView();
+		mWindowList.pop_front();
 	}
-	mWindowList.clear();
+
 }
 //-----------------------------------------------------------------------------
 void ModelNotebook::RmWindow(wxWindow* wnd)

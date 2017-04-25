@@ -22,7 +22,7 @@ class ReportModel : public IModelWindow
 	void DoUpdateView();
 	void BuildFilterTable(rec::ReportFilterTable& ft);
 public:
-	ReportModel(std::shared_ptr<wxString> rep_id);
+	ReportModel(const std::shared_ptr<wxString>& rep_id);
 
 	void Update();
 	void Execute(const std::vector<wxString>& filter_vec);

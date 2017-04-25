@@ -15,7 +15,7 @@ class ModelPageLogList : public IModelWindow
 
 	std::shared_ptr<MLogTable> mWhModel = std::make_shared<MLogTable>();
 public:
-	ModelPageLogList(std::shared_ptr<rec::PageHistory> usr)
+	ModelPageLogList(const std::shared_ptr<rec::PageHistory>& usr)
 	{
 
 	}
