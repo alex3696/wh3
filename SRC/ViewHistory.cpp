@@ -2,6 +2,7 @@
 #include "ViewHistory.h"
 #include "globaldata.h"
 #include "wxDataViewIconMLTextRenderer.h"
+#include "ViewFilterList.h"
 
 using namespace wh;
 //-----------------------------------------------------------------------------
@@ -73,18 +74,20 @@ public:
 					, mTD->GetUser(row));
 			}
 			break;
+		// тип + объект
 		case 2: str = wxString::Format("%s\n%s"
 			, obj.GetCls().GetTitle(), obj.GetTitle()
 			);
 			break;
+		// свойтсва
 		case 3:
 		{
 			const auto& act = mTD->GetAct(row);
 			if (act.GetId().IsEmpty())
 			{
-				str = wxString::Format("Перемещение: %s (%s)\n%s\n%s\n"
-					, obj.GetQty(), obj.GetCls().GetMeasure()
-					, mTD->GetDstPath(row).AsString(), obj.GetPath().AsString()
+				str = wxString::Format("Перемещение :\n%s\n%s\n%s(%s)"
+					, mTD->GetDstPath(row).AsString(), mTD->GetPath(row).AsString()
+					, mTD->GetQty(row), obj.GetCls().GetMeasure()
 					);
 				icoHolder = wxArtProvider::GetIcon(wxART_REDO, wxART_TOOLBAR);
 				ico = &icoHolder;
@@ -100,10 +103,10 @@ public:
 						,p->GetProp().GetTitle(), p->GetValue());
 				}
 				
-				str = wxString::Format("%s:\n%sМестонахождение: %s"
+				str = wxString::Format("%s    %s\n%s"
 					, act.GetTitle()
+					, mTD->GetPath(row).AsString()
 					, prop_str
-					, obj.GetPath().AsString()
 					);
 				//ico = &ResMgr::GetInstance()->m_ico_act24;
 			}
@@ -191,6 +194,17 @@ ViewHistory::ViewHistory(std::shared_ptr<IViewWindow> parent)
 		//.PaneBorder(false)
 		);
 
+	mViewFilterList = std::make_shared<ViewFilterList>(panel);
+	panel->mAuiMgr.AddPane(mViewFilterList->GetWnd(), wxAuiPaneInfo().
+		Name("ViewFilterListPane").Caption("Фильтры").
+		Left()
+		.PaneBorder(false)
+		.Hide()
+		.CloseButton(false)
+		.MinSize(200,200)
+		);
+
+
 	panel->mAuiMgr.Update();
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_Update, this, wxID_REFRESH);
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_Backward, this, wxID_BACKWARD);
@@ -220,7 +234,7 @@ wxAuiToolBar* ViewHistory::BuildToolBar(wxWindow* parent)
 	tool_bar->AddTool(wxID_BACKWARD, "Назад", wxArtProvider::GetIcon(wxART_GO_BACK, wxART_TOOLBAR));
 	tool_bar->AddControl(mPageLabel, "Показаны строки");
 	tool_bar->AddTool(wxID_FORWARD, "Вперёд", wxArtProvider::GetIcon(wxART_GO_FORWARD, wxART_TOOLBAR));
-	tool_bar->AddTool(wxID_SETUP, "Фильтр", mgr->m_ico_filter24);
+	tool_bar->AddTool(wxID_SETUP, "Фильтры", mgr->m_ico_filter24);
 	tool_bar->AddTool(wxID_SETUP, "Настройки", wxArtProvider::GetIcon(wxART_HELP_PAGE, wxART_TOOLBAR));
 
 
@@ -335,12 +349,39 @@ void ViewHistory::OnCmd_Forward(wxCommandEvent& evt)
 
 void ViewHistory::OnCmd_Filter(wxCommandEvent& evt)
 {
-	sigFilter();
-	OnCmd_Update();
+	wxBusyCursor busyCursor;
+	wxWindowUpdateLocker lock(mPanel);
+
+	auto& pane = mAuiMgr->GetPane("ViewFilterListPane");
+	bool show = pane.IsShown();
+
+	sigShowFilterList(!show);
+	//OnCmd_Update();
 }
 //-----------------------------------------------------------------------------
 //IViewWindow virtual 
 void ViewHistory::OnShow()//override 
 {
 	//OnCmd_Update(); 
+}
+//-----------------------------------------------------------------------------
+//virtual 
+std::shared_ptr<IViewFilterList> ViewHistory::GetViewFilterList()const//override 
+{ 
+	return mViewFilterList; 
+}
+//-----------------------------------------------------------------------------
+//virtual 
+void ViewHistory::ShowFilterList(bool show) // override;
+{
+	auto& pane = mAuiMgr->GetPane("ViewFilterListPane");
+	pane.Show(show);
+	mAuiMgr->Update();
+}
+//-----------------------------------------------------------------------------
+//virtual 
+bool ViewHistory::IsShowFilterList()const //override;
+{
+	auto& pane = mAuiMgr->GetPane("ViewFilterListPane");
+	return pane.IsShown();
 }

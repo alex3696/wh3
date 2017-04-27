@@ -1,6 +1,9 @@
 #include "_pch.h"
 #include "CtrlHistory.h"
 
+#include "ViewFilterList.h"
+
+
 using namespace wh;
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -16,8 +19,8 @@ CtrlPageHistory::CtrlPageHistory(const std::shared_ptr<IViewHistory>& view
 		.connect(std::bind(&CtrlPageHistory::PageForward , this));
 	connViewCmd_Backward = mView->sigPageBackward
 		.connect(std::bind(&CtrlPageHistory::PageBackward, this));
-	connViewCmd_Filter = mView->sigFilter
-		.connect(std::bind(&CtrlPageHistory::ShowFilter, this));
+	connViewCmd_UpdateFilters = mView->sigShowFilterList
+		.connect(std::bind(&CtrlPageHistory::ShowFilterList, this, ph::_1));
 
 
 	connModel_LoadedHistoryTable = mModel->GetModelHistory().sigAfterLoad.connect
@@ -60,7 +63,19 @@ void CtrlPageHistory::PageBackward()
 	mModel->PageBackward();
 }
 //---------------------------------------------------------------------------
-void CtrlPageHistory::ShowFilter()
+void CtrlPageHistory::ShowFilterList(bool show)
 {
+	if (show)
+	{
+		if (!mCtrlFilterList)
+		{
+			auto view_fl = mView->GetViewFilterList();//std::make_shared<IViewFilterList>(mView);
+			auto model_fl = mModel->GetModelHistory().GetFilterList();//std::make_shared<ModelFilterList>();
+			mCtrlFilterList = std::make_shared<CtrlFilterList>(view_fl, model_fl);
+		}
+		mCtrlFilterList->UpdateAll();
+	}
+
+	mView->ShowFilterList(show);
 
 }

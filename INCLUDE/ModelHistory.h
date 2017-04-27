@@ -3,6 +3,7 @@
 
 #include "ModelHistoryData.h"
 #include "IModelWindow.h"
+#include "ModelFilterList.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
@@ -157,20 +158,12 @@ class ObjRec: public IObj
 public:
 	wxString		mId;
 	wxString		mTitle;
-	wxString		mQty;
-	StringObjPath	mPath;
-	std::shared_ptr<PropValTable>	mProperties;
-
+	
 	std::shared_ptr<const ClsRec> mCls;
 
 	virtual const ICls&		GetCls()const override		{ return *mCls; }
-	
 	virtual const wxString& GetId()const override		{ return mId; };
 	virtual const wxString& GetTitle()const override	{ return mTitle; };
-	virtual const wxString& GetQty()const override		{ return mQty; };
-
-	virtual const IObjPath& GetPath()const override		{ return mPath; };
-	virtual const PropValTable& GetPropValTable()const override	{ return *mProperties; };
 	
 };
 using ObjTable =
@@ -191,13 +184,19 @@ const static StringObjPath	mEmptyObjPath;
 class LogDetails
 {
 public:
+	StringObjPath					mPath;
+	std::shared_ptr<PropValTable>	mProperties;
+
 	virtual ~LogDetails(){}
 	
 	std::shared_ptr<PropValTable>	mActProperties;
 	wxString mPropLId;
 
+			const PropValTable& GetProperties()const{ return *mProperties; };
+		    const IObjPath&		GetPath()const 		{ return mPath; };
 	virtual const ActRec&		GetActRec()const	{ return mMoveActRec; };
 	virtual const IObjPath&		GetDstPath()const	{ return mEmptyObjPath; };
+	virtual const wxString&		GetQty()const		{ return wxEmptyString2; };
 			const wxString&		GetLId()const 		{ return mPropLId; };
 			const PropValTable& GetActProperties()const{ return *mActProperties; };
 			void SetActProperties(const std::shared_ptr<PropValTable>& act_prop)
@@ -219,7 +218,9 @@ public:
 class LogMovRec : public LogDetails
 {
 public:
-	StringObjPath mDstPath;
+	StringObjPath	mDstPath;
+	wxString		mQty;
+	virtual const wxString& GetQty()const override		{ return mQty; };
 	virtual const IObjPath& GetDstPath()const override	{ return mDstPath; };
 	
 };
@@ -268,10 +269,13 @@ class ModelHistory
 	void LoadPropertyDetails(PropTable& prop_table);
 	void LoadActProp(ActPropTable& act_prop_table);
 	void PrepareProperties();
+
+	std::shared_ptr<ModelFilterList> mModelFilterList = std::make_shared<ModelFilterList>();
 public:
 	ModelHistory();
 
 	void Load();
+	void UpdateFilters();
 	
 	void SetRowsLimit(size_t rpp)
 	{ 
@@ -285,6 +289,11 @@ public:
 		sigRowsOffset(mRowsOffset);
 	}
 	size_t GetRowsOffset()const{ return mRowsOffset; }
+
+	std::shared_ptr<ModelFilterList> GetFilterList()
+	{ 
+		return mModelFilterList; 
+	}
 
 
 	sig::signal<void(const std::shared_ptr<const ModelHistoryTableData>&)>	 sigAfterLoad;
@@ -310,6 +319,8 @@ public:
 	void Update();
 	void PageForward();
 	void PageBackward();
+	void UpdateFilters();
+	
 
 
 	// IModelWindow

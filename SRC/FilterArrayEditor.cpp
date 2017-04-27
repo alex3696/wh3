@@ -87,8 +87,9 @@ void FilterArrayEditor::OnApply(wxCommandEvent& evt)
 			const wh::Field& oldFldData = fld->GetData();
 			auto fldData = fld->GetData();
 
-			//bool ok = GetFilterValue(fldData);
-			if (fldData != oldFldData )
+			//bool ok = 
+			GetFilterValue(fldData);
+			if (fldData != oldFldData)
 				fld->SetData(fldData);
 		}//if (fld)
 	}

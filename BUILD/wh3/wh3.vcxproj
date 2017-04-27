@@ -140,6 +140,7 @@
     <ClCompile Include="..\..\SRC\BtnProperty.cpp" />
     <ClCompile Include="..\..\SRC\config.cpp" />
     <ClCompile Include="..\..\SRC\ConnectionCfgDlg.cpp" />
+    <ClCompile Include="..\..\SRC\CtrlFilterList.cpp" />
     <ClCompile Include="..\..\SRC\CtrlHistory.cpp" />
     <ClCompile Include="..\..\SRC\DActEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsActEditor.cpp" />
@@ -215,6 +216,7 @@
     <ClCompile Include="..\..\SRC\ReportModel.cpp" />
     <ClCompile Include="..\..\SRC\ReportPresenter.cpp" />
     <ClCompile Include="..\..\SRC\ReportView.cpp" />
+    <ClCompile Include="..\..\SRC\ViewFilterList.cpp" />
     <ClCompile Include="..\..\SRC\ViewHistory.cpp" />
     <ClCompile Include="..\..\SRC\ViewMain.cpp" />
     <ClCompile Include="..\..\SRC\VTableCtrl.cpp" />
@@ -270,6 +272,7 @@
     <ClInclude Include="..\..\INCLUDE\BtnProperty.h" />
     <ClInclude Include="..\..\INCLUDE\config.h" />
     <ClInclude Include="..\..\INCLUDE\ConnectionCfgDlg.h" />
+    <ClInclude Include="..\..\INCLUDE\CtrlFilterList.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlHistory.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlMain.h" />
     <ClInclude Include="..\..\INCLUDE\DActEditor.h" />
@@ -281,8 +284,11 @@
     <ClInclude Include="..\..\INCLUDE\DClsPropEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DetailActCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h" />
+    <ClInclude Include="..\..\INCLUDE\IViewFilterList.h" />
+    <ClInclude Include="..\..\INCLUDE\ModelFilterList.h" />
     <ClInclude Include="..\..\INCLUDE\ModelHistory.h" />
     <ClInclude Include="..\..\INCLUDE\ModelHistoryData.h" />
+    <ClInclude Include="..\..\INCLUDE\ViewFilterList.h" />
     <ClInclude Include="..\..\INCLUDE\ViewHistory.h" />
     <ClInclude Include="..\..\INCLUDE\ICtrlWindow.h" />
     <ClInclude Include="..\..\INCLUDE\IViewHistory.h" />

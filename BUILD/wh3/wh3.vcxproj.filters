@@ -178,6 +178,9 @@
     <Filter Include="MainFrame\MVP2\MainFrame\NotebookWindow">
       <UniqueIdentifier>{c38d4098-8a0c-4383-84d3-e1d593ebd6c6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\История3\Filter">
+      <UniqueIdentifier>{dc3c1ce3-84f6-4949-b1fa-18299c828c58}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -506,6 +509,12 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\wxDataViewIconMLTextRenderer.cpp">
       <Filter>MainFrame\MVP2\ContentWindows\История3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\CtrlFilterList.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ViewFilterList.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Filter</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -964,6 +973,18 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\wxDataViewIconMLTextRenderer.h">
       <Filter>MainFrame\MVP2\ContentWindows\История3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\CtrlFilterList.h">
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Filter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ViewFilterList.h">
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Filter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\IViewFilterList.h">
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Filter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ModelFilterList.h">
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Filter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
