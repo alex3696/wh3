@@ -36,10 +36,13 @@ void CtrlFilterList::UpdateAll()
 	mModel->sigUpdate(list);
 	for (size_t i = 0; i < mModel->size(); ++i)
 	{
-		std::shared_ptr<const ModelFilter> null_model;
-		list.emplace_back(std::make_pair(null_model, mModel->at(i)));
+		const std::shared_ptr<const ModelFilter>& new_item = mModel->at(i);
+		std::shared_ptr<const ModelFilter> old_item;
+		NotyfyItem ni = NotyfyItem(old_item, new_item);
+		list.emplace_back(ni);
 	}
-	mModel->sigUpdate(list);
+	if (mModel->size())
+		mModel->sigUpdate(list);
 
 }
 //---------------------------------------------------------------------------

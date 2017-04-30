@@ -155,6 +155,7 @@
     <ClCompile Include="..\..\SRC\MFavViewPropActCommon.cpp" />
     <ClCompile Include="..\..\SRC\MFavViewPropActUsr.cpp" />
     <ClCompile Include="..\..\SRC\MFavViewPropCls.cpp" />
+    <ClCompile Include="..\..\SRC\ModelFilterList.cpp" />
     <ClCompile Include="..\..\SRC\ModelHistory.cpp" />
     <ClCompile Include="..\..\SRC\MoveObjModel.cpp" />
     <ClCompile Include="..\..\SRC\MoveObjPresenter.cpp" />
@@ -236,6 +237,7 @@
     <ClCompile Include="..\..\SRC\CtrlNotebook.cpp" />
     <ClCompile Include="..\..\SRC\ViewNotebook.cpp" />
     <ClCompile Include="..\..\SRC\wxDataViewIconMLTextRenderer.cpp" />
+    <ClCompile Include="..\..\SRC\wxDateTimeProperty.cpp" />
     <ClCompile Include="..\..\SRC\_pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -415,6 +417,7 @@
     <ClInclude Include="..\..\INCLUDE\CtrlWindowBase.h" />
     <ClInclude Include="..\..\INCLUDE\wxComboBtn.h" />
     <ClInclude Include="..\..\INCLUDE\wxDataViewIconMLTextRenderer.h" />
+    <ClInclude Include="..\..\INCLUDE\wxDateTimeProperty.h" />
     <ClInclude Include="..\..\INCLUDE\_pch.h" />
     <ClInclude Include="..\..\INCLUDE\App.h" />
     <ClInclude Include="..\..\INCLUDE\globaldata.h" />

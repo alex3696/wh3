@@ -145,7 +145,18 @@ public:
 ModelHistory::ModelHistory()
 	:mRowsLimit(50), mRowsOffset(0)
 {
+	//std::vector<ModelFilterList::NotyfyItem> ins_vector;
+	//auto new_item = std::make_shared<const ModelFilter>("User", "User", FilterKind::EqOneValue, ftText);
+	//std::shared_ptr<const ModelFilter> old_item;
+	//ins_vector.emplace_back(ModelFilterList::NotyfyItem(old_item, new_item));
+	//mModelFilterList->Update(ins_vector);
 
+
+	mModelFilterList->Insert("Время", "log_dt", FilterKind::EqIntervalValue, ftDateTime);
+	mModelFilterList->Insert("Пользователь", "log_user", FilterKind::EqMultiValue, ftText);
+	mModelFilterList->Insert("Тип", "mcls_title", FilterKind::EqMultiValue, ftText);
+	mModelFilterList->Insert("Объект", "mobj_title", FilterKind::EqMultiValue, ftText);
+	mModelFilterList->Insert("Действие", "act_title", FilterKind::EqMultiValue, ftText);
 }
 //-----------------------------------------------------------------------------
 void ModelHistory::Load()

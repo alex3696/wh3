@@ -516,6 +516,12 @@
     <ClCompile Include="..\..\SRC\ViewFilterList.cpp">
       <Filter>MainFrame\MVP2\ContentWindows\История3\Filter</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\SRC\ModelFilterList.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\wxDateTimeProperty.cpp">
+      <Filter>Controls\PropertyGridExt</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\INCLUDE\_pch.h">
@@ -985,6 +991,9 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ModelFilterList.h">
       <Filter>MainFrame\MVP2\ContentWindows\История3\Filter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\wxDateTimeProperty.h">
+      <Filter>Controls\PropertyGridExt</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
