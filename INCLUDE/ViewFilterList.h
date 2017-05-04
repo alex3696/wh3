@@ -8,9 +8,7 @@ namespace wh{
 //-----------------------------------------------------------------------------
 class ViewFilterList : public IViewFilterList
 {
-	wxPanel*		mPanel;
-	wxAuiManager*   mAuiMgr;
-	wxPropertyGrid* mPG;
+	wxScrolledWindow*	mPanel;
 
 	void Insert(const std::shared_ptr<const ModelFilter>& filter
 		, const std::shared_ptr<const ModelFilter>& before = nullptr);
@@ -18,7 +16,6 @@ class ViewFilterList : public IViewFilterList
 	void Update(const std::shared_ptr<const ModelFilter>& new_filter
 		, const std::shared_ptr<const ModelFilter>& old_filter);
 
-	wxPGProperty* MakePGP(const std::shared_ptr<const ModelFilter>& filter);
 public:
 	using NotyfyItem = ModelFilterList::NotyfyItem;
 
@@ -36,34 +33,6 @@ private:
 };
 //-----------------------------------------------------------------------------
 }//namespace wh{
-
-using whModelFilter = wh::ModelFilter;
-WX_PG_DECLARE_VARIANT_DATA(whModelFilter)
-//-----------------------------------------------------------------------------
-class wxPGPFilterProperty : public wxPGProperty
-{
-	WX_PG_DECLARE_PROPERTY_CLASS(wxPGPFilterProperty)
-public:
-
-	wxPGPFilterProperty(const wxString& label = wxPG_LABEL,
-		const wxString& name = wxPG_LABEL,
-		const whModelFilter& value = whModelFilter());
-	virtual ~wxPGPFilterProperty();
-
-	virtual wxVariant ChildChanged(wxVariant& thisValue,
-		int childIndex, wxVariant& childValue) const;
-	virtual void RefreshChildren();
-
-protected:
-	virtual wxString  ValueToString(wxVariant &  value, int  argFlags = 0)  const;
-
-};
-
-
-
-
-
-
 
 
 #endif // __****_H

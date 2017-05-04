@@ -15,7 +15,7 @@ public:
                         const wxString& value = wxEmptyString,
                         const wxPoint& pos = wxDefaultPosition,
                         const wxSize& size = wxDefaultSize,
-                        long style = 0,
+						long style = 0 | wxTE_PROCESS_ENTER,
                         const wxValidator& validator = wxDefaultValidator,
                         const wxString& name = wxComboBoxNameStr)
         : wxComboCtrl()

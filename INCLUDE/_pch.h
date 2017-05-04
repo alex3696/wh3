@@ -30,6 +30,7 @@
 //#include <wx/listbook.h>
 #include <wx/listctrl.h>
 #include <wx/spinctrl.h>
+#include <wx/collpane.h>
 #include <wx/combo.h> 
 #include <wx/choice.h>
 #include <wx/valgen.h> 
@@ -60,7 +61,8 @@
 static const wxString wxEmptyString2;
 
 //#if wxUSE_DATEPICKCTRL
-    #include <wx/datectrl.h>
+#include <wx/datectrl.h>
+#include <wx/timectrl.h>
 //#endif
 
 /* DatabaseLayer headers */

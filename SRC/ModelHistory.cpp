@@ -152,11 +152,11 @@ ModelHistory::ModelHistory()
 	//mModelFilterList->Update(ins_vector);
 
 
-	mModelFilterList->Insert("Время", "log_dt", FilterKind::EqIntervalValue, ftDateTime);
-	mModelFilterList->Insert("Пользователь", "log_user", FilterKind::EqMultiValue, ftText);
-	mModelFilterList->Insert("Тип", "mcls_title", FilterKind::EqMultiValue, ftText);
-	mModelFilterList->Insert("Объект", "mobj_title", FilterKind::EqMultiValue, ftText);
-	mModelFilterList->Insert("Действие", "act_title", FilterKind::EqMultiValue, ftText);
+	mModelFilterList->Insert("Время", "log_dt", FilterOp::foBetween, ftDateTime);
+	mModelFilterList->Insert("Пользователь", "log_user", FilterOp::foEq, ftText);
+	mModelFilterList->Insert("Тип", "mcls_title", FilterOp::foBetween, ftDouble);
+	mModelFilterList->Insert("Объект", "mobj_title", FilterOp::foEq, ftDateTime);
+	mModelFilterList->Insert("Действие", "act_title", FilterOp::foEq, ftLong);
 }
 //-----------------------------------------------------------------------------
 void ModelHistory::Load()

@@ -1,37 +1,32 @@
 #ifndef __MODEL_FILTER_H
 #define __MODEL_FILTER_H
 
-#include "globaldata.h"
 #include "dbFieldType.h"
+#include "filter_data.h"
+#include "globaldata.h"
+
 #include "IModelWindow.h"
 
 namespace wh{
 
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-enum class FilterKind
-{
-	EqOneValue  = 0 // 
-	,EqMultiValue = 10 // 
-	,EqIntervalValue = 20 // 
-	
-};
+
 //-----------------------------------------------------------------------------
 class ModelFilter
 {
 	wxString	mTitle;
 	wxString	mSysTitle;
-	FilterKind	mKind;
+	FilterOp	mKind;
 	FieldType	mFieldType;
 	std::vector<wxString> mValue;
 
 public:
 	ModelFilter()
-		:mKind(FilterKind::EqMultiValue), mFieldType(ftText)
+		:mKind(FilterOp::foEq), mFieldType(ftText)
 	{
 	}
 	ModelFilter(const wxString& title, const wxString& systitle
-		, FilterKind kind, FieldType field_type)
+		, FilterOp kind, FieldType field_type)
 		:mTitle(title), mSysTitle(systitle), mKind(kind), mFieldType(field_type)
 	{
 	}
@@ -39,7 +34,7 @@ public:
 	const wxString& GetSysTitle()const	{ return mSysTitle; }
 	FieldType		GetFieldType()const	{ return mFieldType; }
 	const wxString& GetTitle()const		{ return mTitle; }
-	FilterKind		GetKind()const		{ return mKind; }
+	FilterOp		GetKind()const		{ return mKind; }
 
 	void SetValue(const std::vector<wxString>& val)	{ mValue = val; }
 	const std::vector<wxString>& GetValueVec()const	{ return mValue; }
@@ -52,6 +47,7 @@ public:
 	wxString AsString()const
 	{
 		wxString ret;
+		/*
 		switch (mKind)
 		{
 		case FilterKind::EqOneValue:
@@ -70,7 +66,7 @@ public:
 		}break;
 		default:break;
 		}
-
+		*/
 		return ret;
 	}//wxString AsString()const
 

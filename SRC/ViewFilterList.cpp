@@ -1,168 +1,260 @@
 #include "_pch.h"
 #include "ViewFilterList.h"
 #include "globaldata.h"
-#include <wx/collpane.h>
-#include "wxDateTimeProperty.h"
 
 
+//ftText = 0,			// =     Like			one multi	// textCtrl
+//ftName = 1,			// =     Like			one multi	// textCtrl
+//ftTextArray = 2,		// ??? = Like 
+//ftLong = 100,			// interval = < >		one multi 	// textCtrl + textCtrl (validator)
+//ftDouble = 101,		// interval = < >		one multi	// textCtrl + textCtrl (validator)
+//ftDateTime = 200,		// interval = < >		one	multi	// dtCtrl + dtCtrl
+//ftDate = 201,			// interval = < >		one	multi	// dCtrl + dCtrl
+//ftTime = 202,			// interval = < >		one	multi	// tCtrl + tCtrl
+//ftLink = 300,			// =     Like 			one multi	// textCtrl
+//ftFile = 400,			// =     Like 			one multi	// textCtrl
+//ftJSON = 500,			// =     Like 			one multi	// textCtrl
+//ftBool = 600			// =					one	???		// chkboxCtrl
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
-WX_PG_IMPLEMENT_VARIANT_DATA_DUMMY_EQ(whModelFilter)
-
-WX_PG_IMPLEMENT_PROPERTY_CLASS(wxPGPFilterProperty, wxPGProperty,
-whModelFilter, const whModelFilter&, TextCtrl)
-
-
-//-----------------------------------------------------------------------------
-wxPGPFilterProperty::wxPGPFilterProperty(const wxString& label,
-					const wxString& name, const whModelFilter& value)
-					//:BtnProperty(label, name)
-	:wxPGProperty(label, name)
+class wxDateTimeCtrl 
+	: public wxPanel
 {
-	//const whModelFilter& parent = whModelFilterRefFromVariant(m_value);
-	//ChangeFlag(wxPG_PROP_READONLY, true);
-	//this->SetEditor("CheckBox");
-
-	const auto kind = value.GetKind();
-	const auto ft = value.GetFieldType();
-
-	if (wh::FilterKind::EqIntervalValue == kind && wh::ftDateTime == ft)
+	wxDatePickerCtrl*	mDateCtrl;
+	wxTimePickerCtrl*	mTimeCtrl;
+public:
+	wxDateTimeCtrl(wxWindow *parent, wxWindowID id = wxID_ANY
+		, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize)
+		:wxPanel(parent, id, pos, size)
 	{
-		whModelFilter val = value;
-		auto vec = val.GetValueVec();
-		vec.resize(2);
-		if (vec[0].IsEmpty())
-			vec[0] = wxDateTime::Now().Format();
-		if (vec[1].IsEmpty())
-			vec[1] = wxDateTime::Now().Format();
-		val.SetValue(vec);
-
-
-		this->SetValue(WXVARIANT(val));
-		//const whModelFilter& data = whModelFilterRefFromVariant(m_value);
-		//wxString format_dt = wxLocale::GetInfo(wxLOCALE_DATE_TIME_FMT);
-		wxDateTime begin_dt, end_dt;
-		begin_dt.ParseDateTime(val.GetValue(0));
-		end_dt.ParseDateTime(val.GetValue(1));
-
-		auto pgp_begin = new wxDateTimeProperty("начало", wxPG_LABEL, begin_dt);
-		auto pgp_end = new wxDateTimeProperty("конец", wxPG_LABEL, end_dt);
-
-		AddPrivateChild(pgp_begin);
-		AddPrivateChild(pgp_end);
-		//this->SetExpanded(true);
-
-	}
-	else
-		this->SetValue(WXVARIANT(value));
-
-
-}
-//-----------------------------------------------------------------------------
-wxPGPFilterProperty::~wxPGPFilterProperty() { }
-//-----------------------------------------------------------------------------
-void wxPGPFilterProperty::RefreshChildren()
-{
-	if (!GetChildCount()) return;
-	if ("whModelFilter" != m_value.GetType())
-		return;
-	const whModelFilter& parent = whModelFilterRefFromVariant(m_value);
-	wxDateTime dt_begin, dt_end;
-	dt_begin.ParseDateTime(parent.GetValue(0));
-	dt_end.ParseDateTime(parent.GetValue(1));
-
-	Item(0)->SetValue(WXVARIANT(dt_begin));
-	Item(1)->SetValue(WXVARIANT(dt_end));
-
-}
-//-----------------------------------------------------------------------------
-wxVariant wxPGPFilterProperty::ChildChanged(wxVariant& thisValue,
-	int childIndex,
-	wxVariant& childValue) const
-{
-	whModelFilter filter;
-	filter << thisValue;
-
-	switch (childIndex)
-	{
-		case 0:
-		{
-			auto var = filter.GetValueVec();
-			var.resize(2);
-			wxDateTime dt = childValue.GetDateTime();
-			wxString format_dt = wxLocale::GetInfo(wxLOCALE_DATE_TIME_FMT);
-
-			if (dt.IsValid())
-				var[0] = childValue.GetDateTime().Format(format_dt);
-			else
-				var[0] = dt.Now().Format(format_dt);
-			
-			filter.SetValue(var);
-		}
-		break;
-		case 1:
-		{
-			auto var = filter.GetValueVec();
-			var.resize(2);
-			wxDateTime dt = childValue.GetDateTime();
-			wxString format_dt = wxLocale::GetInfo(wxLOCALE_DATE_TIME_FMT);
-
-			if (dt.IsValid())
-				var[1] = childValue.GetDateTime().Format(format_dt);
-			else
-				var[1] = dt.Now().Format(format_dt);
-
-			filter.SetValue(var);
-		}
-		break;
+		wxSizer *dtSz = new wxBoxSizer(wxHORIZONTAL);
+		mDateCtrl = new wxDatePickerCtrl(this, wxID_ANY, wxDefaultDateTime
+			, wxDefaultPosition, wxDefaultSize
+			, wxDP_DEFAULT | wxDP_SHOWCENTURY | wxDP_DROPDOWN);
+		
+		mTimeCtrl = new wxTimePickerCtrl(this, wxID_ANY);
+		
+		dtSz->Add(mDateCtrl, 0, wxEXPAND | wxALL, 1);
+		dtSz->Add(mTimeCtrl, 0, wxEXPAND | wxALL, 1);
+		this->SetSizer(dtSz);
+		this->Layout();
 
 	}
 
-	wxVariant newVariant;
-	newVariant << filter;
-	return newVariant;
-
-}
-//-----------------------------------------------------------------------------
-wxString  wxPGPFilterProperty::ValueToString(wxVariant &  value, int  argFlags)  const
-{
-	if ("whModelFilter" == value.GetType())
+	wxDateTime GetDtValue()const
 	{
-		const auto& obj = whModelFilterRefFromVariant(m_value);
-		wxString ret;
-		const std::vector<wxString>& vec = obj.GetValueVec();
-
-		const wxString delim = " - ";
-		for (const auto& v : vec)
+		wxDateTime dt;
+		
+		auto d = mDateCtrl->GetValue();
+		auto t = mTimeCtrl->GetValue();
+		if (d.IsValid() && t.IsValid())
 		{
-			ret << delim << v;
+			dt = mDateCtrl->GetValue().GetDateOnly();
+			dt.SetHour(t.GetHour());
+			dt.SetMinute(t.GetMinute());
+			dt.SetSecond(t.GetSecond());
+			dt.SetMillisecond(t.GetMillisecond());
 		}
-		ret.Replace(delim, wxEmptyString, false);
-		return ret;
+		return dt;
 	}
-	//return "unknown type";
-	return value.GetString();
-}
+	void SetDtValue(const wxDateTime& dt)
+	{
+		if (dt.IsValid())
+		{
+			mDateCtrl->SetValue(dt);
+			mTimeCtrl->SetValue(dt);
+		}
+	}
+	wxString GetValue()const 
+	{
+		wxString vec;
+		wxDateTime dt = GetDtValue();
+		if (dt.IsValid())
+		{
+			//wxString format_dt = wxLocale::GetInfo(wxLOCALE_DATE_TIME_FMT);
+			vec= dt.Format();
+		}
+		return vec;
+	}
+	void SetValue(const wxString& str)
+	{
+		wxDateTime dt;
+		dt.ParseDateTime(str);
+		SetDtValue(dt);
+	}
+	
+
+};
+//-----------------------------------------------------------------------------
+
+class FilterCtrl
+{
+public:
+	FilterCtrl()
+	{}
+
+	virtual std::vector<wxString> GetStrVecValue()const = 0;
+	virtual void SetStrVecValue(const std::vector<wxString>& vec) = 0;
+};
+
+//-----------------------------------------------------------------------------
+
+template < class EDITOR >
+class IntervalCtrl 
+	: public wxPanel
+	, public FilterCtrl
+{
+	EDITOR*	mBeginCtrl;
+	EDITOR*	mEndCtrl;
+public:
+	IntervalCtrl(wxWindow *parent, wxWindowID id = wxID_ANY
+		, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize)
+		:wxPanel(parent, id, pos, size)
+	{
+		mBeginCtrl = new EDITOR(this, wxID_ANY);
+		mEndCtrl = new EDITOR(this, wxID_ANY);
+		auto mBeginLabel = new wxStaticText(this, wxID_ANY,"от");
+		auto mEndLabel = new wxStaticText(this, wxID_ANY, "до");
+
+		
+		wxSizer *SzH1 = new wxBoxSizer(wxHORIZONTAL);
+		SzH1->Add(mBeginLabel, 0, wxALL, 1);
+		SzH1->Add(mBeginCtrl, 1, wxEXPAND | wxALL, 1);
+
+		wxSizer *SzH2 = new wxBoxSizer(wxHORIZONTAL);
+		SzH2->Add(mEndLabel, 0, wxALL, 1);
+		SzH2->Add(mEndCtrl, 1, wxEXPAND | wxALL, 1);
+
+		wxSizer *dtSz = new wxBoxSizer(wxVERTICAL);
+		dtSz->Add(SzH1, 0, wxEXPAND | wxALL, 1);
+		dtSz->Add(SzH2, 0, wxEXPAND | wxALL, 1);
+
+		this->SetSizer(dtSz);
+		this->Layout();
+
+	}
+
+	virtual std::vector<wxString>	GetStrVecValue()const override
+	{
+		std::vector<wxString> vec;
+		vec.emplace_back(mBeginCtrl->GetValue());
+		vec.emplace_back(mEndCtrl->GetValue());
+		return vec;
+	}
+	virtual void SetStrVecValue(const std::vector<wxString>& vec)override
+	{
+		if (2 < vec.size())
+		{
+			mBeginCtrl->SetValue(vec[0]);
+			mEndCtrl->SetValue(vec[1]);
+		}
+	}
+
+};
 
 
+//-----------------------------------------------------------------------------
+template < class EDITOR >
+class ValueCtrl: public wxPanel
+{
+	unsigned int mDelBtnId;
+	std::map<unsigned int, wxSizer*> mCtrl;
+public:
+	ValueCtrl(wxWindow *parent, wxWindowID id = wxID_ANY
+		, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize)
+		:wxPanel(parent, id, pos, size), mDelBtnId(0)
+	{
+		wxSizer *mainSz = new wxBoxSizer(wxVERTICAL);
+		this->SetSizer(mainSz);
+
+		wxSizer *horSz = new wxBoxSizer(wxHORIZONTAL);
+		auto btn_add = new wxBitmapButton(this, wxID_ADD
+			, wxArtProvider::GetBitmap(wxART_PLUS, wxART_BUTTON)
+			, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
+		
+		auto cb_type = new wxChoice(this, wxID_ANY
+			, wxDefaultPosition, wxDefaultSize
+			, wh::AllFilterOpStringArray::GetInstance()->GetStringArray(), 0);
+		cb_type->SetSelection(0);
+
+		//auto ck_enable = new wxCheckBox(this, wxID_ANY, "вкл.");
+		//horSz->Add(ck_enable, 0, wxALL, 0);
+		
+		horSz->Add(cb_type, 0, wxALL, 0);
+		horSz->Add(0, 0, 1, wxEXPAND, 0);
+		horSz->Add(btn_add, 0, wxALL, 0);
+		mainSz->Add(horSz, 0, wxEXPAND | wxALL, 0);
+		this->Layout();
+
+		Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ValueCtrl::OnSelectBtn, this, wxID_ADD);
+		//OnSelectBtn();
+		this->SetAutoLayout(true);
+	}
+
+	
+
+	void OnSelectBtn(wxCommandEvent& evt = wxCommandEvent() )
+	{
+		//wxWindowUpdateLocker(this);
+
+		wxSizer *mainSz = this->GetSizer();
+		wxSizer *paneSz = new wxBoxSizer(wxHORIZONTAL);
+		
+		auto ctrl = new EDITOR(this, wxID_ANY);
+		
+		auto btn_delete = new wxButton(this, mDelBtnId, wxEmptyString
+			, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT | wxBORDER_NONE );
+		btn_delete->SetBitmap(wxArtProvider::GetBitmap(wxART_CROSS_MARK, wxART_BUTTON));
+		btn_delete->SetBitmapHover(wxArtProvider::GetBitmap(wxART_DELETE, wxART_BUTTON));
+
+		paneSz->Add(ctrl, 1, wxEXPAND | wxALL, 2);
+		paneSz->Add(btn_delete, 0, wxALL, 2);
+		
+		//ctrl_panel->Layout();
+		mainSz->Add(paneSz, 1, wxEXPAND | wxALL, 2);
+		mCtrl.emplace(std::make_pair(mDelBtnId, paneSz));
+
+		auto wnd = this->GetParent()->GetParent()->GetParent();
+		wnd->FitInside();
+		//this->Layout();
+
+		Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ValueCtrl::OnDeleteBtn
+			, this, mDelBtnId);
+			//, this, mDelBtnId, -1, paneSz);
+		mDelBtnId++;
+	}
+
+	void OnDeleteBtn(wxCommandEvent& evt = wxCommandEvent())
+	{
+		auto id = evt.GetId();
+		auto ctrlSizer = mCtrl[id];
+		mCtrl.erase(id);
+		ctrlSizer->Clear(true);
+		this->GetSizer()->Remove(ctrlSizer);
+
+		this->GetParent()->InvalidateBestSize();
+		
+		auto scroll_wnd = this->GetParent()->GetParent()->GetParent();
+		scroll_wnd->FitInside();
+
+	}//void OnDeleteBtn(wxCommandEvent& evt = wxCommandEvent())
+
+};
 
 
-
-
-
+//-----------------------------------------------------------------------------
 class wxCollapsibleFilterPane : public wxCollapsiblePane
 {
 public:
-	wxCollapsibleFilterPane(wxWindow *parent, wxWindowID id, const wxString &label
+	wxCollapsibleFilterPane(wxWindow *parent
+		, wxWindowID id = wxID_ANY, const wxString &label=wxEmptyString
 		, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize
 		, long style = wxTAB_TRAVERSAL | wxBORDER_NONE | wxCP_NO_TLW_RESIZE )
 		:wxCollapsiblePane(parent, id, label, pos, size, style)
 	{
 		wxWindow *win = GetPane();
-		wxSizer *paneSz = new wxBoxSizer(wxHORIZONTAL);
-		paneSz->Add(new wxStaticText(win, wxID_ANY, "test!"), 1, wxALL, 2);
-		paneSz->Add(new wxTextCtrl(win, wxID_ANY, "test_ctrl!"), 1, wxALL, 2);
+		wxSizer *paneSz = new wxBoxSizer(wxVERTICAL);
+		//paneSz->Add(new wxStaticText(win, wxID_ANY, "test!"), 1, wxALL, 2);
+		//paneSz->Add(new wxTextCtrl(win, wxID_ANY, "test_ctrl!"), 1, wxEXPAND | wxALL, 2);
 		win->SetSizer(paneSz);
 		paneSz->SetSizeHints(win);
 
@@ -171,27 +263,52 @@ public:
 			this->GetParent()->FitInside();
 			//this->GetParent()->Layout();
 		});
+	}
 
+	void SetFilter(const std::shared_ptr<const wh::ModelFilter>& filter)
+	{
+		SetLabel(filter->GetTitle());
+		SetName(filter->GetSysTitle());
+
+		wxWindow *win = GetPane();
+		wxSizer *paneSz = win->GetSizer();
+
+		auto type = filter->GetFieldType();
+		
+		switch (type)
+		{
+			case wh::ftDateTime:
+				AddCtrl<wxDateTimeCtrl>(filter->GetKind());
+				break;
+			case wh::ftText:
+				AddCtrl<wxComboBtn>(filter->GetKind());
+				break;
+			case wh::ftLong:	
+			case wh::ftDouble:
+				AddCtrl<wxTextCtrl>(filter->GetKind());
+				break;
+
+			default:break;
+		}
+	}
+
+	template <class CTRL_TYPE>
+	void AddCtrl(wh::FilterOp op)
+	{
+		wxWindow *win = GetPane();
+		wxSizer *paneSz = win->GetSizer();
+
+		wxWindow* ctrl = nullptr;
+		if (wh::foBetween == op)
+			ctrl = new ValueCtrl<IntervalCtrl<CTRL_TYPE>>(win);
+		else
+			ctrl = new ValueCtrl<CTRL_TYPE>(win);
+		paneSz->Add(ctrl, 0, wxEXPAND | wxALL, 2);
 
 	}
 
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//-----------------------------------------------------------------------------
 
 
 
@@ -199,91 +316,27 @@ using namespace wh;
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-class wxAuiPanel : public wxPanel
-{
-public:
-	wxAuiPanel(wxWindow* wnd)
-		:wxPanel(wnd)
-	{
-		mAuiMgr.SetManagedWindow(this);
-	}
-	~wxAuiPanel()
-	{
-		mAuiMgr.UnInit();
-	}
-	wxAuiManager	mAuiMgr;
-};
-
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
 ViewFilterList::ViewFilterList(wxWindow* parent)
 {
 	wxSizer *mainSz = new wxBoxSizer(wxVERTICAL);
-	auto panel = new wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxVSCROLL);
-	panel->SetScrollRate(5, 5);
+	mPanel = new wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxVSCROLL);
+	mPanel->SetScrollRate(3, 3);
+	//mPanel->SetBackgroundColour(*wxWHITE);
 
-
-
-	//auto panel = new wxAuiPanel(parent);
-	//mAuiMgr = &panel->mAuiMgr;
-	mPanel = panel;
-
-	panel->SetScrollbar(wxVERTICAL, 0, 10, 1, true);
-
-	
-
-	//auto face_colour = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
-	//auto face_colour = *wxRED;
-	//panel->mAuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, face_colour);
-	//panel->mAuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, face_colour);
-
-
-	for (int i = 0; i < 20; i++)
-	{
-		wxString title = "title ";
-		title << i;
-
-		//auto collpane = new wxPropertyGrid(mPanel);
-		auto collpane = new wxCollapsibleFilterPane(mPanel, wxID_ANY, title);
-		mainSz->Add(collpane, 0, wxEXPAND | wxALL, 5);
-	}
-
-
-	mPG = new wxPropertyGrid(mPanel);
-	//panel->mAuiMgr.AddPane(mPG, wxAuiPaneInfo().
-	//	Name("PropertyGrid").CaptionVisible(false)
-	//	.CenterPane()
-	//	.PaneBorder(false)
-	//	);
-	mainSz->Add(mPG, 0, wxEXPAND | wxALL, 5);
-	mPG->SetWindowStyleFlag(wxPG_SPLITTER_AUTO_CENTER);
-	mPG->CenterSplitter(true);
-	mPG->SetMinSize(wxSize(100, 400));
-
-	//auto pgp_end = new wxDateTimeProperty("ТестВремя", wxPG_LABEL);
-	//mPG->Append(pgp_end);
-
-
-
-	
-	//panel->mAuiMgr.AddPane(collpane, wxAuiPaneInfo().
-	//	Name("CollapsiblePane").CaptionVisible(false)
-	//	.CenterPane()
-	//	.PaneBorder(false)
-	//	.MinSize(200, 200)
-	//	);
-
+	//for (int i = 0; i < 20; i++)
+	//{
+	//	wxString title = "title ";
+	//	title << i;
+	//	auto collpane = new wxCollapsibleFilterPane(mPanel, wxID_ANY, title);
+	//	mainSz->Add(collpane, 0, wxEXPAND | wxALL, 5);
+	//}
 
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewFilterList::OnCmd_Update, this, wxID_REFRESH);
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewFilterList::OnCmd_UpdateAll, this, wxID_SETUP);
-	
 
-	
 	
 	mPanel->SetSizer(mainSz);
 	mPanel->Layout();
-	//mAuiMgr->Update();
 }
 //-----------------------------------------------------------------------------
 ViewFilterList::ViewFilterList(std::shared_ptr<IViewWindow> parent)
@@ -301,6 +354,10 @@ wxWindow* ViewFilterList::GetWnd()const
 //virtual 
 void ViewFilterList::Update(const std::vector<NotyfyItem>& data) //override;
 {
+	if (data.empty())
+		mPanel->GetSizer()->Clear(true);
+
+
 	auto p0 = GetTickCount();
 	for (const auto& item : data)
 	{
@@ -318,15 +375,7 @@ void ViewFilterList::Update(const std::vector<NotyfyItem>& data) //override;
 		}
 		
 	}
-
-
-	//mPG->FitColumns();//		
-	mPG->ExpandAll();
-	
-	//mPG->Layout();
-	//mPG->Refresh();
-	//mAuiMgr->Update();
-
+	mPanel->FitInside();
 	wxLogMessage(wxString::Format("%d \t ViewFilterList : \t Update", GetTickCount() - p0));
 }
 //-----------------------------------------------------------------------------
@@ -355,46 +404,35 @@ void ViewFilterList::OnShow()//override
 void ViewFilterList::Insert(const std::shared_ptr<const ModelFilter>& filter
 	, const std::shared_ptr<const ModelFilter>& before)
 {
-	auto old_pgp = mPG->GetProperty(filter->GetSysTitle());
-	if (old_pgp)
-	{
-		auto new_pgp = MakePGP(filter);
-		mPG->ReplaceProperty(old_pgp, new_pgp);
-	}
-	else
-	{
-		auto new_pgp = MakePGP(filter);
-		mPG->Append(new_pgp);
-	}
+	auto collpane = new wxCollapsibleFilterPane(mPanel);
+	collpane->SetFilter(filter);
+	mPanel->GetSizer()->Add(collpane, 0, wxEXPAND | wxALL, 5);
+
+	
+	collpane->GetPane()->SetBackgroundColour(wxColour(250, 250, 250));
+	//collpane->SetBackgroundColour(*wxRED);
 }
 //-----------------------------------------------------------------------------
 
 void ViewFilterList::Delete(const std::shared_ptr<const ModelFilter>& filter)
 {
-	auto pgp = mPG->GetProperty(filter->GetSysTitle());
-	if (pgp)
-		mPG->DeleteProperty(pgp);
+	auto wnd = mPanel->FindWindowByName(filter->GetSysTitle());
+	if (wnd)
+	{
+		mPanel->GetSizer()->Remove(wnd->GetId());
+	}
 }
 //-----------------------------------------------------------------------------
 
 void ViewFilterList::Update(const std::shared_ptr<const ModelFilter>& new_filter
 	, const std::shared_ptr<const ModelFilter>& old_filter)
 {
-	auto old_pgp = mPG->GetProperty(old_filter->GetSysTitle());
-	if (old_pgp)
+	auto wnd = mPanel->FindWindowByName(new_filter->GetSysTitle());
+	if (wnd)
 	{
-		auto new_pgp = MakePGP(new_filter);
-		mPG->ReplaceProperty(old_pgp, new_pgp);
+		//mPanel->GetSizer()->Remove(wnd->GetId());
 	}
-		
 
 }
 //-----------------------------------------------------------------------------
 
-wxPGProperty* ViewFilterList::MakePGP(const std::shared_ptr<const ModelFilter>& filter)
-{
-	return  new wxPGPFilterProperty(filter->GetTitle()
-		, filter->GetSysTitle()
-		, *filter);
-
-}

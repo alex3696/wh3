@@ -3,6 +3,7 @@
 
 #include "dbFieldType.h"
 #include "field_data.h"
+#include "db_rec.h"
 
 namespace wh{
 

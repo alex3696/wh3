@@ -201,7 +201,7 @@ ViewHistory::ViewHistory(std::shared_ptr<IViewWindow> parent)
 		.PaneBorder(false)
 		.Hide()
 		.CloseButton(false)
-		.MinSize(300,200)
+		.MinSize(260,300)
 		);
 
 
