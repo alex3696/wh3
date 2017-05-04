@@ -150,162 +150,153 @@ public:
 	}
 
 };
-
-
 //-----------------------------------------------------------------------------
-template < class EDITOR >
-class ValueCtrl: public wxPanel
+class wxCollapsibleFilterPane : public wxCollapsiblePane
 {
 	unsigned int mDelBtnId;
 	std::map<unsigned int, wxSizer*> mCtrl;
-public:
-	ValueCtrl(wxWindow *parent, wxWindowID id = wxID_ANY
-		, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize)
-		:wxPanel(parent, id, pos, size), mDelBtnId(0)
+	std::shared_ptr<const wh::ModelFilter> mFilter;
+
+	wxWindow* MkCtrl()const
 	{
+		auto type = mFilter->GetFieldType();
+
+		switch (type)
+		{
+		case wh::ftText:
+		case wh::ftName:
+		case wh::ftLink:
+		case wh::ftFile:
+			return AddCtrl<wxComboBtn>();
+			break;
+		case wh::ftLong:
+		case wh::ftDouble:
+			return AddCtrl<wxTextCtrl>();
+			break;
+		case wh::ftDateTime:	
+			return  AddCtrl<wxDateTimeCtrl>();	
+			break;
+			//case wh::ftDate:	AddCtrl<wxDatePickerCtrl>(filter->GetKind()); break;
+			//case wh::ftTime:	AddCtrl<wxTimePickerCtrl>(filter->GetKind()); break;
+		default:break;
+		}//switch
+		return nullptr;
+	}
+
+	template <class EDITOR>
+	wxWindow* AddCtrl()const
+	{
+		wh::FilterOp op = mFilter->GetKind();
+		wxWindow* win = GetPane();
+
+		wxWindow* ctrl = nullptr;
+		if (wh::foBetween == op)
+			ctrl = new IntervalCtrl<EDITOR> (win, wxID_ANY);
+		else
+			ctrl = new EDITOR(win, wxID_ANY);
+		
+		return ctrl;
+
+	}
+
+	void OnAddValueEditor(wxCommandEvent& evt = wxCommandEvent())
+	{
+		auto win = GetPane();
+		wxWindowUpdateLocker lock(win);
+		wxSizer *mainSz = win->GetSizer();
+		wxSizer *paneSz = new wxBoxSizer(wxHORIZONTAL);
+
+		auto ctrl = MkCtrl();
+
+		auto btn_delete = new wxButton(win, mDelBtnId, wxEmptyString
+			, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT | wxBORDER_NONE);
+		btn_delete->SetBitmap(wxArtProvider::GetBitmap(wxART_CROSS_MARK, wxART_BUTTON));
+		btn_delete->SetBitmapHover(wxArtProvider::GetBitmap(wxART_DELETE, wxART_BUTTON));
+
+		paneSz->Add(ctrl, 1, wxEXPAND | wxALL, 2);
+		paneSz->Add(btn_delete, 0, wxALL, 2);
+
+		mainSz->Add(paneSz, 1, wxEXPAND | wxALL, 2);
+		mCtrl.emplace(std::make_pair(mDelBtnId, paneSz));
+
+		auto scrolled_wnd = this->GetParent();
+		scrolled_wnd->FitInside();
+
+		Bind(wxEVT_COMMAND_BUTTON_CLICKED, &wxCollapsibleFilterPane::OnDeleteBtn
+			, this, mDelBtnId);
+		mDelBtnId++;
+	}
+
+	void OnDeleteBtn(wxCommandEvent& evt = wxCommandEvent())
+	{
+		auto win = GetPane();
+		wxWindowUpdateLocker lock(win);
+
+		auto id = evt.GetId();
+		auto ctrlSizer = mCtrl[id];
+		mCtrl.erase(id);
+		ctrlSizer->Clear(true);
+		
+		win->GetSizer()->Remove(ctrlSizer);
+		win->InvalidateBestSize();
+
+		auto scrolled_wnd = this->GetParent();
+		scrolled_wnd->FitInside();
+
+	}//void OnDeleteBtn(wxCommandEvent& evt = wxCommandEvent())
+
+public:
+	wxCollapsibleFilterPane(wxWindow *parent
+		, wxWindowID id = wxID_ANY, const wxString &label = wxEmptyString
+		, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize
+		, long style = wxTAB_TRAVERSAL | wxBORDER_NONE | wxCP_NO_TLW_RESIZE)
+		:wxCollapsiblePane(parent, id, label, pos, size, style)
+		, mDelBtnId(0)
+	{
+		wxWindow *win = GetPane();
 		wxSizer *mainSz = new wxBoxSizer(wxVERTICAL);
-		this->SetSizer(mainSz);
 
 		wxSizer *horSz = new wxBoxSizer(wxHORIZONTAL);
-		auto btn_add = new wxBitmapButton(this, wxID_ADD
+		auto btn_add = new wxBitmapButton(win, wxID_ADD
 			, wxArtProvider::GetBitmap(wxART_PLUS, wxART_BUTTON)
 			, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
-		
-		auto cb_type = new wxChoice(this, wxID_ANY
+
+		auto cb_type = new wxChoice(win, wxID_ANY
 			, wxDefaultPosition, wxDefaultSize
 			, wh::AllFilterOpStringArray::GetInstance()->GetStringArray(), 0);
 		cb_type->SetSelection(0);
 
 		//auto ck_enable = new wxCheckBox(this, wxID_ANY, "вкл.");
 		//horSz->Add(ck_enable, 0, wxALL, 0);
-		
+
 		horSz->Add(cb_type, 0, wxALL, 0);
 		horSz->Add(0, 0, 1, wxEXPAND, 0);
 		horSz->Add(btn_add, 0, wxALL, 0);
 		mainSz->Add(horSz, 0, wxEXPAND | wxALL, 0);
+
+		win->SetSizer(mainSz);
+		mainSz->SetSizeHints(win);
 		this->Layout();
-
-		Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ValueCtrl::OnSelectBtn, this, wxID_ADD);
-		//OnSelectBtn();
 		this->SetAutoLayout(true);
-	}
 
-	
-
-	void OnSelectBtn(wxCommandEvent& evt = wxCommandEvent() )
-	{
-		//wxWindowUpdateLocker(this);
-
-		wxSizer *mainSz = this->GetSizer();
-		wxSizer *paneSz = new wxBoxSizer(wxHORIZONTAL);
-		
-		auto ctrl = new EDITOR(this, wxID_ANY);
-		
-		auto btn_delete = new wxButton(this, mDelBtnId, wxEmptyString
-			, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT | wxBORDER_NONE );
-		btn_delete->SetBitmap(wxArtProvider::GetBitmap(wxART_CROSS_MARK, wxART_BUTTON));
-		btn_delete->SetBitmapHover(wxArtProvider::GetBitmap(wxART_DELETE, wxART_BUTTON));
-
-		paneSz->Add(ctrl, 1, wxEXPAND | wxALL, 2);
-		paneSz->Add(btn_delete, 0, wxALL, 2);
-		
-		//ctrl_panel->Layout();
-		mainSz->Add(paneSz, 1, wxEXPAND | wxALL, 2);
-		mCtrl.emplace(std::make_pair(mDelBtnId, paneSz));
-
-		auto wnd = this->GetParent()->GetParent()->GetParent();
-		wnd->FitInside();
-		//this->Layout();
-
-		Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ValueCtrl::OnDeleteBtn
-			, this, mDelBtnId);
-			//, this, mDelBtnId, -1, paneSz);
-		mDelBtnId++;
-	}
-
-	void OnDeleteBtn(wxCommandEvent& evt = wxCommandEvent())
-	{
-		auto id = evt.GetId();
-		auto ctrlSizer = mCtrl[id];
-		mCtrl.erase(id);
-		ctrlSizer->Clear(true);
-		this->GetSizer()->Remove(ctrlSizer);
-
-		this->GetParent()->InvalidateBestSize();
-		
-		auto scroll_wnd = this->GetParent()->GetParent()->GetParent();
-		scroll_wnd->FitInside();
-
-	}//void OnDeleteBtn(wxCommandEvent& evt = wxCommandEvent())
-
-};
-
-
-//-----------------------------------------------------------------------------
-class wxCollapsibleFilterPane : public wxCollapsiblePane
-{
-public:
-	wxCollapsibleFilterPane(wxWindow *parent
-		, wxWindowID id = wxID_ANY, const wxString &label=wxEmptyString
-		, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize
-		, long style = wxTAB_TRAVERSAL | wxBORDER_NONE | wxCP_NO_TLW_RESIZE )
-		:wxCollapsiblePane(parent, id, label, pos, size, style)
-	{
-		wxWindow *win = GetPane();
-		wxSizer *paneSz = new wxBoxSizer(wxVERTICAL);
-		//paneSz->Add(new wxStaticText(win, wxID_ANY, "test!"), 1, wxALL, 2);
-		//paneSz->Add(new wxTextCtrl(win, wxID_ANY, "test_ctrl!"), 1, wxEXPAND | wxALL, 2);
-		win->SetSizer(paneSz);
-		paneSz->SetSizeHints(win);
+		Bind(wxEVT_COMMAND_BUTTON_CLICKED, &wxCollapsibleFilterPane::OnAddValueEditor
+			, this, wxID_ADD);
 
 		Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, [this](wxCollapsiblePaneEvent& evt)
 		{
-			this->GetParent()->FitInside();
-			//this->GetParent()->Layout();
+			this->GetParent()->FitInside();	//this->GetParent()->Layout();
 		});
 	}
 
 	void SetFilter(const std::shared_ptr<const wh::ModelFilter>& filter)
 	{
+		mFilter = filter;
 		SetLabel(filter->GetTitle());
 		SetName(filter->GetSysTitle());
-
-		wxWindow *win = GetPane();
-		wxSizer *paneSz = win->GetSizer();
-
-		auto type = filter->GetFieldType();
-		
-		switch (type)
-		{
-			case wh::ftDateTime:
-				AddCtrl<wxDateTimeCtrl>(filter->GetKind());
-				break;
-			case wh::ftText:
-				AddCtrl<wxComboBtn>(filter->GetKind());
-				break;
-			case wh::ftLong:	
-			case wh::ftDouble:
-				AddCtrl<wxTextCtrl>(filter->GetKind());
-				break;
-
-			default:break;
-		}
+		//wxWindow *win = GetPane();
+		//wxSizer *paneSz = win->GetSizer();
 	}
 
-	template <class CTRL_TYPE>
-	void AddCtrl(wh::FilterOp op)
-	{
-		wxWindow *win = GetPane();
-		wxSizer *paneSz = win->GetSizer();
-
-		wxWindow* ctrl = nullptr;
-		if (wh::foBetween == op)
-			ctrl = new ValueCtrl<IntervalCtrl<CTRL_TYPE>>(win);
-		else
-			ctrl = new ValueCtrl<CTRL_TYPE>(win);
-		paneSz->Add(ctrl, 0, wxEXPAND | wxALL, 2);
-
-	}
 
 };
 //-----------------------------------------------------------------------------
