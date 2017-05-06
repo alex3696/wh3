@@ -157,6 +157,9 @@ ModelHistory::ModelHistory()
 	mModelFilterList->Insert("Тип", "mcls_title", FilterOp::foBetween, ftDouble);
 	mModelFilterList->Insert("Объект", "mobj_title", FilterOp::foEq, ftDateTime);
 	mModelFilterList->Insert("Действие", "act_title", FilterOp::foEq, ftLong);
+
+	connApply = mModelFilterList->sigApply
+		.connect(std::bind(&ModelHistory::OnFilterApply, this));
 }
 //-----------------------------------------------------------------------------
 void ModelHistory::Load()
@@ -301,6 +304,11 @@ void ModelHistory::Load()
 	
 	auto sigData = std::make_shared<MHTDImpl>(mLog);
 	sigAfterLoad(sigData);
+}
+//---------------------------------------------------------------------------
+void ModelHistory::OnFilterApply()
+{
+	mModelFilterList->GetSqlString();
 }
 //---------------------------------------------------------------------------
 void ModelHistory::LoadPropertyDetails(PropTable& prop_table)

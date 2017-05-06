@@ -33,8 +33,10 @@ public:
 
 	const wxString& GetSysTitle()const	{ return mSysTitle; }
 	FieldType		GetFieldType()const	{ return mFieldType; }
+	void SetFieldType(const FieldType ft)	{ mFieldType=ft; }
 	const wxString& GetTitle()const		{ return mTitle; }
-	FilterOp		GetKind()const		{ return mKind; }
+	FilterOp		GetOperation()const		{ return mKind; }
+	void SetOperation(const FilterOp fo)	{ mKind = fo; }
 
 	void SetValue(const std::vector<wxString>& val)	{ mValue = val; }
 	const std::vector<wxString>& GetValueVec()const	{ return mValue; }
@@ -70,6 +72,20 @@ public:
 		return ret;
 	}//wxString AsString()const
 
+	bool operator==(const ModelFilter& la)const
+	{
+		return (la.mTitle == mTitle
+			&& la.mSysTitle == mSysTitle
+			&& la.mKind == mKind
+			&& la.mFieldType == mFieldType
+			&& la.mValue == mValue
+			);
+	}
+
+	bool operator!=(const ModelFilter& la)const
+	{
+		return !operator==(la);
+	}
 };
 //-----------------------------------------------------------------------------
 
@@ -85,6 +101,15 @@ class ModelFilterList : public IModelWindow
 		}
 	};
 
+	struct extr_sys_name
+	{
+		typedef const wxString& result_type;
+		inline result_type operator()(const std::shared_ptr<const ModelFilter>& r)const
+		{
+			return r->GetSysTitle();
+		}
+	};
+
 	using FilterList =
 	boost::multi_index_container
 	<
@@ -92,7 +117,8 @@ class ModelFilterList : public IModelWindow
 		indexed_by
 		<
 			random_access<> //order
-			,ordered_unique< extr_ptr >
+			, ordered_unique< extr_ptr >
+			, ordered_unique< extr_sys_name >
 		>
 	>;
 
@@ -101,26 +127,31 @@ class ModelFilterList : public IModelWindow
 public:
 	ModelFilterList();
 
-	virtual size_t size()const { return mList.size(); }
-	virtual const std::shared_ptr<const ModelFilter>& at(size_t pos)const
+	size_t size()const { return mList.size(); }
+	const std::shared_ptr<const ModelFilter>& at(size_t pos)const
 	{
 		//const std::shared_ptr<const ModelFilter> tmp = mList.at(pos);
 		return mList.at(pos);
 	}
 	
-	virtual void Clear()
+	void Clear()
 	{
 		mList.clear();
 	}
 
-	typedef std::pair<const std::shared_ptr<const ModelFilter>&
-		, const std::shared_ptr<const ModelFilter>& > NotyfyItem;
+	typedef std::pair<std::shared_ptr<const ModelFilter>
+		, std::shared_ptr<const ModelFilter> > NotyfyItem;
 	// pair(old,new) - update
 	// pair(null,new) - insert
 	// pair(old,null) - delete
 
-	virtual void Update(const std::vector<NotyfyItem>& data);
-	
+	void Update(const std::vector<NotyfyItem>& data);
+
+	void UpdateFilter(const wxString& title, const wxString& sys_title
+		, FilterOp op, FieldType type
+		, const std::vector<wxString>& val);
+	void Apply();
+
 	template<typename ...Types>
 	void Insert(Types... args)
 	{
@@ -130,8 +161,11 @@ public:
 		ins.emplace_back(NotyfyItem(old_item, new_item));
 		Update(ins);
 	}
+
+	wxString GetSqlString()const;
 	
 	sig::signal<void(const std::vector<NotyfyItem>&)>	sigUpdate;
+	sig::signal<void()>	sigApply;
 
 
 

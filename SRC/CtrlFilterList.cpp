@@ -15,11 +15,20 @@ CtrlFilterList::CtrlFilterList(const std::shared_ptr<IViewFilterList>& view
 	connViewCmd_Update = mView->sigUpdateAll
 		.connect(std::bind(&CtrlFilterList::UpdateAll, this));
 
+	connViewCmd_Apply = mView->sigApply
+		.connect(std::bind(&CtrlFilterList::Apply, this));
+
+	connViewCmd_Apply = mView->sigUpdateFilter
+		.connect(std::bind(&CtrlFilterList::UpdateFilter, this
+		, ph::_1, ph::_2, ph::_3, ph::_4, ph::_5));
+
+
 	connModel_Update = mModel->sigUpdate.connect
 		([this](const std::vector<NotyfyItem>& data)
 	{
 		mView->Update(data);
 	});
+
 
 
 }
@@ -46,3 +55,14 @@ void CtrlFilterList::UpdateAll()
 
 }
 //---------------------------------------------------------------------------
+void CtrlFilterList::UpdateFilter(const wxString& title, const wxString& sys_title
+	, FilterOp op, FieldType type
+	, const std::vector<wxString>& val)
+{
+	mModel->UpdateFilter(title, sys_title, op, type, val);
+}
+//---------------------------------------------------------------------------
+void CtrlFilterList::Apply()
+{
+	mModel->Apply();
+}

@@ -266,11 +266,14 @@ class ModelHistory
 	LogTable		mLog;
 	ActPropTable	mActProp;
 
+	std::shared_ptr<ModelFilterList> mModelFilterList = std::make_shared<ModelFilterList>();
+	sig::scoped_connection connApply;
+	void OnFilterApply();
+
 	void LoadPropertyDetails(PropTable& prop_table);
 	void LoadActProp(ActPropTable& act_prop_table);
 	void PrepareProperties();
-
-	std::shared_ptr<ModelFilterList> mModelFilterList = std::make_shared<ModelFilterList>();
+	
 public:
 	ModelHistory();
 
