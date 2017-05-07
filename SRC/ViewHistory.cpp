@@ -272,14 +272,14 @@ wxDataViewCtrl* ViewHistory::BuildTable(wxWindow* parent)
 	auto renderer3 = new wxDataViewIconMLTextRenderer();
 	renderer3->SetAlignment(wxALIGN_TOP);
 
-	auto col1 = new wxDataViewColumn("Время Пользователь"
+	auto col1 = new wxDataViewColumn("Время/Пользователь"
 		, renderer1, 1, -1, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
 	col1->SetBitmap(ResMgr::GetInstance()->m_ico_sort_asc16);
 	table->AppendColumn(col1);
-	auto col2 = new wxDataViewColumn("Тип Объект"
+	auto col2 = new wxDataViewColumn("Тип/Объект"
 		, renderer2, 2, -1, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
 	table->AppendColumn(col2);
-	auto col3 = new wxDataViewColumn("Действие Свойства Местоположение"
+	auto col3 = new wxDataViewColumn("Действие/Местоположение/Свойства"
 		, renderer3, 3, -1, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
 	table->AppendColumn(col3);
 	
@@ -403,7 +403,6 @@ std::shared_ptr<IViewFilterList> ViewHistory::GetViewFilterList()const//override
 //virtual 
 void ViewHistory::ShowFilterList(bool show) // override;
 {
-	//mToolbar->ToggleTool(mToolExportToExcel->GetId(), show);
 	mToolExportToExcel->SetSticky(show);
 	auto& pane = mAuiMgr->GetPane("ViewFilterListPane");
 	pane.Show(show);

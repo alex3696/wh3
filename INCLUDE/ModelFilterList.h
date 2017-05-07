@@ -14,6 +14,7 @@ namespace wh{
 //-----------------------------------------------------------------------------
 class ModelFilter
 {
+	bool		mVisible;
 	wxString	mTitle;
 	wxString	mSysTitle;
 	FilterOp	mKind;
@@ -24,6 +25,9 @@ public:
 	ModelFilter();
 	ModelFilter(const wxString& title, const wxString& systitle
 		, FilterOp kind, FieldType field_type);
+	ModelFilter(const wxString& title, const wxString& systitle
+		, FilterOp kind, FieldType field_type, bool visible);
+
 
 	const wxString& GetSysTitle()const	{ return mSysTitle; }
 	FieldType		GetFieldType()const	{ return mFieldType; }
@@ -35,12 +39,9 @@ public:
 	void SetValue(const std::vector<wxString>& val)	{ mValue = val; }
 	const std::vector<wxString>& GetValueVec()const	{ return mValue; }
 	const size_t GetValueVecSize()const	{ return mValue.size(); }
+	bool IsVisible()const		{ return mVisible; }
+	void SetVisible(bool show)	{ mVisible = show; }
 
-	size_t			GetValueQty()const	{ return mValue.size(); }
-	const wxString& GetValue(size_t pos)const
-	{ 
-		return mValue.size()>pos ? mValue[pos] : wxEmptyString2;
-	}
 	wxString AsString()const;
 
 	inline bool operator==(const ModelFilter& la)const
@@ -50,6 +51,7 @@ public:
 			&& la.mKind == mKind
 			&& la.mFieldType == mFieldType
 			&& la.mValue == mValue
+			&& la.mVisible == mVisible
 			);
 	}
 	inline bool operator!=(const ModelFilter& la)const
@@ -123,13 +125,14 @@ public:
 	void Apply();
 
 	template<typename ...Types>
-	void Insert(Types... args)
+	std::shared_ptr<const ModelFilter> Insert(Types... args)
 	{
 		auto new_item = std::make_shared<const ModelFilter>(std::forward<Types>(args)...);
 		std::shared_ptr<const ModelFilter> old_item(nullptr);
 		std::vector<NotyfyItem> ins;
 		ins.emplace_back(NotyfyItem(old_item, new_item));
 		Update(ins);
+		return new_item;
 	}
 
 	wxString GetSqlString()const;

@@ -5,13 +5,19 @@ using namespace wh;
 
 //---------------------------------------------------------------------------
 ModelFilter::ModelFilter()
-	:mKind(FilterOp::foEq), mFieldType(ftText)
+	:mKind(FilterOp::foEq), mFieldType(ftText), mVisible(true)
 {
 }
 //---------------------------------------------------------------------------
 ModelFilter::ModelFilter(const wxString& title, const wxString& systitle
 	, FilterOp kind, FieldType field_type)
-	:mTitle(title), mSysTitle(systitle), mKind(kind), mFieldType(field_type)
+	: mTitle(title), mSysTitle(systitle), mKind(kind), mFieldType(field_type), mVisible(true)
+{
+}
+//---------------------------------------------------------------------------
+ModelFilter::ModelFilter(const wxString& title, const wxString& systitle
+	, FilterOp kind, FieldType field_type, bool show = true)
+	: mTitle(title), mSysTitle(systitle), mKind(kind), mFieldType(field_type), mVisible(show)
 {
 }
 //---------------------------------------------------------------------------

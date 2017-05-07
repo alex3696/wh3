@@ -567,6 +567,8 @@ void ViewFilterList::OnShow()//override
 void ViewFilterList::Insert(const std::shared_ptr<const ModelFilter>& filter
 	, const std::shared_ptr<const ModelFilter>& before)
 {
+	if (!filter->IsVisible())
+		return;
 	auto collpane = new wxCollapsibleFilterPane(mPanel);
 	collpane->SetFilter(filter->GetTitle(), filter->GetSysTitle(),
 		filter->GetOperation(), filter->GetFieldType()
