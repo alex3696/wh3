@@ -34,11 +34,7 @@ void ModelPageHistory::PageBackward()
 		offset = 0;
 	mDataModel.SetRowsOffset(offset);
 }
-//---------------------------------------------------------------------------
-void ModelPageHistory::UpdateFilters()
-{
-	mDataModel.UpdateFilters();
-}
+
 
 //---------------------------------------------------------------------------
 //virtual 
@@ -151,15 +147,18 @@ ModelHistory::ModelHistory()
 	//ins_vector.emplace_back(ModelFilterList::NotyfyItem(old_item, new_item));
 	//mModelFilterList->Update(ins_vector);
 
+	mSort = " log_dt DESC ";
 
 	mModelFilterList->Insert("Время", "log_dt", FilterOp::foBetween, ftDateTime);
-	mModelFilterList->Insert("Пользователь", "log_user", FilterOp::foEq, ftText);
-	mModelFilterList->Insert("Тип", "mcls_title", FilterOp::foBetween, ftDouble);
-	mModelFilterList->Insert("Объект", "mobj_title", FilterOp::foEq, ftDateTime);
-	mModelFilterList->Insert("Действие", "act_title", FilterOp::foEq, ftLong);
+	mModelFilterList->Insert("Пользователь", "log_user", FilterOp::foLike, ftText);
+	mModelFilterList->Insert("Тип", "mcls_title", FilterOp::foLike, ftText);
+	mModelFilterList->Insert("Объект", "mobj_title", FilterOp::foLike, ftText);
+	mModelFilterList->Insert("Действие", "act_title", FilterOp::foLike, ftText);
+	mModelFilterList->Insert("Откуда", "src_path", FilterOp::foLike, ftText);
+	mModelFilterList->Insert("Куда", "dst_path", FilterOp::foLike, ftText);
 
 	connApply = mModelFilterList->sigApply
-		.connect(std::bind(&ModelHistory::OnFilterApply, this));
+		.connect(std::bind(&ModelHistory::SetWhere, this,std::placeholders::_1));
 }
 //-----------------------------------------------------------------------------
 void ModelHistory::Load()
@@ -185,9 +184,14 @@ void ModelHistory::Load()
 		" FROM log "
 		//" WHERE log_dt  > '2017.01.02' "
 		//" WHERE  mobj_title = '259' AND act_id IS NOT NULL "
-		" ORDER BY log_dt DESC "
 		);
 	
+	if (mWhere.size())
+		query += " WHERE "+mWhere;
+
+	if (mSort.size())
+		query += " ORDER BY " + mSort;
+
 	if (mRowsLimit > 0)
 		query += wxString::Format(" LIMIT %d", mRowsLimit);
 
@@ -304,11 +308,6 @@ void ModelHistory::Load()
 	
 	auto sigData = std::make_shared<MHTDImpl>(mLog);
 	sigAfterLoad(sigData);
-}
-//---------------------------------------------------------------------------
-void ModelHistory::OnFilterApply()
-{
-	mModelFilterList->GetSqlString();
 }
 //---------------------------------------------------------------------------
 void ModelHistory::LoadPropertyDetails(PropTable& prop_table)
@@ -434,7 +433,10 @@ void ModelHistory::PrepareProperties()
 
 }
 //---------------------------------------------------------------------------
-void ModelHistory::UpdateFilters()
+void ModelHistory::SetWhere(const wxString& where)
 {
+	mWhere = where;
+	SetRowsOffset(0);
+	Load();
 
 }

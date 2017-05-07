@@ -4,6 +4,93 @@
 using namespace wh;
 
 //---------------------------------------------------------------------------
+ModelFilter::ModelFilter()
+	:mKind(FilterOp::foEq), mFieldType(ftText)
+{
+}
+//---------------------------------------------------------------------------
+ModelFilter::ModelFilter(const wxString& title, const wxString& systitle
+	, FilterOp kind, FieldType field_type)
+	:mTitle(title), mSysTitle(systitle), mKind(kind), mFieldType(field_type)
+{
+}
+//---------------------------------------------------------------------------
+wxString ModelFilter::AsString()const
+{
+	if (!mValue.size())
+		return wxEmptyString;
+
+	wxString ret;
+
+	for (const auto& val : mValue)
+	{
+		switch (mKind)
+		{
+		case foBetween:
+		{
+			wxString begin, end;
+			int pos = val.Find('\t');
+			if (wxNOT_FOUND != pos)
+			{
+				begin = val.SubString(0, pos - 1);
+				end = val.SubString(pos + 1, val.size());
+			}
+			ret += wxString::Format("OR (%s>='%s' AND %s<='%s') "
+				, GetSysTitle()
+				, begin
+				, GetSysTitle()
+				, end
+				);
+		}
+		break;
+
+		case foNotBetween:
+		{
+			wxString begin, end;
+			int pos = val.Find('\t');
+			if (wxNOT_FOUND != pos)
+			{
+				begin = val.SubString(0, pos - 1);
+				end = val.SubString(pos + 1, val.size());
+			}
+			ret += wxString::Format("OR (%s<='%s' AND %s>='%s') "
+				, GetSysTitle()
+				, begin
+				, GetSysTitle()
+				, end
+				);
+		}
+		break;
+
+		case foLike:
+		case foNotLike:
+			ret += wxString::Format("OR %s::TEXT %s'%%%s%%'"
+				, GetSysTitle()
+				, ToSqlString(mKind)
+				, val);
+			break;
+
+		default: 
+			ret += wxString::Format("OR %s%s'%s'"
+				, GetSysTitle()
+				, ToSqlString(mKind)
+				, val);
+			break;
+		}
+		
+
+	}
+	ret.Replace("OR", " (", false);
+	ret += ")";
+
+	return ret;
+}//wxString AsString()const
+
+
+
+
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 ModelFilterList::ModelFilterList()
 {
@@ -84,10 +171,18 @@ void ModelFilterList::UpdateFilter(const wxString& title, const wxString& sys_ti
 //---------------------------------------------------------------------------
 void ModelFilterList::Apply()
 {
-	sigApply();
+	sigApply(GetSqlString());
 }
 //---------------------------------------------------------------------------
 wxString ModelFilterList::GetSqlString()const
 {
-	return wxEmptyString;
+	wxString where;
+	for (const auto& filter : mList)
+	{
+		if (filter->GetValueVecSize())
+			where += " AND " + filter->AsString();
+	}
+	where.Replace("AND", "", false);
+	
+	return where;
 }

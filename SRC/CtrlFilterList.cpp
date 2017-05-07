@@ -18,7 +18,7 @@ CtrlFilterList::CtrlFilterList(const std::shared_ptr<IViewFilterList>& view
 	connViewCmd_Apply = mView->sigApply
 		.connect(std::bind(&CtrlFilterList::Apply, this));
 
-	connViewCmd_Apply = mView->sigUpdateFilter
+	connViewCmd_ViewToModel = mView->sigUpdateFilter
 		.connect(std::bind(&CtrlFilterList::UpdateFilter, this
 		, ph::_1, ph::_2, ph::_3, ph::_4, ph::_5));
 

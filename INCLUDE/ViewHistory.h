@@ -14,6 +14,8 @@ class ViewHistory : public IViewHistory
 	wxDataViewCtrl* mTable;
 	wxAuiToolBar*	mToolbar;
 	wxStaticText*	mPageLabel;
+
+	wxAuiToolBarItem* mToolExportToExcel;
 	std::shared_ptr<IViewFilterList> mViewFilterList;
 public:
 	ViewHistory(std::shared_ptr<IViewWindow> parent);

@@ -268,7 +268,9 @@ class ModelHistory
 
 	std::shared_ptr<ModelFilterList> mModelFilterList = std::make_shared<ModelFilterList>();
 	sig::scoped_connection connApply;
-	void OnFilterApply();
+	wxString mWhere;
+
+	wxString mSort;
 
 	void LoadPropertyDetails(PropTable& prop_table);
 	void LoadActProp(ActPropTable& act_prop_table);
@@ -278,7 +280,7 @@ public:
 	ModelHistory();
 
 	void Load();
-	void UpdateFilters();
+	void SetWhere(const wxString& where);
 	
 	void SetRowsLimit(size_t rpp)
 	{ 
@@ -322,9 +324,6 @@ public:
 	void Update();
 	void PageForward();
 	void PageBackward();
-	void UpdateFilters();
-	
-
 
 	// IModelWindow
 	virtual const wxIcon& GetIcon()const override { return mIco; }

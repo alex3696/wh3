@@ -79,15 +79,16 @@ public:
 		wxDateTime dt = GetDtValue();
 		if (dt.IsValid())
 		{
-			//wxString format_dt = wxLocale::GetInfo(wxLOCALE_DATE_TIME_FMT);
-			vec= dt.Format();
+			wxString format_dt = wxLocale::GetInfo(wxLOCALE_DATE_TIME_FMT);
+			vec = dt.Format(format_dt);
 		}
 		return vec;
 	}
 	void SetValue(const wxString& str)
 	{
 		wxDateTime dt;
-		dt.ParseDateTime(str);
+		wxString format_dt = wxLocale::GetInfo(wxLOCALE_DATE_TIME_FMT);
+		dt.ParseFormat(str, format_dt);
 		SetDtValue(dt);
 	}
 	virtual wxString GetStrValue()const override
@@ -325,7 +326,7 @@ class wxCollapsibleFilterPane
 		{
 			auto id = mCtrl.crbegin()->first;
 			RemoveItemCtrl(id);
-			dif++;
+			dif--;
 		}
 	}
 	
@@ -340,6 +341,16 @@ class wxCollapsibleFilterPane
 
 	}//void OnDeleteBtn(wxCommandEvent& evt = wxCommandEvent())
 
+	void OnCmd_SelectOperation(wxCommandEvent& evt = wxCommandEvent())
+	{
+		int sel = evt.GetSelection();
+		if (mFilterOp != sel)
+		{
+			mFilterOp = (wh::FilterOp)sel;
+			RemoveAllCtrl();
+		}
+			
+	}
 public:
 	wxCollapsibleFilterPane(wxWindow *parent
 		, wxWindowID id = wxID_ANY, const wxString &label = wxEmptyString
@@ -356,7 +367,7 @@ public:
 			, wxArtProvider::GetBitmap(wxART_PLUS, wxART_BUTTON)
 			, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
 
-		mOpCtrl = new wxChoice(win, wxID_ANY
+		mOpCtrl = new wxChoice(win, wxID_PROPERTIES
 			, wxDefaultPosition, wxDefaultSize
 			, wh::AllFilterOpStringArray::GetInstance()->GetStringArray(), 0);
 		mOpCtrl->SetSelection(0);
@@ -381,6 +392,8 @@ public:
 		{
 			this->GetParent()->FitInside();	//this->GetParent()->Layout();
 		});
+
+		Bind(wxEVT_CHOICE, &wxCollapsibleFilterPane::OnCmd_SelectOperation, this, wxID_PROPERTIES);
 	}
 
 	std::vector<wxString>	GetStrVecValue()const
@@ -419,6 +432,7 @@ public:
 		{
 			FilterCtrl* editor = (*it).second.second;
 			editor->SetStrValue(str_val);
+			++it;
 		}
 
 	}
@@ -473,10 +487,10 @@ ViewFilterList::ViewFilterList(wxWindow* parent)
 	mPanel->SetSizer(mainSz);
 	mPanel->Layout();
 
-	mPanel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ViewFilterList::OnCmd_Update, this, wxID_REFRESH);
-	mPanel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ViewFilterList::OnCmd_UpdateAll, this, wxID_SETUP);
+	//mPanel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ViewFilterList::OnCmd_Update, this, wxID_REFRESH);
+	//mPanel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ViewFilterList::OnCmd_UpdateAll, this, wxID_SETUP);
 	mPanel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ViewFilterList::OnCmd_Apply, this, wxID_APPLY);
-
+		
 }
 //-----------------------------------------------------------------------------
 ViewFilterList::ViewFilterList(std::shared_ptr<IViewWindow> parent)
@@ -496,7 +510,11 @@ void ViewFilterList::Update(const std::vector<NotyfyItem>& data) //override;
 {
 	auto p0 = GetTickCount();
 	if (data.empty())
+	{
+		mCtrlList.clear();
 		mFilterSizer->Clear(true);
+	}
+		
 	
 	for (const auto& item : data)
 	{
@@ -535,6 +553,7 @@ void ViewFilterList::OnCmd_Update(wxCommandEvent& evt)
 //-----------------------------------------------------------------------------
 void ViewFilterList::OnCmd_Apply(wxCommandEvent& evt)
 {
+	wxBusyCursor busyCursor;
 	ViewToModel();
 	sigApply();
 }
@@ -555,6 +574,9 @@ void ViewFilterList::Insert(const std::shared_ptr<const ModelFilter>& filter
 	collpane->GetPane()->SetBackgroundColour(wxColour(250, 250, 250));
 	mFilterSizer->Add(collpane, 0, wxEXPAND | wxALL, 5);
 	mCtrlList.emplace_back(collpane);
+
+	if (filter->GetValueVecSize())
+		collpane->Expand();
 	
 }
 //-----------------------------------------------------------------------------

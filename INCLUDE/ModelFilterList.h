@@ -21,15 +21,9 @@ class ModelFilter
 	std::vector<wxString> mValue;
 
 public:
-	ModelFilter()
-		:mKind(FilterOp::foEq), mFieldType(ftText)
-	{
-	}
+	ModelFilter();
 	ModelFilter(const wxString& title, const wxString& systitle
-		, FilterOp kind, FieldType field_type)
-		:mTitle(title), mSysTitle(systitle), mKind(kind), mFieldType(field_type)
-	{
-	}
+		, FilterOp kind, FieldType field_type);
 
 	const wxString& GetSysTitle()const	{ return mSysTitle; }
 	FieldType		GetFieldType()const	{ return mFieldType; }
@@ -40,39 +34,16 @@ public:
 
 	void SetValue(const std::vector<wxString>& val)	{ mValue = val; }
 	const std::vector<wxString>& GetValueVec()const	{ return mValue; }
+	const size_t GetValueVecSize()const	{ return mValue.size(); }
 
 	size_t			GetValueQty()const	{ return mValue.size(); }
 	const wxString& GetValue(size_t pos)const
 	{ 
 		return mValue.size()>pos ? mValue[pos] : wxEmptyString2;
 	}
-	wxString AsString()const
-	{
-		wxString ret;
-		/*
-		switch (mKind)
-		{
-		case FilterKind::EqOneValue:
-			ret = wxString::Format(" %s=%s", GetSysTitle(), mValue[0]);
-			break;
-		case FilterKind::EqMultiValue:
-		{
-			for (const auto& item : mValue)
-				ret += wxString::Format(" OR %s=%s", GetSysTitle(), item);
-			ret.Replace("OR", "", false);
-		}break;
-		case FilterKind::EqIntervalValue:
-		{
-			ret = wxString::Format(" %s BETWEEN %s AND %s"
-				, GetSysTitle(), mValue[0], mValue[1]);
-		}break;
-		default:break;
-		}
-		*/
-		return ret;
-	}//wxString AsString()const
+	wxString AsString()const;
 
-	bool operator==(const ModelFilter& la)const
+	inline bool operator==(const ModelFilter& la)const
 	{
 		return (la.mTitle == mTitle
 			&& la.mSysTitle == mSysTitle
@@ -81,8 +52,7 @@ public:
 			&& la.mValue == mValue
 			);
 	}
-
-	bool operator!=(const ModelFilter& la)const
+	inline bool operator!=(const ModelFilter& la)const
 	{
 		return !operator==(la);
 	}
@@ -165,7 +135,7 @@ public:
 	wxString GetSqlString()const;
 	
 	sig::signal<void(const std::vector<NotyfyItem>&)>	sigUpdate;
-	sig::signal<void()>	sigApply;
+	sig::signal<void(const wxString&)>	sigApply;
 
 
 

@@ -197,11 +197,11 @@ ViewHistory::ViewHistory(std::shared_ptr<IViewWindow> parent)
 	mViewFilterList = std::make_shared<ViewFilterList>(panel);
 	panel->mAuiMgr.AddPane(mViewFilterList->GetWnd(), wxAuiPaneInfo().
 		Name("ViewFilterListPane").Caption("Фильтры").
-		Left()
+		Right()
 		.PaneBorder(false)
 		.Hide()
 		.CloseButton(false)
-		.MinSize(260,300)
+		.MinSize(250,300)
 		);
 
 
@@ -234,8 +234,11 @@ wxAuiToolBar* ViewHistory::BuildToolBar(wxWindow* parent)
 	tool_bar->AddTool(wxID_BACKWARD, "Назад", wxArtProvider::GetIcon(wxART_GO_BACK, wxART_TOOLBAR));
 	tool_bar->AddControl(mPageLabel, "Показаны строки");
 	tool_bar->AddTool(wxID_FORWARD, "Вперёд", wxArtProvider::GetIcon(wxART_GO_FORWARD, wxART_TOOLBAR));
-	tool_bar->AddTool(wxID_SETUP, "Фильтры", mgr->m_ico_filter24);
-	tool_bar->AddTool(wxID_SETUP, "Настройки", wxArtProvider::GetIcon(wxART_HELP_PAGE, wxART_TOOLBAR));
+	tool_bar->AddTool(wxID_SETUP, "Фильтры", mgr->m_ico_filter24,wxEmptyString, wxITEM_CHECK);
+	mToolExportToExcel = tool_bar->AddTool(wxID_CONVERT, "Экспорт в Excel"
+		, mgr->m_ico_export_excel24, "выполнить экспорт в Excel или Calc");
+	mToolExportToExcel->SetHasDropDown(true);
+	//tool_bar->AddTool(wxID_SETUP, "Настройки", wxArtProvider::GetIcon(wxART_HELP_PAGE, wxART_TOOLBAR));
 
 
 
@@ -271,6 +274,7 @@ wxDataViewCtrl* ViewHistory::BuildTable(wxWindow* parent)
 
 	auto col1 = new wxDataViewColumn("Время Пользователь"
 		, renderer1, 1, -1, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
+	col1->SetBitmap(ResMgr::GetInstance()->m_ico_sort_asc16);
 	table->AppendColumn(col1);
 	auto col2 = new wxDataViewColumn("Тип Объект"
 		, renderer2, 2, -1, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
@@ -280,6 +284,31 @@ wxDataViewCtrl* ViewHistory::BuildTable(wxWindow* parent)
 	table->AppendColumn(col3);
 	
 	//table->SetCanFocus(false);
+
+	table->GetTargetWindow()->SetToolTip("ToolTip");
+
+	std::function<void(wxMouseEvent&)> on_move = [table](wxMouseEvent& evt)
+	{
+		wxDataViewColumn* col = nullptr;
+		wxDataViewItem item(nullptr);
+		auto pos = evt.GetPosition();
+		table->HitTest(pos, item, col);
+
+		wxString str;
+		if (col && item.IsOk())
+		{
+			wxVariant var;
+			table->GetModel()->GetValue(var, item, col->GetModelColumn());
+			wxDataViewIconText2 ico_txt;
+			ico_txt << var;
+			str = ico_txt.GetText();
+		}
+		table->GetTargetWindow()->GetToolTip()->SetTip(str);
+	};
+	table->GetTargetWindow()->Bind(wxEVT_MOTION, on_move);
+	table->Bind(wxEVT_MOTION, on_move);
+
+
 
 	return table;
 }
@@ -299,8 +328,8 @@ void ViewHistory::SetHistoryTable(const std::shared_ptr<const ModelHistoryTableD
 	wxLogMessage(wxString::Format("%d \t ViewHistoryTable : \t SetTable", GetTickCount() - p0));
 	p0 = GetTickCount();
 
-	//for (size_t i = 0; i < mTable->GetColumnCount(); i++)
-	//	mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
+	for (size_t i = 0; i < mTable->GetColumnCount(); i++)
+		mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
 	
 	mTable->EnsureVisible(dv->GetItem(0));
 	wxLogMessage(wxString::Format("%d \t ViewHistoryTable : \t SetBestColumnWidth", GetTickCount() - p0));
@@ -374,6 +403,8 @@ std::shared_ptr<IViewFilterList> ViewHistory::GetViewFilterList()const//override
 //virtual 
 void ViewHistory::ShowFilterList(bool show) // override;
 {
+	//mToolbar->ToggleTool(mToolExportToExcel->GetId(), show);
+	mToolExportToExcel->SetSticky(show);
 	auto& pane = mAuiMgr->GetPane("ViewFilterListPane");
 	pane.Show(show);
 	mAuiMgr->Update();
