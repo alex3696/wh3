@@ -226,7 +226,6 @@ wxAuiToolBar* ViewHistory::BuildToolBar(wxWindow* parent)
 
 	auto tool_bar = new wxAuiToolBar(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
 		wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_PLAIN_BACKGROUND | wxAUI_TB_TEXT /*| wxAUI_TB_OVERFLOW*/);
-
 	
 	mPageLabel = new wxStaticText(tool_bar, wxID_ANY, "00000 - 00000", wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
 
@@ -239,14 +238,12 @@ wxAuiToolBar* ViewHistory::BuildToolBar(wxWindow* parent)
 		, mgr->m_ico_export_excel24, "выполнить экспорт в Excel или Calc");
 	mToolExportToExcel->SetHasDropDown(true);
 	//tool_bar->AddTool(wxID_SETUP, "Настройки", wxArtProvider::GetIcon(wxART_HELP_PAGE, wxART_TOOLBAR));
-
-
+	tool_bar->AddTool(wxID_PROPERTIES, "Все свойства"
+		, wxArtProvider::GetIcon(wxART_LIST_VIEW, wxART_TOOLBAR)
+		, "Показать/Скрыть все свойства на выбранной момент времени", wxITEM_CHECK);
 
 	tool_bar->Realize();
-
 	return tool_bar;
-
-
 }
 //-----------------------------------------------------------------------------
 
@@ -277,7 +274,7 @@ wxDataViewCtrl* ViewHistory::BuildTable(wxWindow* parent)
 	col1->SetBitmap(ResMgr::GetInstance()->m_ico_sort_asc16);
 	table->AppendColumn(col1);
 	auto col2 = new wxDataViewColumn("Тип/Объект"
-		, renderer2, 2, -1, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
+		, renderer2, 2, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
 	table->AppendColumn(col2);
 	auto col3 = new wxDataViewColumn("Действие/Местоположение/Свойства"
 		, renderer3, 3, -1, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);

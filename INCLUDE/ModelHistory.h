@@ -46,24 +46,13 @@ public:
 	virtual const wxString& GetKind()const override		{ return mKind; };
 
 };
-using PropTable =
-boost::multi_index_container
-<
-	std::shared_ptr<PropRec>,
-	indexed_by
-	<
-		random_access<> //SQL order
-		, ordered_unique< BOOST_MULTI_INDEX_MEMBER(PropRec, wxString, mId)>
-		
-	>
->;
 //-----------------------------------------------------------------------------
 
 class PropValRec: public IPropVal
 {
 public:
-	std::shared_ptr<PropRec>	mProp;
-	wxString					mVal;
+	std::shared_ptr<IProp>	mProp;
+	wxString				mVal;
 	virtual const IProp&	GetProp()const override		{ return *mProp; };
 	virtual const wxString& GetValue()const override	{ return mVal; };
 
@@ -74,8 +63,8 @@ public:
 class ActPropRec
 {
 public:
-	std::shared_ptr<ActRec> mAct;
-	std::shared_ptr<PropRec> mProp;
+	std::shared_ptr<IAct> mAct;
+	std::shared_ptr<IProp> mProp;
 
 };
 
@@ -84,7 +73,7 @@ struct extr_pid
 	typedef const wxString& result_type;
 	inline result_type operator()(const std::shared_ptr<ActPropRec>& r)const
 	{
-		return r->mProp->mId;
+		return r->mProp->GetId();
 	}
 };
 
@@ -93,7 +82,7 @@ struct extr_aid
 	typedef const wxString& result_type;
 	inline result_type operator()(const std::shared_ptr<ActPropRec>& r)const
 	{
-		return r->mAct->mId;
+		return r->mAct->GetId();
 	}
 };
 
@@ -102,7 +91,7 @@ struct extr_pid_aid_ActPropRec
 	typedef std::pair<const wxString&,const wxString&> result_type;
 	inline result_type operator()(const std::shared_ptr<ActPropRec>& r)const
 	{
-		return std::make_pair(r->mProp->mId, r->mAct->mId);
+		return std::make_pair(r->mProp->GetId(), r->mAct->GetId());
 	}
 };
 

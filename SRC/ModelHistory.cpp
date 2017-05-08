@@ -275,10 +275,10 @@ void ModelHistory::Load()
 					{
 						auto prop_rec = std::make_shared<PropRec>();
 						prop_rec->mId = wxString(pv.first.c_str());
-						prop_rec = *mProp.emplace_back(prop_rec).first;
+						auto iprop_rec = *mProp.emplace_back(prop_rec).first;
 
 						auto propval_rec = std::make_shared<PropValRec>();
-						propval_rec->mProp = prop_rec;
+						propval_rec->mProp = iprop_rec;
 						propval_rec->mVal = pv.second.get_value<std::wstring>();
 
 						propval_table->emplace(propval_rec);
@@ -314,7 +314,7 @@ void ModelHistory::LoadPropertyDetails(PropTable& prop_table)
 {
 	wxString where_prop_id;
 	for (const auto& prop : prop_table)
-		where_prop_id += wxString::Format("OR id=%s ", prop->mId);
+		where_prop_id += wxString::Format("OR id=%s ", prop->GetId());
 
 	where_prop_id.Replace("OR", "WHERE", false);
 
@@ -338,8 +338,17 @@ void ModelHistory::LoadPropertyDetails(PropTable& prop_table)
 		auto it = prop_table.get<1>().find(id);
 		if (it != prop_table.get<1>().end())
 		{
-			table->GetAsString(1, i, (*it)->mTitle);
-			table->GetAsString(2, i, (*it)->mKind);
+			// multiitndex Modifier
+			prop_table.get<1>().modify(it,
+				[table,i](std::shared_ptr<IProp>& e)
+				{
+					auto prop_rec = std::dynamic_pointer_cast<PropRec>(e);
+					table->GetAsString(1, i, prop_rec->mTitle);
+					table->GetAsString(2, i, prop_rec->mKind);
+				});
+			//auto prop_rec = std::dynamic_pointer_cast<PropRec>(*it);
+			//table->GetAsString(1, i, prop_rec->mTitle);
+			//table->GetAsString(2, i, prop_rec->mKind);
 		}//if (it != prop_table.get<1>().end())
 	}//for (unsigned int i = 0; i < rowQty; ++i)
 
@@ -403,7 +412,7 @@ void ModelHistory::PrepareProperties()
 			auto range = mActProp.get<0>().equal_range(aid);
 			while (range.first != range.second)
 			{
-				const wxString pid = (*range.first)->mProp->mId;
+				const wxString& pid = (*range.first)->mProp->GetId();
 				const auto& pid_idx_allprop = log_rec->mDetail->mProperties->get<0>();
 				auto it = pid_idx_allprop.find(pid);
 				if (pid_idx_allprop.end() != it)
@@ -412,21 +421,20 @@ void ModelHistory::PrepareProperties()
 				}
 				++range.first;
 			}
+			
+			//struct title_sorter {
+			//	bool operator() (const std::shared_ptr<IPropVal>& v1
+			//		, const std::shared_ptr<IPropVal>& v2)const
+			//	{
+			//		return v1->GetProp().GetTitle() < v2->GetProp().GetTitle();
+			//	}
+			//} sorter;
+			//auto& title_idx_actprop = log_rec->mDetail->mActProperties->get<1>();
+			//title_idx_actprop.sort(sorter);
 
-			struct title_sorter {
-				bool operator() (const std::shared_ptr<IPropVal>& v1
-					, const std::shared_ptr<IPropVal>& v2)const
-				{
-					return v1->GetProp().GetTitle() < v2->GetProp().GetTitle();
-				}
-			} sorter;
+		}//if (!aid.IsEmpty())
 
-			auto& title_idx_actprop = log_rec->mDetail->mActProperties->get<1>();
-			title_idx_actprop.sort(sorter);
-
-		}
-
-	}
+	}//for (const auto& log_rec : mLog)
 
 
 	wxLogMessage(wxString::Format("%d \t ModelHistory : \t prepare properties", GetTickCount() - p0));

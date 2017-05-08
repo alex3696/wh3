@@ -24,6 +24,34 @@ public:
 	virtual const wxString& GetTitle()const = 0;
 	virtual const wxString& GetKind()const = 0;
 };
+struct extr_pid_IProp
+{
+	typedef const wxString& result_type;
+	inline result_type operator()(const std::shared_ptr<IProp>& r)const
+	{
+		return r->GetId();
+	}
+};
+struct extr_title_IProp
+{
+	typedef const wxString& result_type;
+	inline result_type operator()(const std::shared_ptr<IProp>& r)const
+	{
+		return r->GetTitle();
+	}
+};
+using PropTable =
+boost::multi_index_container
+<
+	std::shared_ptr<IProp>,
+	indexed_by
+	<
+		random_access<> //SQL order
+		, ordered_unique< extr_pid_IProp >
+		//, ordered_unique< extr_title_IProp >
+		
+	>
+>;
 //-----------------------------------------------------------------------------
 class IPropVal
 {
@@ -56,8 +84,8 @@ boost::multi_index_container
 	indexed_by
 	<
 		  ordered_unique< extr_pid_PropValRec >
-		, random_access<> //SQL order
-		//, ordered_unique< extr_ptitle_PropValRec >
+		//, random_access<> //SQL order
+		, ordered_non_unique< extr_ptitle_PropValRec >
 		
 	>
 >;
@@ -88,6 +116,8 @@ public:
 	virtual const wxString& GetId()const = 0;
 	virtual const wxString& GetTitle()const = 0;
 	virtual const wxString& GetColour()const = 0;
+
+	//const PropTable& GetPropList()const = 0;
 };
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
