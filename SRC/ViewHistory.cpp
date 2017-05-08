@@ -3,6 +3,7 @@
 #include "globaldata.h"
 #include "wxDataViewIconMLTextRenderer.h"
 #include "ViewFilterList.h"
+#include "ViewObjPropList.h"
 
 using namespace wh;
 //-----------------------------------------------------------------------------
@@ -85,7 +86,8 @@ public:
 			const auto& act = mTD->GetAct(row);
 			if (act.GetId().IsEmpty())
 			{
-				str = wxString::Format("Перемещение :\n%s\n%s\n%s(%s)"
+				str = wxString::Format(
+					"Перемещение :\nприёмник: %s\nисточник:  %s\nколичество: %s(%s)"
 					, mTD->GetDstPath(row).AsString(), mTD->GetPath(row).AsString()
 					, mTD->GetQty(row), obj.GetCls().GetMeasure()
 					);
@@ -138,6 +140,13 @@ public:
 		Reset(rt->size());
 	}
 
+	const wxString& GetLogId(const wxDataViewItem& item)
+	{
+		if (!mTD || !mTD->size() || !item.IsOk())
+			return wxEmptyString2;
+		unsigned int row = this->GetRow(item);
+		return mTD->GetLogId(row);
+	}
 
 };
 //-----------------------------------------------------------------------------
@@ -204,12 +213,27 @@ ViewHistory::ViewHistory(std::shared_ptr<IViewWindow> parent)
 		.MinSize(250,300)
 		);
 
+	mViewObjPropList = std::make_shared<ViewObjPropList>(panel);
+	panel->mAuiMgr.AddPane(mViewObjPropList->GetWnd(), wxAuiPaneInfo().
+		Name("ViewObjPropListPane").Caption("Свойства")
+		.Left()
+		.PaneBorder(false)
+		.Hide()
+		.CloseButton(false)
+		.MinSize(250, 300)
+		);
+
+
 
 	panel->mAuiMgr.Update();
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_Update, this, wxID_REFRESH);
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_Backward, this, wxID_BACKWARD);
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_Forward, this, wxID_FORWARD);
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_Filter, this, wxID_SETUP);
+	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_PropList, this, wxID_PROPERTIES);
+
+	mTable->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, &ViewHistory::OnCmd_SelectHistoryItem
+		, this);
 
 }
 //-----------------------------------------------------------------------------
@@ -256,7 +280,7 @@ wxDataViewCtrl* ViewHistory::BuildTable(wxWindow* parent)
 	dv_model->DecRef();
 
 	int ch = table->GetCharHeight();
-	table->SetRowHeight(ch * 5 + 2);
+	table->SetRowHeight(ch * 4 + 2);
 
 	auto renderer1 = new wxDataViewIconMLTextRenderer();
 	renderer1->SetAlignment(wxALIGN_TOP);
@@ -325,8 +349,8 @@ void ViewHistory::SetHistoryTable(const std::shared_ptr<const ModelHistoryTableD
 	wxLogMessage(wxString::Format("%d \t ViewHistoryTable : \t SetTable", GetTickCount() - p0));
 	p0 = GetTickCount();
 
-	for (size_t i = 0; i < mTable->GetColumnCount(); i++)
-		mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
+	//for (size_t i = 0; i < mTable->GetColumnCount(); i++)
+	//	mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
 	
 	mTable->EnsureVisible(dv->GetItem(0));
 	wxLogMessage(wxString::Format("%d \t ViewHistoryTable : \t SetBestColumnWidth", GetTickCount() - p0));
@@ -385,6 +409,34 @@ void ViewHistory::OnCmd_Filter(wxCommandEvent& evt)
 	//OnCmd_Update();
 }
 //-----------------------------------------------------------------------------
+void ViewHistory::OnCmd_PropList(wxCommandEvent& evt)
+{
+	wxBusyCursor busyCursor;
+	wxWindowUpdateLocker lock(mPanel);
+
+	auto& pane = mAuiMgr->GetPane("ViewObjPropListPane");
+	if (pane.IsOk())
+	{
+		bool show = pane.IsShown();
+		sigShowObjPropList(!show);
+	}
+}
+//-----------------------------------------------------------------------------
+
+void ViewHistory::OnCmd_SelectHistoryItem(wxDataViewEvent& evt)
+{
+	if (!IsShowObjPropList())
+		return;
+	auto dv = dynamic_cast<wxDataViewModelMediator*>(mTable->GetModel());
+	if (!dv)
+		return;
+	const wxString& str_id = dv->GetLogId(evt.GetItem());
+	if (str_id.IsEmpty())
+		return;
+	
+	sigSelectHistoryItem(str_id);
+}
+//-----------------------------------------------------------------------------
 //IViewWindow virtual 
 void ViewHistory::OnShow()//override 
 {
@@ -398,17 +450,63 @@ std::shared_ptr<IViewFilterList> ViewHistory::GetViewFilterList()const//override
 }
 //-----------------------------------------------------------------------------
 //virtual 
+std::shared_ptr<IViewObjPropList> ViewHistory::GetViewObjPropList()const //override;
+{
+	return mViewObjPropList;
+}
+//-----------------------------------------------------------------------------
+//virtual 
 void ViewHistory::ShowFilterList(bool show) // override;
 {
-	mToolExportToExcel->SetSticky(show);
 	auto& pane = mAuiMgr->GetPane("ViewFilterListPane");
-	pane.Show(show);
-	mAuiMgr->Update();
+	if (pane.IsOk())
+	{
+		wxWindowUpdateLocker lock(mPanel);
+		pane.Show(show);
+		mAuiMgr->Update();
+	}
 }
 //-----------------------------------------------------------------------------
 //virtual 
 bool ViewHistory::IsShowFilterList()const //override;
 {
+	bool shown = false;
 	auto& pane = mAuiMgr->GetPane("ViewFilterListPane");
-	return pane.IsShown();
+	if (pane.IsOk())
+		shown = pane.IsShown();
+	return shown;
 }
+//-----------------------------------------------------------------------------
+//virtual 
+void ViewHistory::ShowObjPropList(bool show) // override;
+{
+	auto& pane = mAuiMgr->GetPane("ViewObjPropListPane");
+	if (pane.IsOk())
+	{
+		pane.Show(show);
+		if (show)
+		{
+			wxDataViewEvent evt(wxEVT_DATAVIEW_SELECTION_CHANGED, mTable->GetId());
+
+			//if (!mTable->HasSelection())
+			//	Select(0);
+
+			evt.SetItem(mTable->GetSelection());
+			OnCmd_SelectHistoryItem(evt);
+		}
+		wxWindowUpdateLocker lock(mPanel);
+		mAuiMgr->Update();
+		
+	}
+}
+//-----------------------------------------------------------------------------
+
+bool ViewHistory::IsShowObjPropList()const
+{
+	bool shown = false;
+	auto& pane = mAuiMgr->GetPane("ViewObjPropListPane");
+	if (pane.IsOk())
+		shown = pane.IsShown();
+	return shown;
+}
+

@@ -4,6 +4,7 @@
 #include "ModelHistoryData.h"
 #include "IModelWindow.h"
 #include "ModelFilterList.h"
+#include "ModelObjPropList.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
@@ -261,6 +262,8 @@ class ModelHistory
 
 	wxString mSort;
 
+	std::shared_ptr<ModelObjPropList> mModelObjPropList = std::make_shared<ModelObjPropList>();
+
 	void LoadPropertyDetails(PropTable& prop_table);
 	void LoadActProp(ActPropTable& act_prop_table);
 	void PrepareProperties();
@@ -287,6 +290,11 @@ public:
 	std::shared_ptr<ModelFilterList> GetFilterList()
 	{ 
 		return mModelFilterList; 
+	}
+
+	std::shared_ptr<ModelObjPropList> GetObjPropList()
+	{
+		return mModelObjPropList;
 	}
 
 

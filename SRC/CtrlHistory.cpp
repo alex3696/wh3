@@ -19,8 +19,10 @@ CtrlPageHistory::CtrlPageHistory(const std::shared_ptr<IViewHistory>& view
 		.connect(std::bind(&CtrlPageHistory::PageForward , this));
 	connViewCmd_Backward = mView->sigPageBackward
 		.connect(std::bind(&CtrlPageHistory::PageBackward, this));
-	connViewCmd_UpdateFilters = mView->sigShowFilterList
+	connViewCmd_ShowFilterList = mView->sigShowFilterList
 		.connect(std::bind(&CtrlPageHistory::ShowFilterList, this, ph::_1));
+	connViewCmd_ShowObjPropList = mView->sigShowObjPropList
+		.connect(std::bind(&CtrlPageHistory::ShowObjPropList, this, ph::_1));
 
 
 	connModel_LoadedHistoryTable = mModel->GetModelHistory().sigAfterLoad.connect
@@ -77,5 +79,21 @@ void CtrlPageHistory::ShowFilterList(bool show)
 	}
 
 	mView->ShowFilterList(show);
+
+}
+//---------------------------------------------------------------------------
+void CtrlPageHistory::ShowObjPropList(bool show)
+{
+	if (show)
+	{
+		if (!mCtrlObjPropList)
+		{
+			auto view = mView->GetViewObjPropList();//std::make_shared<IViewFilterList>(mView);
+			auto model = mModel->GetModelHistory().GetObjPropList();//std::make_shared<ModelFilterList>();
+			mCtrlObjPropList = std::make_shared<CtrlObjPropList>(view, model);
+		}
+		mCtrlObjPropList->Update();
+	}
+	mView->ShowObjPropList(show);
 
 }

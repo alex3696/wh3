@@ -4,6 +4,7 @@
 #include "_pch.h"
 #include "IViewHistory.h"
 #include "IViewFilterList.h"
+#include "IViewObjPropList.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
@@ -17,6 +18,7 @@ class ViewHistory : public IViewHistory
 
 	wxAuiToolBarItem* mToolExportToExcel;
 	std::shared_ptr<IViewFilterList> mViewFilterList;
+	std::shared_ptr<IViewObjPropList> mViewObjPropList;
 public:
 	ViewHistory(std::shared_ptr<IViewWindow> parent);
 	virtual wxWindow* GetWnd()const override;
@@ -26,13 +28,18 @@ public:
 	virtual void SetRowsLimit(const size_t& limit) override;
 
 	virtual std::shared_ptr<IViewFilterList> GetViewFilterList()const override;
+	virtual std::shared_ptr<IViewObjPropList> GetViewObjPropList()const override;
 	virtual void ShowFilterList(bool) override;
 	virtual bool IsShowFilterList()const override;
+	virtual void ShowObjPropList(bool) override;
+			bool IsShowObjPropList()const ;
 protected:
 	void OnCmd_Update(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_Backward(wxCommandEvent& evt);
 	void OnCmd_Forward(wxCommandEvent& evt);
 	void OnCmd_Filter(wxCommandEvent& evt);
+	void OnCmd_PropList(wxCommandEvent& evt);
+	void OnCmd_SelectHistoryItem(wxDataViewEvent& evt);
 	
 	virtual void OnShow()override;
 private:
