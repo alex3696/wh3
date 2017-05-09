@@ -48,8 +48,28 @@ static wxString ToSqlString(FilterOp fo)
 	case wh::foMoreEq:	return " >= ";
 	case wh::foLike:	return " ~~* ";
 	case wh::foNotLike: return " !~~* ";
-	case wh::foBetween: return " <= AND >= ";
-	case wh::foNotBetween:return " < AND > ";
+	case wh::foBetween: return " BETWEEN ";
+	case wh::foNotBetween:return " NOT BETWEEN ";
+	default:break;
+	}
+	return wxEmptyString;
+}
+//-------------------------------------------------------------------------
+
+static wxString ToTitle(FilterOp fo)
+{
+	switch (fo)
+	{
+	case wh::foEq:		return " равно ";
+	case wh::foNotEq:	return " не равно ";
+	case wh::foLess:	return " меньше ";
+	case wh::foMore:	return " больше ";
+	case wh::foLessEq:	return " меньше или равно ";
+	case wh::foMoreEq:	return " больше или равно ";
+	case wh::foLike:	return " содержит ";
+	case wh::foNotLike: return " не содержит ";
+	case wh::foBetween: return " в интервале ";
+	case wh::foNotBetween:return " не в интервале ";
 	default:break;
 	}
 	return wxEmptyString;
@@ -74,7 +94,7 @@ class AllFilterOpStringArray
 	AllFilterOpStringArray()
 	{
 		for (const auto item : wh::gAllFilterOpVector)
-			mStringArray.Add(ToSqlString(item));
+			mStringArray.Add(ToTitle(item));
 	}
 public:
 	static AllFilterOpStringArray* GetInstance()

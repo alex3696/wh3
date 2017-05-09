@@ -21,6 +21,17 @@ class ModelFilter
 	FieldType	mFieldType;
 	std::vector<wxString> mValue;
 
+	void BuildEqString(wxString& ret)const;
+	void BuildNotEqString(wxString& ret)const;
+	void BuildLessString(wxString& ret)const;
+	void BuildMoreString(wxString& ret)const;
+	void BuildLessEqString(wxString& ret)const;
+	void BuildMoreEqString(wxString& ret)const;
+	void BuildLikeString(wxString& ret)const;
+	void BuildNotLikeString(wxString& ret)const;
+	void BuildBetweenString(wxString& ret)const;
+	void BuildNotBetweenString(wxString& ret)const;
+
 public:
 	ModelFilter();
 	ModelFilter(const wxString& title, const wxString& systitle

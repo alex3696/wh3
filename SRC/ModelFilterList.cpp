@@ -25,74 +25,149 @@ wxString ModelFilter::AsString()const
 {
 	if (!mValue.size())
 		return wxEmptyString;
-
 	wxString ret;
-
-	for (const auto& val : mValue)
+	switch (mKind)
 	{
-		switch (mKind)
-		{
-		case foBetween:
-		{
-			wxString begin, end;
-			int pos = val.Find('\t');
-			if (wxNOT_FOUND != pos)
-			{
-				begin = val.SubString(0, pos - 1);
-				end = val.SubString(pos + 1, val.size());
-			}
-			ret += wxString::Format("OR (%s>='%s' AND %s<='%s') "
-				, GetSysTitle()
-				, begin
-				, GetSysTitle()
-				, end
-				);
-		}
-		break;
+	case foEq:		BuildEqString(ret); break;
+	case foNotEq:	BuildNotEqString(ret); break;
+	case foLess:	BuildLessString(ret); break;
+	case foMore:	BuildMoreString(ret); break;
+	case foLessEq:	BuildLessEqString(ret); break;
+	case foMoreEq:	BuildMoreEqString(ret); break;
+	case foLike:	BuildLikeString(ret); break;
+	case foNotLike:	BuildNotLikeString(ret); break;
+	case foBetween:	BuildBetweenString(ret); break;
+	case foNotBetween:BuildNotBetweenString(ret); break;
+	break;
+	}//switch (mKind)
+	return ret;
+}//wxString AsString()const
+//---------------------------------------------------------------------------
 
-		case foNotBetween:
-		{
-			wxString begin, end;
-			int pos = val.Find('\t');
-			if (wxNOT_FOUND != pos)
-			{
-				begin = val.SubString(0, pos - 1);
-				end = val.SubString(pos + 1, val.size());
-			}
-			ret += wxString::Format("OR (%s<='%s' AND %s>='%s') "
-				, GetSysTitle()
-				, begin
-				, GetSysTitle()
-				, end
-				);
-		}
-		break;
-
-		case foLike:
-		case foNotLike:
-			ret += wxString::Format("OR %s::TEXT %s'%%%s%%'"
-				, GetSysTitle()
-				, ToSqlString(mKind)
-				, val);
-			break;
-
-		default: 
-			ret += wxString::Format("OR %s%s'%s'"
-				, GetSysTitle()
-				, ToSqlString(mKind)
-				, val);
-			break;
-		}
-		
-
+void ModelFilter::BuildEqString(wxString& ret)const
+{
+	for(const auto& val : mValue)
+	{
+		if (val.IsEmpty())
+			ret += wxString::Format("OR %s IS NULL ", GetSysTitle());
+		ret += wxString::Format("OR %s='%s'", GetSysTitle(), val);
 	}
 	ret.Replace("OR", " (", false);
 	ret += ")";
-
-	return ret;
-}//wxString AsString()const
-
-
+}
+//---------------------------------------------------------------------------
+void ModelFilter::BuildNotEqString(wxString& ret)const
+{
+	for(const auto& val : mValue)
+	{
+		if (val.IsEmpty())
+			ret += wxString::Format("AND (%s IS NOT NULL OR %s<>'')"
+			, GetSysTitle()
+			, GetSysTitle());
+		else
+			ret += wxString::Format("AND %s<>'%s'", GetSysTitle(), val);
+	}
+	ret.Replace("AND", " (", false);
+	ret += ")";
+}
+//---------------------------------------------------------------------------
+void ModelFilter::BuildLessString(wxString& ret)const
+{
+	for(const auto& val : mValue)
+		ret += wxString::Format("OR %s<'%s'", GetSysTitle(), val);
+	ret.Replace("OR", " (", false);
+	ret += ")";
+}
+//---------------------------------------------------------------------------
+void ModelFilter::BuildMoreString(wxString& ret)const
+{
+	for(const auto& val : mValue)
+		ret += wxString::Format("OR %s>'%s'", GetSysTitle(), val);
+	ret.Replace("OR", " (", false);
+	ret += ")";
+}
+//---------------------------------------------------------------------------
+void ModelFilter::BuildLessEqString(wxString& ret)const
+{
+	for(const auto& val : mValue)
+		ret += wxString::Format("OR %s<='%s'", GetSysTitle(), val);
+	ret.Replace("OR", " (", false);
+	ret += ")";
+}
+//---------------------------------------------------------------------------
+void ModelFilter::BuildMoreEqString(wxString& ret)const
+{
+	for(const auto& val : mValue)
+		ret += wxString::Format("OR %s>='%s'", GetSysTitle(), val);
+	ret.Replace("OR", " (", false);
+	ret += ")";
+}
+//---------------------------------------------------------------------------
+void ModelFilter::BuildLikeString(wxString& ret)const
+{
+	for(const auto& val : mValue)
+	{
+		if (val.IsEmpty())
+			ret += wxString::Format("OR %s IS NULL OR %s='' ", GetSysTitle(), GetSysTitle());
+		else
+			ret += wxString::Format("OR %s::TEXT ~~*'%%%s%%'", GetSysTitle(), val);
+	}
+	ret.Replace("OR", " (", false);
+	ret += ")";
+}
+//---------------------------------------------------------------------------
+void ModelFilter::BuildNotLikeString(wxString& ret)const
+{
+	for(const auto& val : mValue)
+	{ 
+		if (val.IsEmpty())
+			ret += wxString::Format("AND (%s IS NOT NULL OT %s<>'')"
+			, GetSysTitle()
+			, GetSysTitle());
+		else
+			ret += wxString::Format("AND %s::TEXT !~~*'%%%s%%'", GetSysTitle(), val);
+	}
+	ret.Replace("AND", " (", false);
+	ret += ")";
+}
+//---------------------------------------------------------------------------
+void ModelFilter::BuildBetweenString(wxString& ret)const
+{
+	for(const auto& val : mValue)
+	{
+		wxString begin, end;
+		int pos = val.Find('\t');
+		if (wxNOT_FOUND != pos)
+		{
+			begin = val.SubString(0, pos - 1);
+			end = val.SubString(pos + 1, val.size());
+			ret += wxString::Format("OR (%s>='%s' AND %s<='%s') "
+				, GetSysTitle(), begin
+				, GetSysTitle(), end );
+		}//if (wxNOT_FOUND != pos)
+	}//for
+	ret.Replace("OR", " (", false);
+	ret += ")";
+}
+//---------------------------------------------------------------------------
+void ModelFilter::BuildNotBetweenString(wxString& ret)const
+{
+	for(const auto& val : mValue)
+	{
+		wxString begin, end;
+		int pos = val.Find('\t');
+		if (wxNOT_FOUND != pos)
+		{
+			begin = val.SubString(0, pos - 1);
+			end = val.SubString(pos + 1, val.size());
+			ret += wxString::Format("AND (%s<='%s' AND %s>='%s') "
+				, GetSysTitle(), begin
+				, GetSysTitle(), end );
+		}//if (wxNOT_FOUND != pos)
+	}//for
+	ret.Replace("AND", " (", false);
+	ret += ")";
+}
 
 
 //---------------------------------------------------------------------------

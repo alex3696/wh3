@@ -179,8 +179,8 @@ boost::multi_index_container
 >;
 
 //-----------------------------------------------------------------------------
-const static ActRec			mMoveActRec;
-const static StringObjPath	mEmptyObjPath;
+const static ActRec			EmptyActRec;
+const static StringObjPath	EmptyObjPath;
 
 class LogDetails
 {
@@ -196,8 +196,8 @@ public:
 			const bool			HasProperties()const{ return (bool)mProperties; };
 			const PropValTable& GetProperties()const{ return *mProperties; };
 		    const IObjPath&		GetPath()const 		{ return mPath; };
-	virtual const ActRec&		GetActRec()const	{ return mMoveActRec; };
-	virtual const IObjPath&		GetDstPath()const	{ return mEmptyObjPath; };
+	virtual const ActRec&		GetActRec()const	{ return EmptyActRec; };
+	virtual const IObjPath&		GetDstPath()const	{ return EmptyObjPath; };
 	virtual const wxString&		GetQty()const		{ return wxEmptyString2; };
 			const wxString&		GetLId()const 		{ return mPropLId; };
 			const PropValTable& GetActProperties()const{ return *mActProperties; };
