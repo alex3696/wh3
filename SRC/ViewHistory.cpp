@@ -26,10 +26,10 @@ public:
 	{
 		if (!mTD || mTD->size() <= row)
 			return false;
-		switch (col)
-		{
-		case 3:
-		{
+		//switch (col)
+		//{
+		//case 3:
+		//{
 			const auto& act = mTD->GetAct(row);
 			wxColour clr(act.GetColour() );
 			if (!act.GetId().IsEmpty() && *wxWHITE != clr)
@@ -37,10 +37,10 @@ public:
 				attr.SetBackgroundColour(clr);
 				return true;
 			}
-			break;
-		}
-		default:break;
-		}
+		//	break;
+		//}
+		//default:break;
+		//}
 		return false;
 	}
 
@@ -210,7 +210,7 @@ ViewHistory::ViewHistory(std::shared_ptr<IViewWindow> parent)
 		.PaneBorder(false)
 		.Hide()
 		.CloseButton(false)
-		.MinSize(250,300)
+		.MinSize(250,200)
 		);
 
 	mViewObjPropList = std::make_shared<ViewObjPropList>(panel);
@@ -220,7 +220,7 @@ ViewHistory::ViewHistory(std::shared_ptr<IViewWindow> parent)
 		.PaneBorder(false)
 		.Hide()
 		.CloseButton(false)
-		.MinSize(250, 300)
+		.MinSize(300, 200)
 		);
 
 
@@ -274,7 +274,7 @@ wxAuiToolBar* ViewHistory::BuildToolBar(wxWindow* parent)
 wxDataViewCtrl* ViewHistory::BuildTable(wxWindow* parent)
 {
 	auto table = new wxDataViewCtrl(mPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize
-		, wxDV_ROW_LINES | wxDV_VERT_RULES | wxDV_HORIZ_RULES);
+		, /*wxDV_ROW_LINES | */ wxDV_VERT_RULES | wxDV_HORIZ_RULES);
 	auto dv_model = new wxDataViewModelMediator();
 	table->AssociateModel(dv_model);
 	dv_model->DecRef();

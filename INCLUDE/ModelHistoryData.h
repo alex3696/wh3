@@ -23,6 +23,11 @@ public:
 	virtual const wxString& GetId()const = 0;
 	virtual const wxString& GetTitle()const = 0;
 	virtual const wxString& GetKind()const = 0;
+
+	FieldType GetType()const
+	{
+		return ToFieldType(GetKind());
+	}
 };
 struct extr_pid_IProp
 {
@@ -117,7 +122,7 @@ public:
 	virtual const wxString& GetTitle()const = 0;
 	virtual const wxString& GetColour()const = 0;
 
-	//const PropTable& GetPropList()const = 0;
+	virtual const PropTable& GetPropList()const = 0;
 };
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

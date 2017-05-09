@@ -14,11 +14,12 @@ public:
 	wxString	mId;
 	wxString	mTitle;
 	wxString	mColour;
+	PropTable	mPropList;
 
 	virtual const wxString& GetId()const override		{ return mId; };
 	virtual const wxString& GetTitle()const override	{ return mTitle; };
 	virtual const wxString& GetColour()const override	{ return mColour; };
-
+	virtual const PropTable& GetPropList()const override{ return mPropList; };
 };
 
 using ActTable =
@@ -37,6 +38,11 @@ boost::multi_index_container
 class PropRec: public IProp
 {
 public:
+	PropRec(){}
+	PropRec(const wxString& id, const wxString& title, const wxString& kind)
+		:mId(id), mTitle(title), mKind(kind)
+	{}
+
 	wxString	mId;
 	wxString	mTitle;
 	wxString	mKind;
@@ -52,6 +58,11 @@ public:
 class PropValRec: public IPropVal
 {
 public:
+	PropValRec(){}
+	PropValRec(const std::shared_ptr<IProp>& prop, const wxString& val)
+		:mProp(prop), mVal(val)
+	{}
+
 	std::shared_ptr<IProp>	mProp;
 	wxString				mVal;
 	virtual const IProp&	GetProp()const override		{ return *mProp; };
@@ -182,6 +193,7 @@ public:
 	std::shared_ptr<PropValTable>	mActProperties;
 	wxString mPropLId;
 
+			const bool			HasProperties()const{ return (bool)mProperties; };
 			const PropValTable& GetProperties()const{ return *mProperties; };
 		    const IObjPath&		GetPath()const 		{ return mPath; };
 	virtual const ActRec&		GetActRec()const	{ return mMoveActRec; };
@@ -273,6 +285,8 @@ public:
 
 	void Load();
 	void SetWhere(const wxString& where);
+
+	void SelectHistoryItem(const wxString&);
 	
 	void SetRowsLimit(size_t rpp)
 	{ 

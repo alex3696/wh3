@@ -16,6 +16,7 @@ class CtrlPageHistory : public CtrlWindowBase<IViewHistory, ModelPageHistory>
 	sig::scoped_connection connViewCmd_Backward;
 	sig::scoped_connection connViewCmd_ShowFilterList;
 	sig::scoped_connection connViewCmd_ShowObjPropList;
+	sig::scoped_connection connViewCmd_SelectHistoryItem;
 
 	sig::scoped_connection connModel_LoadedHistoryTable;
 	sig::scoped_connection connModel_SetRowsOffset;
@@ -32,6 +33,7 @@ public:
 
 	void ShowFilterList(bool show = true);
 	void ShowObjPropList(bool show = true);
+	void SelectHistoryItem(const wxString& str);
 
 };
 //-----------------------------------------------------------------------------

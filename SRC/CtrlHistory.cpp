@@ -23,6 +23,8 @@ CtrlPageHistory::CtrlPageHistory(const std::shared_ptr<IViewHistory>& view
 		.connect(std::bind(&CtrlPageHistory::ShowFilterList, this, ph::_1));
 	connViewCmd_ShowObjPropList = mView->sigShowObjPropList
 		.connect(std::bind(&CtrlPageHistory::ShowObjPropList, this, ph::_1));
+	connViewCmd_SelectHistoryItem = mView->sigSelectHistoryItem
+		.connect(std::bind(&CtrlPageHistory::SelectHistoryItem, this, ph::_1));
 
 
 	connModel_LoadedHistoryTable = mModel->GetModelHistory().sigAfterLoad.connect
@@ -96,4 +98,9 @@ void CtrlPageHistory::ShowObjPropList(bool show)
 	}
 	mView->ShowObjPropList(show);
 
+}
+//---------------------------------------------------------------------------
+void CtrlPageHistory::SelectHistoryItem(const wxString& str)
+{
+	mModel->GetModelHistory().SelectHistoryItem(str);
 }

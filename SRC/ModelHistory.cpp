@@ -393,6 +393,9 @@ void ModelHistory::LoadActProp(ActPropTable& act_prop_table)
 			act_prop->mAct = *aid_it;
 			act_prop->mProp = *pid_it;
 			mActProp.emplace(act_prop);
+
+			auto act_rec = std::dynamic_pointer_cast<ActRec>(*aid_it);
+			act_rec->mPropList.emplace_back(*pid_it);
 		}
 		
 	}//for (unsigned int i = 0; i < rowQty; ++i)
@@ -447,4 +450,39 @@ void ModelHistory::SetWhere(const wxString& where)
 	SetRowsOffset(0);
 	Load();
 
+}
+//---------------------------------------------------------------------------
+void ModelHistory::SelectHistoryItem(const wxString& str_log_id)
+{
+	const auto& logIdIdx = mLog.get<1>();
+	auto it = logIdIdx.find(str_log_id);
+	if (logIdIdx.end() != it)
+	{
+		const auto& detail = (*it)->mDetail;
+		if (detail->HasProperties())
+		{
+			const IAct* act_rec = &detail->GetActRec();
+			mModelObjPropList->sigUpdatePropList(detail->GetProperties(), act_rec);
+		}
+		else
+		{
+			auto src_prop = std::make_shared<PropRec>("-1","Источник","0");
+			auto dst_prop = std::make_shared<PropRec>("-2", "Приёмник", "0");
+			auto qty_prop = std::make_shared<PropRec>("-3", "Количество", "100");
+
+			auto ap = std::make_shared<PropValTable>();
+			auto pvr_src = std::make_shared<PropValRec>(src_prop, detail->GetPath().AsString());
+			auto pvr_dst = std::make_shared<PropValRec>(dst_prop, detail->GetDstPath().AsString());
+			auto pvr_qty = std::make_shared<PropValRec>(qty_prop, detail->GetQty());
+			
+			ap->emplace(pvr_src);
+			ap->emplace(pvr_dst);
+			ap->emplace(pvr_qty);
+
+			mModelObjPropList->sigUpdatePropList(*ap, nullptr);
+		}
+	}
+
+
+	
 }
