@@ -321,7 +321,7 @@ public:
 class ModelPageHistory : public IModelWindow
 {
 	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_history24;
-	const wxString mTitle = "История 3";
+	const wxString mTitle = "Общая история";
 
 	sig::scoped_connection connListItemChange;
 

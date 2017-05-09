@@ -24,6 +24,7 @@ public:
 
 	std::shared_ptr<IViewNotebook> GetViewNotebook()const;
 
+	sig::signal<void()>		sigMkHistoryWindow;
 
 	//sig::signal<void()>	sigUpdateTitle;
 	//sig::signal<void()>	sigClose;

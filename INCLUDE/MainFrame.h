@@ -4,6 +4,32 @@
 #include "globaldata.h"
 #include "TModel.h"
 
+enum GUIID
+{
+	// GUI controls IDs
+	ID_MAINFRAME = 1100,
+
+	// CMD
+	CMD_DB_CONNECT,
+	CMD_DB_DISCONNECT,
+
+	CMD_MAKETYPEWND,
+	CMD_MAKEOBJWND,
+	CMD_MAKEHISTORYWND,
+	CMD_MKPAGE_HISTORY,
+
+	CMD_VIEW_TOOGLE_MAINTOOLBAR,
+
+	CMD_MKTAB_FAVORITES,
+
+	CMD_PNLSHOWGROUP,
+	CMD_PNLSHOWUSER,
+	CMD_PNLSHOWPROP,
+	CMD_PNLSHOWACT,
+
+	CMD_MKPAGE_REPORT
+
+};
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 // MainFrame 
@@ -27,8 +53,8 @@ private:
 
 	void OnCmd_MakePage_ObjByType(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_MakePage_ObjByPath(wxCommandEvent& evt = wxCommandEvent());
-	void OnCmd_MakePage_History(wxCommandEvent& evt = wxCommandEvent());
-	void OnCmd_MkPage_History(wxCommandEvent& evt = wxCommandEvent());
+	//void OnCmd_MakePage_History(wxCommandEvent& evt = wxCommandEvent());
+	//void OnCmd_MkPage_History(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_MakePage_Report(wxCommandEvent& evt = wxCommandEvent());
 
 	void OnCmd_MkTabFaforite(wxCommandEvent& evt = wxCommandEvent());

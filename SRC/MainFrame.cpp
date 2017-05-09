@@ -22,32 +22,7 @@
 
 #include "CtrlNotebook.h"
 //---------------------------------------------------------------------------
-enum GUIID
-{
-	// GUI controls IDs
-	ID_MAINFRAME = 1100,
 
-	// CMD
-	CMD_DB_CONNECT,
-	CMD_DB_DISCONNECT,
-
-	CMD_MAKETYPEWND,
-	CMD_MAKEOBJWND,
-	CMD_MAKEHISTORYWND,
-	CMD_MKPAGE_HISTORY,
-
-	CMD_VIEW_TOOGLE_MAINTOOLBAR,
-
-	CMD_MKTAB_FAVORITES,
-
-	CMD_PNLSHOWGROUP,
-	CMD_PNLSHOWUSER,
-	CMD_PNLSHOWPROP,
-	CMD_PNLSHOWACT,
-
-	CMD_MKPAGE_REPORT
-
-};
 //---------------------------------------------------------------------------
 MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title, 
 						const wxPoint& pos, const wxSize& size, long style)
@@ -69,8 +44,8 @@ MainFrame::MainFrame(	wxWindow* parent, wxWindowID id, const wxString& title,
 	
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_ObjByType, this, CMD_MAKETYPEWND);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_ObjByPath, this, CMD_MAKEOBJWND);
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_History, this, CMD_MAKEHISTORYWND);
-	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MkPage_History, this, CMD_MKPAGE_HISTORY);
+	//Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_History, this, CMD_MAKEHISTORYWND);
+	//Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MkPage_History, this, CMD_MKPAGE_HISTORY);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainFrame::OnCmd_MakePage_Report, this, CMD_MKPAGE_REPORT);
 	
 
@@ -159,7 +134,7 @@ void MainFrame::BuildMenu()
 	item->SetBitmap(m_ResMgr->m_ico_acts16);
 	dir->Append(item);
 	dir->AppendSeparator();
-	item = new wxMenuItem(dir, CMD_MAKEHISTORYWND, "Общая история");
+	item = new wxMenuItem(dir, CMD_MKPAGE_HISTORY, "Общая история");
 	item->SetBitmap(m_ResMgr->m_ico_history24);
 	dir->Append(item);
 	item = new wxMenuItem(dir, CMD_MAKEOBJWND, "Каталог объектов по местоположению");
@@ -204,8 +179,7 @@ void MainFrame::BuildToolbar()
 	m_MainToolBar->AddTool(CMD_PNLSHOWUSER, "Пользователи", m_ResMgr->m_ico_user24);
 	m_MainToolBar->AddTool(CMD_PNLSHOWPROP, "Свойства", m_ResMgr->m_ico_list_prop24);
 	m_MainToolBar->AddTool(CMD_PNLSHOWACT, "Действия", m_ResMgr->m_ico_acts24);
-	m_MainToolBar->AddTool(CMD_MAKEHISTORYWND, "История", m_ResMgr->m_ico_history24);
-	//m_MainToolBar->AddTool(CMD_MKPAGE_HISTORY, "История 3", m_ResMgr->m_ico_type24);
+	m_MainToolBar->AddTool(CMD_MKPAGE_HISTORY, "История", m_ResMgr->m_ico_history24);
 	m_MainToolBar->AddTool(CMD_MKPAGE_REPORT, "Отчёты", m_ResMgr->m_ico_report_list24);
 
 
@@ -440,21 +414,21 @@ void MainFrame::OnCmd_MakePage_ObjByPath(wxCommandEvent& evt)
 }
 //---------------------------------------------------------------------------
 
-void MainFrame::OnCmd_MakePage_History(wxCommandEvent& evt)
-{
-	auto container = whDataMgr::GetInstance()->mContainer;
-	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
-	if (nb2)
-		nb2->MkWindow("CtrlPageLogList");
-}
-//---------------------------------------------------------------------------
-void MainFrame::OnCmd_MkPage_History(wxCommandEvent& evt)
-{
-	auto container = whDataMgr::GetInstance()->mContainer;
-	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
-	if (nb2)
-		nb2->MkWindow("CtrlPageLogList");
-}
+//void MainFrame::OnCmd_MakePage_History(wxCommandEvent& evt)
+//{
+//	auto container = whDataMgr::GetInstance()->mContainer;
+//	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
+//	if (nb2)
+//		nb2->MkWindow("CtrlPageLogList");
+//}
+////---------------------------------------------------------------------------
+//void MainFrame::OnCmd_MkPage_History(wxCommandEvent& evt)
+//{
+//	auto container = whDataMgr::GetInstance()->mContainer;
+//	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
+//	if (nb2)
+//		nb2->MkWindow("CtrlPageLogList");
+//}
 
 //---------------------------------------------------------------------------
 

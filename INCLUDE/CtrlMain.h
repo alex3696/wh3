@@ -17,6 +17,9 @@ class CtrlMain : public CtrlWindowBase<ViewMain, ModelMain>
 	sig::scoped_connection connAfterDbConnected;
 	sig::scoped_connection connBeforeDbDisconnected;
 
+	sig::scoped_connection connViewCmd_MkHistoryWindow;
+
+
 	void OnConnectDb(const whDB& db)
 	{
 		mCtrlNotebook->CloseAllPages();
@@ -50,6 +53,9 @@ public:
 			.connect(std::bind(&CtrlMain::OnConnectDb, this, std::placeholders::_1));
 		connBeforeDbDisconnected = db.SigBeforeDisconnect
 			.connect(std::bind(&CtrlMain::OnDicsonnectDb, this, std::placeholders::_1));
+
+		connViewCmd_MkHistoryWindow = mView->sigMkHistoryWindow
+			.connect(std::bind(&CtrlMain::MkHistoryWindow, this));
 	}
 
 	virtual void RmView()override
@@ -60,6 +66,14 @@ public:
 		CtrlWindowBase::RmView();
 	}
 
+	void MkHistoryWindow()
+	{
+		//auto container = whDataMgr::GetInstance()->mContainer;
+		//auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
+		//if (nb2)
+		//	nb2->MkWindow("CtrlPageHistory");
+		mCtrlNotebook->MkWindow("CtrlPageHistory");
+	}
 
 	virtual void Load(const boost::property_tree::ptree& app_cfg) override
 	{
