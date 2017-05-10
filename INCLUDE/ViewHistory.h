@@ -40,6 +40,7 @@ protected:
 	void OnCmd_Filter(wxCommandEvent& evt);
 	void OnCmd_PropList(wxCommandEvent& evt);
 	void OnCmd_SelectHistoryItem(wxDataViewEvent& evt);
+	void OnCmd_DClickTable(wxMouseEvent& evt);
 	
 	virtual void OnShow()override;
 private:

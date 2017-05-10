@@ -235,6 +235,10 @@ ViewHistory::ViewHistory(std::shared_ptr<IViewWindow> parent)
 	mTable->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, &ViewHistory::OnCmd_SelectHistoryItem
 		, this);
 
+	mTable->GetTargetWindow()->Bind(wxEVT_LEFT_DCLICK, &ViewHistory::OnCmd_DClickTable
+		, this);
+
+	
 }
 //-----------------------------------------------------------------------------
 
@@ -435,6 +439,12 @@ void ViewHistory::OnCmd_SelectHistoryItem(wxDataViewEvent& evt)
 		return;
 	
 	sigSelectHistoryItem(str_id);
+}
+//-----------------------------------------------------------------------------
+void ViewHistory::OnCmd_DClickTable(wxMouseEvent& evt)
+{
+	wxCommandEvent new_evt(wxEVT_COMMAND_MENU_SELECTED, wxID_PROPERTIES);
+	mToolbar->ProcessCommand(new_evt);
 }
 //-----------------------------------------------------------------------------
 //IViewWindow virtual 

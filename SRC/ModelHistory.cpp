@@ -234,6 +234,31 @@ void ModelHistory::Load()
 
 				log_rec->mObj = obj_rec;
 
+				// load properties
+				boost::property_tree::wptree prop_arr;
+				wxString json_prop;
+				table->GetAsString(11, i, json_prop);
+				if (!json_prop.IsEmpty())
+				{
+					std::wstringstream ss; ss << json_prop;
+					boost::property_tree::read_json(ss, prop_arr);
+				}
+
+				auto propval_table = std::make_shared<PropValTable >();
+				for (const auto& pv : prop_arr)
+				{
+					auto prop_rec = std::make_shared<PropRec>();
+					prop_rec->mId = wxString(pv.first.c_str());
+					auto iprop_rec = *mProp.emplace_back(prop_rec).first;
+
+					auto propval_rec = std::make_shared<PropValRec>();
+					propval_rec->mProp = iprop_rec;
+					propval_rec->mVal = pv.second.get_value<std::wstring>();
+
+					propval_table->emplace(propval_rec);
+				}//for
+				// load properties
+
 				wxString aid;
 				table->GetAsString(8, i, aid);
 
@@ -245,14 +270,13 @@ void ModelHistory::Load()
 					table->GetAsString(19, i, log_mov_rec->mDstPath.mPath);
 					table->GetAsString(20, i, log_mov_rec->mPropLId);
 					//table->GetAsString(11, i, *log_mov_rec->mProperties);
-					
+					log_mov_rec->mProperties = propval_table;
 					log_rec->mDetail = log_mov_rec;
 				}
 				else
 				{
 					auto act_rec = std::make_shared<ActRec>();
 					act_rec->mId = aid;
-
 					
 					table->GetAsString(9, i, act_rec->mTitle);
 					table->GetAsString(10, i, act_rec->mColour);
@@ -260,29 +284,6 @@ void ModelHistory::Load()
 
 					auto log_act_rec = std::make_shared<LogActRec>();
 					log_act_rec->mActRec = act_rec;
-					// load properties
-					boost::property_tree::wptree prop_arr;
-					wxString json_prop;
-					table->GetAsString(11, i, json_prop);
-					if (!json_prop.IsEmpty())
-					{
-						std::wstringstream ss; ss << json_prop;
-						boost::property_tree::read_json(ss, prop_arr);
-					}
-
-					auto propval_table = std::make_shared<PropValTable >();
-					for (const auto& pv : prop_arr)
-					{
-						auto prop_rec = std::make_shared<PropRec>();
-						prop_rec->mId = wxString(pv.first.c_str());
-						auto iprop_rec = *mProp.emplace_back(prop_rec).first;
-
-						auto propval_rec = std::make_shared<PropValRec>();
-						propval_rec->mProp = iprop_rec;
-						propval_rec->mVal = pv.second.get_value<std::wstring>();
-
-						propval_table->emplace(propval_rec);
-					}//for
 					
 					log_act_rec->mProperties = propval_table;
 					
@@ -466,6 +467,7 @@ void ModelHistory::SelectHistoryItem(const wxString& str_log_id)
 		}
 		else
 		{
+			// TODO эту ветку можно удалить она не используется
 			auto src_prop = std::make_shared<PropRec>("-1","Источник","0");
 			auto dst_prop = std::make_shared<PropRec>("-2", "Приёмник", "0");
 			auto qty_prop = std::make_shared<PropRec>("-3", "Количество", "100");
