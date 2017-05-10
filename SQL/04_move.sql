@@ -653,8 +653,8 @@ CREATE OR REPLACE VIEW log AS
  ,mobj.title  AS mobj_title
  ,mcls.title  AS mcls_title
  ,CASE WHEN mcls.kind=1 THEN 1::NUMERIC ELSE lmd.qty END AS qty
- ,CASE WHEN lad.act_id IS NOT NULL THEN lad.prop ELSE NULL::JSONB END AS prop --,det.prop    AS prop
- --,CASE WHEN lad.act_id IS NOT NULL THEN lad.prop ELSE move_prop.prop END AS prop 
+ --,CASE WHEN lad.act_id IS NOT NULL THEN lad.prop ELSE NULL::JSONB END AS prop --,det.prop    AS prop
+ ,CASE WHEN lad.act_id IS NOT NULL THEN lad.prop ELSE move_prop.prop END AS prop 
  ,lm.timemark::timestamptz::date  AS log_date
  ,date_trunc('second' ,lm.timemark)::timestamptz::time AS log_time
  ,lm.src_path[1][1]  AS src_cid
@@ -672,7 +672,7 @@ CREATE OR REPLACE VIEW log AS
 FROM log_main lm
   LEFT JOIN log_detail_act  lad ON lad.id=lm.id
   LEFT JOIN log_detail_move lmd ON lmd.id=lm.id
-  --LEFT JOIN log_detail_act move_prop ON lmd.prop_lid=move_prop.id
+  LEFT JOIN log_detail_act move_prop ON lmd.prop_lid=move_prop.id
 
   LEFT JOIN act ON act.id=lad.act_id
   LEFT JOIN obj_name mobj ON mobj.id=lm.obj_id
