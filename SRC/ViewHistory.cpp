@@ -357,6 +357,10 @@ void ViewHistory::SetHistoryTable(const std::shared_ptr<const ModelHistoryTableD
 	//	mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
 	
 	mTable->EnsureVisible(dv->GetItem(0));
+
+	const auto str = wxString::Format("%d - %d", mOffset, mOffset + rt->size());
+	mPageLabel->SetLabel(str);
+
 	wxLogMessage(wxString::Format("%d \t ViewHistoryTable : \t SetBestColumnWidth", GetTickCount() - p0));
 }
 //-----------------------------------------------------------------------------
