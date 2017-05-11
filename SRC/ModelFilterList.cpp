@@ -121,7 +121,7 @@ void ModelFilter::BuildNotLikeString(wxString& ret)const
 	for(const auto& val : mValue)
 	{ 
 		if (val.IsEmpty())
-			ret += wxString::Format("AND (%s IS NOT NULL OT %s<>'')"
+			ret += wxString::Format("AND (%s IS NOT NULL OR %s<>'')"
 			, GetSysTitle()
 			, GetSysTitle());
 		else
