@@ -336,6 +336,11 @@ public:
 	void PageForward();
 	void PageBackward();
 
+	void SetGuiModel(rec::PageHistory&& cfg);
+	void SetGuiModel(const rec::PageHistory& cfg);
+	const rec::PageHistory& GetGuiModel()const;
+	sig::signal<void(const rec::PageHistory&)>	sigCfgUpdated;
+
 	// IModelWindow
 	virtual const wxIcon& GetIcon()const override { return mIco; }
 	virtual const wxString& GetTitle()const override { return mTitle; }

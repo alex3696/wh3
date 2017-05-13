@@ -9,7 +9,7 @@
 
 namespace wh{
 //-----------------------------------------------------------------------------
-class CtrlPageHistory : public CtrlWindowBase<IViewHistory, ModelPageHistory>
+class CtrlPageHistory final: public CtrlWindowBase<IViewHistory, ModelPageHistory>
 {
 	sig::scoped_connection connViewCmd_Update;
 	sig::scoped_connection connViewCmd_Forward;
@@ -21,6 +21,7 @@ class CtrlPageHistory : public CtrlWindowBase<IViewHistory, ModelPageHistory>
 	sig::scoped_connection connModel_LoadedHistoryTable;
 	sig::scoped_connection connModel_SetRowsOffset;
 	sig::scoped_connection connModel_SetRowsLimit;
+	sig::scoped_connection connModel_SetCfg;
 
 	std::shared_ptr<CtrlFilterList> mCtrlFilterList;
 	std::shared_ptr<CtrlObjPropList> mCtrlObjPropList;

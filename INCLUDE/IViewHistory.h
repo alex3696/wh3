@@ -17,9 +17,7 @@ public:
 	virtual void SetRowsLimit(const size_t& limit) = 0;
 	virtual std::shared_ptr<IViewFilterList> GetViewFilterList()const = 0;
 	virtual std::shared_ptr<IViewObjPropList> GetViewObjPropList()const = 0;
-	virtual void ShowFilterList(bool) =0;
-	virtual bool IsShowFilterList()const = 0;
-	virtual void ShowObjPropList(bool) = 0;
+	virtual void SetCfg(const rec::PageHistory&) = 0;
 
 	sig::signal<void()> sigUpdate;
 

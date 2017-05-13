@@ -142,6 +142,7 @@
     <ClCompile Include="..\..\SRC\ConnectionCfgDlg.cpp" />
     <ClCompile Include="..\..\SRC\CtrlFilterList.cpp" />
     <ClCompile Include="..\..\SRC\CtrlHistory.cpp" />
+    <ClCompile Include="..\..\SRC\CtrlHistorySetup.cpp" />
     <ClCompile Include="..\..\SRC\CtrlObjPropList.cpp" />
     <ClCompile Include="..\..\SRC\DActEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsActEditor.cpp" />
@@ -221,6 +222,7 @@
     <ClCompile Include="..\..\SRC\ReportView.cpp" />
     <ClCompile Include="..\..\SRC\ViewFilterList.cpp" />
     <ClCompile Include="..\..\SRC\ViewHistory.cpp" />
+    <ClCompile Include="..\..\SRC\ViewHistorySetup.cpp" />
     <ClCompile Include="..\..\SRC\ViewMain.cpp" />
     <ClCompile Include="..\..\SRC\ViewObjPropList.cpp" />
     <ClCompile Include="..\..\SRC\VTableCtrl.cpp" />
@@ -279,6 +281,7 @@
     <ClInclude Include="..\..\INCLUDE\ConnectionCfgDlg.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlFilterList.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlHistory.h" />
+    <ClInclude Include="..\..\INCLUDE\CtrlHistorySetup.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlMain.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlObjPropList.h" />
     <ClInclude Include="..\..\INCLUDE\DActEditor.h" />
@@ -291,6 +294,7 @@
     <ClInclude Include="..\..\INCLUDE\DetailActCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h" />
     <ClInclude Include="..\..\INCLUDE\IViewFilterList.h" />
+    <ClInclude Include="..\..\INCLUDE\IViewHistorySetup.h" />
     <ClInclude Include="..\..\INCLUDE\IViewObjPropList.h" />
     <ClInclude Include="..\..\INCLUDE\ModelFilterList.h" />
     <ClInclude Include="..\..\INCLUDE\ModelHistory.h" />
@@ -385,6 +389,7 @@
     <ClInclude Include="..\..\INCLUDE\ReportModel.h" />
     <ClInclude Include="..\..\INCLUDE\ReportPresenter.h" />
     <ClInclude Include="..\..\INCLUDE\ReportView.h" />
+    <ClInclude Include="..\..\INCLUDE\ViewHistorySetup.h" />
     <ClInclude Include="..\..\INCLUDE\ViewMain.h" />
     <ClInclude Include="..\..\INCLUDE\ViewObjPropList.h" />
     <ClInclude Include="..\..\INCLUDE\VTableCtrl.h" />

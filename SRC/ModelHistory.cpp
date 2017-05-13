@@ -5,9 +5,10 @@ using namespace wh;
 
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
-ModelPageHistory::ModelPageHistory(const std::shared_ptr<rec::PageHistory>& data)
-	:IModelWindow(), mGuiModel(*data)
+ModelPageHistory::ModelPageHistory(const std::shared_ptr<rec::PageHistory>& cfg)
+	:IModelWindow()
 {
+	SetGuiModel(*cfg);
 }
 //---------------------------------------------------------------------------
 
@@ -34,7 +35,42 @@ void ModelPageHistory::PageBackward()
 		offset = 0;
 	mDataModel.SetRowsOffset(offset);
 }
-
+//---------------------------------------------------------------------------
+void ModelPageHistory::SetGuiModel(rec::PageHistory&& cfg)
+{
+	if (mGuiModel != cfg)
+	{
+		mGuiModel = std::move(cfg);
+		mDataModel.SetRowsOffset(mGuiModel.mRowsOffset);
+		mDataModel.SetRowsLimit(mGuiModel.mRowsLimit);
+		sigCfgUpdated(mGuiModel);
+	}
+}
+//---------------------------------------------------------------------------
+void ModelPageHistory::SetGuiModel(const rec::PageHistory& cfg)
+{
+	if (mGuiModel != cfg)
+	{
+		mGuiModel = cfg;
+		mDataModel.SetRowsOffset(mGuiModel.mRowsOffset);
+		mDataModel.SetRowsLimit(mGuiModel.mRowsLimit);
+		sigCfgUpdated(mGuiModel);
+	}
+	//mGuiModel.mColAutosize = true;
+	//mGuiModel.mPathInProperties = false;
+	//mGuiModel.mRowsLimit = 30;
+	//mGuiModel.mRowsOffset = 0;
+	//mDataModel.SetRowsOffset(mGuiModel.mRowsOffset);
+	//mDataModel.SetRowsLimit(mGuiModel.mRowsLimit);
+	//mGuiModel.mShowFilterList = true;
+	//mGuiModel.mShowPropertyList = true;
+	//mGuiModel.mStringPerRow = 5;
+}
+//---------------------------------------------------------------------------
+const rec::PageHistory& ModelPageHistory::GetGuiModel()const
+{
+	return mGuiModel;
+}
 
 //---------------------------------------------------------------------------
 //virtual 
@@ -54,11 +90,17 @@ void ModelPageHistory::Show()//override;
 //virtual 
 void ModelPageHistory::Load(const boost::property_tree::ptree& page_val)//override;
 {
-	size_t offset = page_val.get<size_t>("CtrlPageHistory.Offset", 0);
-	size_t limit = page_val.get<size_t>("CtrlPageHistory.Limit", 20);
-	mDataModel.SetRowsOffset(offset);
-	mDataModel.SetRowsLimit(limit);
-	//Update();
+	rec::PageHistory cfg;
+	cfg.mRowsOffset = page_val.get<size_t>("CtrlPageHistory.Offset", 0);
+	cfg.mRowsLimit = page_val.get<size_t>("CtrlPageHistory.Limit", 20);
+	cfg.mStringPerRow = page_val.get<size_t>("CtrlPageHistory.StringPerRow", 4);
+	cfg.mShowFilterList = page_val.get<bool>("CtrlPageHistory.ShowFilterList", false);
+	cfg.mShowPropertyList = page_val.get<bool>("CtrlPageHistory.ShowPropertyList", false);
+	cfg.mColAutosize = page_val.get<bool>("CtrlPageHistory.ColAutosize", false);
+	cfg.mPathInProperties = page_val.get<bool>("CtrlPageHistory.PathInProperties", false);
+	SetGuiModel(std::move(cfg));
+
+	/////Update();
 }
 //---------------------------------------------------------------------------
 //virtual 
@@ -66,8 +108,13 @@ void ModelPageHistory::Save(boost::property_tree::ptree& page_val)//override;
 {
 	using ptree = boost::property_tree::ptree;
 	ptree content;
-	content.put("Offset", mDataModel.GetRowsOffset());
-	content.put("Limit", mDataModel.GetRowsLimit());
+	content.put("Offset", mGuiModel.mRowsOffset);
+	content.put("Limit", mGuiModel.mRowsLimit);
+	content.put("StringPerRow", mGuiModel.mStringPerRow);
+	content.put("ShowFilterList", mGuiModel.mShowFilterList);
+	content.put("ShowPropertyList", mGuiModel.mShowPropertyList);
+	content.put("ColAutosize", mGuiModel.mColAutosize);
+	content.put("PathInProperties", mGuiModel.mPathInProperties);
 	page_val.push_back(std::make_pair("CtrlPageHistory", content));
 	//page_val.put("CtrlPageLogList.id", 33);
 

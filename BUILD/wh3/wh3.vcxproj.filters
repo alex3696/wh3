@@ -187,6 +187,9 @@
     <Filter Include="MainFrame\MVP2\ContentWindows\История3\Таблица истории">
       <UniqueIdentifier>{507892d2-c045-486e-89c0-629a636f0883}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\История3\Настройки">
+      <UniqueIdentifier>{e4d3a1f2-9199-46a7-a31d-f604c5a93d82}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -536,6 +539,12 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\ViewObjPropList.cpp">
       <Filter>MainFrame\MVP2\ContentWindows\История3\Свойства объекта</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\CtrlHistorySetup.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Настройки</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ViewHistorySetup.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Настройки</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1021,6 +1030,15 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ViewObjPropList.h">
       <Filter>MainFrame\MVP2\ContentWindows\История3\Свойства объекта</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\CtrlHistorySetup.h">
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Настройки</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ViewHistorySetup.h">
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Настройки</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\IViewHistorySetup.h">
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Настройки</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

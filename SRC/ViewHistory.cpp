@@ -107,7 +107,7 @@ public:
 				
 				str = wxString::Format("%s    %s\n%s"
 					, act.GetTitle()
-					, mTD->GetPath(row).AsString()
+					, mPathInPropperties ? mTD->GetPath(row).AsString() : wxEmptyString2
 					, prop_str
 					);
 				//ico = &ResMgr::GetInstance()->m_ico_act24;
@@ -148,6 +148,7 @@ public:
 		return mTD->GetLogId(row);
 	}
 
+	bool   mPathInPropperties = true;
 };
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -193,14 +194,14 @@ ViewHistory::ViewHistory(std::shared_ptr<IViewWindow> parent)
 		.Top()
 		.Fixed()
 		.Dockable(false)
-		//.PaneBorder(false)
+		.PaneBorder(false)
 		.Gripper(false)
 		);
 
 	mTable = BuildTable(mPanel);
 	panel->mAuiMgr.AddPane(mTable, wxAuiPaneInfo().
 		Name(wxT("ReportTable")).CenterPane()
-		//.PaneBorder(false)
+		.PaneBorder(false)
 		);
 
 	mViewFilterList = std::make_shared<ViewFilterList>(panel);
@@ -229,8 +230,9 @@ ViewHistory::ViewHistory(std::shared_ptr<IViewWindow> parent)
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_Update, this, wxID_REFRESH);
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_Backward, this, wxID_BACKWARD);
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_Forward, this, wxID_FORWARD);
-	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_Filter, this, wxID_SETUP);
+	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_Filter, this, wxID_FIND);
 	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_PropList, this, wxID_PROPERTIES);
+	mPanel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewHistory::OnCmd_ShowSetup, this, wxID_SETUP);
 
 	mTable->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, &ViewHistory::OnCmd_SelectHistoryItem
 		, this);
@@ -261,15 +263,16 @@ wxAuiToolBar* ViewHistory::BuildToolBar(wxWindow* parent)
 	tool_bar->AddTool(wxID_BACKWARD, "Назад", wxArtProvider::GetIcon(wxART_GO_BACK, wxART_TOOLBAR));
 	tool_bar->AddControl(mPageLabel, "Показаны строки");
 	tool_bar->AddTool(wxID_FORWARD, "Вперёд", wxArtProvider::GetIcon(wxART_GO_FORWARD, wxART_TOOLBAR));
-	tool_bar->AddTool(wxID_SETUP, "Фильтры", mgr->m_ico_filter24,wxEmptyString, wxITEM_CHECK);
+	tool_bar->AddTool(wxID_FIND, "Фильтры", mgr->m_ico_filter24,wxEmptyString, wxITEM_CHECK);
 	mToolExportToExcel = tool_bar->AddTool(wxID_CONVERT, "Экспорт в Excel"
 		, mgr->m_ico_export_excel24, "выполнить экспорт в Excel или Calc");
 	mToolExportToExcel->SetHasDropDown(true);
-	//tool_bar->AddTool(wxID_SETUP, "Настройки", wxArtProvider::GetIcon(wxART_HELP_PAGE, wxART_TOOLBAR));
+
 	tool_bar->AddTool(wxID_PROPERTIES, "Все свойства"
 		, wxArtProvider::GetIcon(wxART_LIST_VIEW, wxART_TOOLBAR)
 		, "Показать/Скрыть все свойства на выбранной момент времени", wxITEM_CHECK);
-
+	tool_bar->AddTool(wxID_SETUP, "Настройки"
+		, wxArtProvider::GetBitmap(wxART_HELP_SETTINGS, wxART_TOOLBAR));
 	tool_bar->Realize();
 	return tool_bar;
 }
@@ -283,8 +286,8 @@ wxDataViewCtrl* ViewHistory::BuildTable(wxWindow* parent)
 	table->AssociateModel(dv_model);
 	dv_model->DecRef();
 
-	int ch = table->GetCharHeight();
-	table->SetRowHeight(ch * 4 + 2);
+	//int ch = table->GetCharHeight();
+	//table->SetRowHeight(ch * 4 + 2);
 
 	auto renderer1 = new wxDataViewIconMLTextRenderer();
 	renderer1->SetAlignment(wxALIGN_TOP);
@@ -353,9 +356,11 @@ void ViewHistory::SetHistoryTable(const std::shared_ptr<const ModelHistoryTableD
 	wxLogMessage(wxString::Format("%d \t ViewHistoryTable : \t SetTable", GetTickCount() - p0));
 	p0 = GetTickCount();
 
-	//for (size_t i = 0; i < mTable->GetColumnCount(); i++)
-	//	mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
-	
+	if (mColAutosize)
+	{
+		for (size_t i = 0; i < mTable->GetColumnCount(); i++)
+			mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
+	}
 	mTable->EnsureVisible(dv->GetItem(0));
 
 	const auto str = wxString::Format("%d - %d", mOffset, mOffset + rt->size());
@@ -425,8 +430,8 @@ void ViewHistory::OnCmd_PropList(wxCommandEvent& evt)
 	auto& pane = mAuiMgr->GetPane("ViewObjPropListPane");
 	if (pane.IsOk())
 	{
-		bool show = pane.IsShown();
-		sigShowObjPropList(!show);
+		bool show = !pane.IsShown();
+		sigShowObjPropList(show);
 	}
 }
 //-----------------------------------------------------------------------------
@@ -451,6 +456,11 @@ void ViewHistory::OnCmd_DClickTable(wxMouseEvent& evt)
 	mToolbar->ProcessCommand(new_evt);
 }
 //-----------------------------------------------------------------------------
+void ViewHistory::OnCmd_ShowSetup(wxCommandEvent& evt)
+{
+
+}
+//-----------------------------------------------------------------------------
 //IViewWindow virtual 
 void ViewHistory::OnShow()//override 
 {
@@ -469,30 +479,19 @@ std::shared_ptr<IViewObjPropList> ViewHistory::GetViewObjPropList()const //overr
 	return mViewObjPropList;
 }
 //-----------------------------------------------------------------------------
-//virtual 
-void ViewHistory::ShowFilterList(bool show) // override;
+void ViewHistory::ShowFilterList(bool show)
 {
 	auto& pane = mAuiMgr->GetPane("ViewFilterListPane");
 	if (pane.IsOk())
 	{
+		mToolbar->ToggleTool(wxID_FIND, show);
 		wxWindowUpdateLocker lock(mPanel);
 		pane.Show(show);
 		mAuiMgr->Update();
 	}
 }
 //-----------------------------------------------------------------------------
-//virtual 
-bool ViewHistory::IsShowFilterList()const //override;
-{
-	bool shown = false;
-	auto& pane = mAuiMgr->GetPane("ViewFilterListPane");
-	if (pane.IsOk())
-		shown = pane.IsShown();
-	return shown;
-}
-//-----------------------------------------------------------------------------
-//virtual 
-void ViewHistory::ShowObjPropList(bool show) // override;
+void ViewHistory::ShowObjPropList(bool show) 
 {
 	auto& pane = mAuiMgr->GetPane("ViewObjPropListPane");
 	if (pane.IsOk())
@@ -508,13 +507,13 @@ void ViewHistory::ShowObjPropList(bool show) // override;
 			evt.SetItem(mTable->GetSelection());
 			OnCmd_SelectHistoryItem(evt);
 		}
+		mToolbar->ToggleTool(wxID_PROPERTIES, show);
 		wxWindowUpdateLocker lock(mPanel);
 		mAuiMgr->Update();
 		
 	}
 }
 //-----------------------------------------------------------------------------
-
 bool ViewHistory::IsShowObjPropList()const
 {
 	bool shown = false;
@@ -523,4 +522,29 @@ bool ViewHistory::IsShowObjPropList()const
 		shown = pane.IsShown();
 	return shown;
 }
+//-----------------------------------------------------------------------------
+//virtual 
+void ViewHistory::SetCfg(const rec::PageHistory& cfg) //override;
+{
+	ShowObjPropList(cfg.mShowPropertyList);
+	ShowFilterList(cfg.mShowFilterList);
 
+	SetRowsOffset(cfg.mRowsOffset);
+	SetRowsLimit(cfg.mRowsLimit);
+	
+	if (cfg.mStringPerRow != mStringPerRow)
+	{
+		mStringPerRow = cfg.mStringPerRow;
+		int ch = mTable->GetCharHeight();
+		mTable->SetRowHeight(ch * mStringPerRow + 2);
+	}
+
+	mColAutosize = cfg.mColAutosize;
+
+	auto dv = dynamic_cast<wxDataViewModelMediator*>(mTable->GetModel());
+	if (dv)
+	{
+		dv->mPathInPropperties = cfg.mPathInProperties;
+	}
+
+}

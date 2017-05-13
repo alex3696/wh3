@@ -45,9 +45,39 @@ CtrlPageHistory::CtrlPageHistory(const std::shared_ptr<IViewHistory>& view
 		mView->SetRowsLimit(limit);
 	});
 
-	mModel->GetModelHistory().SetRowsOffset(0);
-	mModel->GetModelHistory().SetRowsLimit(50);
+	connModel_SetCfg = mModel->sigCfgUpdated.connect
+		//(std::bind(&IViewHistory::SetCfg, mView.get(), ph::_1));
+		([this](const rec::PageHistory& cfg)
+		{
+			if (cfg.mShowFilterList)
+			{
+				if (!mCtrlFilterList)
+				{
+					auto view_fl = mView->GetViewFilterList();//std::make_shared<IViewFilterList>(mView);
+					auto model_fl = mModel->GetModelHistory().GetFilterList();//std::make_shared<ModelFilterList>();
+					mCtrlFilterList = std::make_shared<CtrlFilterList>(view_fl, model_fl);
+				}
+				mCtrlFilterList->UpdateAll();
+			}
 
+			if (cfg.mShowPropertyList)
+			{
+				if (!mCtrlObjPropList)
+				{
+					auto view = mView->GetViewObjPropList();//std::make_shared<IViewFilterList>(mView);
+					auto model = mModel->GetModelHistory().GetObjPropList();//std::make_shared<ModelFilterList>();
+					mCtrlObjPropList = std::make_shared<CtrlObjPropList>(view, model);
+				}
+				mCtrlObjPropList->Update();
+			}
+			mView->SetCfg(cfg);
+			
+		});
+
+	//mModel->GetModelHistory().SetRowsOffset(0);
+	//mModel->GetModelHistory().SetRowsLimit(50);
+
+	mView->SetCfg(mModel->GetGuiModel());
 }
 
 //---------------------------------------------------------------------------
@@ -69,35 +99,16 @@ void CtrlPageHistory::PageBackward()
 //---------------------------------------------------------------------------
 void CtrlPageHistory::ShowFilterList(bool show)
 {
-	if (show)
-	{
-		if (!mCtrlFilterList)
-		{
-			auto view_fl = mView->GetViewFilterList();//std::make_shared<IViewFilterList>(mView);
-			auto model_fl = mModel->GetModelHistory().GetFilterList();//std::make_shared<ModelFilterList>();
-			mCtrlFilterList = std::make_shared<CtrlFilterList>(view_fl, model_fl);
-		}
-		mCtrlFilterList->UpdateAll();
-	}
-
-	mView->ShowFilterList(show);
-
+	auto cfg = mModel->GetGuiModel();
+	cfg.mShowFilterList = show;
+	mModel->SetGuiModel(std::move(cfg));
 }
 //---------------------------------------------------------------------------
 void CtrlPageHistory::ShowObjPropList(bool show)
 {
-	if (show)
-	{
-		if (!mCtrlObjPropList)
-		{
-			auto view = mView->GetViewObjPropList();//std::make_shared<IViewFilterList>(mView);
-			auto model = mModel->GetModelHistory().GetObjPropList();//std::make_shared<ModelFilterList>();
-			mCtrlObjPropList = std::make_shared<CtrlObjPropList>(view, model);
-		}
-		mCtrlObjPropList->Update();
-	}
-	mView->ShowObjPropList(show);
-
+	auto cfg = mModel->GetGuiModel();
+	cfg.mShowPropertyList = show;
+	mModel->SetGuiModel(std::move(cfg));
 }
 //---------------------------------------------------------------------------
 void CtrlPageHistory::SelectHistoryItem(const wxString& str)

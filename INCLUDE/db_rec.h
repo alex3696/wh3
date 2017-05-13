@@ -432,6 +432,28 @@ typedef PathItem PageDetail;
 
 struct PageHistory
 {
+	size_t	mRowsLimit = 50;
+	size_t	mRowsOffset = 0;
+	size_t	mStringPerRow = 4;
+	bool	mPathInProperties = true;
+	bool	mColAutosize = false;
+	bool	mShowPropertyList = false;
+	bool	mShowFilterList = false;
+
+	bool operator==(const PageHistory& rv)const
+	{
+		return rv.mRowsLimit == mRowsLimit
+			&& rv.mRowsOffset == mRowsOffset
+			&& rv.mStringPerRow == mStringPerRow
+			&& rv.mPathInProperties == mPathInProperties
+			&& rv.mColAutosize == mColAutosize
+			&& rv.mShowPropertyList == mShowPropertyList
+			&& rv.mShowFilterList == mShowFilterList;
+	}
+	bool operator!=(const PageHistory& rv)const
+	{
+		return !operator==(rv);
+	}
 };
 
 struct PageReportList
