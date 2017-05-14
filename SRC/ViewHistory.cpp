@@ -69,10 +69,26 @@ public:
 				wxDateTime dt;
 				dt.ParseDateTime(mTD->GetDate(row));
 
-				str = wxString::Format("%s\n%s\n\n%s"
-					, dt.Format(format_d)
-					, dt.Format(format_t)
-					, mTD->GetUser(row));
+				switch (mStringPerRow)
+				{
+				case 1:
+					str = wxString::Format("%s %s %s"
+						, dt.Format(format_d), dt.Format(format_t), mTD->GetUser(row));
+					break;
+				case 2: 
+					str = wxString::Format("%s    %s\n  %s"
+						, dt.Format(format_d), dt.Format(format_t), mTD->GetUser(row));
+					break;
+				case 3:
+					str = wxString::Format("%s\n%s\n  %s"
+						, dt.Format(format_d), dt.Format(format_t), mTD->GetUser(row));
+					break;
+				default:
+					str = wxString::Format("%s\n%s\n\n  %s"
+						, dt.Format(format_d), dt.Format(format_t), mTD->GetUser(row));
+					break;
+				}
+
 			}
 			break;
 		// тип + объект
@@ -87,9 +103,9 @@ public:
 			if (act.GetId().IsEmpty())
 			{
 				str = wxString::Format(
-					"Перемещение :\nприёмник: %s\nисточник:  %s\nколичество: %s(%s)"
-					, mTD->GetDstPath(row).AsString(), mTD->GetPath(row).AsString()
+					"Перемещение   %s(%s)\nприёмник: %s\nисточник:  %s"
 					, mTD->GetQty(row), obj.GetCls().GetMeasure()
+					, mTD->GetDstPath(row).AsString(), mTD->GetPath(row).AsString()
 					);
 				icoHolder = wxArtProvider::GetIcon(wxART_REDO, wxART_TOOLBAR);
 				ico = &icoHolder;
@@ -105,11 +121,18 @@ public:
 						,p->GetProp().GetTitle(), p->GetValue());
 				}
 				
-				str = wxString::Format("%s    %s\n%s"
+				if (3 < mStringPerRow)
+				{
+					str = wxString::Format("%s\n%s", act.GetTitle(), prop_str);
+					if(mPathInPropperties)
+						str += "Местоположение: " + mTD->GetPath(row).AsString();
+				}
+				else
+					str = wxString::Format("%s    %s\n%s"
 					, act.GetTitle()
 					, mPathInPropperties ? mTD->GetPath(row).AsString() : wxEmptyString2
-					, prop_str
-					);
+					, prop_str);
+
 				//ico = &ResMgr::GetInstance()->m_ico_act24;
 			}
 		}
@@ -149,6 +172,7 @@ public:
 	}
 
 	bool   mPathInPropperties = true;
+	size_t mStringPerRow;
 };
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -458,7 +482,7 @@ void ViewHistory::OnCmd_DClickTable(wxMouseEvent& evt)
 //-----------------------------------------------------------------------------
 void ViewHistory::OnCmd_ShowSetup(wxCommandEvent& evt)
 {
-
+	sigShowCfgWindow();
 }
 //-----------------------------------------------------------------------------
 //IViewWindow virtual 
@@ -532,19 +556,20 @@ void ViewHistory::SetCfg(const rec::PageHistory& cfg) //override;
 	SetRowsOffset(cfg.mRowsOffset);
 	SetRowsLimit(cfg.mRowsLimit);
 	
-	if (cfg.mStringPerRow != mStringPerRow)
-	{
-		mStringPerRow = cfg.mStringPerRow;
-		int ch = mTable->GetCharHeight();
-		mTable->SetRowHeight(ch * mStringPerRow + 2);
-	}
-
 	mColAutosize = cfg.mColAutosize;
 
 	auto dv = dynamic_cast<wxDataViewModelMediator*>(mTable->GetModel());
-	if (dv)
+	if (!dv)
+		return;
+
+	dv->mPathInPropperties = cfg.mPathInProperties;
+
+	if (cfg.mStringPerRow != dv->mStringPerRow)
 	{
-		dv->mPathInPropperties = cfg.mPathInProperties;
+		dv->mStringPerRow = cfg.mStringPerRow;
+		int ch = mTable->GetCharHeight();
+		mTable->SetRowHeight(ch * dv->mStringPerRow + 2);
 	}
+	
 
 }

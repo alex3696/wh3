@@ -8,8 +8,16 @@ namespace wh{
 //-----------------------------------------------------------------------------
 class ViewHistorySetup final : public IViewHistorySetup
 {
-	wxWindow*		mPanel;
+	wxDialog*		mPanel;
 	wxPropertyGrid*	mPG;
+
+	wxIntProperty*	mPGPRowsLimit;
+	wxIntProperty*	mPGPRowsOffset;
+	wxIntProperty*	mPGPStrPerRow;
+	wxBoolProperty*	mPGPPathInProperties;
+	wxBoolProperty*	mPGPColAutosize;
+	wxBoolProperty*	mPGPShowPropertyList;
+	wxBoolProperty*	mPGPShowFilterList;
 public:
 	ViewHistorySetup(std::shared_ptr<IViewWindow> parent);
 	virtual wxWindow* GetWnd()const override;

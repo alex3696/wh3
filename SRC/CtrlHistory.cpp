@@ -2,6 +2,7 @@
 #include "CtrlHistory.h"
 
 #include "ViewFilterList.h"
+#include "ViewHistorySetup.h"
 
 
 using namespace wh;
@@ -25,6 +26,17 @@ CtrlPageHistory::CtrlPageHistory(const std::shared_ptr<IViewHistory>& view
 		.connect(std::bind(&CtrlPageHistory::ShowObjPropList, this, ph::_1));
 	connViewCmd_SelectHistoryItem = mView->sigSelectHistoryItem
 		.connect(std::bind(&CtrlPageHistory::SelectHistoryItem, this, ph::_1));
+	connViewCmd_ShowCfgWindow = mView->sigShowCfgWindow
+		.connect([this]()
+		{
+			if (!mCtrlHistorySetup)
+			{
+				auto view = std::make_shared<ViewHistorySetup>(mView);
+				mCtrlHistorySetup = std::make_shared<CtrlHistorySetup>(view, mModel);
+			}
+			mCtrlHistorySetup->Show();
+		});
+	
 
 
 	connModel_LoadedHistoryTable = mModel->GetModelHistory().sigAfterLoad.connect

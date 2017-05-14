@@ -40,7 +40,7 @@ void ModelPageHistory::SetGuiModel(rec::PageHistory&& cfg)
 {
 	if (mGuiModel != cfg)
 	{
-		mGuiModel = std::move(cfg);
+		std::swap(mGuiModel, cfg);
 		mDataModel.SetRowsOffset(mGuiModel.mRowsOffset);
 		mDataModel.SetRowsLimit(mGuiModel.mRowsLimit);
 		sigCfgUpdated(mGuiModel);

@@ -6,6 +6,7 @@
 #include "ModelHistory.h"
 #include "CtrlFilterList.h"
 #include "CtrlObjPropList.h"
+#include "CtrlHistorySetup.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
@@ -16,6 +17,7 @@ class CtrlPageHistory final: public CtrlWindowBase<IViewHistory, ModelPageHistor
 	sig::scoped_connection connViewCmd_Backward;
 	sig::scoped_connection connViewCmd_ShowFilterList;
 	sig::scoped_connection connViewCmd_ShowObjPropList;
+	sig::scoped_connection connViewCmd_ShowCfgWindow;
 	sig::scoped_connection connViewCmd_SelectHistoryItem;
 
 	sig::scoped_connection connModel_LoadedHistoryTable;
@@ -23,8 +25,9 @@ class CtrlPageHistory final: public CtrlWindowBase<IViewHistory, ModelPageHistor
 	sig::scoped_connection connModel_SetRowsLimit;
 	sig::scoped_connection connModel_SetCfg;
 
-	std::shared_ptr<CtrlFilterList> mCtrlFilterList;
-	std::shared_ptr<CtrlObjPropList> mCtrlObjPropList;
+	std::shared_ptr<CtrlFilterList>		mCtrlFilterList;
+	std::shared_ptr<CtrlObjPropList>	mCtrlObjPropList;
+	std::shared_ptr<CtrlHistorySetup>	mCtrlHistorySetup;
 public:
 	CtrlPageHistory(const std::shared_ptr<IViewHistory>& view, const  std::shared_ptr<ModelPageHistory>& model);
 

@@ -51,7 +51,6 @@ private:
 
 	size_t mOffset;
 	size_t mLimit;
-	size_t mStringPerRow;
 	bool   mColAutosize;
 	
 };

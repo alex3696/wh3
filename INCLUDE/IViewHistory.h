@@ -25,6 +25,7 @@ public:
 	sig::signal<void()> sigPageBackward;
 	sig::signal<void(bool)> sigShowFilterList;
 	sig::signal<void(bool)>	sigShowObjPropList;
+	sig::signal<void()>		sigShowCfgWindow;
 
 	sig::signal<void(const wxString&)>	sigSelectHistoryItem;
 
