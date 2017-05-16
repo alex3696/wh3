@@ -645,7 +645,7 @@ CREATE OR REPLACE VIEW log AS
   lm.id       AS log_id
  ,lm.timemark AS log_dt
  ,lm.username AS log_user
- ,CASE WHEN lad.act_id IS NOT NULL THEN lad.act_id ELSE NULL::BIGINT END AS act_id --,det.act_id  AS act_id
+ ,act.id       AS act_id--,CASE WHEN lad.act_id IS NOT NULL THEN lad.act_id ELSE NULL::BIGINT END AS act_id --,det.act_id  AS act_id
  ,act.title   AS act_title
  ,act.color   AS act_color
  ,lm.obj_id   AS mobj_id
