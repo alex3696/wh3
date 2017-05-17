@@ -61,15 +61,6 @@
     <Filter Include="Templates">
       <UniqueIdentifier>{51e3b3f8-3007-4205-a1a3-8f1476b62c46}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Detail">
-      <UniqueIdentifier>{96d7badc-8c02-4bac-aa8b-831238c1ae99}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Detail\model">
-      <UniqueIdentifier>{ac060715-0df7-4ffd-a980-1d8d48a33f26}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Detail\view">
-      <UniqueIdentifier>{e2040487-031c-4e31-9ce3-fa641109f7ef}</UniqueIdentifier>
-    </Filter>
     <Filter Include="DlgSelectCls">
       <UniqueIdentifier>{d9a37787-a9ed-4ff4-bbe4-138b7d7c6718}</UniqueIdentifier>
     </Filter>
@@ -184,11 +175,29 @@
     <Filter Include="MainFrame\MVP2\ContentWindows\История3\Свойства объекта">
       <UniqueIdentifier>{1bb9742d-b483-439e-914f-e021fc6eaf5e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MainFrame\MVP2\ContentWindows\История3\Таблица истории">
-      <UniqueIdentifier>{507892d2-c045-486e-89c0-629a636f0883}</UniqueIdentifier>
-    </Filter>
     <Filter Include="MainFrame\MVP2\ContentWindows\История3\Настройки">
       <UniqueIdentifier>{e4d3a1f2-9199-46a7-a31d-f604c5a93d82}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Подробности">
+      <UniqueIdentifier>{357ec78a-6715-44ca-8b88-ef9afb725ace}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Подробности\v1">
+      <UniqueIdentifier>{fefcd675-af40-494e-b725-60c730487104}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Подробности\v1\Detail">
+      <UniqueIdentifier>{96d7badc-8c02-4bac-aa8b-831238c1ae99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Подробности\v1\Detail\model">
+      <UniqueIdentifier>{ac060715-0df7-4ffd-a980-1d8d48a33f26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Подробности\v1\Detail\view">
+      <UniqueIdentifier>{e2040487-031c-4e31-9ce3-fa641109f7ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Подробности\v2">
+      <UniqueIdentifier>{40eb1e3e-1663-4b76-937c-5677a825376d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\История3\Панель истории">
+      <UniqueIdentifier>{507892d2-c045-486e-89c0-629a636f0883}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -358,22 +367,22 @@
       <Filter>Каталог объектов\Диалог выбора свойств\view</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\detail_model_Obj.cpp">
-      <Filter>Detail\model</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v1\Detail\model</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\detail_model_ClsPropArray.cpp">
-      <Filter>Detail\model</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v1\Detail\model</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\detail_model_ObjPropArray.cpp">
-      <Filter>Detail\model</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v1\Detail\model</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\detail_ctrlpnl.cpp">
-      <Filter>Detail\view</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v1\Detail\view</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\PGClsPid.cpp">
       <Filter>Controls\PropertyGridExt</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\detail_model_OjbPropLoader.cpp">
-      <Filter>Detail\model</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v1\Detail\model</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\dlgselectcls_ctrlpnl.cpp">
       <Filter>DlgSelectCls\View</Filter>
@@ -421,13 +430,13 @@
       <Filter>История</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ObjDetailPGView.cpp">
-      <Filter>Detail\view</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v1\Detail\view</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\DetailActCtrl.cpp">
-      <Filter>Detail\view</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v1\Detail\view</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\DetailActToolBar.cpp">
-      <Filter>Detail\view</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v1\Detail\view</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ConnectionCfgDlg.cpp">
       <Filter>MainFrame\dlgConnectionCfg</Filter>
@@ -520,16 +529,16 @@
       <Filter>Controls\PropertyGridExt</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\CtrlHistory.cpp">
-      <Filter>MainFrame\MVP2\ContentWindows\История3\Таблица истории</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Панель истории</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ModelHistory.cpp">
-      <Filter>MainFrame\MVP2\ContentWindows\История3\Таблица истории</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Панель истории</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ViewHistory.cpp">
-      <Filter>MainFrame\MVP2\ContentWindows\История3\Таблица истории</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Панель истории</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\wxDataViewIconMLTextRenderer.cpp">
-      <Filter>MainFrame\MVP2\ContentWindows\История3\Таблица истории</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Панель истории</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\CtrlObjPropList.cpp">
       <Filter>MainFrame\MVP2\ContentWindows\История3\Свойства объекта</Filter>
@@ -545,6 +554,15 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\ViewHistorySetup.cpp">
       <Filter>MainFrame\MVP2\ContentWindows\История3\Настройки</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\CtrlDetail.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ModelDetail.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ViewDetail.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -756,10 +774,10 @@
       <Filter>VProp</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\detail_model.h">
-      <Filter>Detail\model</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v1\Detail\model</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\detail_ctrlpnl.h">
-      <Filter>Detail\view</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v1\Detail\view</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\PGClsPid.h">
       <Filter>Controls\PropertyGridExt</Filter>
@@ -828,13 +846,13 @@
       <Filter>История</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ObjDetailPGView.h">
-      <Filter>Detail\view</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v1\Detail\view</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\DetailActCtrl.h">
-      <Filter>Detail\view</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v1\Detail\view</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h">
-      <Filter>Detail\view</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v1\Detail\view</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ConnectionCfgDlg.h">
       <Filter>MainFrame\dlgConnectionCfg</Filter>
@@ -968,9 +986,6 @@
     <ClInclude Include="..\..\INCLUDE\PageObjByPathList.h">
       <Filter>MainFrame\MVP2\ContentWindows</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\PageDetailObj.h">
-      <Filter>MainFrame\MVP2\ContentWindows</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MoveObjView.h">
       <Filter>Каталог объектов\Диалог перемещения</Filter>
     </ClInclude>
@@ -1002,22 +1017,22 @@
       <Filter>Controls\PropertyGridExt</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\CtrlHistory.h">
-      <Filter>MainFrame\MVP2\ContentWindows\История3\Таблица истории</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Панель истории</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\IViewHistory.h">
-      <Filter>MainFrame\MVP2\ContentWindows\История3\Таблица истории</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Панель истории</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ModelHistory.h">
-      <Filter>MainFrame\MVP2\ContentWindows\История3\Таблица истории</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Панель истории</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ModelHistoryData.h">
-      <Filter>MainFrame\MVP2\ContentWindows\История3\Таблица истории</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Панель истории</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ViewHistory.h">
-      <Filter>MainFrame\MVP2\ContentWindows\История3\Таблица истории</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Панель истории</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\wxDataViewIconMLTextRenderer.h">
-      <Filter>MainFrame\MVP2\ContentWindows\История3\Таблица истории</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\История3\Панель истории</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\IViewObjPropList.h">
       <Filter>MainFrame\MVP2\ContentWindows\История3\Свойства объекта</Filter>
@@ -1039,6 +1054,21 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\IViewHistorySetup.h">
       <Filter>MainFrame\MVP2\ContentWindows\История3\Настройки</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\PageDetailObj.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ModelDetail.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\CtrlDetail.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\IViewDetail.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ViewDetail.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
