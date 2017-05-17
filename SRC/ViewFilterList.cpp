@@ -508,6 +508,8 @@ wxWindow* ViewFilterList::GetWnd()const
 //virtual 
 void ViewFilterList::Update(const std::vector<NotyfyItem>& data) //override;
 {
+	wxWindowUpdateLocker lock(mPanel);
+
 	auto p0 = GetTickCount();
 	if (data.empty())
 	{
@@ -538,16 +540,12 @@ void ViewFilterList::Update(const std::vector<NotyfyItem>& data) //override;
 void ViewFilterList::OnCmd_UpdateAll(wxCommandEvent& evt)
 {
 	wxBusyCursor busyCursor;
-	wxWindowUpdateLocker lock(mPanel);
-
 	sigUpdateAll();
 }
 //-----------------------------------------------------------------------------
 void ViewFilterList::OnCmd_Update(wxCommandEvent& evt)
 {
 	wxBusyCursor busyCursor;
-	wxWindowUpdateLocker lock(mPanel);
-
 	sigUpdateAll();
 }
 //-----------------------------------------------------------------------------

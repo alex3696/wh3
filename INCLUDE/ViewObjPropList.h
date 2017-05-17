@@ -11,9 +11,6 @@ class ViewObjPropList : public IViewObjPropList
 	wxPanel*		mPanel;
 	wxPropertyGrid*	mPG;
 
-	wxAuiToolBarItem* mToolExportToExcel;
-	std::shared_ptr<IViewFilterList> mViewFilterList;
-	std::shared_ptr<IViewObjPropList> mViewObjPropList;
 public:
 	ViewObjPropList(wxWindow* parent);
 	ViewObjPropList(std::shared_ptr<IViewWindow> parent);

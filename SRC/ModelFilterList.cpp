@@ -38,7 +38,7 @@ wxString ModelFilter::AsString()const
 	case foNotLike:	BuildNotLikeString(ret); break;
 	case foBetween:	BuildBetweenString(ret); break;
 	case foNotBetween:BuildNotBetweenString(ret); break;
-	break;
+	default:break;
 	}//switch (mKind)
 	return ret;
 }//wxString AsString()const

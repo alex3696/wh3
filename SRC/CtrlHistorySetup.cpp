@@ -27,3 +27,8 @@ void CtrlHistorySetup::SetCfg(const rec::PageHistory& cfg)
 {
 	mModel->SetGuiModel(cfg);
 }
+//---------------------------------------------------------------------------
+void CtrlHistorySetup::ShowCfgWindow()
+{
+	mView->ShowCfgWindow();
+}

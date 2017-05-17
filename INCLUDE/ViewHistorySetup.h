@@ -23,12 +23,12 @@ public:
 	virtual wxWindow* GetWnd()const override;
 	
 	virtual void SetCfg(const rec::PageHistory&) override;
+	virtual void ShowCfgWindow() override;
 			
 protected:
 	void OnCmd_SetCfgToPage(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_SetCfgToGlobal(wxCommandEvent& evt = wxCommandEvent());
 	
-	virtual void OnShow()override;
 private:
 
 };

@@ -31,6 +31,7 @@ CtrlFilterList::CtrlFilterList(const std::shared_ptr<IViewFilterList>& view
 
 
 
+	UpdateAll();
 }
 
 //---------------------------------------------------------------------------

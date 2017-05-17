@@ -17,6 +17,7 @@ public:
 		, const  std::shared_ptr<ModelPageHistory>& model);
 
 	void SetCfg(const rec::PageHistory&);
+	void ShowCfgWindow();
 
 };
 //-----------------------------------------------------------------------------

@@ -72,7 +72,8 @@ void ViewObjPropList::SetPropList(const PropValTable& rt, const IAct* act) //ove
 			const auto it = propIdIdx.find(curr->GetProp().GetId());
 			if (propIdIdx.end() != it)
 			{
-				wxColour clr(act->GetColour());
+				 
+				wxColour clr = act->GetColour().IsEmpty() ? *wxWHITE : act->GetColour();
 				pgp->SetBackgroundColour(clr);
 			}
 		}

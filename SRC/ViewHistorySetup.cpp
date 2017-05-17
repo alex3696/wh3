@@ -84,7 +84,7 @@ wxWindow* ViewHistorySetup::GetWnd()const //override;
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewHistorySetup::OnShow()//override
+void ViewHistorySetup::ShowCfgWindow() //override
 {
 	mPanel->ShowModal();
 }

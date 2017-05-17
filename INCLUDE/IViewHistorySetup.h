@@ -11,6 +11,7 @@ class IViewHistorySetup : public IViewWindow
 {
 public:
 	virtual void SetCfg(const rec::PageHistory&) = 0;
+	virtual void ShowCfgWindow() = 0;
 
 	sig::signal<void(const rec::PageHistory&)> sigSetCfg;
 
