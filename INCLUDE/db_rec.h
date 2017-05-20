@@ -439,6 +439,7 @@ struct PageHistory
 	bool	mColAutosize = false;
 	bool	mShowPropertyList = false;
 	bool	mShowFilterList = false;
+	bool	mVisibleColumnClsObj = true;
 
 	bool operator==(const PageHistory& rv)const
 	{
@@ -448,7 +449,8 @@ struct PageHistory
 			&& rv.mPathInProperties == mPathInProperties
 			&& rv.mColAutosize == mColAutosize
 			&& rv.mShowPropertyList == mShowPropertyList
-			&& rv.mShowFilterList == mShowFilterList;
+			&& rv.mShowFilterList == mShowFilterList
+			&& rv.mVisibleColumnClsObj == mVisibleColumnClsObj;
 	}
 	bool operator!=(const PageHistory& rv)const
 	{

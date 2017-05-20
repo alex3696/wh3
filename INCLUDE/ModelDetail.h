@@ -2,40 +2,30 @@
 #define __MODEL_DETAIL_H
 
 #include "ModelHistory.h"
-#include "IModelWindow.h"
-#include "ModelFilterList.h"
-#include "ModelObjPropList.h"
 
 namespace wh{
 //---------------------------------------------------------------------------
-class ModelDetailPage : public IModelWindow
+class ModelPageDetail : public IModelWindow
 {
-	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_history24;
+	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_obj_num24;
 	const wxString mTitle = "Подробности";
 
-	sig::scoped_connection connListItemChange;
-
-	rec::PageHistory	mGuiModel;
-	ModelHistory		mDataModel;
+	rec::ObjInfo						mObjInfo;
+	std::shared_ptr<ModelPageHistory>	mModelHistory;
 public:
-	ModelDetailPage(const std::shared_ptr<rec::PageHistory>& data);
+	ModelPageDetail(const std::shared_ptr<rec::ObjInfo>& oi
+					,const std::shared_ptr<rec::PageHistory>& data);
 
-	ModelHistory& GetModelHistory(){ return mDataModel; }
+	std::shared_ptr<ModelPageHistory>& GetModelHistory(){ return mModelHistory; }
 
 	void Update();
-	void PageForward();
-	void PageBackward();
-
-	void SetGuiModel(rec::PageHistory&& cfg);
-	void SetGuiModel(const rec::PageHistory& cfg);
-	const rec::PageHistory& GetGuiModel()const;
-	sig::signal<void(const rec::PageHistory&)>	sigCfgUpdated;
 
 	// IModelWindow
 	virtual const wxIcon& GetIcon()const override { return mIco; }
 	virtual const wxString& GetTitle()const override { return mTitle; }
 	virtual void UpdateTitle()override;
 	virtual void Show()override;
+	virtual void Init()override;
 	virtual void Load(const boost::property_tree::ptree& page_val)override;
 	virtual void Save(boost::property_tree::ptree& page_val)override;
 

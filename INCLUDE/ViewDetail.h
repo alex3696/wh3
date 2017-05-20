@@ -6,50 +6,62 @@
 
 namespace wh{
 //-----------------------------------------------------------------------------
-class ViewDetailPage final : public IViewDetailPage
+//-----------------------------------------------------------------------------
+class ViewToolbarDetail final : public IViewToolbarDetail
+{
+	wxAuiToolBar*		mToolbar;
+public:
+	ViewToolbarDetail(wxWindow* parent);
+	ViewToolbarDetail(std::shared_ptr<IViewWindow> parent)
+		:ViewToolbarDetail(parent->GetWnd())
+	{}
+	virtual wxWindow* GetWnd()const override
+	{
+		return mToolbar;
+	}
+
+	virtual void SetObj(const rec::ObjInfo& rt) override;
+
+	void OnCmd_Move(wxCommandEvent& evt = wxCommandEvent());
+	void OnCmd_Act(wxCommandEvent& evt);
+	void OnCmd_Redo(wxCommandEvent& evt);
+protected:
+private:
+
+};
+//-----------------------------------------------------------------------------
+class ViewPageDetail final : public IViewPageDetail
 {
 	wxPanel*		mPanel;
 	wxAuiManager*   mAuiMgr;
-	wxDataViewCtrl* mTable;
-	wxAuiToolBar*	mToolbar;
-	wxStaticText*	mPageLabel;
 
-	wxAuiToolBarItem* mToolExportToExcel;
-	std::shared_ptr<IViewFilterList> mViewFilterList;
-	std::shared_ptr<IViewObjPropList> mViewObjPropList;
+	std::shared_ptr<IViewToolbarDetail>		mViewToolbarDetail;
+	std::shared_ptr<IViewToolbarHistory>	mViewToolbarHistory;
+	std::shared_ptr<IViewTableHistory>		mViewTableHistory;
+	std::shared_ptr<IViewFilterList>		mViewFilterList;
+	std::shared_ptr<IViewObjPropList>		mViewObjPropList;
 public:
-	ViewDetailPage(std::shared_ptr<IViewWindow> parent);
-	virtual wxWindow* GetWnd()const override;
-	
-	virtual void SetHistoryTable(const std::shared_ptr<const ModelHistoryTableData>& rt) override;
-	virtual void SetRowsOffset(const size_t& offset) override;
-	virtual void SetRowsLimit(const size_t& limit) override;
-	virtual std::shared_ptr<IViewFilterList> GetViewFilterList()const override;
-	virtual std::shared_ptr<IViewObjPropList> GetViewObjPropList()const override;
+	ViewPageDetail(std::shared_ptr<IViewWindow> parent);
+	virtual wxWindow* GetWnd()const override
+	{
+		return mPanel;
+	}
+
+	virtual std::shared_ptr<IViewToolbarDetail>		GetViewToolbarDetail()const override;
+	virtual std::shared_ptr<IViewToolbarHistory>	GetViewToolbarHistory()const override;
+	virtual std::shared_ptr<IViewTableHistory>		GetViewTableHistory()const override;
+	virtual std::shared_ptr<IViewFilterList>		GetViewFilterList()const override;
+	virtual std::shared_ptr<IViewObjPropList>		GetViewObjPropList()const override;
 	virtual void SetCfg(const rec::PageHistory&) override;
-			
-protected:
+
 	void ShowFilterList(bool);
 	void ShowObjPropList(bool);
-	bool IsShowObjPropList()const;
 
-	void OnCmd_Update(wxCommandEvent& evt = wxCommandEvent());
-	void OnCmd_Backward(wxCommandEvent& evt);
-	void OnCmd_Forward(wxCommandEvent& evt);
-	void OnCmd_Filter(wxCommandEvent& evt);
-	void OnCmd_PropList(wxCommandEvent& evt);
-	void OnCmd_SelectHistoryItem(wxDataViewEvent& evt);
-	void OnCmd_DClickTable(wxMouseEvent& evt);
-	void OnCmd_ShowSetup(wxCommandEvent& evt);
-	
-	virtual void OnShow()override;
+protected:
+
 private:
-	wxAuiToolBar*	BuildToolBar(wxWindow* parent);
-	wxDataViewCtrl* BuildTable(wxWindow* parent);
+	rec::PageHistory mCfg;
 
-	size_t mOffset;
-	size_t mLimit;
-	bool   mColAutosize;
 	
 };
 

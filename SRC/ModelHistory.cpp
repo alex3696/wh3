@@ -98,6 +98,7 @@ void ModelPageHistory::Load(const boost::property_tree::ptree& page_val)//overri
 	cfg.mShowPropertyList = page_val.get<bool>("CtrlPageHistory.ShowPropertyList", false);
 	cfg.mColAutosize = page_val.get<bool>("CtrlPageHistory.ColAutosize", false);
 	cfg.mPathInProperties = page_val.get<bool>("CtrlPageHistory.PathInProperties", false);
+	cfg.mVisibleColumnClsObj = page_val.get<bool>("CtrlPageHistory.VisibleColumnClsObj", true);
 	SetGuiModel(std::move(cfg));
 
 	/////Update();
@@ -115,6 +116,7 @@ void ModelPageHistory::Save(boost::property_tree::ptree& page_val)//override;
 	content.put("ShowPropertyList", mGuiModel.mShowPropertyList);
 	content.put("ColAutosize", mGuiModel.mColAutosize);
 	content.put("PathInProperties", mGuiModel.mPathInProperties);
+	content.put("VisibleColumnClsObj", mGuiModel.mVisibleColumnClsObj);
 	page_val.push_back(std::make_pair("CtrlPageHistory", content));
 	//page_val.put("CtrlPageLogList.id", 33);
 

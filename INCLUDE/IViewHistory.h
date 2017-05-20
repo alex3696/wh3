@@ -34,6 +34,7 @@ public:
 	sig::signal<void()>		sigPageBackward;
 	sig::signal<void(bool)> sigShowFilterList;
 	sig::signal<void(bool)>	sigShowObjPropList;
+	sig::signal<void()>		sigConvertToExcel;
 	sig::signal<void()>		sigShowCfgWindow;
 
 

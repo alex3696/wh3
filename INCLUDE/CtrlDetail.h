@@ -1,38 +1,42 @@
 #ifndef __CTRL_DETAIL_H
 #define __CTRL_DETAIL_H
 
-#include "CtrlWindowBase.h"
+#include "CtrlHistory.h"
 #include "IViewDetail.h"
 #include "ModelDetail.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
-	class CtrlDetailPage final : public CtrlWindowBase<IViewDetailPage, ModelDetailPage>
+/*
+class CtrlToolbarAct final : public CtrlWindowBase<IViewToolbarHistory, ModelPageHistory>
 {
-	sig::scoped_connection connViewCmd_Update;
-	sig::scoped_connection connViewCmd_Forward;
-	sig::scoped_connection connViewCmd_Backward;
-	sig::scoped_connection connViewCmd_ShowFilterList;
-	sig::scoped_connection connViewCmd_ShowObjPropList;
-	sig::scoped_connection connViewCmd_ShowCfgWindow;
-	sig::scoped_connection connViewCmd_SelectHistoryItem;
+	sig::scoped_connection connViewCmd_DoMove;
+	sig::scoped_connection connViewCmd_DoAct;
+	sig::scoped_connection connViewCmd_DoRollback;
+public:
+	CtrlToolbarAct(const std::shared_ptr<IViewToolbarHistory>& view
+		, const  std::shared_ptr<ModelPageHistory>& model);
 
-	sig::scoped_connection connModel_LoadedHistoryTable;
-	sig::scoped_connection connModel_SetRowsOffset;
-	sig::scoped_connection connModel_SetRowsLimit;
+	void DoMove();
+	void DoAct();
+	void DoRollback();
+
+};
+*/
+//-----------------------------------------------------------------------------
+class CtrlPageDetail final : public CtrlWindowBase<IViewPageDetail, ModelPageDetail>
+{
+	std::shared_ptr<CtrlToolbarHistory>	mCtrlToolbarHistory;
+	std::shared_ptr<CtrlTableHistory>	mCtrlTableHistory;
+	std::shared_ptr<CtrlFilterList>		mCtrlFilterList;
+	std::shared_ptr<CtrlObjPropList>	mCtrlObjPropList;
+
 	sig::scoped_connection connModel_SetCfg;
 
 public:
-	CtrlDetailPage(const std::shared_ptr<IViewDetailPage>& view
-		, const  std::shared_ptr<ModelDetailPage>& model);
+	CtrlPageDetail(const std::shared_ptr<IViewPageDetail>& view
+		, const  std::shared_ptr<ModelPageDetail>& model);
 
-	void Update();
-	void PageForward();
-	void PageBackward();
-
-	void ShowFilterList(bool show = true);
-	void ShowObjPropList(bool show = true);
-	void SelectHistoryItem(const wxString& str);
 
 };
 //-----------------------------------------------------------------------------

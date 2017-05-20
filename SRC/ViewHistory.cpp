@@ -216,7 +216,7 @@ ViewTableHistory::ViewTableHistory(wxWindow* parent)
 	renderer3->SetAlignment(wxALIGN_TOP);
 
 	auto col1 = new wxDataViewColumn("Время/Пользователь"
-		, renderer1, 1, -1, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
+		, renderer1, 1, 85, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
 	col1->SetBitmap(ResMgr::GetInstance()->m_ico_sort_asc16);
 	table->AppendColumn(col1);
 	auto col2 = new wxDataViewColumn("Тип/Объект"
@@ -267,10 +267,9 @@ ViewTableHistory::ViewTableHistory(wxWindow* parent)
 	wxAcceleratorEntry entries[4];
 	entries[0].Set(wxACCEL_CTRL, (int) 'R', wxID_REFRESH);
 	entries[1].Set(wxACCEL_NORMAL, WXK_F5, wxID_REFRESH);
-	entries[2].Set(wxACCEL_NORMAL, WXK_PAGEUP, wxID_BACKWARD);
-	entries[3].Set(wxACCEL_NORMAL, WXK_PAGEDOWN, wxID_FORWARD);
+	entries[2].Set(wxACCEL_CTRL, WXK_PAGEUP, wxID_BACKWARD);
+	entries[3].Set(wxACCEL_CTRL, WXK_PAGEDOWN, wxID_FORWARD);
 	wxAcceleratorTable accel(4, entries);
-	
 	table->SetAcceleratorTable(accel);
 
 	mTable = table;
@@ -330,6 +329,15 @@ void ViewTableHistory::SetCfg(const rec::PageHistory& cfg) //override;
 		mTable->SetRowHeight(ch * dv->mStringPerRow + 2);
 		mTable->Refresh();
 	}
+
+	auto col = mTable->GetColumn(1);
+	if (col)
+	{
+		bool col_visible = col->IsShown();
+		if (col_visible != cfg.mVisibleColumnClsObj)
+			col->SetHidden(!cfg.mVisibleColumnClsObj);
+	}
+
 }
 //-----------------------------------------------------------------------------
 
@@ -362,28 +370,28 @@ ViewToolbarHistory::ViewToolbarHistory(wxWindow* parent)
 	long style = wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_PLAIN_BACKGROUND
 		//| wxAUI_TB_TEXT 
 		//| wxAUI_TB_HORZ_TEXT
-		| wxAUI_TB_OVERFLOW
+		//| wxAUI_TB_OVERFLOW
 		;
 	auto tool_bar = new wxAuiToolBar(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
 
 	mPageLabel = new wxStaticText(tool_bar, wxID_ANY, "0000...0000", wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
 
-	tool_bar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh24, "Обновить");
-	tool_bar->AddTool(wxID_FIND, "Фильтры", mgr->m_ico_filter24, "Фильтры", wxITEM_CHECK);
+	tool_bar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh24, "Обновить(F5)");
+	tool_bar->AddTool(wxID_FIND, "Фильтры", mgr->m_ico_filter24, "Фильтры(CTRL+F)", wxITEM_NORMAL);
 	tool_bar->AddSeparator();
 	tool_bar->AddTool(wxID_BACKWARD, "Назад", wxArtProvider::GetBitmap(wxART_GO_UP, wxART_TOOLBAR),
-		"Предыдущая страница");
+		"Предыдущая страница(CTRL+PAGE UP)");
 	tool_bar->AddControl(mPageLabel, "Показаны строки");
 	tool_bar->AddTool(wxID_FORWARD, "Вперёд", wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_TOOLBAR)
-		, "Следующая страница");
+		, "Следующая страница(CTRL+PAGE DOWN)");
 	tool_bar->AddSeparator();
 	tool_bar->AddTool(wxID_PROPERTIES, "Все свойства"
 		, wxArtProvider::GetBitmap(wxART_LIST_VIEW, wxART_TOOLBAR)
-		, "Показать/Скрыть все свойства на выбранной момент времени", wxITEM_CHECK);
+		, "Показать/Скрыть все свойства на выбранной момент времени(CTRL+P)", wxITEM_NORMAL);
 	mToolExportToExcel = tool_bar->AddTool(wxID_CONVERT, "Экспорт в Excel"
-		, mgr->m_ico_export_excel24, "выполнить экспорт в Excel или Calc");
+		, mgr->m_ico_export_excel24, "выполнить экспорт в Excel или Calc(CTRL+E)");
 	//mToolExportToExcel->SetHasDropDown(true);
-	tool_bar->AddTool(wxID_SETUP, "Настройки"
+	tool_bar->AddTool(wxID_SETUP, "Настройки(CTRL+N)"
 		, wxArtProvider::GetBitmap(wxART_HELP_SETTINGS, wxART_TOOLBAR)
 		, "Настройки внешнего вида таблийы истории");
 	tool_bar->Realize();
@@ -393,8 +401,8 @@ ViewToolbarHistory::ViewToolbarHistory(wxWindow* parent)
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarHistory::OnCmd_Forward, this, wxID_FORWARD);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarHistory::OnCmd_Filter, this, wxID_FIND);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarHistory::OnCmd_PropList, this, wxID_PROPERTIES);
+	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarHistory::OnCmd_Convert, this, wxID_CONVERT);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarHistory::OnCmd_ShowSetup, this, wxID_SETUP);
-
 
 	mToolbar = tool_bar;
 }
@@ -445,14 +453,19 @@ void ViewToolbarHistory::OnCmd_Filter(wxCommandEvent& evt)
 {
 	int state = mToolbar->FindTool(wxID_FIND)->GetState();
 	int show = state & wxAUI_BUTTON_STATE_CHECKED;
-	sigShowFilterList(show?true:false);
+	sigShowFilterList(show ? false : true);
 }
 //-----------------------------------------------------------------------------
 void ViewToolbarHistory::OnCmd_PropList(wxCommandEvent& evt)
 {
 	int state = mToolbar->FindTool(wxID_PROPERTIES)->GetState();
 	int show = state & wxAUI_BUTTON_STATE_CHECKED;
-	sigShowObjPropList(show ? true : false);
+	sigShowObjPropList(show ? false : true);
+}
+//-----------------------------------------------------------------------------
+void ViewToolbarHistory::OnCmd_Convert(wxCommandEvent& evt)
+{
+	sigConvertToExcel();
 }
 //-----------------------------------------------------------------------------
 void ViewToolbarHistory::OnCmd_ShowSetup(wxCommandEvent& evt)
@@ -493,6 +506,7 @@ ViewHistory::ViewHistory(std::shared_ptr<IViewWindow> parent)
 	panel->mAuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, face_colour);
 
 
+
 	mViewToolbarHistory = std::make_shared<ViewToolbarHistory>(panel);
 	panel->mAuiMgr.AddPane(mViewToolbarHistory->GetWnd(), wxAuiPaneInfo().
 		Name(wxT("HistoryToolBar"))
@@ -510,7 +524,7 @@ ViewHistory::ViewHistory(std::shared_ptr<IViewWindow> parent)
 		Name(wxT("HistoryTable")).CenterPane()
 		.PaneBorder(false)
 		);
-
+	
 	mViewObjPropList = std::make_shared<ViewObjPropList>(panel);
 	panel->mAuiMgr.AddPane(mViewObjPropList->GetWnd(), wxAuiPaneInfo().
 		Name("ViewObjPropListPane").Caption("Свойства")
@@ -531,6 +545,29 @@ ViewHistory::ViewHistory(std::shared_ptr<IViewWindow> parent)
 		.MinSize(250, 200)
 		);
 
+	auto toolbar_wnd = std::dynamic_pointer_cast<ViewToolbarHistory>(mViewToolbarHistory).get();
+	panel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarHistory::OnCmd_Update, toolbar_wnd, wxID_REFRESH);
+	panel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarHistory::OnCmd_Backward, toolbar_wnd, wxID_BACKWARD);
+	panel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarHistory::OnCmd_Forward, toolbar_wnd, wxID_FORWARD);
+	panel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarHistory::OnCmd_Filter, toolbar_wnd, wxID_FIND);
+	panel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarHistory::OnCmd_PropList, toolbar_wnd, wxID_PREFERENCES);
+	panel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarHistory::OnCmd_Convert, toolbar_wnd, wxID_CONVERT);
+	panel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarHistory::OnCmd_ShowSetup, toolbar_wnd, wxID_SETUP);
+
+	wxAcceleratorEntry entries[7];
+	entries[0].Set(wxACCEL_NORMAL, WXK_F5, wxID_REFRESH);
+	entries[1].Set(wxACCEL_CTRL, WXK_PAGEUP, wxID_BACKWARD);
+	entries[2].Set(wxACCEL_CTRL, WXK_PAGEDOWN, wxID_FORWARD);
+	entries[3].Set(wxACCEL_CTRL, (int) 'F', wxID_FIND);
+	entries[4].Set(wxACCEL_CTRL, (int) 'P', wxID_PREFERENCES);
+	entries[5].Set(wxACCEL_CTRL, (int) 'E', wxID_CONVERT);
+	entries[6].Set(wxACCEL_CTRL, (int) 'N', wxID_SETUP);
+	wxAcceleratorTable accel(7, entries);
+	//mViewTableHistory->GetWnd()->SetAcceleratorTable(accel);
+	//mViewToolbarHistory->GetWnd()->SetAcceleratorTable(accel);
+	panel->SetAcceleratorTable(accel);
+
+	mViewTableHistory->GetWnd()->SetFocus();
 	panel->mAuiMgr.Update();
 	
 }

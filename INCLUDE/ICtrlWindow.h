@@ -16,6 +16,7 @@ public:
 	virtual void Show() = 0;
 	virtual void RmView() = 0;
 	virtual void MkView() {};
+	virtual void Init() {};
 
 	virtual void Load(const boost::property_tree::ptree&) = 0;
 	virtual void Save(boost::property_tree::ptree&) = 0;

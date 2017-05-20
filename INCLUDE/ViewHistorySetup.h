@@ -30,6 +30,7 @@ protected:
 	void OnCmd_SetCfgToGlobal(wxCommandEvent& evt = wxCommandEvent());
 	
 private:
+	rec::PageHistory mCurrentCfg;
 
 };
 

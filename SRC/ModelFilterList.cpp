@@ -250,6 +250,28 @@ void ModelFilterList::UpdateFilter(const wxString& title, const wxString& sys_ti
 	}//if (sysTitleIdx.end() != it)
 }
 //---------------------------------------------------------------------------
+void ModelFilterList::UpdateFilter(const wxString& sys_title, const wxString& val)
+{
+	auto& sysTitleIdx = mList.get<2>();
+	auto it = sysTitleIdx.find(sys_title);
+	if (sysTitleIdx.end() != it)
+	{
+		auto new_filter = std::make_shared<ModelFilter>(*(*it));
+		std::vector<wxString> vec;
+		vec.emplace_back(val);
+		new_filter->SetValue(std::move(vec));
+
+		if (*new_filter != *(*it))
+		{
+			std::shared_ptr<const ModelFilter> const_new_filter = new_filter;
+			std::vector<NotyfyItem> data;
+			data.emplace_back(std::make_pair(*it, const_new_filter));
+			Update(data);
+		}
+	}//if (sysTitleIdx.end() != it)
+
+}
+//---------------------------------------------------------------------------
 void ModelFilterList::Apply()
 {
 	sigApply(GetSqlString());

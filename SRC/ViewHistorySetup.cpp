@@ -92,6 +92,8 @@ void ViewHistorySetup::ShowCfgWindow() //override
 //virtual 
 void ViewHistorySetup::SetCfg(const rec::PageHistory& cfg) //override;
 {
+	mCurrentCfg = cfg;
+
 	mPGPRowsLimit->SetValueFromInt(cfg.mRowsLimit);
 	mPGPRowsOffset->SetValueFromInt(cfg.mRowsOffset);
 	mPGPStrPerRow->SetValueFromInt(cfg.mStringPerRow);
@@ -103,7 +105,7 @@ void ViewHistorySetup::SetCfg(const rec::PageHistory& cfg) //override;
 //-----------------------------------------------------------------------------
 void ViewHistorySetup::OnCmd_SetCfgToPage(wxCommandEvent& evt)
 {
-	rec::PageHistory cfg;
+	rec::PageHistory cfg = mCurrentCfg;
 	cfg.mRowsLimit = mPGPRowsLimit->GetValue().GetInteger();
 	cfg.mRowsOffset = mPGPRowsOffset->GetValue().GetInteger();
 	cfg.mStringPerRow = mPGPStrPerRow->GetValue().GetInteger();

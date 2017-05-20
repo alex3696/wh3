@@ -76,15 +76,16 @@ public:
 	virtual void SetRowsLimit(const size_t& limit) override;
 	virtual void SetCfg(const rec::PageHistory&) override;
 
-protected:
+
 
 	void OnCmd_Update(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_Backward(wxCommandEvent& evt);
 	void OnCmd_Forward(wxCommandEvent& evt);
 	void OnCmd_Filter(wxCommandEvent& evt);
 	void OnCmd_PropList(wxCommandEvent& evt);
+	void OnCmd_Convert(wxCommandEvent& evt);
 	void OnCmd_ShowSetup(wxCommandEvent& evt);
-
+protected:
 	virtual void OnShow()override
 	{
 

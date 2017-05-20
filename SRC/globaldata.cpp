@@ -34,7 +34,8 @@
 #include "ViewHistory.h"
 #include "CtrlHistory.h"
 
-
+#include "ViewDetail.h"
+#include "CtrlDetail.h"
 
 
 
@@ -470,4 +471,17 @@ void whDataMgr::InitContainer()
 		("ViewHistory", "ViewNotebook");
 	mContainer->RegFactory<ICtrlWindow, CtrlPageHistory, IViewHistory, ModelPageHistory >
 		("CtrlPageHistory", "ViewHistory", "ModelPageHistory");
+
+
+	////////////////////
+	// detail 2//
+	///////////////////
+	//mContainer->RegInstanceDeferredNI<wh::rec::ObjInfo>("DefaultDetailObjInfo");
+	mContainer->RegFactoryNI<ModelPageDetail, rec::ObjInfo, rec::PageHistory>
+		("ModelPageDetail", "DefaultDetailObjInfo", "DefaultLogListInfo");
+	mContainer->RegFactory<IViewPageDetail, ViewPageDetail, IViewNotebook >
+		("ViewPageDetail", "ViewNotebook");
+	mContainer->RegFactory<ICtrlWindow, CtrlPageDetail, ViewPageDetail, ModelPageDetail >
+		("CtrlPageDetail", "ViewPageDetail", "ModelPageDetail");
+
 }

@@ -40,6 +40,7 @@ void ModelNotebook::MkWindow(const wxString& factory)
 	auto ctrl = MkCtrl(factory);
 	if (ctrl)
 	{
+		ctrl->Init();
 		ctrl->UpdateTitle();
 		ctrl->Show();	
 	}
@@ -117,6 +118,7 @@ try{
 			if (ctrl)
 			{
 				ctrl->Load(v.second);
+				ctrl->Init();
 				ctrl->UpdateTitle();
 			}
 		}//for 

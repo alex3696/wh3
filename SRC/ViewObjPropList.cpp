@@ -35,6 +35,10 @@ wxWindow* ViewObjPropList::GetWnd()const
 //virtual 
 void ViewObjPropList::SetPropList(const PropValTable& rt, const IAct* act) //override;
 {
+	bool visible = mPanel->IsShown();
+	//if (!visible)
+	//	return;
+
 	auto p0 = GetTickCount();
 
 	mPG->Clear();

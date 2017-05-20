@@ -116,6 +116,16 @@ public:
 		//const std::shared_ptr<const ModelFilter> tmp = mList.at(pos);
 		return mList.at(pos);
 	}
+
+	const std::shared_ptr<const ModelFilter> FindBySysName(const wxString& sys_name)const
+	{
+		const auto& idxSysName = mList.get<2>();
+		const auto it = idxSysName.find(sys_name);
+		if (idxSysName.cend() != it)
+			return *it;
+		return nullptr;
+	}
+
 	
 	void Clear()
 	{
@@ -133,6 +143,10 @@ public:
 	void UpdateFilter(const wxString& title, const wxString& sys_title
 		, FilterOp op, FieldType type
 		, const std::vector<wxString>& val);
+
+	void UpdateFilter(const wxString& sys_title,const wxString& val);
+
+
 	void Apply();
 
 	template<typename ...Types>

@@ -424,6 +424,7 @@ void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 	if (nb2)
 	{
 		nb2->MkWindow("CtrlPageDetailObj");
+		nb2->MkWindow("CtrlPageDetail");
 	}
 }
 //-----------------------------------------------------------------------------
