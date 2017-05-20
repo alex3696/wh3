@@ -6,7 +6,7 @@
 
 namespace wh{
 //-----------------------------------------------------------------------------
-class IViewToolbarDetail : public IViewWindow
+class IViewToolbarAct : public IViewWindow
 {
 public:
 	virtual void SetObj(const rec::ObjInfo& rt) = 0 ;
@@ -22,7 +22,7 @@ class IViewPageDetail : public IViewWindow
 {
 public:
 public:
-	virtual std::shared_ptr<IViewToolbarDetail>		GetViewToolbarDetail()const = 0;
+	virtual std::shared_ptr<IViewToolbarAct>		GetViewToolbarAct()const = 0;
 	virtual std::shared_ptr<IViewToolbarHistory>	GetViewToolbarHistory()const = 0;
 	virtual std::shared_ptr<IViewTableHistory>		GetViewTableHistory()const = 0;
 	virtual std::shared_ptr<IViewFilterList>		GetViewFilterList()const = 0;

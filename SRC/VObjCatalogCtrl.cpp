@@ -423,7 +423,7 @@ void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
 	if (nb2)
 	{
-		nb2->MkWindow("CtrlPageDetailObj");
+		//nb2->MkWindow("CtrlPageDetailObj");
 		nb2->MkWindow("CtrlPageDetail");
 	}
 }

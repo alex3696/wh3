@@ -252,7 +252,7 @@ void ModelHistory::Load()
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
 
 	p0 = GetTickCount();
-	if (table && table->GetRowCount())
+	if (table)
 	{
 		unsigned int rowQty = table->GetRowCount();
 		if (rowQty)

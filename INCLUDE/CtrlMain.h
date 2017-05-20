@@ -104,7 +104,7 @@ public:
 	void Save()
 	{
 		using ptree = boost::property_tree::ptree;
-		ptree app_cfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->GetData();
+		ptree app_cfg;
 		Save(app_cfg);
 		whDataMgr::GetInstance()->mDbCfg->mGuiCfg->SetData(app_cfg);
 	}

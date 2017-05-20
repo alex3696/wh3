@@ -102,11 +102,16 @@ public:
 			const auto& act = mTD->GetAct(row);
 			if (act.GetId().IsEmpty())
 			{
-				str = wxString::Format(
-					"Перемещение   %s(%s)\nприёмник: %s\nисточник:  %s"
-					, mTD->GetQty(row), obj.GetCls().GetMeasure()
-					, mTD->GetDstPath(row).AsString(), mTD->GetPath(row).AsString()
-					);
+				if(obj.GetCls().GetKind() != "1")
+					str = wxString::Format(
+						"Перемещение   %s(%s)\nприёмник: %s\nисточник:  %s"
+						, mTD->GetQty(row), obj.GetCls().GetMeasure()
+						, mTD->GetDstPath(row).AsString(), mTD->GetPath(row).AsString()	);
+				else
+					str = wxString::Format(
+					"Перемещение\nприёмник: %s\nисточник:  %s"
+					, mTD->GetDstPath(row).AsString(), mTD->GetPath(row).AsString() );
+
 				icoHolder = wxArtProvider::GetIcon(wxART_REDO, wxART_TOOLBAR);
 				ico = &icoHolder;
 
@@ -368,7 +373,7 @@ ViewToolbarHistory::ViewToolbarHistory(wxWindow* parent)
 	auto mgr = ResMgr::GetInstance();
 
 	long style = wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_PLAIN_BACKGROUND
-		//| wxAUI_TB_TEXT 
+		| wxAUI_TB_TEXT 
 		//| wxAUI_TB_HORZ_TEXT
 		//| wxAUI_TB_OVERFLOW
 		;
@@ -391,9 +396,9 @@ ViewToolbarHistory::ViewToolbarHistory(wxWindow* parent)
 	mToolExportToExcel = tool_bar->AddTool(wxID_CONVERT, "Экспорт в Excel"
 		, mgr->m_ico_export_excel24, "выполнить экспорт в Excel или Calc(CTRL+E)");
 	//mToolExportToExcel->SetHasDropDown(true);
-	tool_bar->AddTool(wxID_SETUP, "Настройки(CTRL+N)"
+	tool_bar->AddTool(wxID_SETUP, "Настройки"
 		, wxArtProvider::GetBitmap(wxART_HELP_SETTINGS, wxART_TOOLBAR)
-		, "Настройки внешнего вида таблийы истории");
+		, "Настройки внешнего вида таблийы истории(CTRL+N)");
 	tool_bar->Realize();
 
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarHistory::OnCmd_Update, this, wxID_REFRESH);

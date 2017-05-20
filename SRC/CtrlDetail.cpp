@@ -1,7 +1,99 @@
 #include "_pch.h"
 #include "CtrlDetail.h"
+#include "MoveObjPresenter.h"
+#include "dlg_act_view_Frame.h"
 
 using namespace wh;
+
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+CtrlToolbarAct::CtrlToolbarAct(
+	const std::shared_ptr<IViewToolbarAct>& view
+	, const std::shared_ptr<ModelPageDetail>& model)
+	: CtrlWindowBase(view, model)
+{
+	namespace ph = std::placeholders;
+
+	connViewCmd_DoMove = mView->sigMove
+		.connect(std::bind(&CtrlToolbarAct::DoMove, this));
+	connViewCmd_DoAct = mView->sigAct
+		.connect(std::bind(&CtrlToolbarAct::DoAct, this));
+	connViewCmd_DoRollback = mView->sigRedo
+		.connect(std::bind(&CtrlToolbarAct::DoRollback, this));
+
+	//connModel_SetObj = mModel->sigObjDetailUpdated
+	//	([this](const rec::ObjInfo& rt)
+	//{
+	//	mView->SetObj(rt);
+	//});
+	//mView->SetObj(mModel->GetGuiModel());
+}
+
+//---------------------------------------------------------------------------
+void CtrlToolbarAct::DoMove()
+{
+	auto p0 = GetTickCount();
+
+	const rec::PathItem& data = mModel->mModelObjDetail->Get();
+	auto ctrl = whDataMgr::GetInstance()->mContainer;
+
+	try
+	{
+		auto moveable_sp = ctrl->GetObject<rec::PathItem>("MoveableObj");
+		if (!moveable_sp)
+			return;
+
+		*moveable_sp = data;
+
+		auto presenter = ctrl->GetObject<MoveObjPresenter>("MoveObjPresenter");
+		if (!presenter)
+			return;
+
+		wxLogMessage(wxString::Format("%d \t MoveObj \t init", GetTickCount() - p0));
+
+		auto busyCursor = std::make_unique<wxBusyCursor>();
+		presenter->OnViewUpdate();
+		busyCursor.reset();
+		wxLogMessage(wxString::Format("%d \t MoveObj \t TOTAL start time", GetTickCount() - p0));
+
+		presenter->ShowDialog();
+	}
+	catch (...)
+	{
+		// Transaction already rollbacked, dialog was destroyed, so nothinh to do
+		wxLogError("Объект занят другим пользователем (см.подробности)");
+	}
+	mModel->Init();
+}
+//---------------------------------------------------------------------------
+void CtrlToolbarAct::DoAct()
+{
+	const rec::PathItem& data = mModel->mModelObjDetail->Get();
+	try
+	{
+		auto subj = std::make_shared<dlg_act::model::Obj >();
+		subj->SetData(data, true);
+		dlg_act::view::Frame dlg;
+		dlg.SetModel(subj);
+		dlg.ShowModal();
+	}
+	catch (...)
+	{
+		// Transaction already rollbacked, dialog was destroyed, so nothinh to do
+		wxLogError("Объект занят другим пользователем (см.подробности)");
+	}
+	mModel->Init();
+
+}
+//---------------------------------------------------------------------------
+void CtrlToolbarAct::DoRollback()
+{
+
+}
+
+
+
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -11,7 +103,13 @@ CtrlPageDetail::CtrlPageDetail(const std::shared_ptr<IViewPageDetail>& view
 {
 	namespace ph = std::placeholders;
 
-	auto& mh = mModel->GetModelHistory();
+	mCtrlToolbarAct
+		= std::make_shared<CtrlToolbarAct>(view->GetViewToolbarAct(), model);
+
+
+
+
+	auto& mh = mModel->mModelPageHistory;
 
 	mCtrlToolbarHistory
 		= std::make_shared<CtrlToolbarHistory>(view->GetViewToolbarHistory(), mh);

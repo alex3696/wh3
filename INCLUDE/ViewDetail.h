@@ -7,13 +7,13 @@
 namespace wh{
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-class ViewToolbarDetail final : public IViewToolbarDetail
+class ViewToolbarAct final : public IViewToolbarAct
 {
 	wxAuiToolBar*		mToolbar;
 public:
-	ViewToolbarDetail(wxWindow* parent);
-	ViewToolbarDetail(std::shared_ptr<IViewWindow> parent)
-		:ViewToolbarDetail(parent->GetWnd())
+	ViewToolbarAct(wxWindow* parent);
+	ViewToolbarAct(std::shared_ptr<IViewWindow> parent)
+		:ViewToolbarAct(parent->GetWnd())
 	{}
 	virtual wxWindow* GetWnd()const override
 	{
@@ -35,7 +35,7 @@ class ViewPageDetail final : public IViewPageDetail
 	wxPanel*		mPanel;
 	wxAuiManager*   mAuiMgr;
 
-	std::shared_ptr<IViewToolbarDetail>		mViewToolbarDetail;
+	std::shared_ptr<IViewToolbarAct>		mViewToolbarAct;
 	std::shared_ptr<IViewToolbarHistory>	mViewToolbarHistory;
 	std::shared_ptr<IViewTableHistory>		mViewTableHistory;
 	std::shared_ptr<IViewFilterList>		mViewFilterList;
@@ -47,7 +47,7 @@ public:
 		return mPanel;
 	}
 
-	virtual std::shared_ptr<IViewToolbarDetail>		GetViewToolbarDetail()const override;
+	virtual std::shared_ptr<IViewToolbarAct>		GetViewToolbarAct()const override;
 	virtual std::shared_ptr<IViewToolbarHistory>	GetViewToolbarHistory()const override;
 	virtual std::shared_ptr<IViewTableHistory>		GetViewTableHistory()const override;
 	virtual std::shared_ptr<IViewFilterList>		GetViewFilterList()const override;
