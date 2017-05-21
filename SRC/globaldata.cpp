@@ -2,6 +2,7 @@
 
 #include "globaldata.h"
 #include "config.h"
+#include "RecentDstOidPresenter.h"
 
 #include "CtrlMain.h"
 #include "ViewMain.h"

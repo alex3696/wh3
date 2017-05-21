@@ -147,6 +147,22 @@ public:
 
 };
 //-----------------------------------------------------------------------------
+class ModelHistoryRecord
+{
+public:
+	virtual const wxString& GetLogId()const = 0;
+	virtual const wxString& GetUser()const = 0;
+	virtual const wxString& GetDate()const = 0;
 
+	virtual const IObj& GetObj()const = 0;
+	virtual const IAct& GetAct()const = 0;
+	virtual const PropValTable& GetActProperties()const = 0;
+	virtual const PropValTable& GetProperties()const = 0;
+	virtual const IObjPath&	GetPath()const = 0;
+	virtual const IObjPath& GetDstPath()const = 0;
+	virtual const wxString& GetQty()const = 0;
+
+};
+//-----------------------------------------------------------------------------
 } //namespace wh{
 #endif // __*_H

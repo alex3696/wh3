@@ -16,9 +16,6 @@
     <Filter Include="Каталог объектов">
       <UniqueIdentifier>{4a58ad93-2974-41da-8c93-d14279ea97de}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Каталог объектов\Диалог перемещения">
-      <UniqueIdentifier>{55674807-9aa3-44b3-805e-52621cd34ae4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Каталог объектов\Основная панель">
       <UniqueIdentifier>{2c32a792-3b27-4139-97cc-0637420e9721}</UniqueIdentifier>
     </Filter>
@@ -36,15 +33,6 @@
     </Filter>
     <Filter Include="Каталог объектов\Основная панель\model">
       <UniqueIdentifier>{bcbf5ed3-683c-4abe-8ecd-cffd64a455c6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Каталог объектов\Диалог действий">
-      <UniqueIdentifier>{b1ecf124-405c-4102-9a79-f38a356c5ce9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Каталог объектов\Диалог действий\view_ActList">
-      <UniqueIdentifier>{f7b0e9de-2772-480c-b532-f856905d0d96}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Каталог объектов\Диалог действий\model">
-      <UniqueIdentifier>{8f97d403-a18b-46be-ad6e-6e3afc138270}</UniqueIdentifier>
     </Filter>
     <Filter Include="Каталог объектов\Создание объекта">
       <UniqueIdentifier>{2a545cbd-ca0b-440b-8e92-6d14012aac1d}</UniqueIdentifier>
@@ -199,6 +187,21 @@
     <Filter Include="MainFrame\MVP2\ContentWindows\История3\Панель истории">
       <UniqueIdentifier>{507892d2-c045-486e-89c0-629a636f0883}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Подробности\v2\Undo">
+      <UniqueIdentifier>{24fc0c59-dadd-463e-b3b1-7545eee224bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог перемещения">
+      <UniqueIdentifier>{55674807-9aa3-44b3-805e-52621cd34ae4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий">
+      <UniqueIdentifier>{b1ecf124-405c-4102-9a79-f38a356c5ce9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий\view_ActList">
+      <UniqueIdentifier>{f7b0e9de-2772-480c-b532-f856905d0d96}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий\model">
+      <UniqueIdentifier>{8f97d403-a18b-46be-ad6e-6e3afc138270}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -325,28 +328,28 @@
       <Filter>Каталог объектов\Основная панель\модель избранных свойств</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\dlg_act_view_Frame.cpp">
-      <Filter>Каталог объектов\Диалог действий</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\dlg_act_view_PnlActArray.cpp">
-      <Filter>Каталог объектов\Диалог действий</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\dlg_act_view_PnlPropGrid.cpp">
-      <Filter>Каталог объектов\Диалог действий</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\dlg_act_model_Act.cpp">
-      <Filter>Каталог объектов\Диалог действий\model</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий\model</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\dlg_act_model_ActProp.cpp">
-      <Filter>Каталог объектов\Диалог действий\model</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий\model</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\dlg_act_model_Obj.cpp">
-      <Filter>Каталог объектов\Диалог действий\model</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий\model</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\dlg_act_viewActList.cpp">
-      <Filter>Каталог объектов\Диалог действий\view_ActList</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий\view_ActList</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\dlg_act_view_ActListDvModel.cpp">
-      <Filter>Каталог объектов\Диалог действий\view_ActList</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий\view_ActList</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\dlg_mkobj_view_Frame.cpp">
       <Filter>Каталог объектов\Создание объекта</Filter>
@@ -505,13 +508,13 @@
       <Filter>MainFrame\MVP2\MainFrame</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\MoveObjView.cpp">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог перемещения</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\MoveObjPresenter.cpp">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог перемещения</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\MoveObjModel.cpp">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог перемещения</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\ViewMain.cpp">
       <Filter>MainFrame\MVP2\MainFrame</Filter>
@@ -563,6 +566,18 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\ViewDetail.cpp">
       <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\CtrlMain.cpp">
+      <Filter>MainFrame\MVP2\MainFrame</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\CtrlUndo.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Undo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ViewUndo.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Undo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ModelUndo.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Undo</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -729,28 +744,28 @@
       <Filter>Каталог объектов\Основная панель\модель избранных свойств</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dlg_act_view_Frame.h">
-      <Filter>Каталог объектов\Диалог действий</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dlg_act_view_PnlActArray.h">
-      <Filter>Каталог объектов\Диалог действий</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dlg_act_view_PnlPropGrid.h">
-      <Filter>Каталог объектов\Диалог действий</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dlg_act_model_Act.h">
-      <Filter>Каталог объектов\Диалог действий\model</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий\model</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dlg_act_model_ActProp.h">
-      <Filter>Каталог объектов\Диалог действий\model</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий\model</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dlg_act_model_Obj.h">
-      <Filter>Каталог объектов\Диалог действий\model</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий\model</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dlg_act_view_ActList.h">
-      <Filter>Каталог объектов\Диалог действий\view_ActList</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий\view_ActList</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dlg_act_view_ActListDvModel.h">
-      <Filter>Каталог объектов\Диалог действий\view_ActList</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий\view_ActList</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dlg_mkobj_view_Frame.h">
       <Filter>Каталог объектов\Создание объекта</Filter>
@@ -987,19 +1002,19 @@
       <Filter>MainFrame\MVP2\ContentWindows</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MoveObjView.h">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог перемещения</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MoveObjPresenter.h">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог перемещения</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MoveObjModel.h">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог перемещения</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\MoveObjData.h">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог перемещения</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\IMoveObjView.h">
-      <Filter>Каталог объектов\Диалог перемещения</Filter>
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог перемещения</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\CtrlFilterList.h">
       <Filter>MainFrame\MVP2\ContentWindows\История3\Filter</Filter>
@@ -1069,6 +1084,18 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ViewDetail.h">
       <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\CtrlUndo.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Undo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\IViewUndo.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Undo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ViewUndo.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Undo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ModelUndo.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Undo</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

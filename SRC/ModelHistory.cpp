@@ -342,8 +342,8 @@ void ModelHistory::Load()
 
 				table->GetAsString(15, i, log_rec->mDetail->mPath.mPath);
 
-			}
-		}
+			}//for (unsigned int i = 0; i < rowQty; ++i)
+		}//if (rowQty)
 		
 
 	}
@@ -422,9 +422,6 @@ void ModelHistory::LoadActProp(ActPropTable& act_prop_table)
 		return;
 
 	unsigned int rowQty = table->GetRowCount();
-	if (!rowQty)
-		return;
-
 
 	const auto& aid_idx = mAct.get<1>();
 	const auto& pid_idx = mProp.get<1>();

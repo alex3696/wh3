@@ -144,7 +144,9 @@
     <ClCompile Include="..\..\SRC\CtrlFilterList.cpp" />
     <ClCompile Include="..\..\SRC\CtrlHistory.cpp" />
     <ClCompile Include="..\..\SRC\CtrlHistorySetup.cpp" />
+    <ClCompile Include="..\..\SRC\CtrlMain.cpp" />
     <ClCompile Include="..\..\SRC\CtrlObjPropList.cpp" />
+    <ClCompile Include="..\..\SRC\CtrlUndo.cpp" />
     <ClCompile Include="..\..\SRC\DActEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsActEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsEditor.cpp" />
@@ -162,6 +164,7 @@
     <ClCompile Include="..\..\SRC\ModelFilterList.cpp" />
     <ClCompile Include="..\..\SRC\ModelHistory.cpp" />
     <ClCompile Include="..\..\SRC\ModelObjPropList.cpp" />
+    <ClCompile Include="..\..\SRC\ModelUndo.cpp" />
     <ClCompile Include="..\..\SRC\MoveObjModel.cpp" />
     <ClCompile Include="..\..\SRC\MoveObjPresenter.cpp" />
     <ClCompile Include="..\..\SRC\MoveObjView.cpp" />
@@ -228,6 +231,7 @@
     <ClCompile Include="..\..\SRC\ViewHistorySetup.cpp" />
     <ClCompile Include="..\..\SRC\ViewMain.cpp" />
     <ClCompile Include="..\..\SRC\ViewObjPropList.cpp" />
+    <ClCompile Include="..\..\SRC\ViewUndo.cpp" />
     <ClCompile Include="..\..\SRC\VTableCtrl.cpp" />
     <ClCompile Include="..\..\SRC\TableRowEditor.cpp" />
     <ClCompile Include="..\..\SRC\VActPanel.cpp" />
@@ -288,6 +292,7 @@
     <ClInclude Include="..\..\INCLUDE\CtrlHistorySetup.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlMain.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlObjPropList.h" />
+    <ClInclude Include="..\..\INCLUDE\CtrlUndo.h" />
     <ClInclude Include="..\..\INCLUDE\DActEditor.h" />
     <ClInclude Include="..\..\INCLUDE\dbFieldType.h" />
     <ClInclude Include="..\..\INCLUDE\db_data.h" />
@@ -301,11 +306,13 @@
     <ClInclude Include="..\..\INCLUDE\IViewFilterList.h" />
     <ClInclude Include="..\..\INCLUDE\IViewHistorySetup.h" />
     <ClInclude Include="..\..\INCLUDE\IViewObjPropList.h" />
+    <ClInclude Include="..\..\INCLUDE\IViewUndo.h" />
     <ClInclude Include="..\..\INCLUDE\ModelDetail.h" />
     <ClInclude Include="..\..\INCLUDE\ModelFilterList.h" />
     <ClInclude Include="..\..\INCLUDE\ModelHistory.h" />
     <ClInclude Include="..\..\INCLUDE\ModelHistoryData.h" />
     <ClInclude Include="..\..\INCLUDE\ModelObjPropList.h" />
+    <ClInclude Include="..\..\INCLUDE\ModelUndo.h" />
     <ClInclude Include="..\..\INCLUDE\ViewDetail.h" />
     <ClInclude Include="..\..\INCLUDE\ViewFilterList.h" />
     <ClInclude Include="..\..\INCLUDE\ViewHistory.h" />
@@ -399,6 +406,7 @@
     <ClInclude Include="..\..\INCLUDE\ViewHistorySetup.h" />
     <ClInclude Include="..\..\INCLUDE\ViewMain.h" />
     <ClInclude Include="..\..\INCLUDE\ViewObjPropList.h" />
+    <ClInclude Include="..\..\INCLUDE\ViewUndo.h" />
     <ClInclude Include="..\..\INCLUDE\VTableCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\TableRowEditor.h" />
     <ClInclude Include="..\..\INCLUDE\TModel.h" />

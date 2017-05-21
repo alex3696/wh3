@@ -1,7 +1,7 @@
 #ifndef __RECENTDSROIDPRESENTER_H
 #define __RECENTDSROIDPRESENTER_H
 
-//#include "RecentDstOidModel.h"
+#include "RecentDstOidModel.h"
 #include "IRecentDstOidView.h"
 
 namespace wh{

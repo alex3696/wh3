@@ -1,7 +1,10 @@
 #include "_pch.h"
 #include "CtrlDetail.h"
+
 #include "MoveObjPresenter.h"
 #include "dlg_act_view_Frame.h"
+#include "CtrlUndo.h"
+#include "ViewUndo.h"
 
 using namespace wh;
 
@@ -89,6 +92,28 @@ void CtrlToolbarAct::DoAct()
 //---------------------------------------------------------------------------
 void CtrlToolbarAct::DoRollback()
 {
+	const rec::PathItem& data = mModel->mModelObjDetail->Get();
+	try
+	{
+
+		std::shared_ptr<IViewUndoWindow> view 
+			= std::make_shared<ViewUndoWindow>(mView->GetWnd());
+
+		std::shared_ptr<ModelUndoWindow> model
+			= std::make_shared<ModelUndoWindow>(data);
+
+		auto ctrl_undo = std::make_shared<CtrlUndoWindow>(view, model);
+
+		ctrl_undo->Init();
+		ctrl_undo->Show();
+
+	}
+	catch (...)
+	{
+		// Transaction already rollbacked, dialog was destroyed, so nothinh to do
+		wxLogError("Ќевозможно откатить (см.подробности)");
+	}
+	mModel->Init();
 
 }
 
