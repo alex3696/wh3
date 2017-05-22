@@ -270,26 +270,26 @@ void VObjCatalogTable::ExpandAll()
 //---------------------------------------------------------------------------
 void VObjCatalogTable::OnResize(wxSizeEvent& evt)
 {
-	if (!mAutosizeColumn.empty())
-	{
-		wxWindowUpdateLocker  wndStopRefresh(this);
-		//this->Freeze();
-		int sum = 0, asum = 0;
-		for (unsigned int i = 0; i<GetColumnCount(); i++)
-			if (mAutosizeColumn.end() == mAutosizeColumn.find(i))
-				sum += GetColumn(i)->IsHidden() ? 0 : GetColumn(i)->GetWidth();
-			else
-				asum = wxDVC_DEFAULT_WIDTH;
+	//if (!mAutosizeColumn.empty())
+	//{
+	//	wxWindowUpdateLocker  wndStopRefresh(this);
+	//	//this->Freeze();
+	//	int sum = 0, asum = 0;
+	//	for (unsigned int i = 0; i<GetColumnCount(); i++)
+	//		if (mAutosizeColumn.end() == mAutosizeColumn.find(i))
+	//			sum += GetColumn(i)->IsHidden() ? 0 : GetColumn(i)->GetWidth();
+	//		else
+	//			asum = wxDVC_DEFAULT_WIDTH;
 
-		int ctrl_width = this->GetClientSize().GetWidth();
-		int auto_width = (ctrl_width >(sum + asum)) ? ((ctrl_width - sum) / mAutosizeColumn.size()) : wxDVC_DEFAULT_WIDTH;
+	//	int ctrl_width = this->GetClientSize().GetWidth();
+	//	int auto_width = (ctrl_width >(sum + asum)) ? ((ctrl_width - sum) / mAutosizeColumn.size()) : wxDVC_DEFAULT_WIDTH;
 
-		for (auto it = mAutosizeColumn.begin(); it != mAutosizeColumn.end(); ++it) {
-			if (*it < GetColumnCount())
-				GetColumn(*it)->SetWidth(auto_width);
-		}
-		//this->Thaw();
-	}//if ( mAutosizeColumn.size() )
+	//	for (auto it = mAutosizeColumn.begin(); it != mAutosizeColumn.end(); ++it) {
+	//		if (*it < GetColumnCount())
+	//			GetColumn(*it)->SetWidth(auto_width);
+	//	}
+	//	//this->Thaw();
+	//}//if ( mAutosizeColumn.size() )
 	evt.Skip();
 }//virtual void OnResize
 

@@ -46,6 +46,17 @@ VObjCatalogCtrl::VObjCatalogCtrl(wxWindow* parent,
 	Bind(wxEVT_COMMAND_DATAVIEW_ITEM_ACTIVATED, &VObjCatalogCtrl::OnActivated, this);
 	Bind(wxEVT_COMMAND_DATAVIEW_ITEM_EXPANDING, &VObjCatalogCtrl::OnExpanding, this);
 
+	std::function<void(wxDataViewEvent&)> fn =
+		[this](wxDataViewEvent&)
+		{
+			for (size_t i = 0; i < mTableView->GetColumnCount(); i++)
+				mTableView->GetColumn(i)->SetWidth(mTableView->GetBestColumnWidth(i));
+
+		};
+	Bind(wxEVT_COMMAND_DATAVIEW_ITEM_EXPANDED, fn);
+	Bind(wxEVT_COMMAND_DATAVIEW_ITEM_COLLAPSED, fn);
+
+
 	mTableView->GetTargetWindow()->Bind(wxEVT_KEY_DOWN, 
 		[this](wxKeyEvent& evt)
 		{
