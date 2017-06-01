@@ -17,6 +17,7 @@ $BODY$
       LEFT JOIN log_detail_move USING (id)
       WHERE obj_id = _oid 
         AND timemark < _begin 
+        --AND timemark >= (SELECT dt_insert FROM obj_name WHERE  obj_name.id=log_main.obj_id)
       ORDER BY timemark DESC
       FETCH FIRST 1 ROW ONLY --LIMIT 1
 $BODY$
@@ -29,7 +30,7 @@ SELECT * FROM stat_get_obj_location(3883,'2017.04.10 00:00+5');
 */
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
-
+/**
 DROP FUNCTION IF EXISTS stat_mov_obj_all(_oid BIGINT, _begin TIMESTAMP, _end TIMESTAMP) CASCADE;
 CREATE OR REPLACE FUNCTION stat_mov_obj_all(_oid BIGINT, _begin TIMESTAMP, _end TIMESTAMP) 
  RETURNS TABLE( dst_time INTERVAL
@@ -118,9 +119,75 @@ BEGIN
 END; 
 $BODY$ LANGUAGE plpgsql STABLE COST 50 ROWS 50;
 GRANT EXECUTE ON FUNCTION stat_mov_obj_all(BIGINT,TIMESTAMP,TIMESTAMP) TO "Guest";
+*/
+
+DROP FUNCTION IF EXISTS stat_mov_obj_all(_oid BIGINT, _begin TIMESTAMP, _end TIMESTAMP) CASCADE;
+CREATE OR REPLACE FUNCTION stat_mov_obj_all(_oid BIGINT, _begin TIMESTAMP, _end TIMESTAMP) 
+ RETURNS TABLE( dst_time INTERVAL
+               ,dst_oid  BIGINT
+              ) AS $BODY$ 
+DECLARE 
+  _olog CURSOR IS
+    SELECT log_dt, src_oid, log.dst_oid FROM log 
+      WHERE mobj_id= _oid 
+        AND act_id IS NULL
+        AND log_dt>=_begin AND log_dt<=_end 
+    ORDER BY log_dt ASC
+    ;
+  curr_dt       TIMESTAMP;
+  curr_dst_oid  BIGINT;
+BEGIN
+  
+  SELECT stat_get_obj_location(_oid,_begin) INTO curr_dst_oid,curr_dt; 
+  IF curr_dst_oid IS NOT NULL THEN 
+    curr_dt := _begin;
+    --RAISE NOTICE  'объект существовал до диапазона' ;
+  ELSE
+    SELECT COALESCE(log.dst_oid,log.src_oid) as pid,log_dt 
+      INTO curr_dst_oid,curr_dt 
+      FROM log 
+      WHERE mobj_id=_oid 
+      AND log_dt>=_begin AND log_dt<=_end 
+      ORDER BY log_dt ASC LIMIT 1;
+  END IF;
+  
+
+  FOR rec IN _olog LOOP
+    --RAISE NOTICE  'rec=% curr_dt=% curr_dst_oid=%',rec, curr_dt, curr_dst_oid;
+
+    dst_time := rec.log_dt - curr_dt;
+    dst_oid  := curr_dst_oid ; --COALESCE(curr_dst_oid,rec.src_oid);
+    
+    RETURN NEXT;
+    curr_dst_oid := rec.dst_oid;
+    curr_dt := rec.log_dt;
+
+    --RAISE NOTICE  'rec=% dst_time=% curr_dt=% curr_dst_oid=%',rec,dst_time,curr_dt,curr_dst_oid ;
+  END LOOP;
+
+  --RAISE NOTICE  'dst_time=% curr_dt=% curr_dst_oid=%',dst_time,curr_dt,curr_dst_oid ;
+  IF curr_dst_oid IS NOT NULL AND curr_dt IS NOT NULL THEN -- 
+    dst_time := _end - curr_dt;
+    dst_oid  := curr_dst_oid; --,(SELECT pid FROM obj WHERE id=_oid));
+    RETURN NEXT;
+  
+
+  END IF;
+  
+
+
+  RETURN;
+END; 
+$BODY$ LANGUAGE plpgsql STABLE COST 50 ROWS 50;
+GRANT EXECUTE ON FUNCTION stat_mov_obj_all(BIGINT,TIMESTAMP,TIMESTAMP) TO "Guest";
+
 /**
 SELECT * FROM log WHERE mobj_id= 3883 ORDER BY log_dt DESC;
 SELECT * FROM stat_mov_obj_all (3883,'2015.01.01 00:00+5','2015.07.01 00:00+5');
+SELECT * FROM stat_mov_obj_all (3883,'2015.04.11 00:00+5','2015.07.01 00:00+5');
+SELECT * FROM stat_mov_obj_all (4051,'2016.01.01 00:00+5','2017.02.27 00:00+5');
+SELECT * FROM stat_mov_obj_all (3330,'2016.01.01 00:00+5','2016.10.01 00:00+5');
+SELECT * FROM stat_mov_obj_all (4063,'2016.01.01 00:00+5','2016.10.01 00:00+5');
 */
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
