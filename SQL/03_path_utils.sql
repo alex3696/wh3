@@ -541,6 +541,9 @@ CREATE OR REPLACE FUNCTION ftr_bu_acls()  RETURNS trigger AS
 $body$
 DECLARE
 BEGIN
+  NEW.usr_update:=CURRENT_USER;
+  NEW.dt_update:=CURRENT_TIMESTAMP;
+  
   -- Проверяем, что никто не пытается изменить тип класса или идентификатор
   IF NEW.id<>OLD.id OR NEW.kind<>OLD.kind THEN
     RAISE EXCEPTION ' %: can`t change id and kind',TG_NAME;
