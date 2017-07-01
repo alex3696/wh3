@@ -844,10 +844,15 @@ GRANT EXECUTE ON FUNCTION ftg_upd_obj() TO "User";
 -- тригер удаления объекта
 ---------------------------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS ftg_del_obj() CASCADE;
-CREATE FUNCTION ftg_del_obj() RETURNS TRIGGER AS $body$
+CREATE OR REPLACE FUNCTION ftg_del_obj() RETURNS TRIGGER AS $body$
 DECLARE
   _kind SMALLINT;
 BEGIN
+  PERFORM FROM log_main WHERE obj_id=OLD.id LIMIT 1;
+  IF FOUND THEN -- если в истории есть записи
+    RAISE EXCEPTION ' %: oid=% have history, can`t delete ',TG_NAME, OLD.id ;
+  END IF;
+  
   SELECT kind INTO _kind FROM acls WHERE id=OLD.cls_id;-- _kind находим сами не пользуя NEW.kind
   IF NOT FOUND THEN
     RAISE EXCEPTION ' %: cls.id=% not present in cls_real',TG_NAME, OLD.cls_id ;
