@@ -27,7 +27,7 @@ void MGuiCfg::LoadDefaults(const boost::property_tree::ptree& default_cfg)
 		default_loglist_cfg->mColAutosize = it->second.get<bool>("ColAutosize", false);
 		default_loglist_cfg->mShowPropertyList = it->second.get<bool>("ShowPropertyList", false);
 		default_loglist_cfg->mShowFilterList = it->second.get<bool>("ShowFilterList", false);
-		default_loglist_cfg->mVisibleColumnClsObj = it->second.get<bool>("VisibleColumnClsObj", true);
+		//default_loglist_cfg->mVisibleColumnClsObj = it->second.get<bool>("VisibleColumnClsObj", true);
 	}
 }
 //-----------------------------------------------------------------------------
@@ -47,7 +47,7 @@ void MGuiCfg::SaveDefaults(boost::property_tree::ptree& default_cfg)
 	content.put("ColAutosize", default_loglist_cfg->mColAutosize);
 	content.put("ShowPropertyList", default_loglist_cfg->mShowPropertyList);
 	content.put("ShowFilterList", default_loglist_cfg->mShowFilterList);
-	content.put("VisibleColumnClsObj", default_loglist_cfg->mVisibleColumnClsObj);
+	//content.put("VisibleColumnClsObj", default_loglist_cfg->mVisibleColumnClsObj);
 
 	default_cfg.push_back(std::make_pair("LogListCfg", content));
 
