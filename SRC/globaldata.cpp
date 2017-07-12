@@ -14,11 +14,8 @@
 #include "PageGroupList.h"
 #include "PageActList.h"
 #include "PagePropList.h"
-#include "PageLogList.h"
 #include "PageObjByTypeList.h"
 #include "PageObjByPathList.h"
-#include "PageDetailObj.h"
-
 
 #include "MoveObjView.h"
 #include "MoveObjPresenter.h"
@@ -381,16 +378,6 @@ void whDataMgr::InitContainer()
 	mContainer->RegFactory<ICtrlWindow, CtrlPagePropList, ViewPagePropList, ModelPagePropList >
 		("CtrlPagePropList", "ViewPagePropList", "ModelPagePropList");
 	/////////////////
-	// page log  //
-	////////////////	
-	mContainer->RegInstanceDeferredNI<rec::PageHistory>("DefaultLogListInfo");
-	mContainer->RegFactoryNI<ModelPageLogList, rec::PageHistory >
-		("ModelPageLogList", "DefaultLogListInfo");
-	mContainer->RegFactoryNI<ViewPageLogList, IViewNotebook >
-		("ViewPageLogList", "ViewNotebook");
-	mContainer->RegFactory<ICtrlWindow, CtrlPageLogList, ViewPageLogList, ModelPageLogList >
-		("CtrlPageLogList", "ViewPageLogList", "ModelPageLogList");
-	/////////////////
 	// page ObjByType  //
 	////////////////	
 	mContainer->RegInstanceDeferredNI<rec::PageObjByType>("DefaultObjByTypeListInfo");
@@ -440,18 +427,6 @@ void whDataMgr::InitContainer()
 	mContainer->RegFactoryNI<ReportPresenter, IReportView, ReportModel>
 		("CtrlPageReport", "ViewReport", "ModelReport");
 
-
-	////////////////////
-	// detail //
-	///////////////////
-	mContainer->RegInstanceDeferredNI<wh::rec::ObjInfo>("DefaultDetailObjInfo");
-	mContainer->RegFactoryNI<ModelPageDetailObj, rec::ObjInfo>
-		("ModelPageDetailObj", "DefaultDetailObjInfo");
-	mContainer->RegFactoryNI<ViewPageDetailObj, IViewNotebook >
-		("ViewPageDetailObj", "ViewNotebook");
-	mContainer->RegFactory<ICtrlWindow, CtrlPageDetailObj, ViewPageDetailObj, ModelPageDetailObj >
-		("CtrlPageDetailObj", "ViewPageDetailObj", "ModelPageDetailObj");
-
 	////////////////////
 	// move dialog //
 	///////////////////
@@ -477,7 +452,7 @@ void whDataMgr::InitContainer()
 	////////////////////
 	// detail 2//
 	///////////////////
-	//mContainer->RegInstanceDeferredNI<wh::rec::ObjInfo>("DefaultDetailObjInfo");
+	mContainer->RegInstanceDeferredNI<wh::rec::ObjInfo>("DefaultDetailObjInfo");
 	mContainer->RegFactoryNI<ModelPageDetail, rec::ObjInfo, rec::PageHistory>
 		("ModelPageDetail", "DefaultDetailObjInfo", "DefaultLogListInfo");
 	mContainer->RegFactory<IViewPageDetail, ViewPageDetail, IViewNotebook >

@@ -154,8 +154,6 @@
     <ClCompile Include="..\..\SRC\DClsEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsMoveEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsPropEditor.cpp" />
-    <ClCompile Include="..\..\SRC\DetailActCtrl.cpp" />
-    <ClCompile Include="..\..\SRC\DetailActToolBar.cpp" />
     <ClCompile Include="..\..\SRC\MFav.cpp" />
     <ClCompile Include="..\..\SRC\MFavFilterCls.cpp" />
     <ClCompile Include="..\..\SRC\MFavFilterPath.cpp" />
@@ -170,12 +168,6 @@
     <ClCompile Include="..\..\SRC\MoveObjModel.cpp" />
     <ClCompile Include="..\..\SRC\MoveObjPresenter.cpp" />
     <ClCompile Include="..\..\SRC\MoveObjView.cpp" />
-    <ClCompile Include="..\..\SRC\ObjDetailPGView.cpp" />
-    <ClCompile Include="..\..\SRC\detail_ctrlpnl.cpp" />
-    <ClCompile Include="..\..\SRC\detail_model_ClsPropArray.cpp" />
-    <ClCompile Include="..\..\SRC\detail_model_Obj.cpp" />
-    <ClCompile Include="..\..\SRC\detail_model_ObjPropArray.cpp" />
-    <ClCompile Include="..\..\SRC\detail_model_OjbPropLoader.cpp" />
     <ClCompile Include="..\..\SRC\DGroupEditor.cpp" />
     <ClCompile Include="..\..\SRC\dlgselectcls_ctrlpnl.cpp" />
     <ClCompile Include="..\..\SRC\dlg_act_model_Act.cpp" />
@@ -193,8 +185,6 @@
     <ClCompile Include="..\..\SRC\dlg_favprop_SelectFrame.cpp" />
     <ClCompile Include="..\..\SRC\dlg_mkobj_view_Frame.cpp" />
     <ClCompile Include="..\..\SRC\FilterArrayEditor.cpp" />
-    <ClCompile Include="..\..\SRC\MHistory.cpp" />
-    <ClCompile Include="..\..\SRC\MLogProp.cpp" />
     <ClCompile Include="..\..\SRC\MProp2.cpp" />
     <ClCompile Include="..\..\SRC\PathPattern_model.cpp" />
     <ClCompile Include="..\..\SRC\DUserEditor.cpp" />
@@ -302,8 +292,6 @@
     <ClInclude Include="..\..\INCLUDE\DClsEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DClsMoveEditor.h" />
     <ClInclude Include="..\..\INCLUDE\DClsPropEditor.h" />
-    <ClInclude Include="..\..\INCLUDE\DetailActCtrl.h" />
-    <ClInclude Include="..\..\INCLUDE\DetailActToolBar.h" />
     <ClInclude Include="..\..\INCLUDE\IViewDetail.h" />
     <ClInclude Include="..\..\INCLUDE\IViewFilterList.h" />
     <ClInclude Include="..\..\INCLUDE\IViewHistorySetup.h" />
@@ -324,8 +312,6 @@
     <ClInclude Include="..\..\INCLUDE\IViewWindow.h" />
     <ClInclude Include="..\..\INCLUDE\ModelMain.h" />
     <ClInclude Include="..\..\INCLUDE\PageActList.h" />
-    <ClInclude Include="..\..\INCLUDE\PageDetailObj.h" />
-    <ClInclude Include="..\..\INCLUDE\PageLogList.h" />
     <ClInclude Include="..\..\INCLUDE\PageObjByPathList.h" />
     <ClInclude Include="..\..\INCLUDE\PageObjByTypeList.h" />
     <ClInclude Include="..\..\INCLUDE\PagePropList.h" />
@@ -350,9 +336,6 @@
     <ClInclude Include="..\..\INCLUDE\MFavViewPropActCommon.h" />
     <ClInclude Include="..\..\INCLUDE\MFavViewPropActUsr.h" />
     <ClInclude Include="..\..\INCLUDE\MFavViewPropCls.h" />
-    <ClInclude Include="..\..\INCLUDE\ObjDetailPGView.h" />
-    <ClInclude Include="..\..\INCLUDE\detail_ctrlpnl.h" />
-    <ClInclude Include="..\..\INCLUDE\detail_model.h" />
     <ClInclude Include="..\..\INCLUDE\DGroupEditor.h" />
     <ClInclude Include="..\..\INCLUDE\dlgselectcls_ctrlpnl.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_act_model_Act.h" />
@@ -372,8 +355,6 @@
     <ClInclude Include="..\..\INCLUDE\FilterArrayEditor.h" />
     <ClInclude Include="..\..\INCLUDE\filter_data.h" />
     <ClInclude Include="..\..\INCLUDE\FilterModel.h" />
-    <ClInclude Include="..\..\INCLUDE\MHistory.h" />
-    <ClInclude Include="..\..\INCLUDE\MLogProp.h" />
     <ClInclude Include="..\..\INCLUDE\MProp2.h" />
     <ClInclude Include="..\..\INCLUDE\PathPattern_model.h" />
     <ClInclude Include="..\..\INCLUDE\DUserEditor.h" />

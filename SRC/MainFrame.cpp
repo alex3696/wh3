@@ -15,10 +15,7 @@
 
 #include "VTablePanel.h"
 #include "MProp2.h"
-#include "MHistory.h"
 #include "config.h"
-
-#include "detail_ctrlpnl.h"
 
 #include "CtrlNotebook.h"
 //---------------------------------------------------------------------------
