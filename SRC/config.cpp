@@ -9,6 +9,50 @@ MGuiCfg::MGuiCfg(const char option)
 {
 }
 //-----------------------------------------------------------------------------
+void MGuiCfg::LoadDefaults(const boost::property_tree::ptree& default_cfg)
+{
+	auto it = default_cfg.find("LogListCfg");
+	if (default_cfg.not_found() != it)
+	{
+		auto cnt = whDataMgr::GetInstance()->mContainer;
+		auto default_loglist_cfg = cnt->GetObject<rec::PageHistory>("DefaultLogListInfo");
+
+		using ptree = boost::property_tree::ptree;
+
+		default_loglist_cfg->mRowsLimit = it->second.get<int>("RowsLimit", 50);
+		default_loglist_cfg->mRowsOffset = it->second.get<int>("RowsOffset", 0);
+		default_loglist_cfg->mStringPerRow = it->second.get<int>("StringPerRow", 4);
+
+		default_loglist_cfg->mPathInProperties = it->second.get<bool>("PathInProperties", true);
+		default_loglist_cfg->mColAutosize = it->second.get<bool>("ColAutosize", false);
+		default_loglist_cfg->mShowPropertyList = it->second.get<bool>("ShowPropertyList", false);
+		default_loglist_cfg->mShowFilterList = it->second.get<bool>("ShowFilterList", false);
+		default_loglist_cfg->mVisibleColumnClsObj = it->second.get<bool>("VisibleColumnClsObj", true);
+	}
+}
+//-----------------------------------------------------------------------------
+void MGuiCfg::SaveDefaults(boost::property_tree::ptree& default_cfg)
+{
+	auto cnt = whDataMgr::GetInstance()->mContainer;
+	auto default_loglist_cfg = cnt->GetObject<rec::PageHistory>("DefaultLogListInfo");
+	
+	using ptree = boost::property_tree::ptree;
+	ptree content;
+
+	content.put("RowsLimit", default_loglist_cfg->mRowsLimit);
+	content.put("RowsOffset", default_loglist_cfg->mRowsOffset);
+	content.put("StringPerRow", default_loglist_cfg->mStringPerRow);
+
+	content.put("PathInProperties", default_loglist_cfg->mPathInProperties);
+	content.put("ColAutosize", default_loglist_cfg->mColAutosize);
+	content.put("ShowPropertyList", default_loglist_cfg->mShowPropertyList);
+	content.put("ShowFilterList", default_loglist_cfg->mShowFilterList);
+	content.put("VisibleColumnClsObj", default_loglist_cfg->mVisibleColumnClsObj);
+
+	default_cfg.push_back(std::make_pair("LogListCfg", content));
+
+}
+//-----------------------------------------------------------------------------
 
 void MGuiCfg::LoadData()
 {

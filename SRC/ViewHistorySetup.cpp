@@ -63,18 +63,19 @@ ViewHistorySetup::ViewHistorySetup(std::shared_ptr<IViewWindow> parent)
 	
 	wxBoxSizer* msdbSizer = new wxBoxSizer(wxHORIZONTAL);
 	msdbSizer->Add(0, 0, 1, wxEXPAND, 5);
+	auto mbtnDefault = new wxButton(mPanel, wxID_DEFAULT, "Сохранить по умолчанию");
 	auto mbtnOK = new wxButton(mPanel, wxID_OK, "Применить");
 	auto mbtnCancel = new wxButton(mPanel, wxID_CANCEL, "Закрыть");
+	msdbSizer->Add(mbtnDefault, 0, wxALL, 5);
 	msdbSizer->Add(mbtnOK, 0, wxALL, 5);
 	msdbSizer->Add(mbtnCancel, 0, wxALL, 5);
 	mainSz->Add(msdbSizer, 0, wxEXPAND, 10);
-
-
 
 	mPanel->SetSizer(mainSz);
 	mPanel->Layout();
 
 	mPanel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ViewHistorySetup::OnCmd_SetCfgToPage, this, wxID_OK);
+	mPanel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ViewHistorySetup::OnCmd_SetCfgToGlobal, this, wxID_DEFAULT);
 }
 //-----------------------------------------------------------------------------
 //virtual 
@@ -103,7 +104,7 @@ void ViewHistorySetup::SetCfg(const rec::PageHistory& cfg) //override;
 	mPGPShowFilterList->SetValue(cfg.mShowFilterList);
 }
 //-----------------------------------------------------------------------------
-void ViewHistorySetup::OnCmd_SetCfgToPage(wxCommandEvent& evt)
+rec::PageHistory ViewHistorySetup::GetCfgFromView()const
 {
 	rec::PageHistory cfg = mCurrentCfg;
 	cfg.mRowsLimit = mPGPRowsLimit->GetValue().GetInteger();
@@ -114,11 +115,16 @@ void ViewHistorySetup::OnCmd_SetCfgToPage(wxCommandEvent& evt)
 	cfg.mColAutosize = mPGPColAutosize->GetValue().GetBool();
 	cfg.mShowPropertyList = mPGPShowPropertyList->GetValue().GetBool();
 	cfg.mShowFilterList = mPGPShowFilterList->GetValue().GetBool();
-	sigSetCfg(cfg);
+	return cfg;
+}
+//-----------------------------------------------------------------------------
+void ViewHistorySetup::OnCmd_SetCfgToPage(wxCommandEvent& evt)
+{
+	sigSetCfg(GetCfgFromView());
 }
 //-----------------------------------------------------------------------------
 void ViewHistorySetup::OnCmd_SetCfgToGlobal(wxCommandEvent& evt)
 {
-
+	sigSetCfgDefault(GetCfgFromView());
 }
 

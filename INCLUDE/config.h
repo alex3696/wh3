@@ -42,6 +42,8 @@ class MGuiCfg
 public:
 	MGuiCfg(const char option = ModelOption::EnableParentNotify);
 
+	void LoadDefaults(const boost::property_tree::ptree& app_cfg);
+	void SaveDefaults(boost::property_tree::ptree& app_cfg);
 protected:
 	virtual void LoadData() override;
 	virtual void SaveData() override;

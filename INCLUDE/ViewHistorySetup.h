@@ -26,6 +26,7 @@ public:
 	virtual void ShowCfgWindow() override;
 			
 protected:
+	rec::PageHistory GetCfgFromView()const;
 	void OnCmd_SetCfgToPage(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_SetCfgToGlobal(wxCommandEvent& evt = wxCommandEvent());
 	

@@ -338,6 +338,7 @@ public:
 
 	void SetGuiModel(rec::PageHistory&& cfg);
 	void SetGuiModel(const rec::PageHistory& cfg);
+	void SetGuiCfgDefault(const rec::PageHistory& cfg);
 	const rec::PageHistory& GetGuiModel()const;
 	sig::signal<void(const rec::PageHistory&)>	sigCfgUpdated;
 

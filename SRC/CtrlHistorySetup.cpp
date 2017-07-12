@@ -11,7 +11,8 @@ CtrlHistorySetup::CtrlHistorySetup(const std::shared_ptr<IViewHistorySetup>& vie
 	namespace ph = std::placeholders;
 	connViewCmd_SetCfg = mView->sigSetCfg
 		.connect(std::bind(&CtrlHistorySetup::SetCfg, this, ph::_1));
-
+	connViewCmd_SetCfgDefault = mView->sigSetCfgDefault
+		.connect(std::bind(&CtrlHistorySetup::SetCfgDefault, this, ph::_1));
 
 	connModel_SetCfg = mModel->sigCfgUpdated.connect
 		([this](const rec::PageHistory& cfg)
@@ -26,6 +27,11 @@ CtrlHistorySetup::CtrlHistorySetup(const std::shared_ptr<IViewHistorySetup>& vie
 void CtrlHistorySetup::SetCfg(const rec::PageHistory& cfg)
 {
 	mModel->SetGuiModel(cfg);
+}
+//---------------------------------------------------------------------------
+void CtrlHistorySetup::SetCfgDefault(const rec::PageHistory& cfg)
+{
+	mModel->SetGuiCfgDefault(cfg);
 }
 //---------------------------------------------------------------------------
 void CtrlHistorySetup::ShowCfgWindow()

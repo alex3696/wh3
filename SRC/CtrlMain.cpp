@@ -90,10 +90,13 @@ void CtrlMain::Load(const boost::property_tree::ptree& app_cfg) //override
 	mModel->Load(app_cfg);
 
 	auto it = app_cfg.find("CtrlNotebook");
-	if (app_cfg.not_found() == it)
-		return;
+	if (app_cfg.not_found() != it)
+		mCtrlNotebook->Load(it->second);
 
-	mCtrlNotebook->Load(it->second);
+	it = app_cfg.find("Default");
+	if (app_cfg.not_found() != it)
+		whDataMgr::GetInstance()->mDbCfg->mGuiCfg->LoadDefaults(it->second);
+
 }
 //---------------------------------------------------------------------------
 void CtrlMain::Save(boost::property_tree::ptree& app_cfg) //override
@@ -104,5 +107,9 @@ void CtrlMain::Save(boost::property_tree::ptree& app_cfg) //override
 	ptree notebook;
 	mCtrlNotebook->Save(notebook);
 	app_cfg.add_child("CtrlNotebook", notebook);
+
+	ptree defaults;
+	whDataMgr::GetInstance()->mDbCfg->mGuiCfg->SaveDefaults(defaults);
+	app_cfg.add_child("Default", defaults);
 }
 

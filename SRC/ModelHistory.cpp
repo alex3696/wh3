@@ -67,6 +67,13 @@ void ModelPageHistory::SetGuiModel(const rec::PageHistory& cfg)
 	//mGuiModel.mStringPerRow = 5;
 }
 //---------------------------------------------------------------------------
+void ModelPageHistory::SetGuiCfgDefault(const rec::PageHistory& cfg)
+{
+	auto value = std::make_shared<rec::PageHistory>(cfg);
+	auto cont = whDataMgr::GetInstance()->mContainer;
+	cont->RegInstance("DefaultLogListInfo", value);
+}
+//---------------------------------------------------------------------------
 const rec::PageHistory& ModelPageHistory::GetGuiModel()const
 {
 	return mGuiModel;

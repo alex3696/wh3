@@ -14,6 +14,7 @@ public:
 	virtual void ShowCfgWindow() = 0;
 
 	sig::signal<void(const rec::PageHistory&)> sigSetCfg;
+	sig::signal<void(const rec::PageHistory&)> sigSetCfgDefault;
 
 };
 

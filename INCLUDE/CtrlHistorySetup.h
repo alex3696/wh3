@@ -10,6 +10,7 @@ namespace wh{
 class CtrlHistorySetup final : public CtrlWindowBase<IViewHistorySetup, ModelPageHistory>
 {
 	sig::scoped_connection connViewCmd_SetCfg;
+	sig::scoped_connection connViewCmd_SetCfgDefault;
 
 	sig::scoped_connection connModel_SetCfg;
 public:
@@ -17,6 +18,7 @@ public:
 		, const  std::shared_ptr<ModelPageHistory>& model);
 
 	void SetCfg(const rec::PageHistory&);
+	void SetCfgDefault(const rec::PageHistory&);
 	void ShowCfgWindow();
 
 };
