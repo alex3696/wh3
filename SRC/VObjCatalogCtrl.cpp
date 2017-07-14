@@ -9,7 +9,6 @@
 #include "dlg_favprop_SelectFrame.h"
 
 #include "DClsEditor.h"
-#include "MainFrame.h"
 #include "config.h"
 
 

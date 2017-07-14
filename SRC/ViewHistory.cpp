@@ -397,7 +397,7 @@ ViewToolbarHistory::ViewToolbarHistory(wxWindow* parent)
 		, mgr->m_ico_export_excel24, "выполнить экспорт в Excel или Calc(CTRL+E)");
 	//mToolExportToExcel->SetHasDropDown(true);
 	tool_bar->AddTool(wxID_SETUP, "Настройки"
-		, wxArtProvider::GetBitmap(wxART_HELP_SETTINGS, wxART_TOOLBAR)
+		, mgr->m_ico_options24
 		, "Настройки внешнего вида таблийы истории(CTRL+N)");
 	tool_bar->Realize();
 

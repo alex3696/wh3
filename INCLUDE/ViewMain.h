@@ -2,7 +2,6 @@
 #define __VIEWMAIN_H
 
 #include "IViewWindow.h"
-#include "MainFrame.h"
 #include "CtrlNotebook.h"
 #include "ViewNotebook.h"
 
@@ -10,13 +9,19 @@ namespace wh{
 //---------------------------------------------------------------------------
 class ViewMain :public IViewWindow
 {
-	MainFrame* mMainFrame;
+	wxFrame*		mMainFrame;
+	wxAuiToolBar*	mToolBar = nullptr;
+	wxAuiManager	mAuiMgr;
 
 	std::shared_ptr<IViewNotebook> mViewNotebook;
 
-	void OnCmd_MkPage_History(wxCommandEvent& evt);
+	void BuildMenu();
+	void BuildToolbar();
+	void BuildStatusbar();
+
 public:
 	ViewMain();
+	~ViewMain();
 
 	virtual wxWindow* GetWnd()const override;
 	//IViewWindow virtual void OnUpdateTitle(const wxString&, const wxIcon&) {};
@@ -24,7 +29,19 @@ public:
 
 	std::shared_ptr<IViewNotebook> GetViewNotebook()const;
 
-	sig::signal<void()>		sigMkHistoryWindow;
+	virtual void UpdateConnectStatus(const wxString&);
+
+	sig::signal<void()>		sigMkPageGroup;
+	sig::signal<void()>		sigMkPageUser;
+	sig::signal<void()>		sigMkPageProp;
+	sig::signal<void()>		sigMkPageAct;
+	sig::signal<void()>		sigMkPageObjByType;
+	sig::signal<void()>		sigMkPageObjByPath;
+	sig::signal<void()>		sigMkPageHistory;
+	sig::signal<void()>		sigMkPageReportList;
+
+	sig::signal<void()>		sigDoConnectDB;
+	sig::signal<void()>		sigDoDisconnectDB;
 
 	//sig::signal<void()>	sigUpdateTitle;
 	//sig::signal<void()>	sigClose;

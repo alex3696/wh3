@@ -3,7 +3,7 @@
 #include "config.h"
 #include "globaldata.h"
 #include "RecentDstOidPresenter.h"
-
+#include "whLogin.h"
 
 
 using namespace wh;
@@ -28,8 +28,39 @@ CtrlMain::CtrlMain(const std::shared_ptr<ViewMain>& view, const std::shared_ptr<
 	connBeforeDbDisconnected = db.SigBeforeDisconnect
 		.connect(std::bind(&CtrlMain::OnDicsonnectDb, this, std::placeholders::_1));
 
-	connViewCmd_MkHistoryWindow = mView->sigMkHistoryWindow
-		.connect(std::bind(&CtrlMain::MkHistoryWindow, this));
+	connViewCmd_MkPageGroup = mView->sigMkPageGroup
+		.connect(std::bind(&CtrlMain::MkPageGroup, this));
+	connViewCmd_MkPageUser = mView->sigMkPageUser
+		.connect(std::bind(&CtrlMain::MkPageUser, this));
+	connViewCmd_MkPageProp = mView->sigMkPageProp
+		.connect(std::bind(&CtrlMain::MkPageProp, this));
+	connViewCmd_MkPageAct = mView->sigMkPageAct
+		.connect(std::bind(&CtrlMain::MkPageAct, this));
+	connViewCmd_MkPageObjByType = mView->sigMkPageObjByType
+		.connect(std::bind(&CtrlMain::MkPageObjByType, this));
+	connViewCmd_MkPageObjByPath = mView->sigMkPageObjByPath
+		.connect(std::bind(&CtrlMain::MkPageObjByPath, this));
+	connViewCmd_MkPageHistory = mView->sigMkPageHistory
+		.connect(std::bind(&CtrlMain::MkPageHistory, this));
+	connViewCmd_MkPageReportList = mView->sigMkPageReportList
+		.connect(std::bind(&CtrlMain::MkPageReportList, this));
+
+	connViewCmd_DoConnectDB = mView->sigDoConnectDB
+		.connect(std::bind(&CtrlMain::ConnectDB, this));
+	connViewCmd_DoDisconnectDB = mView->sigDoDisconnectDB
+		.connect(std::bind(&CtrlMain::DisconnectDB, this));
+	
+}
+//---------------------------------------------------------------------------
+void CtrlMain::ConnectDB()
+{
+	whLogin dlg(this->GetView()->GetWnd());
+	dlg.ShowModal();
+}
+//---------------------------------------------------------------------------
+void CtrlMain::DisconnectDB()
+{
+	whDataMgr::GetInstance()->mDb.Close();
 }
 //---------------------------------------------------------------------------
 void CtrlMain::OnConnectDb(const whDB& db)
@@ -38,6 +69,12 @@ void CtrlMain::OnConnectDb(const whDB& db)
 	whDataMgr::GetInstance()->mDbCfg->Load();
 	whDataMgr::GetInstance()->mRecentDstOidPresenter->GetFromConfig();
 	Load();
+
+	const auto& dbcfg = whDataMgr::GetInstance()->mConnectCfg->GetData();
+	const wxString conn_str = wxString::Format("%s %s %d %s"
+		, dbcfg.mUser, dbcfg.mServer, dbcfg.mPort, dbcfg.mDB);
+
+	mView->UpdateConnectStatus(conn_str);
 }
 //---------------------------------------------------------------------------
 void CtrlMain::OnDicsonnectDb(const whDB& db)
@@ -45,16 +82,57 @@ void CtrlMain::OnDicsonnectDb(const whDB& db)
 	Save();
 	whDataMgr::GetInstance()->mRecentDstOidPresenter->SetToConfig();
 	whDataMgr::GetInstance()->mDbCfg->Save();
+	whDataMgr::GetInstance()->mConnectCfg->Save();
 	mCtrlNotebook->CloseAllPages();
+
+	const auto& dbcfg = whDataMgr::GetInstance()->mConnectCfg->GetData();
+	const wxString conn_str = wxString::Format("DISCONNECTED %s %d %s"
+		, dbcfg.mServer, dbcfg.mPort, dbcfg.mDB);
+	mView->UpdateConnectStatus(conn_str);
 }
 //---------------------------------------------------------------------------
-void CtrlMain::MkHistoryWindow()
+void CtrlMain::MkPageGroup()
+{
+	mCtrlNotebook->MkWindow("CtrlPageGroupList");
+}
+//---------------------------------------------------------------------------
+void CtrlMain::MkPageUser()
+{
+	mCtrlNotebook->MkWindow("CtrlPageUserList");
+}
+//---------------------------------------------------------------------------
+void CtrlMain::MkPageProp()
+{
+	mCtrlNotebook->MkWindow("CtrlPagePropList");
+}
+//---------------------------------------------------------------------------
+void CtrlMain::MkPageAct()
+{
+	mCtrlNotebook->MkWindow("CtrlPageActList");
+}
+//---------------------------------------------------------------------------
+void CtrlMain::MkPageObjByType()
+{
+	mCtrlNotebook->MkWindow("CtrlPageObjByTypeList");
+}
+//---------------------------------------------------------------------------
+void CtrlMain::MkPageObjByPath()
+{
+	mCtrlNotebook->MkWindow("CtrlPageObjByPathList");
+}
+//---------------------------------------------------------------------------
+void CtrlMain::MkPageHistory()
 {
 	//auto container = whDataMgr::GetInstance()->mContainer;
 	//auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
 	//if (nb2)
 	//	nb2->MkWindow("CtrlPageHistory");
 	mCtrlNotebook->MkWindow("CtrlPageHistory");
+}
+//---------------------------------------------------------------------------
+void CtrlMain::MkPageReportList()
+{
+	mCtrlNotebook->MkWindow("CtrlPageReportList");
 }
 //---------------------------------------------------------------------------
 std::shared_ptr<CtrlNotebook> CtrlMain::GetNotebook()
@@ -82,7 +160,7 @@ void CtrlMain::RmView()//override
 	whDataMgr::GetInstance()->GetDB().Close();
 	//Save();
 	mCtrlNotebook->RmView();
-	CtrlWindowBase::RmView();
+	//CtrlWindowBase::RmView();
 }
 //---------------------------------------------------------------------------
 void CtrlMain::Load(const boost::property_tree::ptree& app_cfg) //override

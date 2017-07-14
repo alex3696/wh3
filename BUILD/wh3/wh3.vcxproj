@@ -252,11 +252,6 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="..\..\SRC\globaldata.cpp" />
-    <ClCompile Include="..\..\SRC\MainFrame.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_pch.h</PrecompiledHeaderFile>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\wxDataViewRenderer.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
@@ -432,7 +427,6 @@
     <ClInclude Include="..\..\INCLUDE\App.h" />
     <ClInclude Include="..\..\INCLUDE\globaldata.h" />
     <ClInclude Include="..\..\INCLUDE\ResManager.h" />
-    <ClInclude Include="..\..\INCLUDE\MainFrame.h" />
     <ClInclude Include="..\..\INCLUDE\wxDataViewRenderer.h" />
     <ClInclude Include="..\..\INCLUDE\FB_FORMS\whLogin.h" />
     <ClInclude Include="..\..\INCLUDE\whDB.h" />

@@ -92,6 +92,7 @@ public:
 	DEF_INIT_ICO24(accept);
 	DEF_INIT_ICO24(reject);
 	DEF_INIT_ICO24(history);
+	DEF_INIT_ICO24(options);
 
 
 	DEF_INIT_ICO24(type_abstract);

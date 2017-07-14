@@ -459,9 +459,6 @@
     <ClCompile Include="..\..\SRC\CtrlNotebook.cpp">
       <Filter>MainFrame\MVP2\MainFrame\NotebookWindow</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SRC\MainFrame.cpp">
-      <Filter>MainFrame\MVP2\MainFrame</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\MoveObjView.cpp">
       <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог перемещения</Filter>
     </ClCompile>
@@ -901,9 +898,6 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\CtrlNotebook.h">
       <Filter>MainFrame\MVP2\MainFrame\NotebookWindow</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MainFrame.h">
-      <Filter>MainFrame\MVP2\MainFrame</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ViewMain.h">
       <Filter>MainFrame\MVP2\MainFrame</Filter>
