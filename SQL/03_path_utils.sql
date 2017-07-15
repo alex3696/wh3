@@ -507,10 +507,6 @@ SELECT * FROM tmppath_to_2id_info('{%,{%,%},%%{%,106},{108,%}{111,122}}%');
 SELECT * FROM tmppath_to_2id_info('{%%,%%%%}');
 
 
-
-
-GRANT EXECUTE ON FUNCTION get_childs_cls(IN _cid BIGINT) TO "User";
-
 GRANT EXECUTE ON FUNCTION get_path_cls_info(_cid BIGINT,_cpid BIGINT) TO "User";
 GRANT EXECUTE ON FUNCTION get_path_cls_arr_id(_cid BIGINT,_cpid BIGINT) TO "User";
 GRANT EXECUTE ON FUNCTION get_path_cls_arr_title(_cid BIGINT,_cpid BIGINT) TO "User";

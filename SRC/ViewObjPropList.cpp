@@ -83,6 +83,7 @@ void ViewObjPropList::SetPropList(const PropValTable& rt, const IAct* act) //ove
 		}
 	}
 	//mPG->FitColumns();
+	mPG->Sort(); // wxPG_SORT_TOP_LEVEL_ONLY
 	wxLogMessage(wxString::Format("%d \t SetPropList : ", GetTickCount() - p0));
 }
 //-----------------------------------------------------------------------------

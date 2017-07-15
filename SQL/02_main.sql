@@ -30,6 +30,7 @@ DROP SEQUENCE IF EXISTS seq_obj_id CASCADE;
 DROP SEQUENCE IF EXISTS seq_log_id CASCADE;
 DROP SEQUENCE IF EXISTS seq_perm_id CASCADE;
 DROP SEQUENCE IF EXISTS favorite_prop_id_seq CASCADE;
+DROP SEQUENCE IF EXISTS seq_rep_id CASCADE;
 -- таблицы(вьюшки) + их триггеры
   -- классы
   DROP TABLE IF EXISTS acls CASCADE;
@@ -77,6 +78,11 @@ DROP SEQUENCE IF EXISTS favorite_prop_id_seq CASCADE;
   DROP VIEW IF EXISTS log CASCADE;
     DROP FUNCTION IF EXISTS ftg_del_log() CASCADE;
     DROP FUNCTION IF EXISTS ftr_bu_any_obj() CASCADE;
+
+   --отчёты
+   DROP TABLE IF EXISTS report CASCADE;
+   -- настройки
+   DROP TABLE IF EXISTS app_config CASCADE;
 
   -- бизнес блокировки
   DROP TABLE IF EXISTS lock_obj CASCADE;
@@ -183,6 +189,10 @@ CREATE TABLE acls (
   ,measure WHNAME            DEFAULT NULL
   --,path    ltree    NOT NULL 
   --,guipath VARCHAR  --NOT NULL
+  ,dt_insert timestamp with time zone DEFAULT now() NOT NULL
+  ,usr_insert NAME DEFAULT CURRENT_USER NOT NULL
+  ,dt_update timestamp with time zone DEFAULT now() NOT NULL
+  ,usr_update NAME DEFAULT CURRENT_USER NOT NULL
 
 ,CONSTRAINT pk_acls__id      PRIMARY KEY(id)
 ,CONSTRAINT pk_acls__id_kind UNIQUE(id,kind)
@@ -211,6 +221,10 @@ GRANT SELECT        ON TABLE acls  TO "Guest";
 GRANT INSERT        ON TABLE acls  TO "TypeDesigner";
 GRANT DELETE        ON TABLE acls  TO "Admin";
 GRANT UPDATE(pid,title,note,dobj,measure) ON TABLE acls  TO "TypeDesigner";
+GRANT UPDATE(dt_insert) ON acls TO "Admin";
+GRANT UPDATE(usr_insert)ON acls TO "Admin";
+GRANT UPDATE(dt_update) ON acls TO "TypeDesigner";
+GRANT UPDATE(usr_update)ON acls TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 -- основная типов свойств
 ---------------------------------------------------------------------------------------------------
@@ -316,6 +330,7 @@ CREATE TABLE ref_cls_act (
     ,cls_id   BIGINT  NOT NULL
     ,cls_kind SMALLINT NOT NULL DEFAULT 1 CHECK (cls_kind BETWEEN 0 AND 3 )
     ,act_id   BIGINT  NOT NULL
+    ,period   INTERVAL DEFAULT NULL
 
 ,CONSTRAINT pk_refclsact__id    PRIMARY KEY ( id )
 ,CONSTRAINT uk_refclsact_clsid_actid UNIQUE (cls_id, act_id)
@@ -467,6 +482,10 @@ CREATE TABLE obj_name (
 ,move_logid BIGINT
 ,act_logid  BIGINT   UNIQUE
 ,prop       JSONB
+,dt_insert timestamp with time zone DEFAULT now() NOT NULL
+,usr_insert NAME DEFAULT CURRENT_USER NOT NULL
+,dt_update timestamp with time zone DEFAULT now() NOT NULL
+,usr_update NAME DEFAULT CURRENT_USER NOT NULL
 
 ,CONSTRAINT pk_objname__id               PRIMARY KEY(id)
 ,CONSTRAINT uk_objname__id_cid_ckind     UNIQUE (id, cls_id,cls_kind)
@@ -489,6 +508,10 @@ GRANT INSERT        ON TABLE obj_name  TO "ObjDesigner";
 GRANT DELETE        ON TABLE obj_name  TO "ObjDesigner";
 GRANT UPDATE ( title) ON TABLE obj_name   TO "ObjDesigner";
 GRANT UPDATE ( move_logid, act_logid, prop) ON TABLE obj_name  TO "User";
+GRANT UPDATE(dt_insert) ON obj_name TO "Admin";
+GRANT UPDATE(usr_insert)ON obj_name TO "Admin";
+GRANT UPDATE(dt_update) ON obj_name TO "ObjDesigner";
+GRANT UPDATE(usr_update)ON obj_name TO "ObjDesigner";
 ---------------------------------------------------------------------------------------------------
 -- детальные сведения объект номерной
 ---------------------------------------------------------------------------------------------------
@@ -879,6 +902,22 @@ CREATE TRIGGER tr_id_obj INSTEAD OF DELETE ON obj FOR EACH ROW EXECUTE PROCEDURE
 
 GRANT EXECUTE ON FUNCTION ftg_del_obj() TO "User";
 
+---------------------------------------------------------------------------------------------------
+-- тригер обновления информации 
+---------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS ftr_bu_obj_name() CASCADE;
+CREATE OR REPLACE FUNCTION ftr_bu_obj_name()  RETURNS trigger AS
+$body$
+DECLARE
+BEGIN
+  NEW.usr_update:=CURRENT_USER;
+  NEW.dt_update:=CURRENT_TIMESTAMP;
+RETURN NEW;
+END;
+$body$
+LANGUAGE 'plpgsql';
+CREATE TRIGGER tr_bu_obj_name BEFORE UPDATE ON obj_name FOR EACH ROW EXECUTE PROCEDURE ftr_bu_obj_name();
+GRANT EXECUTE ON FUNCTION ftr_bu_obj_name() TO "ObjDesigner";
 
 ---------------------------------------------------------------------------------------------------
 -- Вставка базовых классов и объектов
