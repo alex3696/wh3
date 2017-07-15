@@ -70,6 +70,7 @@ void ModelPageHistory::SetGuiModel(const rec::PageHistory& cfg)
 void ModelPageHistory::SetGuiCfgDefault(const rec::PageHistory& cfg)
 {
 	auto value = std::make_shared<rec::PageHistory>(cfg);
+	value->mVisibleColumnClsObj = true;
 	auto cont = whDataMgr::GetInstance()->mContainer;
 	cont->RegInstance("DefaultLogListInfo", value);
 }
