@@ -11,13 +11,12 @@ ViewUndoWindow::ViewUndoWindow(wxWindow* parent)
 {
 	mPanel = new wxDialog(parent, wxID_ANY, "Отмена действия"
 		, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
-	mPanel->Centre(wxBOTH);
 
 	wxSizer *mainSz = new wxBoxSizer(wxVERTICAL);
 
 	wxBoxSizer* szr_info = new wxBoxSizer(wxHORIZONTAL);
 	auto ctrl_bmp = new wxStaticBitmap(mPanel, wxID_ANY, wxArtProvider::GetBitmap(wxART_WARNING, wxART_CMN_DIALOG), wxDefaultPosition, wxDefaultSize, 0);
-	szr_info->Add(ctrl_bmp, 1, wxALL, 15);
+	szr_info->Add(ctrl_bmp, 0, wxALL, 15);
 
 	//auto ctrl_txt = new wxTextCtrl(mPanel, wxID_ANY
 	auto ctrl_txt = new wxStaticText(mPanel, wxID_ANY
@@ -26,7 +25,7 @@ ViewUndoWindow::ViewUndoWindow(wxWindow* parent)
 		", что после вас никто не выполнял другие действия."
 		);
 		//, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_NO_VSCROLL | wxTE_READONLY | wxTE_WORDWRAP);
-	ctrl_txt->Wrap(-1);
+	ctrl_txt->Wrap(400);
 	szr_info->Add(ctrl_txt, 1, wxALL | wxEXPAND, 5);
 	mainSz->Add(szr_info, 0, wxEXPAND, 5);
 
@@ -35,7 +34,7 @@ ViewUndoWindow::ViewUndoWindow(wxWindow* parent)
 	int style = wxPG_SPLITTER_AUTO_CENTER | wxPG_BOLD_MODIFIED | wxPG_DESCRIPTION;
 	int extraStyle = wxPG_EX_HELP_AS_TOOLTIPS;
 	mPG = new wxPropertyGrid(mPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
-	mPG->CenterSplitter(true);
+	//mPG->CenterSplitter(true);
 	mPG->SetExtraStyle(extraStyle);
 	mainSz->Add(mPG, 1, wxALL | wxEXPAND, 0);
 
@@ -47,14 +46,17 @@ ViewUndoWindow::ViewUndoWindow(wxWindow* parent)
 	msdbSizer->Add(mbtnCancel, 0, wxALL, 5);
 	mainSz->Add(msdbSizer, 0, wxEXPAND, 10);
 
-	wxSize sz = mPanel->GetSize();
-	mPanel->SetMinSize(sz*1.3);
-	mPanel->SetSize(sz*1.7);
+	mPanel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ViewUndoWindow::OnCmd_ExecuteUndo, this, wxID_OK);
+	
 
+	mPG->SetMinSize(wxSize(400, mPG->GetRowHeight() * 10));
+
+	mPG->FitColumns();
+	mainSz->SetSizeHints(mPanel);
 	mPanel->SetSizer(mainSz);
 	mPanel->Layout();
-
-	mPanel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ViewUndoWindow::OnCmd_ExecuteUndo, this, wxID_OK);
+	mPanel->Centre(wxBOTH);
+	
 }
 //-----------------------------------------------------------------------------
 ViewUndoWindow::ViewUndoWindow(std::shared_ptr<IViewWindow> parent)

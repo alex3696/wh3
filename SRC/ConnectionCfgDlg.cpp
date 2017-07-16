@@ -7,7 +7,6 @@ ConnectionCfgDlg::ConnectionCfgDlg(wxWindow* parent, wxWindowID id, const wxStri
 	, const wxPoint& pos, const wxSize& size, long style)
 	: wxDialog(parent, id, title, pos, size, style)
 {
-	this->SetSizeHints(wxDefaultSize, wxDefaultSize);
 	this->SetTitle("Настройки подключения");
 
 	wxBoxSizer* szrMain;
@@ -30,13 +29,8 @@ ConnectionCfgDlg::ConnectionCfgDlg(wxWindow* parent, wxWindowID id, const wxStri
 	szrButtons->Add(m_btnCancel, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
 
 	szrMain->Add(szrButtons, 0, wxEXPAND, 5);
-
-	this->SetSizer(szrMain);
-	this->Layout();
-	mPG->ResetColumnSizes(true);
 	
 	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConnectionCfgDlg::OnOk, this, wxID_OK);
-
 
 	const auto& conn_cfg = whDataMgr::GetInstance()->mConnectCfg->GetData();
 	mPGPServer->SetValueFromString(conn_cfg.mServer);
@@ -44,6 +38,14 @@ ConnectionCfgDlg::ConnectionCfgDlg(wxWindow* parent, wxWindowID id, const wxStri
 	mPGPBd->SetValueFromString(conn_cfg.mDB);
 	mPGPRole->SetValueFromString(conn_cfg.mRole);
 
+	//mPG->ResetColumnSizes(true);
+	mPG->SetMinSize(wxSize(200, mPG->GetRowHeight() * 5));
+	mPG->FitColumns();
+
+	szrMain->SetSizeHints(this);
+	this->SetSizerAndFit(szrMain);
+	this->Layout();
+	Centre(wxBOTH);
 }
 //---------------------------------------------------------------------------
 ConnectionCfgDlg::~ConnectionCfgDlg()

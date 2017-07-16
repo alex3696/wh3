@@ -75,19 +75,16 @@ whLogin::whLogin(wxWindow* parent, wxWindowID id, const wxString& title
 	, const wxPoint& pos, const wxSize& size, long style) 
 	: wxDialog(parent, id, title, pos, size, style /*| wxFRAME_TOOL_WINDOW */)
 {
-	Centre(wxBOTH);
-
 	wxString title_str;
 	title_str << "Авторизация " << "wh" << GetAppVersion();
 	this->SetTitle(title_str);
 
 	wxBoxSizer* szrMain;
 	szrMain = new wxBoxSizer(wxVERTICAL);
-
+	
 	wxStaticBitmap* imgLogo;
 	imgLogo = new wxStaticBitmap(this, wxID_ANY, wxBitmap(wxT("../../RESOURCES/login_caption.png"), wxBITMAP_TYPE_ANY), wxDefaultPosition, wxDefaultSize, 0);
-	szrMain->Add(imgLogo, 1, 0, 5);
-	//szrMain->Add(0, 0, 3, wxEXPAND, 5);
+	szrMain->Add(imgLogo, 0);
 
 	wxFlexGridSizer* szrGrid;
 	szrGrid = new wxFlexGridSizer(3, 2, 10, 10);
@@ -113,8 +110,8 @@ whLogin::whLogin(wxWindow* parent, wxWindowID id, const wxString& title
 	szrGrid->Add(m_chkStorePass, 0, wxALL | wxEXPAND, 5);
 
 	szrMain->Add(szrGrid, 6, wxEXPAND, 5);
-		
 	
+
 	wxBoxSizer* szrButtons;
 	szrButtons = new wxBoxSizer(wxHORIZONTAL);
 	m_btnParam = new wxButton(this, wxID_PROPERTIES, wxT("Параметры подключения"), wxDefaultPosition, wxDefaultSize, 0);
@@ -128,8 +125,13 @@ whLogin::whLogin(wxWindow* parent, wxWindowID id, const wxString& title
 
 	szrMain->Add(szrButtons, 2, wxEXPAND, 5);
 
-	this->SetSizer(szrMain);
+	
+	//this->SetAutoLayout(true);
+	szrMain->SetSizeHints(this);
+	this->SetSizerAndFit(szrMain);
 	this->Layout();
+	Centre(wxBOTH);
+
 
 	// Connect Events
 	m_btnParam->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(whLogin::OnParam), NULL, this);
