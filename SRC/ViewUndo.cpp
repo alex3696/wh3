@@ -25,7 +25,7 @@ ViewUndoWindow::ViewUndoWindow(wxWindow* parent)
 		", что после вас никто не выполнял другие действия."
 		);
 		//, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_NO_VSCROLL | wxTE_READONLY | wxTE_WORDWRAP);
-	ctrl_txt->Wrap(400);
+	ctrl_txt->Wrap(500);
 	szr_info->Add(ctrl_txt, 1, wxALL | wxEXPAND, 5);
 	mainSz->Add(szr_info, 0, wxEXPAND, 5);
 
@@ -49,7 +49,7 @@ ViewUndoWindow::ViewUndoWindow(wxWindow* parent)
 	mPanel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ViewUndoWindow::OnCmd_ExecuteUndo, this, wxID_OK);
 	
 
-	mPG->SetMinSize(wxSize(400, mPG->GetRowHeight() * 10));
+	mPG->SetMinSize(wxSize(500, mPG->GetRowHeight() * 10));
 
 	mPG->FitColumns();
 	mainSz->SetSizeHints(mPanel);
