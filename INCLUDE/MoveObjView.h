@@ -77,8 +77,6 @@ class XMoveObjView : public IMoveObjView
 public:
 	~XMoveObjView()
 	{
-		if (mWxView)
-			mWxView->Destroy();
 		mWxView = nullptr;
 	}
 
