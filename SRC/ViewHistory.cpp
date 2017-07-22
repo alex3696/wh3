@@ -293,7 +293,7 @@ void ViewTableHistory::SetHistoryTable(const std::shared_ptr<const ModelHistoryT
 	auto p0 = GetTickCount();
 	dv->SetTable(rt);
 
-	wxLogMessage(wxString::Format("%d \t ViewTableHistory : \t SetTable", GetTickCount() - p0));
+	wxLogMessage(wxString::Format("ViewTableHistory:\t%d\t SetTable", GetTickCount() - p0));
 	p0 = GetTickCount();
 
 	if (mColAutosize)
@@ -312,7 +312,7 @@ void ViewTableHistory::SetHistoryTable(const std::shared_ptr<const ModelHistoryT
 		OnCmd_SelectHistoryItem(evt);
 	}
 
-	wxLogMessage(wxString::Format("%d \t ViewTableHistory : \t SetBestColumnWidth", GetTickCount() - p0));
+	wxLogMessage(wxString::Format("ViewTableHistory:\t%d\t SetBestColumnWidth", GetTickCount() - p0));
 }
 //-----------------------------------------------------------------------------
 //virtual 

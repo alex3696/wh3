@@ -19,45 +19,68 @@ whDB::~whDB()
 //------------------------------------------------------------------------------
 void whDB::BeginTransaction()	
 { 
+	wxLogMessage("whDB::BeginTransaction");
 	try
 	{
 		m_Connection.BeginTransaction();
-		wxLogMessage("BeginTransaction");
 	}
 	catch (DatabaseLayerException & e)
 	{
-		wxString str = wxString::Format(("%d %s"), e.GetErrorCode(), e.GetErrorMessage().GetData());
-		wxMessageBox(str);
+		wxString str = wxString::Format("whDB::BeginTransaction\t %d %s"
+			, e.GetErrorCode(), e.GetErrorMessage().GetData());
+		wxLogError(str);
 		throw;
 	}
+	catch (...)
+	{
+		wxString str = wxString::Format("whDB::BeginTransaction\t unknown error");
+		wxLogError(str);
+		throw;
+	}
+
 }
 //------------------------------------------------------------------------------
 void whDB::Commit()
 { 
+	wxLogMessage("whDB::Commit");
 	try
 	{
 		m_Connection.Commit();
-		wxLogMessage("Commit");
+		
 	}
 	catch (DatabaseLayerException & e)
 	{
-		wxString str = wxString::Format(("%d %s"), e.GetErrorCode(), e.GetErrorMessage().GetData());
-		wxMessageBox(str);
+		wxString str = wxString::Format("whDB::Commit\t %d %s"
+			, e.GetErrorCode(), e.GetErrorMessage().GetData());
+		wxLogError(str);
+		throw;
+	}
+	catch (...)
+	{
+		wxString str = wxString::Format("whDB::Commit\t unknown error");
+		wxLogError(str);
 		throw;
 	}
 }
 //------------------------------------------------------------------------------
 void whDB::RollBack()
 { 
+	wxLogMessage("whDB::RollBack");
 	try
 	{
 		m_Connection.RollBack();
-		wxLogMessage("RollBack");
 	}
 	catch (DatabaseLayerException & e)
 	{
-		wxString str = wxString::Format(("%d %s"), e.GetErrorCode(), e.GetErrorMessage().GetData());
-		wxMessageBox(str);
+		wxString str = wxString::Format("whDB::RollBack\t %d %s"
+			, e.GetErrorCode(), e.GetErrorMessage().GetData());
+		wxLogError(str);
+		throw;
+	}
+	catch (...)
+	{
+		wxString str = wxString::Format("whDB::RollBack\t unknown error");
+		wxLogError(str);
 		throw;
 	}
 }
@@ -66,6 +89,7 @@ void whDB::RollBack()
 bool whDB::Open(const wxString& strServer, int nPort, const wxString& strDatabase, 
 				const wxString& strUser, const wxString& strPassword)
 {
+	wxLogMessage("whDB::Open");
 	bool result = false;
 	try
 	{
@@ -76,16 +100,38 @@ bool whDB::Open(const wxString& strServer, int nPort, const wxString& strDatabas
    	catch(DatabaseLayerException & e)
 	{
 		wxString str = wxString::Format(("%d %s"), e.GetErrorCode(), e.GetErrorMessage().GetData() ); 
-		wxMessageBox(str );
+		wxLogError(str);
+	}
+	catch (...)
+	{
+		wxString str = wxString::Format("whDB::Open\t unknown error");
+		wxLogError(str);
 	}
 	return result;
 }
 //------------------------------------------------------------------------------
 bool whDB::Close()
 { 
-	if (IsOpen())
-		SigBeforeDisconnect(*this);
-	return m_Connection.Close(); 
+	wxLogMessage("whDB::Close");
+	bool successfull = false;
+	try
+	{
+		if (IsOpen())
+			SigBeforeDisconnect(*this);
+		successfull = m_Connection.Close();
+
+	}
+	catch (DatabaseLayerException & e)
+	{
+		wxString str = wxString::Format(("%d %s"), e.GetErrorCode(), e.GetErrorMessage().GetData());
+		wxLogError(str);
+	}
+	catch (...)
+	{
+		wxString str = wxString::Format("whDB::Open\t unknown error");
+		wxLogError(str);
+	}
+	return successfull;
 }
 
 //------------------------------------------------------------------------------
@@ -105,6 +151,8 @@ whTable*	whDB::ExecWithResults(const wxString& query)
 	{
 		delete table;
 		table = nullptr;
+		wxString str = wxString::Format("whDB::ExecWithResults\t unknown error");
+		wxLogError(str);
 		throw;
 	}
 
@@ -207,11 +255,17 @@ int whTable::Exec(const wxString& query,bool with_result)
 			result = 0;
 
 	}
+	catch (...)
+	{
+		wxString str = wxString::Format("whTable::Exec\t unknown error");
+		wxLogError(str);
+		throw;
+	}
 	
 	auto p2 = GetTickCount();
 
 	wxString logStr;
-	logStr << p2 - p1 << "\t" << query;
+	logStr << "whTable::Exec\t" << p2 - p1 << "\t" << query;
 	logStr.Replace("%", "?");
 	wxLogMessage(logStr);
 
@@ -282,7 +336,7 @@ int whTable::Exec(const wxString& query,std::deque<wxString>& pathes)
 	}
 
 	auto p2 = GetTickCount();
-	wxLogMessage("%d\t%s", p2 - p1, query);
+	wxLogMessage("whTable::ExecPathes\t%d\t%s", p2 - p1, query);
 
 	return result;	
 }

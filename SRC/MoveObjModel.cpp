@@ -38,7 +38,7 @@ void Moveable::Load()
 		auto p0 = GetTickCount();
 		mDst.Clear();
 		mRecent.Clear();
-		wxLogMessage(wxString::Format("%d \t MoveObj \t clear results", GetTickCount() - p0));
+		wxLogMessage(wxString::Format("MoveObjModel:\t%d\t clear results", GetTickCount() - p0));
 	}
 	const auto& global_recent = whDataMgr::GetInstance()->mRecentDstOidPresenter;
 
@@ -98,7 +98,7 @@ void Moveable::Load()
 	whDataMgr::GetDB().Commit();
 	mLock = true;
 
-	wxLogMessage(wxString::Format("%d \t MoveObj \t download results", GetTickCount() - p0));
+	wxLogMessage(wxString::Format("MoveObjModel:\t%d\t download results", GetTickCount() - p0));
 }
 //-----------------------------------------------------------------------------
 void Moveable::Unlock()

@@ -103,5 +103,5 @@ void MoveObjPresenter::OnModelUpdate()
 		mView->UpdateDst(mModel->GetDst());
 		
 	}
-	wxLogMessage(wxString::Format("%d \t MoveObj \t update view", GetTickCount() - p0));
+	wxLogMessage(wxString::Format("MoveObjPresenter:\t%d\t MoveObj update view", GetTickCount() - p0));
 }

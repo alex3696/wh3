@@ -228,7 +228,7 @@ void ModelHistory::Load()
 	mLog.clear();
 	mActProp.clear();
 		
-	wxLogMessage(wxString::Format("%d \t ModelHistory : \t clear list", GetTickCount() - p0));
+	wxLogMessage(wxString::Format("ModelHistory:\t%d\t clear list", GetTickCount() - p0));
 
 	wxString query = wxString::Format(
 		"SELECT log_id, log_dt, log_user"
@@ -360,7 +360,7 @@ void ModelHistory::Load()
 	LoadActProp(mActProp);
 
 	whDataMgr::GetDB().Commit();
-	wxLogMessage(wxString::Format("%d \t ModelHistory : \t download results", GetTickCount() - p0));
+	wxLogMessage(wxString::Format("ModelHistory:\t%d\t download results", GetTickCount() - p0));
 	
 	PrepareProperties();
 	
@@ -495,7 +495,7 @@ void ModelHistory::PrepareProperties()
 	}//for (const auto& log_rec : mLog)
 
 
-	wxLogMessage(wxString::Format("%d \t ModelHistory : \t prepare properties", GetTickCount() - p0));
+	wxLogMessage(wxString::Format("ModelHistory:\t%d\t prepare properties", GetTickCount() - p0));
 
 }
 //---------------------------------------------------------------------------

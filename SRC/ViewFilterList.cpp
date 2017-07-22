@@ -534,7 +534,7 @@ void ViewFilterList::Update(const std::vector<NotyfyItem>& data) //override;
 		}
 	}
 	mPanel->FitInside();
-	wxLogMessage(wxString::Format("%d \t ViewFilterList : \t Update", GetTickCount() - p0));
+	wxLogMessage(wxString::Format("ViewFilterList:\t%d\t Update", GetTickCount() - p0));
 }
 //-----------------------------------------------------------------------------
 void ViewFilterList::OnCmd_UpdateAll(wxCommandEvent& evt)

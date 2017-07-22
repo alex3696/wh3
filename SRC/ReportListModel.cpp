@@ -17,7 +17,7 @@ void ReportListModel::UpdateList()
 	{
 		auto p0 = GetTickCount();
 		mRepList.clear();
-		wxLogMessage(wxString::Format("%d \t ReprtListModel \t clear list", GetTickCount() - p0));
+		wxLogMessage(wxString::Format("ReprtListModel:\t%d\t clear list", GetTickCount() - p0));
 	}
 
 	wxString query =
@@ -53,7 +53,7 @@ void ReportListModel::UpdateList()
 	}//if (table)
 
 	whDataMgr::GetDB().Commit();
-	wxLogMessage(wxString::Format("%d \t ReprtListModel \t download results", GetTickCount() - p0));
+	wxLogMessage(wxString::Format("ReprtListModel:\t%d\t download results", GetTickCount() - p0));
 
 	sigListUpdated(mRepList);
 }

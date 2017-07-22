@@ -53,12 +53,12 @@ void CtrlToolbarAct::DoMove()
 		if (!presenter)
 			return;
 
-		wxLogMessage(wxString::Format("%d \t MoveObj \t init", GetTickCount() - p0));
+		wxLogMessage(wxString::Format("MoveObj:\t%d\t init", GetTickCount() - p0));
 
 		auto busyCursor = std::make_unique<wxBusyCursor>();
 		presenter->OnViewUpdate();
 		busyCursor.reset();
-		wxLogMessage(wxString::Format("%d \t MoveObj \t TOTAL start time", GetTickCount() - p0));
+		wxLogMessage(wxString::Format("MoveObj:\t%d\t TOTAL start time", GetTickCount() - p0));
 
 		presenter->ShowDialog();
 	}
