@@ -36,28 +36,31 @@ CtrlToolbarAct::CtrlToolbarAct(
 //---------------------------------------------------------------------------
 void CtrlToolbarAct::DoMove()
 {
-	auto p0 = GetTickCount();
-
-	const rec::PathItem& data = mModel->mModelObjDetail->Get();
-	auto ctrl = whDataMgr::GetInstance()->mContainer;
-
 	try
 	{
-		auto moveable_sp = ctrl->GetObject<rec::PathItem>("MoveableObj");
-		if (!moveable_sp)
-			return;
+		wxBusyCursor busyCursor;
+		auto p0 = GetTickCount();
 
-		*moveable_sp = data;
-
+		wxLogMessage(wxString::Format("MoveObj:\t%d\t start", GetTickCount() - p0));
+		p0 = GetTickCount();
+		const rec::PathItem& data = mModel->mModelObjDetail->Get();
+		auto ctrl = whDataMgr::GetInstance()->mContainer;
+		
+		wxLogMessage(wxString::Format("MoveObj:\t%d\t init mov_obj", GetTickCount() - p0));
+		p0 = GetTickCount();
+		std::shared_ptr<rec::PathItem> mov_obj = std::make_shared<rec::PathItem>(data);
+		ctrl->RegInstance("MoveableObj", mov_obj);
+		//*moveable_sp = data;
+		
+		wxLogMessage(wxString::Format("MoveObj:\t%d\t get presenter", GetTickCount() - p0));
+		p0 = GetTickCount();
 		auto presenter = ctrl->GetObject<MoveObjPresenter>("MoveObjPresenter");
 		if (!presenter)
 			return;
 
 		wxLogMessage(wxString::Format("MoveObj:\t%d\t init", GetTickCount() - p0));
-
-		auto busyCursor = std::make_unique<wxBusyCursor>();
+		p0 = GetTickCount();
 		presenter->OnViewUpdate();
-		busyCursor.reset();
 		wxLogMessage(wxString::Format("MoveObj:\t%d\t TOTAL start time", GetTickCount() - p0));
 
 		presenter->ShowDialog();

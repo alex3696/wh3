@@ -430,7 +430,7 @@ void whDataMgr::InitContainer()
 	////////////////////
 	// move dialog //
 	///////////////////
-	mContainer->RegInstanceDeferredNI<rec::PathItem>("MoveableObj");
+	mContainer->RegInstanceNI<rec::PathItem>("MoveableObj");
 	mContainer->RegInstanceDeferred<IMoveObjView, XMoveObjView, IViewWindow>
 		("MoveObjView", "ViewMain");
 	mContainer->RegFactory<MoveObjPresenter, MoveObjPresenter, IMoveObjView, rec::PathItem>
