@@ -149,8 +149,6 @@ void ReportModel::Execute(const std::vector<wxString>& filter_vec)
 	COLUMN_DATE,
 
 	*/
-	wxLocale loc;
-	loc.Init(wxLocale::GetSystemLanguage());
 	wxString format = wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER);
 	//wxString format1 = wxLocale::GetOSInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER);
 

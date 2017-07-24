@@ -5,10 +5,22 @@
 #include "RecentDstOidPresenter.h"
 
 using namespace wh;
+//---------------------------------------------------------------------------
+class Node
+	:public boost::noncopyable
+{
+public:
+	Node(const Node* parent, int tid = 0, void* val = nullptr)
+		:mParent(parent), mTypeId(tid), mVal(val)
+	{}
 
+	const Node*			mParent;
+	int					mTypeId;
+	void*				mVal;
 
-
-
+	std::vector< std::shared_ptr<Node> >	mChilds;
+};
+//---------------------------------------------------------------------------
 class DvModel
 	: public wxDataViewModel
 {
@@ -251,38 +263,22 @@ protected:
 
 
 };//class DwModel
-
-
-
-
-
-
-
-
-
-
-using namespace wh;
-
 //---------------------------------------------------------------------------
-MoveObjView::MoveObjView(wxWindow* parent,
-	wxWindowID id,
-	const wxString& title,
-	const wxPoint& pos,
-	const wxSize& size,
-	long style,
-	const wxString& name)
-	//: wh::view::DlgBaseOkCancel(parent, id, title, pos, size, style, name)
-	: wxDialog(parent, id, title, pos, size, style, name)
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+XMoveObjView::XMoveObjView(wxWindow* parent)
 {
-	this->SetTitle("Перемещение");
+	mFrame = new wxDialog(parent, wxID_ANY, "Перемещение"
+		, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+
 	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
 
-	mLblMovableObj = new wxStaticText(this, wxID_ANY, "[класс]объект/...[класс]объект(ед.изм)");
+	mLblMovableObj = new wxStaticText(mFrame, wxID_ANY, "[класс]объект/...[класс]объект(ед.изм)");
 	szrMain->Add(mLblMovableObj, 0, wxALL, 5);
 
-	mqtySpin = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
+	mqtySpin = new wxSpinCtrl(mFrame, wxID_ANY, wxEmptyString, wxDefaultPosition,
 		wxDefaultSize, wxSP_ARROW_KEYS, 1, MAXINT, 1);
-	mqtyCtrl = new wxTextCtrl(this, wxID_ANY, "1", wxDefaultPosition, wxDefaultSize, 0,
+	mqtyCtrl = new wxTextCtrl(mFrame, wxID_ANY, "1", wxDefaultPosition, wxDefaultSize, 0,
 		wxTextValidator(wxFILTER_NUMERIC));
 	szrMain->Add(mqtySpin, 0, wxALL | wxEXPAND, 0);
 	szrMain->Add(mqtyCtrl, 0, wxALL | wxEXPAND, 0);
@@ -290,7 +286,7 @@ MoveObjView::MoveObjView(wxWindow* parent,
 	//mLblDstObj = new wxStaticText(this, wxID_ANY, "В");
 	//szrMain->Add(mLblDstObj, 0, wxALL, 5);
 
-	auto staticline = new wxStaticLine(this, wxID_ANY);
+	auto staticline = new wxStaticLine(mFrame, wxID_ANY);
 	szrMain->Add(staticline, 0, wxEXPAND | wxALL, 5);
 
 	BuildToolBar();
@@ -301,29 +297,39 @@ MoveObjView::MoveObjView(wxWindow* parent,
 
 
 	msdbSizer = new wxStdDialogButtonSizer();
-	mbtnOK = new wxButton(this, wxID_OK);//,"Сохранить и закрыть" );
+	mbtnOK = new wxButton(mFrame, wxID_OK);//,"Сохранить и закрыть" );
 	msdbSizer->AddButton(mbtnOK);
-	mbtnCancel = new wxButton(this, wxID_CANCEL);//," Закрыть" );
+	mbtnCancel = new wxButton(mFrame, wxID_CANCEL);//," Закрыть" );
 	msdbSizer->AddButton(mbtnCancel);
 	msdbSizer->Realize();
-	Bind(wxEVT_CLOSE_WINDOW, &MoveObjView::OnClose, this);
-	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MoveObjView::OnCancel, this, wxID_CANCEL);
-	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MoveObjView::OnOk, this, wxID_OK);
 	szrMain->Add(msdbSizer, 0, wxALL | wxEXPAND, 10);
 
+	mFrame->SetSize(600,500);
+	mFrame->SetSizer(szrMain);
+	mFrame->Layout();
 
-	wxSize sz = GetSize();
-	sz = sz * 1.3;
-	SetSize(sz);
+	mFrame->Bind(wxEVT_CLOSE_WINDOW, &XMoveObjView::OnClose, this);
+	mFrame->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &XMoveObjView::OnCancel, this, wxID_CANCEL);
+	mFrame->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &XMoveObjView::OnOk, this, wxID_OK);
 	
-	this->SetSizer(szrMain);
-	this->Layout();
+	//mFrame->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent& evt) {	//this->sigClose();	});
 
 }
-//-----------------------------------------------------------------------------
-void MoveObjView::BuildToolBar()
+//---------------------------------------------------------------------------
+XMoveObjView::XMoveObjView(const std::shared_ptr<IViewWindow>& parent)
+	:XMoveObjView(parent->GetWnd())
 {
-	mToolBar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize
+}
+//---------------------------------------------------------------------------
+XMoveObjView::~XMoveObjView()
+{
+	//mFrame->Destroy();
+	//mFrame = nullptr;
+}
+//-----------------------------------------------------------------------------
+void XMoveObjView::BuildToolBar()
+{
+	mToolBar = new wxAuiToolBar(mFrame, wxID_ANY, wxDefaultPosition, wxDefaultSize
 		, wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_PLAIN_BACKGROUND /*| wxAUI_TB_TEXT */);
 
 	{
@@ -338,9 +344,9 @@ void MoveObjView::BuildToolBar()
 			= std::bind(SafeCallEvent(), itemFunc, std::placeholders::_1);
 		const int		winid(wxID_REFRESH);
 		const wxString	label(L"Обновить");
-		const wxIcon&	ico24 = m_ResMgr->m_ico_refresh24;
+		const wxIcon&	ico24 = ResMgr::GetInstance()->m_ico_refresh24;
 		mToolBar->AddTool(winid, label, ico24, label);
-		Bind(wxEVT_COMMAND_MENU_SELECTED, eventFunctor, winid);
+		mFrame->Bind(wxEVT_COMMAND_MENU_SELECTED, eventFunctor, winid);
 	}
 
 	{
@@ -354,9 +360,9 @@ void MoveObjView::BuildToolBar()
 			= std::bind(SafeCallEvent(), itemFunc, std::placeholders::_1);
 		const int winid = wxID_PROPERTIES;
 		const wxString label = L"Показать/скрыть недавние";
-		const wxIcon& ico24 = m_ResMgr->m_ico_history24;
+		const wxIcon& ico24 = ResMgr::GetInstance()->m_ico_history24;
 		mToolBar->AddTool(winid, label, ico24, label, wxITEM_CHECK);
-		Bind(wxEVT_COMMAND_MENU_SELECTED, eventFunctor, winid);
+		mFrame->Bind(wxEVT_COMMAND_MENU_SELECTED, eventFunctor, winid);
 	}
 
 	{
@@ -368,38 +374,38 @@ void MoveObjView::BuildToolBar()
 		std::function<void(wxCommandEvent&)> eventFunctor = std::bind(SafeCallEvent(), itemFunc, std::placeholders::_1);
 
 		// поиск|фильтр
-			
+
 		//auto lbl = new wxStaticText(mToolBar, wxID_ANY, "Поиск по имени");
 		//mToolBar->AddControl(lbl, "Поиск2");
 		mFindCtrl = new wxTextCtrl(mToolBar, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 		mFindCtrl->Bind(wxEVT_COMMAND_TEXT_ENTER, eventFunctor);
 		mFindCtrl->SetHint("фильтр");
 		mToolBar->AddControl(mFindCtrl, "поиск|фильтр");
-		
-		
+
+
 
 		const int winid = wxID_FIND;
 		const wxString label = L"Выполнить поиск|фильтр";
-		const wxIcon& ico24 = m_ResMgr->m_ico_filter24;
+		const wxIcon& ico24 = ResMgr::GetInstance()->m_ico_filter24;
 		auto tool = mToolBar->AddTool(winid, label, ico24, label, wxITEM_NORMAL);
 		tool->SetHasDropDown(true);
-		
-		Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, [this, tool](wxAuiToolBarEvent& evt)
+
+		mFrame->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, [this, tool](wxAuiToolBarEvent& evt)
 		{
 			if (evt.IsDropDownClicked())
 			{
 				wxMenu menu;
 
 				AppendBitmapMenu(&menu, wxID_FILE1, "Фильтр"
-					, m_ResMgr->m_ico_filter24);
+					, ResMgr::GetInstance()->m_ico_filter24);
 				AppendBitmapMenu(&menu, wxID_FILE2, "Поиск"
 					, wxArtProvider::GetBitmap(wxART_FIND, wxART_TOOLBAR));
 
 				//tool->SetSticky(true);
 				wxRect rect = mToolBar->GetToolRect(tool->GetId());
 				wxPoint pt = mToolBar->ClientToScreen(rect.GetBottomLeft());
-				pt = ScreenToClient(pt);
-				PopupMenu(&menu, pt);
+				pt = mFrame->ScreenToClient(pt);
+				mFrame->PopupMenu(&menu, pt);
 				//tool->SetSticky(false);
 				//tool->SetSticky(true);
 			}
@@ -407,25 +413,25 @@ void MoveObjView::BuildToolBar()
 			{
 				OnClickSearchBtn(evt);
 			}
-			
-		}, winid);
-		
-		Bind(wxEVT_COMMAND_MENU_SELECTED, eventFunctor, wxID_FIND);
-		
-		auto mgr = whDataMgr::GetInstance();
-		
-		Bind(wxEVT_COMMAND_MENU_SELECTED, [this,tool,mgr](wxCommandEvent& evt)
-			{
-				tool->SetBitmap(m_ResMgr->m_ico_filter24);
-				mFindCtrl->SetHint("фильтр");
-				mToolBar->Refresh();
-				mgr->mRecentDstOidPresenter->SetFilterEnable(1);
-				this->OnClickSearchBtn(wxCommandEvent(wxEVT_COMMAND_MENU_SELECTED, wxID_FIND));
-				
-			}
-			, wxID_FILE1);
 
-		Bind(wxEVT_COMMAND_MENU_SELECTED, [this,tool,mgr](wxCommandEvent& evt)
+		}, winid);
+
+		mFrame->Bind(wxEVT_COMMAND_MENU_SELECTED, eventFunctor, wxID_FIND);
+
+		auto mgr = whDataMgr::GetInstance();
+
+		mFrame->Bind(wxEVT_COMMAND_MENU_SELECTED, [this, tool, mgr](wxCommandEvent& evt)
+		{
+			tool->SetBitmap(ResMgr::GetInstance()->m_ico_filter24);
+			mFindCtrl->SetHint("фильтр");
+			mToolBar->Refresh();
+			mgr->mRecentDstOidPresenter->SetFilterEnable(1);
+			this->OnClickSearchBtn(wxCommandEvent(wxEVT_COMMAND_MENU_SELECTED, wxID_FIND));
+
+		}
+		, wxID_FILE1);
+
+		mFrame->Bind(wxEVT_COMMAND_MENU_SELECTED, [this, tool, mgr](wxCommandEvent& evt)
 		{
 			tool->SetBitmap(wxArtProvider::GetBitmap(wxART_FIND, wxART_TOOLBAR));
 			mFindCtrl->SetHint("поиск");
@@ -440,7 +446,7 @@ void MoveObjView::BuildToolBar()
 		if (mgr->mRecentDstOidPresenter->GetFilterEnable())
 		{
 			mFindCtrl->SetHint("фильтр");
-			tool->SetBitmap(m_ResMgr->m_ico_filter24);
+			tool->SetBitmap(ResMgr::GetInstance()->m_ico_filter24);
 			mToolBar->Refresh();
 		}
 		else
@@ -450,18 +456,18 @@ void MoveObjView::BuildToolBar()
 			mToolBar->Refresh();
 		}
 
-			
-			
-		
+
+
+
 	}
 
 	mToolBar->Realize();
 
 }
 //-----------------------------------------------------------------------------
-void MoveObjView::BuildTree()
+void XMoveObjView::BuildTree()
 {
-	mTree = new wxDataViewCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+	mTree = new wxDataViewCtrl(mFrame, wxID_ANY, wxDefaultPosition, wxDefaultSize,
 		wxDV_ROW_LINES | wxDV_VERT_RULES /*| wxDV_HORIZ_RULES*/);
 
 	auto dvModel = new DvModel();
@@ -477,85 +483,154 @@ void MoveObjView::BuildTree()
 	//mTree->SetRowHeight(ch * 2 + 0);
 	mTree->SetRowHeight(26);
 
-	Bind(wxEVT_COMMAND_DATAVIEW_ITEM_ACTIVATED, &MoveObjView::OnActivated, this);
+	mFrame->Bind(wxEVT_COMMAND_DATAVIEW_ITEM_ACTIVATED, &XMoveObjView::OnActivated, this);
 
 }
 //-----------------------------------------------------------------------------
 
-void MoveObjView::OnClose(wxCloseEvent& evt)
+void XMoveObjView::OnClose(wxCloseEvent& evt)
 {
 	OnCancel();
 }
 //-----------------------------------------------------------------------------
 
-void MoveObjView::OnCancel(wxCommandEvent& evt)
+void XMoveObjView::OnCancel(wxCommandEvent& evt)
 {
 	this->sigClose();
-	EndModal(wxID_CANCEL);
+	mFrame->EndModal(wxID_CANCEL);
 }
 //-----------------------------------------------------------------------------
-void MoveObjView::OnOk(wxCommandEvent& evt)
+void XMoveObjView::OnOk(wxCommandEvent& evt)
 {
 	auto selected = mTree->GetSelection();
 	auto sel_node = static_cast<Node*>(selected.GetID());
-	if (selected && sel_node->mTypeId==20)
+	if (selected && sel_node->mTypeId == 20)
 	{
 		auto sel_obj = static_cast<Obj*>(sel_node->mVal);
-		wxString qty="1";
+		wxString qty = "1";
 		if (mqtySpin->IsShown() && !mqtyCtrl->IsShown())
 			qty = wxString::Format("%d", mqtySpin->GetValue());
 		else if (!mqtySpin->IsShown() && mqtyCtrl->IsShown())
 			qty = mqtyCtrl->GetValue();
 
 		sigMove(sel_obj->mId, qty);
-		EndModal(wxID_OK);
+		mFrame->EndModal(wxID_OK);
 	}// if (selected)
 }
 //---------------------------------------------------------------------------
-void MoveObjView::OnActivated(wxDataViewEvent& evt)
+void XMoveObjView::OnActivated(wxDataViewEvent& evt)
 {
 	OnOk();
 }
 //---------------------------------------------------------------------------
-void MoveObjView::ExpandAll()
+void XMoveObjView::ExpandAll()
 {
 	auto dvmodel = dynamic_cast<DvModel*>(mTree->GetModel());
 	const Node& root = dvmodel->GetNode();
-	ExpandAll(root);
+
+	wxDataViewItem dvitem((void*)&root);
+	ExpandTree(dvitem);
 }
 //---------------------------------------------------------------------------
-void MoveObjView::ExpandAll(const Node& node)
+void XMoveObjView::ExpandTree(const wxDataViewItem& dvitem, bool recursive)
 {
-	for (const auto& child : node.mChilds)
+	if (!dvitem.IsOk())
+		return;
+
+	const Node* node = static_cast<const Node*>((void*)dvitem);
+	for (const auto& child : node->mChilds)
 	{
 		const Node* ch = child.get();
 
 		wxDataViewItem type((void*)ch);
 		mTree->Expand(type);
-		ExpandAll(*ch);
+		if (recursive)
+		{
+			wxDataViewItem dvitem((void*)ch);
+			ExpandTree(dvitem, recursive);
+		}
+			
 	}
 }
 //---------------------------------------------------------------------------
-void MoveObjView::UpdateRecent(const ObjTree& tree)
+void XMoveObjView::OnClickSearchBtn(wxCommandEvent& event)
 {
 	auto dvmodel = dynamic_cast<DvModel*>(mTree->GetModel());
-	dvmodel->SetRecentTree(tree);
-	//ExpandAll(root);
 
+	if (mFindCtrl->GetValue().IsEmpty())
+	{
+		dvmodel->SetFilter(mFindCtrl->GetValue());
+		ExpandAll();
+		return;
+
+	}
+
+	if ("фильтр" == mFindCtrl->GetHint())
+	{
+		dvmodel->SetFilter(mFindCtrl->GetValue());
+		ExpandAll();
+		return;
+	}
+
+	dvmodel->SetFilter("");
+
+	const auto& dst_node = dvmodel->GetDstNode();
+	std::wstring ss = mFindCtrl->GetValue();
+	boost::algorithm::to_lower(ss);
+	bool isFind = false;
+
+	for (const auto& tp : dst_node.mChilds)
+	{
+		for (const auto& obj : tp->mChilds)
+		{
+			const auto* obj_val = static_cast<const Obj*>(obj->mVal);
+			std::wstring str = obj_val->mTitle.ToStdWstring();
+			boost::algorithm::to_lower(str);
+
+			if (std::wstring::npos != str.find(ss))
+			{
+				wxDataViewItem item(obj.get());
+				mTree->Select(item);
+				mTree->SetCurrentItem(item);
+				mTree->EnsureVisible(item, mTree->GetColumn(0));
+				//mTree->SetFocus();
+				isFind = true;
+				if (isFind)
+					break;
+
+			}
+		}//for
+		if (isFind)
+			break;
+	}//for (const auto& tp : dst_node.mChilds)
+	//ExpandAll();
 }
 //---------------------------------------------------------------------------
-void MoveObjView::UpdateDst(const ObjTree& tree)
-{
+//virtual 
+void XMoveObjView::ShowDialog()//override 
+{ 
+	mFrame->ShowModal();
+}
+//---------------------------------------------------------------------------
+//virtual 
+void XMoveObjView::UpdateRecent(const ObjTree& tree)//override
+{ 
+	auto dvmodel = dynamic_cast<DvModel*>(mTree->GetModel());
+	dvmodel->SetRecentTree(tree);
+}
+//---------------------------------------------------------------------------
+//virtual 
+void XMoveObjView::UpdateDst(const ObjTree& tree)//override
+{ 
 	auto dvmodel = dynamic_cast<DvModel*>(mTree->GetModel());
 	dvmodel->SetDstTree(tree);
 
-	const Node& root = dvmodel->GetNode();
-	ExpandAll(root);
-
+	ExpandAll();
 }
 //---------------------------------------------------------------------------
-void MoveObjView::UpdateMoveable(const rec::PathItem& moveable)
-{
+//virtual 
+void XMoveObjView::UpdateMoveable(const rec::PathItem& moveable)//override
+{ 
 	const wxString movLabel = wxString::Format("[%s]%s"
 		, moveable.mCls.mLabel.toStr()
 		, moveable.mObj.mLabel.toStr()
@@ -581,11 +656,11 @@ void MoveObjView::UpdateMoveable(const rec::PathItem& moveable)
 		mqtyCtrl->Hide();
 		break;
 	}//switch
-
 }
 //---------------------------------------------------------------------------
-void MoveObjView::EnableRecent(bool enable)
-{
+//virtual 
+void XMoveObjView::EnableRecent(bool enable)//override
+{ 
 	mToolBar->ToggleTool(wxID_PROPERTIES, enable);
 
 	auto dvmodel = dynamic_cast<DvModel*>(mTree->GetModel());
@@ -593,55 +668,3 @@ void MoveObjView::EnableRecent(bool enable)
 	ExpandAll();
 }
 //---------------------------------------------------------------------------
-void MoveObjView::OnClickSearchBtn(wxCommandEvent& event)
-{
-	auto dvmodel = dynamic_cast<DvModel*>(mTree->GetModel());
-	
-	if (mFindCtrl->GetValue().IsEmpty())
-	{
-		dvmodel->SetFilter(mFindCtrl->GetValue());
-		ExpandAll();
-		return;
-
-	}
-
-	if ("фильтр" == mFindCtrl->GetHint())
-	{
-		dvmodel->SetFilter(mFindCtrl->GetValue());
-		ExpandAll();
-		return;
-	}
-	
-	dvmodel->SetFilter("");
-	
-	const auto& dst_node = dvmodel->GetDstNode();
-	std::wstring ss = mFindCtrl->GetValue();
-	boost::algorithm::to_lower(ss);
-	bool isFind = false;
-	
-	for (const auto& tp : dst_node.mChilds)
-	{
-		for (const auto& obj : tp->mChilds)
-		{
-			const auto* obj_val = static_cast<const Obj*>(obj->mVal);
-			std::wstring str = obj_val->mTitle.ToStdWstring();
-			boost::algorithm::to_lower(str);
-
-			if (std::wstring::npos != str.find(ss))
-			{
-				wxDataViewItem item(obj.get());
-				mTree->Select(item);
-				mTree->SetCurrentItem(item);
-				mTree->EnsureVisible(item, mTree->GetColumn(0));
-				//mTree->SetFocus();
-				isFind = true;
-				if (isFind)
-					break;
-				
-			}
-		}//for
-		if (isFind)
-			break;
-	}//for (const auto& tp : dst_node.mChilds)
-	//ExpandAll();
-}
