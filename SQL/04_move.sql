@@ -320,10 +320,10 @@ BEGIN
   _prop_str:='{'||_prop_str||'}';
   RAISE DEBUG '_prop_str: %',_prop_str;
 
-  INSERT INTO log_main(src_path, obj_id)
-    VALUES ( _curr_pathid, _obj_id) RETURNING id INTO _last_log_id;
-  INSERT INTO log_detail_act(id, act_id, prop) 
-    VALUES (_last_log_id,_act_id, _prop_str::JSONB);
+  INSERT INTO log_main(src_path, obj_id,act_id)
+    VALUES ( _curr_pathid, _obj_id, _act_id) RETURNING id INTO _last_log_id;
+  INSERT INTO log_detail_act(id, prop) 
+    VALUES (_last_log_id, _prop_str::JSONB);
   UPDATE obj_name SET act_logid=_last_log_id, prop=_prop_str::JSONB WHERE id=_obj_id;
 
 END;
@@ -609,8 +609,8 @@ BEGIN
 
   
 
-  INSERT INTO log_main(src_path, obj_id)
-      VALUES (_curr_path, _oid) RETURNING id INTO _move_logid;
+  INSERT INTO log_main(src_path, obj_id, act_id)
+      VALUES (_curr_path, _oid, 0) RETURNING id INTO _move_logid;
   INSERT INTO log_detail_move(id, dst_path, qty, prop_lid)
       VALUES (_move_logid,  _dst_path, _qty, _act_logid);
 -- обновляем ссылку на последнее действие в исходном и конечном объектах
@@ -645,7 +645,7 @@ CREATE OR REPLACE VIEW log AS
   lm.id       AS log_id
  ,lm.timemark AS log_dt
  ,lm.username AS log_user
- ,act.id       AS act_id--,CASE WHEN lad.act_id IS NOT NULL THEN lad.act_id ELSE NULL::BIGINT END AS act_id --,det.act_id  AS act_id
+ ,act.id      AS act_id
  ,act.title   AS act_title
  ,act.color   AS act_color
  ,lm.obj_id   AS mobj_id
@@ -654,15 +654,15 @@ CREATE OR REPLACE VIEW log AS
  ,mcls.title  AS mcls_title
  ,CASE WHEN mcls.kind=1 THEN 1::NUMERIC ELSE lmd.qty END AS qty
  --,CASE WHEN lad.act_id IS NOT NULL THEN lad.prop ELSE NULL::JSONB END AS prop --,det.prop    AS prop
- ,CASE WHEN lad.act_id IS NOT NULL THEN lad.prop ELSE move_prop.prop END AS prop 
+ ,CASE WHEN lm.act_id<>0 THEN lad.prop ELSE move_prop.prop END AS prop 
  ,lm.timemark::timestamptz::date  AS log_date
  ,date_trunc('second' ,lm.timemark)::timestamptz::time AS log_time
  ,lm.src_path[1][1]  AS src_cid
  ,lm.src_path[1][2]  AS src_oid
- ,CASE WHEN lad.act_id IS NOT NULL THEN NULL ELSE lmd.dst_path[1][1] END AS dst_cid -- ,det.dst_path[1][1] AS dst_cid
- ,CASE WHEN lad.act_id IS NOT NULL THEN NULL ELSE lmd.dst_path[1][2] END AS dst_oid -- ,det.dst_path[1][2] AS dst_oid
+ ,CASE WHEN lm.act_id<>0 THEN NULL ELSE lmd.dst_path[1][1] END AS dst_cid -- ,det.dst_path[1][1] AS dst_cid
+ ,CASE WHEN lm.act_id<>0 THEN NULL ELSE lmd.dst_path[1][2] END AS dst_oid -- ,det.dst_path[1][2] AS dst_oid
  ,lm.src_path        AS src_ipath
- ,CASE WHEN lad.act_id IS NOT NULL THEN NULL ELSE lmd.dst_path END AS dst_ipath --,det.dst_path       AS dst_ipath
+ ,CASE WHEN lm.act_id<>0 THEN NULL ELSE lmd.dst_path END AS dst_ipath --,det.dst_path       AS dst_ipath
  ,(SELECT path FROM tmppath_to_2id_info(lm.src_path::TEXT,1)) AS src_path
  ,(SELECT path FROM tmppath_to_2id_info(lmd.dst_path::TEXT,1)) AS dst_path
 
@@ -674,19 +674,21 @@ FROM log_main lm
   LEFT JOIN log_detail_move lmd ON lmd.id=lm.id
   LEFT JOIN log_detail_act move_prop ON lmd.prop_lid=move_prop.id
 
-  LEFT JOIN act ON act.id=lad.act_id
+  LEFT JOIN act ON act.id=lm.act_id
   LEFT JOIN obj_name mobj ON mobj.id=lm.obj_id
   LEFT JOIN acls     mcls ON mcls.id=mobj.cls_id
   ;
-  
+--SELECT * FROM log ORDER BY log_dt DESC LIMIT 10 
 ------------------------------------------------------------------------------------------------------------
+
 DROP VIEW IF EXISTS log2;
+/*
 CREATE OR REPLACE VIEW log2 AS 
  SELECT 
   lm.id       AS log_id
  ,lm.timemark AS log_dt
  ,lm.username AS log_user
- ,det.act_id  AS act_id
+ ,lm.act_id   AS act_id
  ,act.title   AS act_title
  ,act.color   AS act_color
  ,lm.obj_id   AS mobj_id
@@ -728,7 +730,7 @@ CREATE OR REPLACE VIEW log2 AS
            FROM log_detail_move lmd
            LEFT JOIN log_detail_act lad ON lad.id=lmd.prop_lid
   ) det ON lm.id=det.id
-  LEFT JOIN act ON act.id=det.act_id
+  LEFT JOIN act ON act.id=lm.act_id
   LEFT JOIN obj_name mobj ON mobj.id=lm.obj_id
   LEFT JOIN acls     mcls ON mcls.id=mobj.cls_id
   --LEFT JOIN LATERAL tmppath_to_2id_info(lm.src_path::TEXT,1) src ON true 
@@ -737,7 +739,7 @@ CREATE OR REPLACE VIEW log2 AS
                        (SELECT path FROM tmppath_to_2id_info(lm.src_path::TEXT,1)) as src,
                        (SELECT path FROM tmppath_to_2id_info(det.dst_path::TEXT,1)) as dst )path 
        ON TRUE
-
+*/
   ;
 ------------------------------------------------------------------------------------------------------------
 --

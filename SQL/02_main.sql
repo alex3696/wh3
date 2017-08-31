@@ -601,11 +601,23 @@ CREATE TABLE log_main (
   ,username NAME NOT NULL DEFAULT CURRENT_USER REFERENCES wh_role(rolname) MATCH FULL ON UPDATE CASCADE ON DELETE RESTRICT
   ,src_path BIGINT[] 
   ,obj_id   BIGINT   NOT NULL REFERENCES obj_name( id ) MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE 
+  ,act_id   bigint NOT NULL
+
+  ,CONSTRAINT fk_log_main__act_id__act__id FOREIGN KEY (act_id)
+    REFERENCES                              public.act (id) 
+    MATCH FULL ON UPDATE CASCADE ON DELETE RESTRICT
 );
 CREATE INDEX idx_logmain__timemark ON log_main  (timemark DESC);
 CREATE INDEX idx_logmain__src_cid  ON log_main  ((src_path[1][1]));
 CREATE INDEX idx_logmain__src_oid  ON log_main  ((src_path[1][2]));
 CREATE INDEX idx_logmain__oid      ON log_main  (obj_id);
+--DROP INDEX IF EXISTS idx_log_main__oid_dt;
+CREATE INDEX idx_log_main__oid_dt ON log_main (obj_id, timemark DESC);
+--DROP INDEX IF EXISTS idx_log_main__last_act ;
+CREATE /* UNIQUE */INDEX idx_log_main__last_act 
+  ON log_main (obj_id, act_id, timemark DESC)
+  WHERE ( act_id <> 0);
+
 GRANT SELECT        ON TABLE log_main  TO "Guest";
 GRANT INSERT        ON TABLE log_main  TO "User";
 GRANT DELETE        ON TABLE log_main  TO "User";
@@ -615,11 +627,9 @@ GRANT DELETE        ON TABLE log_main  TO "User";
 DROP TABLE IF EXISTS log_detail_act CASCADE;
 CREATE TABLE log_detail_act (
    id      BIGINT   NOT NULL REFERENCES log_main(id)  MATCH FULL ON UPDATE RESTRICT ON DELETE CASCADE 
-  ,act_id  BIGINT   NOT NULL REFERENCES act( id )     MATCH FULL ON UPDATE RESTRICT ON DELETE RESTRICT 
   ,prop    JSONB
   ,CONSTRAINT pk_logactdet__id UNIQUE (id)
 );
-CREATE INDEX idx_logactdet__aid   ON log_detail_act  (act_id);
 GRANT SELECT        ON TABLE log_detail_act  TO "Guest";
 GRANT INSERT        ON TABLE log_detail_act  TO "User";
 GRANT DELETE        ON TABLE log_detail_act  TO "User";
@@ -919,6 +929,31 @@ LANGUAGE 'plpgsql';
 CREATE TRIGGER tr_bu_obj_name BEFORE UPDATE ON obj_name FOR EACH ROW EXECUTE PROCEDURE ftr_bu_obj_name();
 GRANT EXECUTE ON FUNCTION ftr_bu_obj_name() TO "ObjDesigner";
 
+----------------------------------------------------------------------------------
+-- Триггер обеспечивающий уникальность действия (+периода) на всю подветку класса 
+
+DROP FUNCTION IF EXISTS ftr_biu__ref_cls_act() CASCADE;
+CREATE OR REPLACE FUNCTION ftr_biu__ref_cls_act()  RETURNS trigger AS
+$body$
+DECLARE
+BEGIN
+  PERFORM FROM 
+    (SELECT * FROM get_path_cls_info(NEW.cls_id, 0) OFFSET 1) clstree
+    LEFT JOIN ref_cls_act acttree ON clstree.id = acttree.cls_id
+    WHERE acttree.act_id=NEW.act_id;
+  IF FOUND THEN
+    RAISE EXCEPTION ' %: act_id=% already present in cls_id=%',TG_NAME, NEW.act_id, NEW.cls_id ;
+  END IF;
+RETURN NEW;
+END;
+$body$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER tr_biu__ref_cls_act 
+BEFORE INSERT OR UPDATE ON ref_cls_act 
+FOR EACH ROW EXECUTE PROCEDURE ftr_biu__ref_cls_act();
+
+GRANT EXECUTE ON FUNCTION ftr_biu__ref_cls_act() TO "TypeDesigner" ;
 ---------------------------------------------------------------------------------------------------
 -- Вставка базовых классов и объектов
 ---------------------------------------------------------------------------------------------------

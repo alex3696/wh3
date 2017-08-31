@@ -319,7 +319,7 @@ void ModelHistory::Load()
 				wxString aid;
 				table->GetAsString(8, i, aid);
 
-				if (aid.empty())
+				if (aid.empty() || aid=="0")
 				{
 					auto log_mov_rec = std::make_shared<LogMovRec>();
 					
