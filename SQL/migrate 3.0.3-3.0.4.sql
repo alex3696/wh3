@@ -11,8 +11,17 @@ BEGIN
     LEFT JOIN ref_cls_act acttree ON clstree.id = acttree.cls_id
     WHERE acttree.act_id=NEW.act_id;
   IF FOUND THEN
-    RAISE EXCEPTION ' %: act_id=% already present in cls_id=%',TG_NAME, NEW.act_id, NEW.cls_id ;
+    RAISE EXCEPTION ' %: act_id=% already present in UP cls_id=%',TG_NAME, NEW.act_id, NEW.cls_id ;
   END IF;
+
+  PERFORM FROM 
+    (SELECT * FROM get_childs_cls(NEW.cls_id) OFFSET 1) clstree
+    LEFT JOIN ref_cls_act acttree ON clstree._id = acttree.cls_id
+    WHERE acttree.act_id=NEW.act_id;
+  IF FOUND THEN
+    RAISE EXCEPTION ' %: act_id=% already present in DOWN cls_id=%',TG_NAME, NEW.act_id, NEW.cls_id ;
+  END IF;
+
 RETURN NEW;
 END;
 $body$
@@ -120,7 +129,8 @@ SELECT
                   --AND ( ref_cls_act.act_id =105 OR ref_cls_act.act_id =104 OR ref_cls_act.act_id =108 )
    ) AS pp
    ON TRUE
-   WHERE oo.pid=108;
+   WHERE oo.cls_id=257;
+   ---WHERE oo.pid=108;
 */
 
 

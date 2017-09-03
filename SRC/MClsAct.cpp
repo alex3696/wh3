@@ -113,8 +113,8 @@ bool MClsAct::GetInsertQuery(wxString& query)const
 		" LEFT JOIN obj   ON obj.id = perm.obj_id "
 		" LEFT JOIN act ON act.id = perm.act_id "
 		" LEFT JOIN ref_cls_act "
-		"   ON  ref_cls_act.cls_id = perm_act.cls_id "
-		"   AND ref_cls_act.act_id = perm_act.act_id "
+		"   ON  ref_cls_act.cls_id = perm.cls_id "
+		"   AND ref_cls_act.act_id = perm.act_id "
 		/*
 		" INSERT INTO perm_act( "
 		"  access_group, access_disabled, script_restrict "
