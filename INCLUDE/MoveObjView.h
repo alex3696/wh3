@@ -42,7 +42,7 @@ class XMoveObjView : public IMoveObjView
 	void OnClickSearchBtn(wxCommandEvent& event);
 
 public:
-	XMoveObjView::XMoveObjView(wxWindow* parent);
+	XMoveObjView(wxWindow* parent);
 	XMoveObjView(const std::shared_ptr<IViewWindow>& parent);
 	~XMoveObjView();
 

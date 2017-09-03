@@ -30,13 +30,15 @@ public:
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 ModelUndo::ModelUndo()
+	:mRecord(std::make_shared<ModelHistoryRecordImpl>())
 {
-	mRecord = std::make_shared<ModelHistoryRecordImpl>();
+	//mRecord = std::make_shared<ModelHistoryRecordImpl>();
 }
 //---------------------------------------------------------------------------
 ModelUndo::ModelUndo(const wxString& oid, const wxString& parent_oid)
+	: mRecord(std::make_shared<ModelHistoryRecordImpl>())
 {
-	mRecord = std::make_shared<ModelHistoryRecordImpl>();
+	//mRecord = std::make_shared<ModelHistoryRecordImpl>();
 	Set(oid, parent_oid);
 }
 //---------------------------------------------------------------------------
@@ -264,8 +266,9 @@ void ModelUndo::ExecuteUndo()
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 ModelUndoWindow::ModelUndoWindow(const wxString& oid, const wxString& parent_oid)
+	:mModelUndo ( std::make_shared<ModelUndo>())
 {
-	mModelUndo = std::make_shared<ModelUndo>();
+	//mModelUndo = std::make_shared<ModelUndo>();
 	connModelUndo_RecordLoaded = mModelUndo->sigHistoryRecordLoaded
 		.connect([this](const ModelHistoryRecord& rt)
 	{

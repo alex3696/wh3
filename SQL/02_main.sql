@@ -348,7 +348,7 @@ CREATE INDEX idx_ref_cls_act__cid_aid_nnperiod
 GRANT SELECT        ON TABLE ref_cls_act  TO "Guest";
 GRANT INSERT        ON TABLE ref_cls_act  TO "TypeDesigner";
 GRANT DELETE        ON TABLE ref_cls_act  TO "TypeDesigner";
-GRANT UPDATE(cls_id,act_id)
+GRANT UPDATE(cls_id,act_id,period)
                     ON TABLE ref_cls_act  TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 -- линки М:М , для действий и свойств

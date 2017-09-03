@@ -8,6 +8,7 @@ const std::vector<Field> gClsActFieldVec = {
 		{ "Доступ", FieldType::ftName, true },
 		{ "Действие", FieldType::ftName, true },
 		{ "Путь", FieldType::ftText, true },
+		{ "Период", FieldType::ftDouble, true },
 		{ "ID", FieldType::ftLong, true }
 };
 
@@ -67,11 +68,15 @@ bool MClsAct::GetSelectQuery(wxString& query)const
 		"     , acls.id, acls.title, obj.id, obj.title "
 		"     , act.id, act.title "
 		"     , arr_2title, arr_2id "
+		"     , ref_cls_act.period "
 		"  FROM perm_act "
 		"	 LEFT JOIN LATERAL tmppath_to_2id_info(src_path) x ON true "
 		"    LEFT JOIN acls  ON acls.id = perm_act.cls_id "
 		"    LEFT JOIN obj   ON obj.id = perm_act.obj_id "
 		"    LEFT JOIN act ON act.id = perm_act.act_id "
+		"    LEFT JOIN ref_cls_act "
+		"      ON  ref_cls_act.cls_id = perm_act.cls_id "
+		"      AND ref_cls_act.act_id = perm_act.act_id "
 		"  WHERE perm_act.id = %s "
 		, oldPerm.mId.SqlVal());
 	return true;
@@ -101,11 +106,15 @@ bool MClsAct::GetInsertQuery(wxString& query)const
 		" , acls.id, acls.title, obj.id, obj.title "
 		" , act.id, act.title "
 		" , arr_2title, arr_2id "
+		" , ref_cls_act.period "
 		" FROM ins AS perm "
 		" LEFT JOIN LATERAL tmppath_to_2id_info(src_path) x ON true "
 		" LEFT JOIN acls   ON acls.id = perm.cls_id "
 		" LEFT JOIN obj   ON obj.id = perm.obj_id "
 		" LEFT JOIN act ON act.id = perm.act_id "
+		" LEFT JOIN ref_cls_act "
+		"   ON  ref_cls_act.cls_id = perm_act.cls_id "
+		"   AND ref_cls_act.act_id = perm_act.act_id "
 		/*
 		" INSERT INTO perm_act( "
 		"  access_group, access_disabled, script_restrict "
@@ -151,11 +160,14 @@ bool MClsAct::GetUpdateQuery(wxString& query)const
 	const rec::ClsActAccess& newPerm = this->GetData();
 
 	query = wxString::Format(
+		    "WITH upd AS("
 			"UPDATE perm_act SET "
 			"  access_group=%s, access_disabled=%s, script_restrict=%s  "
 			" ,cls_id = %s, obj_id = %s, src_path = %s "
 			" ,act_id = %s "
 			" WHERE id=%s "
+			")UPDATE ref_cls_act SET period = %s"
+			" WHERE cls_id = %s AND act_id = %s "
 			, newPerm.mAcessGroup.SqlVal()
 			, newPerm.mAccessDisabled.SqlVal()
 			, newPerm.mScriptRestrict.SqlVal()
@@ -167,6 +179,11 @@ bool MClsAct::GetUpdateQuery(wxString& query)const
 			, newPerm.mAct.mId.SqlVal()
 
 			, oldPerm.mId.SqlVal()
+			
+			, newPerm.mPeriod.SqlVal()
+			, cls.mId.SqlVal()
+			, newPerm.mAct.mId.SqlVal()
+
 			);
 
 	return true;
@@ -211,6 +228,8 @@ bool MClsAct::LoadThisDataFromDb(std::shared_ptr<whTable>& table, const size_t r
 	
 	data.mArrTitle = table->GetAsString(i++, row);
 	data.mArrId = table->GetAsString(i++, row);
+	
+	data.mPeriod = table->GetAsString(i++, row);
 
 	SetData(data);
 	return true;
@@ -229,7 +248,8 @@ bool MClsAct::GetFieldValue(unsigned int col, wxVariant &variant)
 		break;
 	case 2:	variant = data.mAct.mLabel;	break;
 	case 3: variant = mPathGui;	break;
-	case 4: variant = data.mId.toStr();	break;
+	case 4: variant = data.mPeriod;	break;
+	case 5: variant = data.mId.toStr();	break;
 	}//switch(col) 
 	return true;
 }
@@ -260,11 +280,15 @@ bool MClsActArray::GetSelectChildsQuery(wxString& query)const
 		"     , acls.id, acls.title, obj.id, obj.title "
 		"     , act.id, act.title "
 		"     , arr_2title, arr_2id "
+		"     , ref_cls_act.period "
 		"  FROM perm_act "
 		"	 LEFT JOIN LATERAL tmppath_to_2id_info(src_path) x ON true "
 		"    LEFT JOIN acls  ON acls.id = perm_act.cls_id "
 		"    LEFT JOIN obj   ON obj.id = perm_act.obj_id "
 		"    LEFT JOIN act ON act.id = perm_act.act_id "
+		"    LEFT JOIN ref_cls_act "
+		"      ON  ref_cls_act.cls_id = perm_act.cls_id "
+		"      AND ref_cls_act.act_id = perm_act.act_id "
         "  WHERE perm_act.cls_id = %s "
 		, cls.mId.SqlVal() );
 

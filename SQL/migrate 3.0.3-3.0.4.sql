@@ -30,6 +30,7 @@ CREATE INDEX idx_ref_cls_act__cid_aid_nnperiod
   ON ref_cls_act (cls_id,act_id)
   WHERE ( period IS NOT NULL );
 
+GRANT UPDATE(period) ON ref_cls_act TO "TypeDesigner";
 ----------------------------------------------------------------------------------
 
 ALTER TABLE public.log_main DROP COLUMN IF EXISTS act_id;

@@ -129,6 +129,7 @@ DClsActEditor::DClsActEditor(wxWindow*		parent,
 	groupProp->SetOnClickButonFunc(selectGroup);
 	mPropGrid->Append(groupProp);
 	mPropGrid->Append(new wxLongStringProperty(L"Скрипт"));
+	mPropGrid->Append(new wxStringProperty(L"Период"));
 	mPropGrid->Append(new wxStringProperty(L"ID"))->Enable(false);
 
 	this->Layout();
@@ -164,6 +165,7 @@ void DClsActEditor::GetData(rec::ClsActAccess& rec) const
 	rec.mAccessDisabled = (0 == accessDisabled.CmpNoCase("true")) ? "1" : "0";
 	rec.mAcessGroup = mPropGrid->GetPropertyByLabel(L"Группа")->GetValueAsString();
 	rec.mScriptRestrict = mPropGrid->GetPropertyByLabel(L"Скрипт")->GetValueAsString();
+	rec.mPeriod = mPropGrid->GetPropertyByLabel(L"Период")->GetValueAsString();
 	rec.mId = mPropGrid->GetPropertyByLabel("ID")->GetValueAsString();
 	
 	auto dstLastItem = mPatternPath->GetLast();
@@ -188,6 +190,7 @@ void DClsActEditor::SetData(const rec::ClsActAccess& rec)
 		SetValueFromString(("1" == rec.mAccessDisabled) ? "true" : "false");
 	mPropGrid->GetPropertyByLabel(L"Группа")->SetValueFromString(rec.mAcessGroup);
 	mPropGrid->GetPropertyByLabel(L"Скрипт")->SetValueFromString(rec.mScriptRestrict);
+	mPropGrid->GetPropertyByLabel(L"Период")->SetValueFromString(rec.mPeriod);
 	mPropGrid->GetPropertyByLabel(L"ID")->SetValueFromString(rec.mId.toStr());
 
 	// инициализируем mPatternPath который привязан только к GUI
