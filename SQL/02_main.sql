@@ -341,6 +341,10 @@ CREATE TABLE ref_cls_act (
     REFERENCES                           act( id )
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
+DROP INDEX IF EXISTS  idx_ref_cls_act__cid_aid_nnperiod;
+CREATE INDEX idx_ref_cls_act__cid_aid_nnperiod
+  ON ref_cls_act (cls_id,act_id)
+  WHERE ( period IS NOT NULL );
 GRANT SELECT        ON TABLE ref_cls_act  TO "Guest";
 GRANT INSERT        ON TABLE ref_cls_act  TO "TypeDesigner";
 GRANT DELETE        ON TABLE ref_cls_act  TO "TypeDesigner";
@@ -612,9 +616,9 @@ CREATE INDEX idx_logmain__src_cid  ON log_main  ((src_path[1][1]));
 CREATE INDEX idx_logmain__src_oid  ON log_main  ((src_path[1][2]));
 CREATE INDEX idx_logmain__oid      ON log_main  (obj_id);
 --DROP INDEX IF EXISTS idx_log_main__oid_dt;
-CREATE INDEX idx_log_main__oid_dt ON log_main (obj_id, timemark DESC);
+CREATE UNIQUE INDEX idx_log_main__oid_dt ON log_main (obj_id, timemark DESC);
 --DROP INDEX IF EXISTS idx_log_main__last_act ;
-CREATE /* UNIQUE */INDEX idx_log_main__last_act 
+CREATE UNIQUE INDEX idx_log_main__last_act 
   ON log_main (obj_id, act_id, timemark DESC)
   WHERE ( act_id <> 0);
 
