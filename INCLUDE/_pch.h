@@ -30,6 +30,7 @@
 //#include <wx/listbook.h>
 #include <wx/listctrl.h>
 #include <wx/spinctrl.h>
+#include <wx/srchctrl.h>
 #include <wx/collpane.h>
 #include <wx/combo.h> 
 #include <wx/choice.h>

@@ -22,17 +22,6 @@ public:
 	virtual const PropTable& GetPropList()const override{ return mPropList; };
 };
 
-using ActTable =
-boost::multi_index_container
-<
-	std::shared_ptr<ActRec>,
-	indexed_by
-	<
-		random_access<> //SQL order
-		, ordered_unique< BOOST_MULTI_INDEX_MEMBER(ActRec, wxString, mId)>
-		, ordered_unique< BOOST_MULTI_INDEX_MEMBER(ActRec, wxString, mTitle)>
-	>
->;
 //-----------------------------------------------------------------------------
 
 class PropRec: public IProp
@@ -135,16 +124,6 @@ public:
 	virtual const wxString& GetKind()const override		{ return mKind; };
 	virtual const wxString& GetMeasure()const override	{ return mMeasure; };
 };
-using ClsTable =
-boost::multi_index_container
-<
-	std::shared_ptr<ClsRec>,
-	indexed_by
-	<
-		random_access<> //SQL order
-		, ordered_unique< BOOST_MULTI_INDEX_MEMBER(ClsRec, wxString, mId)>
-	>
->;
 //-----------------------------------------------------------------------------
 class StringObjPath: public IObjPath
 {
@@ -166,17 +145,10 @@ public:
 	virtual const wxString& GetId()const override		{ return mId; };
 	virtual const wxString& GetTitle()const override	{ return mTitle; };
 	
+	virtual const PropValTable& GetProperties()const { throw; };
+	virtual const IObjPath&	GetPath()const { throw; };
+
 };
-using ObjTable =
-boost::multi_index_container
-<
-	std::shared_ptr<ObjRec>,
-	indexed_by
-	<
-		random_access<> //SQL order
-		, ordered_unique< BOOST_MULTI_INDEX_MEMBER(ObjRec, wxString, mId)>
-	>
->;
 
 //-----------------------------------------------------------------------------
 const static ActRec			EmptyActRec;

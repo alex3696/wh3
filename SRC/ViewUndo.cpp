@@ -101,7 +101,7 @@ void ViewUndoWindow::SetHistoryRecord(const ModelHistoryRecord& rec) //override;
 	mPG->Append(cls);
 	mPG->Append(obj);
 
-	if (rec.GetAct().GetId().IsEmpty()) // move
+	if (rec.GetAct().GetId() == "0" || rec.GetAct().GetId().IsEmpty()) // move
 	{
 		
 		auto cat = new wxPropertyCategory("Перемещение");

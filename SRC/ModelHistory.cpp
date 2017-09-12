@@ -279,7 +279,8 @@ void ModelHistory::Load()
 				table->GetAsString(4, i, cls_rec->mTitle);
 				table->GetAsString(21, i, cls_rec->mKind);
 				table->GetAsString(22, i, cls_rec->mMeasure);
-				cls_rec = *mCls.emplace_back(cls_rec).first;
+				auto ins_it_cls = mCls.emplace_back(cls_rec);
+				cls_rec = std::dynamic_pointer_cast<ClsRec>(*ins_it_cls.first);
 				
 				auto obj_rec = std::make_shared<ObjRec>();
 				table->GetAsString(5, i, obj_rec->mId);
@@ -287,7 +288,8 @@ void ModelHistory::Load()
 				
 
 				obj_rec->mCls = cls_rec;
-				obj_rec = *mObj.emplace_back(obj_rec).first;
+				auto inst_it = mObj.emplace_back(obj_rec);
+				obj_rec = std::dynamic_pointer_cast<ObjRec>(*inst_it.first);
 
 				log_rec->mObj = obj_rec;
 
@@ -337,7 +339,9 @@ void ModelHistory::Load()
 					
 					table->GetAsString(9, i, act_rec->mTitle);
 					table->GetAsString(10, i, act_rec->mColour);
-					act_rec = *mAct.emplace_back(act_rec).first;
+					//act_rec = *mAct.emplace_back(act_rec).first;
+					auto ins_it_act = mAct.emplace_back(act_rec);
+					act_rec = std::dynamic_pointer_cast<ActRec>(*ins_it_act.first);
 
 					auto log_act_rec = std::make_shared<LogActRec>();
 					log_act_rec->mActRec = act_rec;
@@ -416,7 +420,7 @@ void ModelHistory::LoadActProp(ActPropTable& act_prop_table)
 {
 	wxString where_act_id;
 	for (const auto& act : mAct)
-		where_act_id += wxString::Format("OR act_id=%s ", act->mId);
+		where_act_id += wxString::Format("OR act_id=%s ", act->GetId());
 
 	where_act_id.Replace("OR", "WHERE", false);
 

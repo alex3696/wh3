@@ -175,11 +175,15 @@ void VObjCatalogCtrl::BuildToolbar(bool is_dlg)
 			//	mTableView->Expand(item);
 		}
 	};
-	mFindCtrl = new wxTextCtrl(mToolBar, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+	mFindCtrl = new wxSearchCtrl(mToolBar, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+	mFindCtrl->ShowSearchButton(true);
+	mFindCtrl->ShowCancelButton(true);
+	mFindCtrl->SetDescriptiveText(wxEmptyString);
 	mFindCtrl->Bind(wxEVT_COMMAND_TEXT_ENTER, fn);
-	mFindCtrl->SetHint("имя типа");
-	mToolBar->AddControl(mFindCtrl, wxEmptyString);
-	mToolBar->AddTool(wxID_FIND, "Фильтр по типу", m_ResMgr->m_ico_filter24);
+	mFindCtrl->Bind(wxEVT_COMMAND_SEARCHCTRL_SEARCH_BTN, fn);
+	//mFindCtrl->SetHint("Поиск по типу");
+	mToolBar->AddControl(mFindCtrl, "Поиск");
+	//mToolBar->AddTool(wxID_FIND, "Фильтр по типу", m_ResMgr->m_ico_filter24);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, fn, wxID_FIND);
 
 	mToolBar->Realize();

@@ -116,7 +116,7 @@ void ModelUndo::Load()
 		wxString aid;
 		table->GetAsString(8, i, aid);
 
-		if (aid.empty())
+		if (aid=="0" || aid.empty())
 		{
 			auto log_mov_rec = std::make_shared<LogMovRec>();
 
