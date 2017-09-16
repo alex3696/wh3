@@ -20,7 +20,8 @@ enum GUIID
 	CMD_MKPAGE_OBJBYTYPE,
 	CMD_MKPAGE_OBJBYPATH,
 	CMD_MKPAGE_HISTORY,
-	CMD_MKPAGE_REPORT
+	CMD_MKPAGE_REPORT,
+	CMD_MKPAGE_BROWSER
 
 };
 //---------------------------------------------------------------------------
@@ -72,6 +73,9 @@ ViewMain::ViewMain()
 		, [this](wxCommandEvent){ sigMkPageHistory(); }, CMD_MKPAGE_HISTORY);
 	mMainFrame->Bind(wxEVT_COMMAND_MENU_SELECTED
 		, [this](wxCommandEvent){ sigMkPageReportList(); }, CMD_MKPAGE_REPORT);
+	mMainFrame->Bind(wxEVT_COMMAND_MENU_SELECTED
+		, [this](wxCommandEvent){ sigMkPageBrowser(); }, CMD_MKPAGE_BROWSER);
+
 
 	mMainFrame->Bind(wxEVT_CLOSE_WINDOW
 		, [this](wxCloseEvent& evt)
@@ -163,6 +167,10 @@ void ViewMain::BuildMenu()
 	dir->Append(item);
 	item = new wxMenuItem(dir, CMD_MKPAGE_REPORT, "Список отчётов");
 	item->SetBitmap(resmgr->m_ico_report_list24);
+	dir->Append(item);
+	dir->AppendSeparator();
+	item = new wxMenuItem(dir, CMD_MKPAGE_BROWSER, "Browser");
+	item->SetBitmap(resmgr->m_ico_type24);
 	dir->Append(item);
 	menu_bar->Append(dir, "Каталоги");
 

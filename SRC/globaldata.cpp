@@ -35,6 +35,8 @@
 #include "ViewDetail.h"
 #include "CtrlDetail.h"
 
+#include "ViewBrowser.h"
+#include "CtrlBrowser.h"
 
 
 
@@ -460,4 +462,15 @@ void whDataMgr::InitContainer()
 	mContainer->RegFactory<ICtrlWindow, CtrlPageDetail, ViewPageDetail, ModelPageDetail >
 		("CtrlPageDetail", "ViewPageDetail", "ModelPageDetail");
 
+
+
+	////////////////////
+	// Browser2      //
+	///////////////////
+	mContainer->RegFactoryNI<ModelPageBrowser>
+		("ModelPageBrowser");
+	mContainer->RegFactory<IViewBrowserPage, ViewBrowserPage, IViewNotebook >
+		("ViewBrowserPage", "ViewNotebook");
+	mContainer->RegFactory<ICtrlWindow, CtrlPageBrowser, ViewBrowserPage, ModelPageBrowser >
+		("CtrlPageBrowser", "ViewBrowserPage", "ModelPageBrowser");
 }

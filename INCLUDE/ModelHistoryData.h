@@ -13,6 +13,7 @@ class IDbIdent
 public:
 	virtual const wxString& GetId()const = 0;
 	virtual const wxString& GetTitle()const = 0;
+	//TODO: virtual ~IDbIdent(){}
 };
 
 struct extr_id_IDbIdent
@@ -33,7 +34,7 @@ struct extr_title_IDbIdent
 	}
 };
 
-using DbIdentTable =
+using IdentTable =
 boost::multi_index_container
 <
 	std::shared_ptr<IDbIdent>,
@@ -124,10 +125,15 @@ boost::multi_index_container
 	>
 >;
 //-----------------------------------------------------------------------------
-class IObjPath
+class IPath
 {
 public:
 	virtual wxString AsString()const = 0;
+};
+//-----------------------------------------------------------------------------
+class IObjPath : public IPath
+{
+public:
 };
 //-----------------------------------------------------------------------------
 class IObj : public IDbIdent

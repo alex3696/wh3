@@ -39,6 +39,7 @@ public:
 	sig::signal<void()>		sigMkPageObjByPath;
 	sig::signal<void()>		sigMkPageHistory;
 	sig::signal<void()>		sigMkPageReportList;
+	sig::signal<void()>		sigMkPageBrowser;
 
 	sig::signal<void()>		sigDoConnectDB;
 	sig::signal<void()>		sigDoDisconnectDB;

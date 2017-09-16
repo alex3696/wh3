@@ -24,6 +24,7 @@ class CtrlMain : public CtrlWindowBase<ViewMain, ModelMain>
 	sig::scoped_connection connViewCmd_MkPageObjByPath;
 	sig::scoped_connection connViewCmd_MkPageHistory;
 	sig::scoped_connection connViewCmd_MkPageReportList;
+	sig::scoped_connection connViewCmd_MkPageBrowser;
 
 	sig::scoped_connection connViewCmd_DoConnectDB;
 	sig::scoped_connection connViewCmd_DoDisconnectDB;
@@ -44,6 +45,7 @@ public:
 	void MkPageObjByPath();
 	void MkPageHistory();
 	void MkPageReportList();
+	void MkPageBrowser();
 	std::shared_ptr<CtrlNotebook> GetNotebook();
 
 	virtual void RmView()override;

@@ -187,6 +187,9 @@
     <Filter Include="MainFrame\MVP2\ContentWindows\Подробности\v2\Диалог действий\model">
       <UniqueIdentifier>{8f97d403-a18b-46be-ad6e-6e3afc138270}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Каталог объектов v2">
+      <UniqueIdentifier>{91b311cd-ed63-41cb-a444-40abbed76634}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -530,6 +533,15 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\ModelUndo.cpp">
       <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Undo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ModelBrowser.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\CtrlBrowser.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ViewBrowser.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1019,10 +1031,28 @@
     <ClInclude Include="..\..\INCLUDE\ModelUndo.h">
       <Filter>MainFrame\MVP2\ContentWindows\Подробности\v2\Undo</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ModelBrowser.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\CtrlBrowser.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\IViewBrowser.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ViewBrowser.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ModelBrowserData.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wh3.rc">
       <Filter>Common</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>
