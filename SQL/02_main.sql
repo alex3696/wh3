@@ -944,9 +944,17 @@ BEGIN
   PERFORM FROM 
     (SELECT * FROM get_path_cls_info(NEW.cls_id, 0) OFFSET 1) clstree
     LEFT JOIN ref_cls_act acttree ON clstree.id = acttree.cls_id
-    WHERE acttree.act_id=NEW.act_id;
+    WHERE acttree.act_id=NEW.act_id AND acttree.period IS NOT NULL AND NEW.period IS NOT NULL;
   IF FOUND THEN
-    RAISE EXCEPTION ' %: act_id=% already present in cls_id=%',TG_NAME, NEW.act_id, NEW.cls_id ;
+    RAISE EXCEPTION ' %: act_id=% with Period already present in UP cls_id=%',TG_NAME, NEW.act_id, NEW.cls_id ;
+  END IF;
+
+  PERFORM FROM 
+    (SELECT * FROM get_childs_cls(NEW.cls_id) OFFSET 1) clstree
+    LEFT JOIN ref_cls_act acttree ON clstree._id = acttree.cls_id
+    WHERE acttree.act_id=NEW.act_id AND period IS NOT NULL AND NEW.period IS NOT NULL;
+  IF FOUND THEN
+    RAISE EXCEPTION ' %: act_id=% with Period already present in DOWN cls_id=%',TG_NAME, NEW.act_id, NEW.cls_id ;
   END IF;
 RETURN NEW;
 END;
