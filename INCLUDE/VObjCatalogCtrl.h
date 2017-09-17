@@ -23,7 +23,7 @@ class VObjCatalogCtrl
 	wxAuiToolBar*		mToolBar = nullptr;
 	wxTextCtrl*			mPathSring = nullptr;
 
-	wxSearchCtrl*		mFindCtrl;
+	wxComboBtn*			mFindCtrl;
 	
 	VObjCatalogTable*	mTableView = nullptr;
 
