@@ -114,7 +114,7 @@ RETURN QUERY
           ,FALSE AS cycle
        FROM acls c
        WHERE --c.id=333 
-        _cid IS NOT NULL AND _cid>0 AND c.id = _cid 
+        _cid IS NOT NULL AND _cid>0 AND c.id = _cid AND _cid<>_cpid
        UNION ALL
        SELECT n.id, n.pid, NULL::WHNAME , n.kind, n.title, n.note, NULL
             , p.arr_id     || ARRAY[n.id]::BIGINT[]
