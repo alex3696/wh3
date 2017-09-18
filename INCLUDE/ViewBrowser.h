@@ -15,6 +15,8 @@ class ViewTableBrowser : public IViewTableBrowser
 
 	bool			mColAutosize = true;
 protected:
+	void OnCmd_Refresh(wxCommandEvent& evt);
+	void OnCmd_Up(wxCommandEvent& evt);
 	void OnCmd_Select(wxDataViewEvent& evt);
 	void OnCmd_MouseMove(wxMouseEvent& evt);
 	void OnCmd_Activate(wxDataViewEvent& evt);

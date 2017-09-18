@@ -10,6 +10,9 @@ namespace wh{
 //-----------------------------------------------------------------------------
 class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPageBrowser>
 {
+	sig::scoped_connection connViewCmd_Refresh;
+	sig::scoped_connection connViewCmd_Up;
+
 	sig::scoped_connection connViewCmd_Select;
 	sig::scoped_connection connViewCmd_Activate;
 
@@ -30,6 +33,8 @@ public:
 	CtrlTableBrowser(const std::shared_ptr<IViewTableBrowser>& view
 		, const  std::shared_ptr<ModelPageBrowser>& model);
 
+	void Refresh();
+	void Up();
 	void Select(const NotyfyTable&);
 	void Activate(const IIdent64*);
 

@@ -11,6 +11,11 @@ CtrlTableBrowser::CtrlTableBrowser(
 {
 	namespace ph = std::placeholders;
 
+	connViewCmd_Refresh = mView->sigRefresh
+		.connect(std::bind(&CtrlTableBrowser::Refresh, this));
+	connViewCmd_Up = mView->sigUp
+		.connect(std::bind(&CtrlTableBrowser::Up, this));
+
 	connViewCmd_Select = mView->sigSelect
 		.connect(std::bind(&CtrlTableBrowser::Select, this, ph::_1));
 	connViewCmd_Activate = mView->sigActivate
@@ -34,6 +39,16 @@ CtrlTableBrowser::CtrlTableBrowser(
 		(std::bind(&IViewTableBrowser::SetBeforeDelete, mView.get(), ph::_1));
 	connModel_ModeChanged = mModel->GetModelBrowser()->sigModeChanged.connect
 		(std::bind(&IViewTableBrowser::SetPathMode, mView.get(), ph::_1));
+}
+//---------------------------------------------------------------------------
+void CtrlTableBrowser::Refresh()
+{
+	mModel->GetModelBrowser()->DoRefresh();
+}
+//---------------------------------------------------------------------------
+void CtrlTableBrowser::Up()
+{
+	mModel->GetModelBrowser()->DoUp();
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::Select(const NotyfyTable& sel)

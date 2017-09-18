@@ -22,8 +22,11 @@ public:
 	virtual void SetBeforeDelete(const NotyfyTable& list) = 0;
 	virtual void SetPathMode(const int mode) = 0;
 
-	sig::signal<void(const NotyfyTable&)> sigSelect;
-	sig::signal<void(const IIdent64*)> sigActivate;
+	sig::signal<void()> sigRefresh;
+	sig::signal<void()> sigUp;
+
+	sig::signal<void(const NotyfyTable&)>	sigSelect;
+	sig::signal<void(const IIdent64*)>		sigActivate;
 };
 //-----------------------------------------------------------------------------
 class IViewToolbarBrowser : public IViewWindow

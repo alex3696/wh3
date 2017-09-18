@@ -4,6 +4,48 @@
 #include "globaldata.h"
 #include "db_rec.h"
 
+
+enum class ClsKind
+{
+	Abstract = 0,
+	Single = 1,
+	QtyByOne = 2,
+	QtyByFloat = 3
+};
+
+static wxString ToString(ClsKind kind)
+{
+	switch (kind)
+	{
+	case ClsKind::Abstract: return "0";
+	case ClsKind::Single:	return "1";
+	case ClsKind::QtyByOne:	return "2";
+	case ClsKind::QtyByFloat:return "3";
+	default:break;
+	}
+	return wxEmptyString;
+}
+
+static bool ToClsKind(const wxString& str, ClsKind& kind)
+{
+	unsigned long ul;
+	if (str.ToULong(&ul))
+	{
+		switch (ul)
+		{
+		case 0: kind = ClsKind::Abstract; return true;
+		case 1: kind = ClsKind::Single; return true;
+		case 2: kind = ClsKind::QtyByOne; return true;
+		case 3: kind = ClsKind::QtyByFloat; return true;
+		default:break;
+		}
+	}
+	return false;
+}
+
+
+
+
 namespace wh{
 //-----------------------------------------------------------------------------
 class Bigint 
@@ -125,12 +167,15 @@ using SpPropValConstTable = TSpTable<SpPropValConst>;
 class ICls64 : public IIdent64
 {
 public:
-	virtual const wxString& GetKind()const = 0;
+	virtual		  ClsKind   GetKind()const = 0;
 	virtual const wxString& GetMeasure()const = 0;
+
+	virtual SpClsConst GetParent()const { return SpClsConst(); }
+	virtual SpClsConstTable GetChilds()const { return SpClsConstTable(); }
 
 	virtual const SpObjConstTable&		GetObjects()const = 0;
 	virtual const SpPropValConstTable&	GetProperties()const = 0;
-	virtual const IClsPath64&			GetPath()const = 0;
+	//virtual const IClsPath64&			GetPath()const = 0;
 
 };
 

@@ -19,6 +19,7 @@ enum class BrowserMode
 	, FindByType = 100
 	, FindByPath = 200
 };
+
 //-----------------------------------------------------------------------------
 class ClsPath : public IPath64
 {
@@ -53,10 +54,9 @@ class ModelBrowser
 
 	SpClsTable	mClsAll;
 	
-
-
 	std::vector<int64_t> mClsSelected;
 
+	void DoSelect(const std::vector<int64_t>& sel_vec);
 public:
 	ModelBrowser();
 	~ModelBrowser();
@@ -66,7 +66,6 @@ public:
 	void DoUp();
 
 	void DoSelect(const NotyfyTable& sel_vec);
-	void DoSelect(const std::vector<int64_t>& sel_vec);
 	void DoAct();
 	void DoMove();
 	void DoFind(const wxString&);

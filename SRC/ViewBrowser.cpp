@@ -3,7 +3,6 @@
 #include "globaldata.h"
 #include "wxDataViewIconMLTextRenderer.h"
 #include "wxComboBtn.h"
-#include <wx/srchctrl.h>
 
 using namespace wh;
 //-----------------------------------------------------------------------------
@@ -39,30 +38,40 @@ public:
 	virtual void GetValue(wxVariant &variant,
 		const wxDataViewItem &dvitem, unsigned int col) const override
 	{
-		if (!dvitem.IsOk())
-		{
-			variant << wxDataViewIconText2("*ERROR*", wxNullIcon);
-			return;
-		}
-			
+
 		const auto node = static_cast<const IIdent64*> (dvitem.GetID());
 		const auto cls = dynamic_cast<const ICls64*> (node);
 		if (!cls)
 		{
-			variant << wxDataViewIconText2("*ERROR*", wxNullIcon);
+			if(1==col)
+				variant << wxDataViewIconText2("*ERROR*", wxNullIcon);
 			return;
 		}
 
+
 		const wxIcon*  ico(&wxNullIcon);
+		auto mgr = ResMgr::GetInstance();
 
 		switch (col)
 		{
-		case 1:		variant << wxDataViewIconText2(cls->GetTitle(), *ico);
+		case 1:		
+			if (".." == cls->GetTitle())
+				ico = &mgr->m_ico_back24;
+			else
+				switch (cls->GetKind())
+				{
+				case ClsKind::Abstract: ico = &mgr->m_ico_type_abstract24; break;
+				case ClsKind::Single:	ico = &mgr->m_ico_type_num24; break;
+				case ClsKind::QtyByOne:	
+				case ClsKind::QtyByFloat:
+				default: ico = &mgr->m_ico_type_qty24;	break;
+				}
+
+			variant << wxDataViewIconText(cls->GetTitle(), *ico);
 			break;
-		case 2:		variant << wxDataViewIconText2(cls->GetIdAsString(), wxNullIcon);
-			break;
-		default: variant << wxDataViewIconText2(wxEmptyString, wxNullIcon);
-			break;
+		case 2:		variant = cls-> GetIdAsString();	break;
+		case 3:		variant = cls->GetMeasure();	break;
+		default: break;
 		}
 		
 	}
@@ -131,7 +140,7 @@ public:
 
 	void DelItems(const NotyfyTable& list)
 	{
-		std::vector<NotyfyTable::const_iterator> to_del;
+		//std::vector<const NotyfyTable::const_iterator> to_del;
 		
 		wxDataViewItem dvroot(nullptr);
 
@@ -142,15 +151,50 @@ public:
 			auto it = std::find(mRoot.cbegin(), mRoot.cend(), ff);
 			if (mRoot.cend() != it)
 			{
-				to_del.emplace_back(it);
+				//to_del.emplace_back(it);
 				sel_arr.Add(wxDataViewItem((void*)item));
+				mRoot.erase(it);
+				
 			}
 		}
 
 		ItemsDeleted(dvroot, sel_arr);
-	}
-	
+		//for (const auto& dit : to_del)
+		//	mRoot.erase(dit);
 
+	}
+
+	void UpdateItems(const NotyfyTable& list)
+	{
+		wxDataViewItemArray arr;
+		for (const auto& item : list)
+		{
+			arr.Add(wxDataViewItem((void*)item));
+		}
+		this->ItemsChanged(arr);
+	}
+
+	const IIdent64* FindItem(const int64_t& id)const
+	{
+		auto it = std::find_if(mRoot.cbegin(), mRoot.cend()
+			, [&id](const IIdent64* it){ return it->GetId() == id; });
+		
+		if (mRoot.cend() != it)
+		{
+			return *it;
+		}
+		return nullptr;
+	}
+
+	const IIdent64* GetTopItem()const
+	{
+		if (!mRoot.empty())
+			return mRoot[0];
+		return nullptr;
+	}
+
+	
+	
 };
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -194,33 +238,25 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	//int ch = table->GetCharHeight();
 	//table->SetRowHeight(ch * 4 + 2);
 
-	auto renderer1 = new wxDataViewIconMLTextRenderer();
-	renderer1->SetAlignment(wxALIGN_TOP);
+	auto renderer1 = new wxDataViewIconTextRenderer();
 	auto attr = renderer1->GetAttr();
 	attr.SetColour(*wxBLACK);
 	renderer1->SetAttr(attr);
 
-	auto renderer2 = new wxDataViewIconMLTextRenderer();
-	renderer2->SetAlignment(wxALIGN_TOP);
-	auto renderer3 = new wxDataViewIconMLTextRenderer();
-	renderer3->SetAlignment(wxALIGN_TOP);
-	auto renderer4 = new wxDataViewIconMLTextRenderer();
-	renderer4->SetAlignment(wxALIGN_TOP);
+	auto renderer2 = new wxDataViewTextRenderer();
+	auto renderer3 = new wxDataViewTextRenderer();
+
 
 	auto col1 = new wxDataViewColumn("Имя"
 		, renderer1, 1, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
 	table->AppendColumn(col1);
-	auto col2 = new wxDataViewColumn("Тип(кратко/подробно)"
+	auto col2 = new wxDataViewColumn("Количество"
 		, renderer2, 2, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
 	table->AppendColumn(col2);
 	
-	auto col3 = new wxDataViewColumn("Количество"
+	auto col3 = new wxDataViewColumn("Ед.изм"
 		, renderer3, 3, 80, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
 	table->AppendColumn(col3);
-
-	auto col4 = new wxDataViewColumn("Местоположение(кратко/подробно)"
-		, renderer4, 4, -1, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
-	table->AppendColumn(col4);
 
 	//table->SetExpanderColumn(col2);
 
@@ -239,8 +275,80 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 		, &ViewTableBrowser::OnCmd_Activate, this);
 
 
+	table->Bind(wxEVT_COMMAND_MENU_SELECTED
+		,&ViewTableBrowser::OnCmd_Refresh, this, wxID_REFRESH);
+
+	table->Bind(wxEVT_COMMAND_MENU_SELECTED
+		, &ViewTableBrowser::OnCmd_Up, this, wxID_UP);
+
+
+
+
+
 	mTable = table;
 
+	wxAcceleratorEntry entries[3];
+	entries[0].Set(wxACCEL_CTRL, (int) 'R', wxID_REFRESH);
+	entries[1].Set(wxACCEL_NORMAL, WXK_F5,   wxID_REFRESH);
+	entries[2].Set(wxACCEL_NORMAL, WXK_BACK, wxID_UP);
+	wxAcceleratorTable accel(3, entries);
+	table->SetAcceleratorTable(accel);
+
+}
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::OnCmd_Refresh(wxCommandEvent& evt)
+{
+	sigRefresh();
+}
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::OnCmd_Up(wxCommandEvent& evt)
+{
+	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+	if (!dvmodel)
+		return;
+	
+	const auto top = dvmodel->GetTopItem();
+	if (top)
+	{
+		auto id = top->GetId();
+		sigUp();
+
+		wxDataViewItem sel_item;
+		mTable->Unselect(mTable->GetSelection());
+
+		const auto ff = dvmodel->FindItem(id);
+		if (ff)
+		{
+			sel_item = wxDataViewItem((void*)ff);
+		}
+		else
+		{
+			sel_item = wxDataViewItem((void*)dvmodel->GetTopItem());
+
+		}
+		mTable->Select(sel_item);
+		mTable->EnsureVisible(sel_item);
+			
+	}
+	
+	
+
+
+	
+	
+}
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::OnCmd_Select(wxDataViewEvent& evt)
+{
+	NotyfyTable sel_table;
+	wxDataViewItemArray sel_arr;
+	int sel_count = mTable->GetSelections(sel_arr);
+	for (const auto& item : sel_arr)
+	{
+		const IIdent64* node = static_cast<const IIdent64*> (item.GetID());
+		sel_table.emplace_back(node);
+	}
+	sigSelect(sel_table);
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
@@ -261,19 +369,7 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 	}
 	mTable->GetTargetWindow()->GetToolTip()->SetTip(str);
 }
-//-----------------------------------------------------------------------------
-void ViewTableBrowser::OnCmd_Select(wxDataViewEvent& evt)
-{
-	NotyfyTable sel_table;
-	wxDataViewItemArray sel_arr;
-	int sel_count = mTable->GetSelections(sel_arr);
-	for (const auto& item : sel_arr)
-	{
-		const IIdent64* node = static_cast<const IIdent64*> (item.GetID());
-		sel_table.emplace_back(node);
-	}
-	sigSelect(sel_table);
-}
+
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_Activate(wxDataViewEvent& evt)
 {
@@ -281,7 +377,26 @@ void ViewTableBrowser::OnCmd_Activate(wxDataViewEvent& evt)
 	const IIdent64* node = static_cast<const IIdent64*> (item.GetID());
 	if (node)
 	{
-		sigActivate(node);
+		auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+		if (!dvmodel)
+			return;
+		if (node->GetId() == dvmodel->GetTopItem()->GetId())
+			OnCmd_Up(evt);
+		else
+		{
+			mTable->Unselect(mTable->GetSelection()); 
+			sigActivate(node);
+			wxDataViewItem  sel_item = wxDataViewItem((void*)dvmodel->GetTopItem());
+			mTable->Select(sel_item);
+			mTable->EnsureVisible(sel_item);
+
+		}
+
+		
+
+		
+
+			
 	}
 
 
@@ -304,13 +419,24 @@ void ViewTableBrowser::SetCollapsedGroupByType(bool enable)// override;
 //virtual
 void ViewTableBrowser::SetSelect(const NotyfyTable& list)// override;
 {
+	/*
 	wxDataViewItemArray arr;
+	
+	mTable->Unselect(mTable->GetSelection());
+	mTable->UnselectAll();
+	//mTable->SetSelections(arr);
 	for (const auto& item : list)
 	{
 		wxDataViewItem dvitem((void*)item);
 		arr.Add(dvitem);
 	}
-	mTable->SetSelections(arr);
+	if (!arr.IsEmpty())
+	{
+		mTable->EnsureVisible(arr[0]);
+		mTable->SetSelections(arr);
+	}
+	mTable->Refresh(); 
+	*/
 }
 //-----------------------------------------------------------------------------
 //virtual
@@ -342,7 +468,11 @@ void ViewTableBrowser::SetAfterInsert(const NotyfyTable& obj_list)// override;
 //virtual
 void ViewTableBrowser::SetAfterUpdate(const NotyfyTable& list)// override;
 {
+	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+	if (!dvmodel)
+		return;
 
+	dvmodel->UpdateItems(list);
 }
 //-----------------------------------------------------------------------------
 //virtual
@@ -398,15 +528,12 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 	tool_bar->AddSeparator();
 
 
-	//wxComboBtn* cbtn = new wxComboBtn(tool_bar);
-	//wxBitmap bmp(wxArtProvider::GetBitmap(wxART_FIND, wxART_TOOLBAR));
-	//cbtn->SetButtonBitmaps(bmp, true);
-	auto cbtn = new wxSearchCtrl(tool_bar, wxID_ANY, wxEmptyString);
-	cbtn->ShowSearchButton(true);
-	cbtn->ShowCancelButton(true);
-	cbtn->SetDescriptiveText(wxEmptyString);
-	tool_bar->AddControl(cbtn, "Поиск");
-	//tool_bar->AddTool(wxID_FIND, "Поиск", wxArtProvider::GetBitmap(wxART_FIND, wxART_TOOLBAR), "Быстрый поиск(CTRL+F)");
+	auto mFindCtrl = new wxComboBtn(tool_bar, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+	wxBitmap bmp(wxArtProvider::GetBitmap(wxART_FIND, wxART_MENU));
+	mFindCtrl->SetButtonBitmaps(bmp, true);
+
+	//mFindCtrl->Bind(wxEVT_COMMAND_TEXT_ENTER, fn);
+	tool_bar->AddControl(mFindCtrl, "Поиск");
 
 
 	tool_bar->Realize();
