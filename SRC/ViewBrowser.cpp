@@ -54,6 +54,7 @@ public:
 
 		switch (col)
 		{
+		case 0:variant = cls->GetIdAsString();	break;
 		case 1:		
 			if (".." == cls->GetTitle())
 				ico = &mgr->m_ico_back24;
@@ -69,7 +70,7 @@ public:
 
 			variant << wxDataViewIconText(cls->GetTitle(), *ico);
 			break;
-		case 2:		variant = cls-> GetIdAsString();	break;
+		case 2:		break;
 		case 3:		variant = cls->GetMeasure();	break;
 		default: break;
 		}
@@ -246,6 +247,13 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	auto renderer2 = new wxDataViewTextRenderer();
 	auto renderer3 = new wxDataViewTextRenderer();
 
+	/*
+	auto renderer0 = new wxDataViewTextRenderer();
+	auto col0 = new wxDataViewColumn("#"
+		, renderer0, 0, -1, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
+	table->AppendColumn(col0);
+	*/
+	//table->AppendTextColumn("#", 0,wxDATAVIEW_CELL_INERT,-1, wxALIGN_LEFT);
 
 	auto col1 = new wxDataViewColumn("Èìÿ"
 		, renderer1, 1, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
@@ -258,7 +266,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 		, renderer3, 3, 80, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
 	table->AppendColumn(col3);
 
-	//table->SetExpanderColumn(col2);
+	//table->SetExpanderColumn(col1);
 
 
 	//table->SetCanFocus(false);
@@ -642,9 +650,23 @@ void ViewPathBrowser::SetPathMode(const int mode)// override;
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewPathBrowser::SetPathString(const wxString& path_string)// override;
+void ViewPathBrowser::SetPathString(const ClsNode& node)// override;
 {
-	mPathCtrl->SetValue(path_string);
+	wxString ret = "/";
+	const ClsNode* curr = &node;
+	while (curr != nullptr && curr->GetValue()->GetId()!=1)
+	{
+		const auto& title = curr->GetValue()->GetTitle();
+
+		if (wxNOT_FOUND == title.Find('/'))
+			ret = wxString::Format("/%s%s", title, ret);
+		else
+			ret = wxString::Format("/[%s]%s", title, ret);
+
+		curr = curr->GetParent().get();
+	}
+
+	mPathCtrl->SetValue(ret);
 }
 
 //-----------------------------------------------------------------------------
@@ -732,7 +754,7 @@ void ViewBrowserPage::SetPathMode(const int mode)// override;
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewBrowserPage::SetPathString(const wxString& path_string) //override;
+void ViewBrowserPage::SetPathString(const ClsNode& path_string) //override;
 {
 
 }

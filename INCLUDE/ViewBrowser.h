@@ -91,7 +91,7 @@ public:
 	}
 
 	virtual void SetPathMode(const int mode) override;
-	virtual void SetPathString(const wxString& path_string) override;
+	virtual void SetPathString(const ClsNode& node) override;
 };
 //-----------------------------------------------------------------------------
 class ViewBrowserPage : public IViewBrowserPage
@@ -123,7 +123,7 @@ public:
 	
 
 	virtual void SetPathMode(const int mode) override;
-	virtual void SetPathString(const wxString& path_string) override;
+	virtual void SetPathString(const ClsNode& node) override;
 };
 
 

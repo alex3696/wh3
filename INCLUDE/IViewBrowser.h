@@ -63,7 +63,7 @@ class IViewPathBrowser : public IViewWindow
 {
 public:
 	virtual void SetPathMode(const int mode) = 0;
-	virtual void SetPathString(const wxString& path_string) = 0;
+	virtual void SetPathString(const ClsNode& node) = 0;
 };
 //-----------------------------------------------------------------------------
 class IViewBrowserPage : public IViewWindow
@@ -74,7 +74,7 @@ public:
 	virtual std::shared_ptr<IViewToolbarBrowser>	GetViewToolbarBrowser()const = 0;
 
 	virtual void SetPathMode(const int mode) = 0;
-	virtual void SetPathString(const wxString& path_string) = 0;
+	virtual void SetPathString(const ClsNode& node) = 0;
 };
 
 

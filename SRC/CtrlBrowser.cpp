@@ -167,7 +167,7 @@ CtrlPathBrowser::CtrlPathBrowser(
 {
 	namespace ph = std::placeholders;
 
-	connModel_PathChanged = mModel->GetModelBrowser()->sigPathChanged
+	connModel_PathChanged = mModel->GetModelBrowser()->sigCurrChanged
 		.connect(std::bind(&IViewPathBrowser::SetPathString, mView.get(), ph::_1));
 	connModel_ModeChanged = mModel->GetModelBrowser()->sigModeChanged.connect
 		(std::bind(&IViewPathBrowser::SetPathMode, mView.get(), ph::_1));

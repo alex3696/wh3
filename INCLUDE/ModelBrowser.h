@@ -20,6 +20,9 @@ enum class BrowserMode
 	, FindByPath = 200
 };
 
+
+
+
 //-----------------------------------------------------------------------------
 class ClsPath : public IPath64
 {
@@ -44,13 +47,39 @@ public:
 	virtual wxString AsString()const override;
 };
 
+//-----------------------------------------------------------------------------
+class ClsTree : public IPath64
+{
+	std::shared_ptr<ClsNode> mRoot;
+	std::shared_ptr<const ClsNode> mCurrent;
+public:
+	sig::signal<void(const ClsNode&)> sigCurrChanged;
+
+	ClsTree();
+	std::shared_ptr<const ClsNode> GetCurrent()const { return mCurrent; }
+
+	void Home();
+	void Refresh();
+	void Up();
+
+	void SetId(const wxString& str);
+	void SetId(const int64_t& val);
+
+	int64_t  GetId()const;
+	wxString GetIdAsString()const;
+
+	
+
+	virtual wxString AsString()const override;
+};
+
 
 
 
 //-----------------------------------------------------------------------------
 class ModelBrowser
 {
-	ClsPath		mClsPath;
+	ClsTree		mClsPath;
 
 	SpClsTable	mClsAll;
 	
@@ -85,7 +114,7 @@ public:
 	sig::signal<void(const NotyfyTable&)> sigAfterUpdate;
 	sig::signal<void(const NotyfyTable&)> sigBeforeDelete;
 
-	sig::signal<void(const wxString&)> sigPathChanged;
+	sig::signal<void(const ClsNode&)> sigCurrChanged;
 	sig::signal<void(const int)> sigModeChanged;
 
 

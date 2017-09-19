@@ -210,6 +210,55 @@ public:
 using NotyfyItem = IIdent64*;
 using NotyfyTable = std::vector<const IIdent64*>;
 
+
+class ClsNode
+{
+
+	struct extr_void_ptr_ClsNode
+	{
+		typedef const void* result_type;
+		inline result_type operator()(const std::shared_ptr<const ClsNode>& r)const
+		{
+			return r.get();
+		}
+	};
+
+	using ChildsTable = boost::multi_index_container
+		<
+			std::shared_ptr<ClsNode>,
+			indexed_by
+			<
+				random_access<> //SQL order
+				, ordered_unique< extr_void_ptr_ClsNode >
+			>
+		>;
+
+	std::shared_ptr<const ICls64>	mValue;
+	std::weak_ptr<const ClsNode>	mParent;
+	std::shared_ptr<ChildsTable>	mChild;
+
+	using sigUpdate = sig::signal < void(const ClsNode&
+		, std::shared_ptr<const ICls64>
+		, std::shared_ptr<const ICls64>)>;
+
+public:
+	sigUpdate sigBeforeValChange;
+	sigUpdate sigAfterValChange;
+
+	ClsNode();
+	ClsNode(const std::shared_ptr<const ClsNode>& parent);
+
+	void SetValue(const std::shared_ptr<const ICls64>& new_value);
+	std::shared_ptr<const ICls64> GetValue()const;
+	void ClearChilds();
+
+	void AddChild(const std::shared_ptr<ClsNode>& child);
+
+	std::shared_ptr<const ClsNode> GetParent()const;
+
+
+};
+
 //-----------------------------------------------------------------------------
 } //namespace wh{
 #endif // __*_H
