@@ -11,7 +11,7 @@ using namespace wh;
 class wxDVTableBrowser
 	: public wxDataViewModel
 {
-	NotyfyTable mRoot;
+	const ClsNode*	mCurrent=nullptr;
 public:
 	wxDVTableBrowser(){};
 	~wxDVTableBrowser(){};
@@ -39,8 +39,8 @@ public:
 		const wxDataViewItem &dvitem, unsigned int col) const override
 	{
 
-		const auto node = static_cast<const IIdent64*> (dvitem.GetID());
-		const auto cls = dynamic_cast<const ICls64*> (node);
+		const auto node = static_cast<const ClsNode*> (dvitem.GetID());
+		const auto cls = node->GetValue();
 		if (!cls)
 		{
 			if(1==col)
@@ -89,60 +89,67 @@ public:
 		if (!item.IsOk())
 			return wxDataViewItem(nullptr);
 
-		const auto node = static_cast<const IIdent64*> (item.GetID());
-		const auto cls = dynamic_cast<const ICls64*> (node);
-		if (cls)
-			return wxDataViewItem(nullptr);
+		const auto node = static_cast<const ClsNode*> (item.GetID());
+		if (node && !(node->GetParent().get() == mCurrent))
+		{
+			return wxDataViewItem((void*)node->GetParent().get());
+		}
+			
 
 		return wxDataViewItem(nullptr);
 	}
 	virtual unsigned int GetChildren(const wxDataViewItem &parent
 		, wxDataViewItemArray &array) const override
 	{
-		if (mRoot.empty())
+		//if (mRoot.empty())
+		if (!mCurrent)
 			return 0;
+
 		if (!parent.IsOk())
 		{
-			for (const auto& child : mRoot)
+			auto childs = mCurrent->GetChilds();
+			if (childs)
 			{
-				//IDbIdent* obj_ptr = obj.get();
-				const IIdent64* node_ptr = child;
-				wxDataViewItem dvitem((void*)node_ptr);
-				array.push_back(dvitem);
+				for (const auto& child : *childs)
+				{
+					wxDataViewItem dvitem((void*)child.get());
+					array.push_back(dvitem);
+				}
+				return array.size();
+
 			}
-			return array.size();
 
 		}
-
-		//const IDbIdent* node = static_cast<const IDbIdent*> (parent.GetID());
-		//const ICls* cls = dynamic_cast<const ICls*> (node);
 
 		return 0;
 	}
 
 	void Clear()
 	{
-		mRoot.clear();
+		mCurrent = nullptr;
 		Cleared();
 	}
 
-
-	void AddItems(const NotyfyTable& list)
+	void AddItems(const ClsNode& parent, const NotyfyTable& list)
 	{
-		wxDataViewItem dvparent(nullptr);
+		const ClsNode* pnode = (&parent == mCurrent) ? nullptr : &parent;
+
+
+		wxDataViewItem dvparent((void*)pnode);
+		
 		wxDataViewItemArray arr;
 		for (const auto& item : list)
 		{
 			arr.Add(wxDataViewItem((void*)item));
-			mRoot.emplace_back(item);
+			//mRoot.emplace_back(item);
 		}
 		ItemsAdded(dvparent, arr);
 	}
 
-	void DelItems(const NotyfyTable& list)
+	void DelItems(const ClsNode& parent, const NotyfyTable& list)
 	{
 		//std::vector<const NotyfyTable::const_iterator> to_del;
-		
+		/*
 		wxDataViewItem dvroot(nullptr);
 
 		wxDataViewItemArray sel_arr;
@@ -154,48 +161,67 @@ public:
 			{
 				//to_del.emplace_back(it);
 				sel_arr.Add(wxDataViewItem((void*)item));
-				mRoot.erase(it);
+				//mRoot.erase(it);
 				
 			}
 		}
-
+		
 		ItemsDeleted(dvroot, sel_arr);
+		
 		//for (const auto& dit : to_del)
 		//	mRoot.erase(dit);
-
+		*/
 	}
 
 	void UpdateItems(const NotyfyTable& list)
 	{
+		/*
 		wxDataViewItemArray arr;
 		for (const auto& item : list)
 		{
 			arr.Add(wxDataViewItem((void*)item));
 		}
 		this->ItemsChanged(arr);
+		*/
 	}
 
-	const IIdent64* FindItem(const int64_t& id)const
+	const ClsNode* FindNode(const int64_t& id)const
 	{
-		auto it = std::find_if(mRoot.cbegin(), mRoot.cend()
-			, [&id](const IIdent64* it){ return it->GetId() == id; });
+		if (!mCurrent || !mCurrent->GetChilds())
+			return nullptr;
+
+
+		auto it = std::find_if(mCurrent->GetChilds()->cbegin()
+								,mCurrent->GetChilds()->cend()
+		, [&id](const std::shared_ptr<ClsNode>& it){ return it->GetValue()->GetId() == id; });
 		
-		if (mRoot.cend() != it)
+		if (mCurrent->GetChilds()->cend() != it)
 		{
-			return *it;
+			return (*it).get();
 		}
 		return nullptr;
 	}
 
-	const IIdent64* GetTopItem()const
+	const ClsNode* GetTopItem()const
 	{
-		if (!mRoot.empty())
-			return mRoot[0];
+		if (mCurrent && mCurrent->GetChilds() && !mCurrent->GetChilds()->empty())
+			return mCurrent->GetChilds()->front().get();
+
 		return nullptr;
 	}
+	
+	void SetCurrent(const ClsNode*	current)
+	{
+		if (mCurrent)
+			Clear();
+		mCurrent = current;
+		//Cleared();
+	}
 
-	
-	
+	const ClsNode*	GetCurrent()
+	{
+		return mCurrent;
+	}
 };
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -253,7 +279,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 		, renderer0, 0, -1, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
 	table->AppendColumn(col0);
 	*/
-	//table->AppendTextColumn("#", 0,wxDATAVIEW_CELL_INERT,-1, wxALIGN_LEFT);
+	table->AppendTextColumn("#", 0,wxDATAVIEW_CELL_INERT,-1, wxALIGN_LEFT);
 
 	auto col1 = new wxDataViewColumn("Èìÿ"
 		, renderer1, 1, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
@@ -311,56 +337,26 @@ void ViewTableBrowser::OnCmd_Refresh(wxCommandEvent& evt)
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_Up(wxCommandEvent& evt)
 {
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (!dvmodel)
-		return;
-	
-	const auto top = dvmodel->GetTopItem();
-	if (top)
-	{
-		auto id = top->GetId();
-		sigUp();
-
-		wxDataViewItem sel_item;
-		mTable->Unselect(mTable->GetSelection());
-
-		const auto ff = dvmodel->FindItem(id);
-		if (ff)
-		{
-			sel_item = wxDataViewItem((void*)ff);
-		}
-		else
-		{
-			sel_item = wxDataViewItem((void*)dvmodel->GetTopItem());
-
-		}
-		mTable->Select(sel_item);
-		mTable->EnsureVisible(sel_item);
-			
-	}
-	
-	
-
-
-	
-	
+	auto p0 = GetTickCount();
+	sigUp();
+	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_Select(wxDataViewEvent& evt)
 {
-	NotyfyTable sel_table;
+	mClsSelected.clear();
 	wxDataViewItemArray sel_arr;
 	int sel_count = mTable->GetSelections(sel_arr);
 	for (const auto& item : sel_arr)
 	{
-		const IIdent64* node = static_cast<const IIdent64*> (item.GetID());
-		sel_table.emplace_back(node);
+		const ClsNode* node = static_cast<const ClsNode*> (item.GetID());
+		mClsSelected.emplace_back(node->GetValue()->GetId());
 	}
-	sigSelect(sel_table);
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 {
+	/*
 	wxDataViewColumn* col = nullptr;
 	wxDataViewItem item(nullptr);
 	auto pos = evt.GetPosition();
@@ -376,41 +372,61 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 		str = ico_txt.GetText();
 	}
 	mTable->GetTargetWindow()->GetToolTip()->SetTip(str);
+	*/
 }
-
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_Activate(wxDataViewEvent& evt)
 {
+	auto p0 = GetTickCount();
 	auto item = evt.GetItem();
-	const IIdent64* node = static_cast<const IIdent64*> (item.GetID());
+	const ClsNode* node = static_cast<const ClsNode*> (item.GetID());
 	if (node)
 	{
-		auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-		if (!dvmodel)
-			return;
-		if (node->GetId() == dvmodel->GetTopItem()->GetId())
-			OnCmd_Up(evt);
-		else
-		{
-			mTable->Unselect(mTable->GetSelection()); 
-			sigActivate(node);
-			wxDataViewItem  sel_item = wxDataViewItem((void*)dvmodel->GetTopItem());
-			mTable->Select(sel_item);
-			mTable->EnsureVisible(sel_item);
-
-		}
-
-		
-
-		
-
-			
+		sigActivate(*node);
 	}
 
-
-
+	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
 	
 }
+//-----------------------------------------------------------------------------
+//virtual
+void ViewTableBrowser::SetBeforePathChange(const ClsNode& node)// override;
+{
+	auto p0 = GetTickCount();
+	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+	if (!dvmodel)
+		return;
+	
+	mClsSelected.clear();
+	wxDataViewItemArray sel_arr;
+	int sel_count = mTable->GetSelections(sel_arr);
+	for (const auto& item : sel_arr)
+	{
+		const ClsNode* node = static_cast<const ClsNode*> (item.GetID());
+		mClsSelected.emplace_back(node->GetValue()->GetId());
+	}
+
+	if (dvmodel->GetCurrent())
+		mClsSelected.emplace_back(dvmodel->GetCurrent()->GetValue()->GetId());
+	
+	dvmodel->Clear();
+	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
+}
+//-----------------------------------------------------------------------------
+//virtual
+void ViewTableBrowser::SetAfterPathChange(const ClsNode& node)// override;
+{
+	auto p0 = GetTickCount();
+	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+	if (!dvmodel)
+		return;
+
+	dvmodel->SetCurrent(&node);
+
+
+	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
+}
+
 //-----------------------------------------------------------------------------
 //virtual
 void ViewTableBrowser::SetGroupByType(bool enable)// override;
@@ -425,29 +441,6 @@ void ViewTableBrowser::SetCollapsedGroupByType(bool enable)// override;
 }
 //-----------------------------------------------------------------------------
 //virtual
-void ViewTableBrowser::SetSelect(const NotyfyTable& list)// override;
-{
-	/*
-	wxDataViewItemArray arr;
-	
-	mTable->Unselect(mTable->GetSelection());
-	mTable->UnselectAll();
-	//mTable->SetSelections(arr);
-	for (const auto& item : list)
-	{
-		wxDataViewItem dvitem((void*)item);
-		arr.Add(dvitem);
-	}
-	if (!arr.IsEmpty())
-	{
-		mTable->EnsureVisible(arr[0]);
-		mTable->SetSelections(arr);
-	}
-	mTable->Refresh(); 
-	*/
-}
-//-----------------------------------------------------------------------------
-//virtual
 void ViewTableBrowser::SetClear()// override;
 {
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
@@ -457,24 +450,53 @@ void ViewTableBrowser::SetClear()// override;
 }
 //-----------------------------------------------------------------------------
 //virtual
-void ViewTableBrowser::SetAfterInsert(const NotyfyTable& obj_list)// override;
+void ViewTableBrowser::SetAfterInsert(const ClsNode& parent, const NotyfyTable& obj_list)// override;
 {
+	auto p0 = GetTickCount();
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 	if (!dvmodel)
 		return;
 
-	dvmodel->AddItems(obj_list);
+	dvmodel->AddItems(parent, obj_list);
+
+	//mTable->Unselect(mTable->GetSelection());
+	//mTable->UnselectAll();
+
+	wxDataViewItemArray arr;
+	for (const auto& sel : mClsSelected)
+	{
+		const ClsNode* finded = dvmodel->FindNode(sel);
+		if (finded)
+		{
+			wxDataViewItem dvitem((void*)finded);
+			arr.Add(dvitem);
+		}
+	}
+
+	if (arr.empty())
+	{
+		const ClsNode* finded = dvmodel->GetTopItem();
+		wxDataViewItem dvitem((void*)finded);
+		arr.Add(dvitem);
+	}
+
+	
+	mTable->SetSelections(arr);
+	mTable->EnsureVisible(arr[0]);
+	mTable->Refresh();
+
 
 	if (mColAutosize)
 	{
 		for (size_t i = 0; i < mTable->GetColumnCount(); i++)
 			mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
 	}
-
+	
+	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
 }
 //-----------------------------------------------------------------------------
 //virtual
-void ViewTableBrowser::SetAfterUpdate(const NotyfyTable& list)// override;
+void ViewTableBrowser::SetAfterUpdate(const ClsNode& parent, const NotyfyTable& list)// override;
 {
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 	if (!dvmodel)
@@ -484,13 +506,13 @@ void ViewTableBrowser::SetAfterUpdate(const NotyfyTable& list)// override;
 }
 //-----------------------------------------------------------------------------
 //virtual
-void ViewTableBrowser::SetBeforeDelete(const NotyfyTable& list)// override;
+void ViewTableBrowser::SetBeforeDelete(const ClsNode& parent, const NotyfyTable& list)// override;
 {
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 	if (!dvmodel)
 		return;
 
-	dvmodel->DelItems(list);
+	dvmodel->DelItems(parent, list);
 
 
 }

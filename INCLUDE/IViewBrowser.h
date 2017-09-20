@@ -14,19 +14,20 @@ class IViewTableBrowser : public IViewWindow
 public:
 	virtual void SetGroupByType(bool enable) = 0;
 	virtual void SetCollapsedGroupByType(bool enable) = 0;
-	virtual void SetSelect(const NotyfyTable& list) = 0;
+
+	virtual void SetBeforePathChange(const ClsNode& node) = 0;
+	virtual void SetAfterPathChange(const ClsNode& node) = 0;
 
 	virtual void SetClear() = 0;
-	virtual void SetAfterInsert(const NotyfyTable& list) = 0;
-	virtual void SetAfterUpdate(const NotyfyTable& list) = 0;
-	virtual void SetBeforeDelete(const NotyfyTable& list) = 0;
+	virtual void SetAfterInsert(const ClsNode&, const NotyfyTable& list) = 0;
+	virtual void SetAfterUpdate(const ClsNode&, const NotyfyTable& list) = 0;
+	virtual void SetBeforeDelete(const ClsNode&, const NotyfyTable& list) = 0;
 	virtual void SetPathMode(const int mode) = 0;
 
 	sig::signal<void()> sigRefresh;
 	sig::signal<void()> sigUp;
 
-	sig::signal<void(const NotyfyTable&)>	sigSelect;
-	sig::signal<void(const IIdent64*)>		sigActivate;
+	sig::signal<void(const ClsNode&)>		sigActivate;
 };
 //-----------------------------------------------------------------------------
 class IViewToolbarBrowser : public IViewWindow

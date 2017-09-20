@@ -14,6 +14,8 @@ class ViewTableBrowser : public IViewTableBrowser
 	wxDataViewCtrl* mTable;
 
 	bool			mColAutosize = true;
+
+	std::vector<int64_t> mClsSelected;
 protected:
 	void OnCmd_Refresh(wxCommandEvent& evt);
 	void OnCmd_Up(wxCommandEvent& evt);
@@ -29,14 +31,17 @@ public:
 		return mTable;
 	}
 
+	virtual void SetBeforePathChange(const ClsNode& node) override;
+	virtual void SetAfterPathChange(const ClsNode& node) override;
+
+
 	virtual void SetGroupByType(bool enable) override;
 	virtual void SetCollapsedGroupByType(bool enable) override;
-	virtual void SetSelect(const NotyfyTable& list) override;
 
 	virtual void SetClear() override;
-	virtual void SetAfterInsert(const NotyfyTable& list) override;
-	virtual void SetAfterUpdate(const NotyfyTable& list) override;
-	virtual void SetBeforeDelete(const NotyfyTable& list) override;
+	virtual void SetAfterInsert(const ClsNode&, const NotyfyTable& list) override;
+	virtual void SetAfterUpdate(const ClsNode&, const NotyfyTable& list) override;
+	virtual void SetBeforeDelete(const ClsNode&, const NotyfyTable& list) override;
 	virtual void SetPathMode(const int mode) override;
 };
 //-----------------------------------------------------------------------------

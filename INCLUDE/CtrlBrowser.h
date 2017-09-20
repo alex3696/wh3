@@ -13,12 +13,13 @@ class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPag
 	sig::scoped_connection connViewCmd_Refresh;
 	sig::scoped_connection connViewCmd_Up;
 
-	sig::scoped_connection connViewCmd_Select;
 	sig::scoped_connection connViewCmd_Activate;
+
+	sig::scoped_connection connModel_BeforePathChange;
+	sig::scoped_connection connModel_AfterPathChange;
 
 	sig::scoped_connection connModel_GroupByType;
 	sig::scoped_connection connModel_CollapsedGroupByType;
-	sig::scoped_connection connModel_Selected;
 
 	sig::scoped_connection connModel_BeforeClear;
 	sig::scoped_connection connModel_AfterInsert;
@@ -35,8 +36,7 @@ public:
 
 	void Refresh();
 	void Up();
-	void Select(const NotyfyTable&);
-	void Activate(const IIdent64*);
+	void Activate(const ClsNode&);
 
 
 };

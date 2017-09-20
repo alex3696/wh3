@@ -20,7 +20,39 @@ enum class BrowserMode
 	, FindByPath = 200
 };
 
+//-----------------------------------------------------------------------------
+class ClsRec64 : public ICls64
+{
+public:
+	ClsRec64(){}
+	ClsRec64(std::shared_ptr<const ICls64>& parent)
+		:mParent(parent)
+	{}
 
+	int64_t		mId;
+	wxString	mTitle;
+	ClsKind		mKind;
+	wxString	mMeasure;
+	std::weak_ptr<const ICls64>			mParent;
+	std::shared_ptr<SpClsConstTable>	mChilds;
+
+	bool SetId(const wxString& str){ return str.ToLongLong(&mId); }
+	void SetId(const int64_t& val) { mId = val; }
+
+	virtual const int64_t&  GetId()const override		{ return mId; }
+	virtual const wxString& GetTitle()const override	{ return mTitle; };
+	virtual       ClsKind	GetKind()const override		{ return mKind; };
+	virtual const wxString& GetMeasure()const override	{ return mMeasure; };
+
+	virtual SpClsConst GetParent()const { return mParent.lock(); }
+	virtual SpClsConstTable GetChilds()const { return *mChilds; }
+
+	virtual const SpObjConstTable&		GetObjects()const override { throw; };
+	virtual const SpPropValConstTable&	GetProperties()const override { throw; };
+
+
+
+};
 
 
 //-----------------------------------------------------------------------------
@@ -51,12 +83,13 @@ public:
 class ClsTree : public IPath64
 {
 	std::shared_ptr<ClsNode> mRoot;
-	std::shared_ptr<const ClsNode> mCurrent;
+	std::shared_ptr<ClsNode> mCurrent;
 public:
-	sig::signal<void(const ClsNode&)> sigCurrChanged;
+	sig::signal<void(const ClsNode&)> sigBeforePathChange;
+	sig::signal<void(const ClsNode&)> sigAfterPathChange;
 
 	ClsTree();
-	std::shared_ptr<const ClsNode> GetCurrent()const { return mCurrent; }
+	std::shared_ptr<ClsNode> GetCurrent()const { return mCurrent; }
 
 	void Home();
 	void Refresh();
@@ -69,6 +102,8 @@ public:
 	wxString GetIdAsString()const;
 
 	
+	std::shared_ptr<const ClsNode> AddValToCurrent(const std::shared_ptr<ICls64>& val);
+
 
 	virtual wxString AsString()const override;
 };
@@ -81,20 +116,22 @@ class ModelBrowser
 {
 	ClsTree		mClsPath;
 
+	std::vector<std::shared_ptr<ClsNode>> mClsNodeCache;
+	std::vector<std::shared_ptr<ClsRec64>> mClsValCache;
+
+
+
 	SpClsTable	mClsAll;
 	
-	std::vector<int64_t> mClsSelected;
 
-	void DoSelect(const std::vector<int64_t>& sel_vec);
 public:
 	ModelBrowser();
 	~ModelBrowser();
 
 	void DoRefresh();
-	void DoActivate(const IIdent64* item);
+	void DoActivate(const ClsNode& item);
 	void DoUp();
 
-	void DoSelect(const NotyfyTable& sel_vec);
 	void DoAct();
 	void DoMove();
 	void DoFind(const wxString&);
@@ -110,11 +147,13 @@ public:
 	sig::signal<void(const NotyfyTable&)> sigSelected;
 	
 	sig::signal<void()> sigClear;
-	sig::signal<void(const NotyfyTable&)> sigAfterInsert;
-	sig::signal<void(const NotyfyTable&)> sigAfterUpdate;
-	sig::signal<void(const NotyfyTable&)> sigBeforeDelete;
+	sig::signal<void(const ClsNode&, const NotyfyTable&)> sigAfterInsert;
+	sig::signal<void(const ClsNode&, const NotyfyTable&)> sigAfterUpdate;
+	sig::signal<void(const ClsNode&, const NotyfyTable&)> sigBeforeDelete;
 
-	sig::signal<void(const ClsNode&)> sigCurrChanged;
+	sig::signal<void(const ClsNode&)> sigBeforePathChange;
+	sig::signal<void(const ClsNode&)> sigAfterPathChange;
+
 	sig::signal<void(const int)> sigModeChanged;
 
 

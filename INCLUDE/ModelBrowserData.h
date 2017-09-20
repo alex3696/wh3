@@ -207,13 +207,12 @@ public:
 };
 
 
-using NotyfyItem = IIdent64*;
-using NotyfyTable = std::vector<const IIdent64*>;
+
 
 
 class ClsNode
 {
-
+	/*
 	struct extr_void_ptr_ClsNode
 	{
 		typedef const void* result_type;
@@ -232,8 +231,10 @@ class ClsNode
 				, ordered_unique< extr_void_ptr_ClsNode >
 			>
 		>;
+	*/
+	using ChildsTable = std::vector<std::shared_ptr<ClsNode>>;
 
-	std::shared_ptr<const ICls64>	mValue;
+	std::shared_ptr<ICls64>			mValue;
 	std::weak_ptr<const ClsNode>	mParent;
 	std::shared_ptr<ChildsTable>	mChild;
 
@@ -247,17 +248,28 @@ public:
 
 	ClsNode();
 	ClsNode(const std::shared_ptr<const ClsNode>& parent);
+	ClsNode(const std::shared_ptr<const ClsNode>& parent
+		, const std::shared_ptr<ICls64>& value);
 
-	void SetValue(const std::shared_ptr<const ICls64>& new_value);
+	void SetValue(const std::shared_ptr<ICls64>& new_value);
 	std::shared_ptr<const ICls64> GetValue()const;
 	void ClearChilds();
 
 	void AddChild(const std::shared_ptr<ClsNode>& child);
 
 	std::shared_ptr<const ClsNode> GetParent()const;
+	void SetParent(const std::shared_ptr<const ClsNode>& parent);
 
+	const std::shared_ptr<ChildsTable> GetChilds()const
+	{
+		return mChild;
+	}
 
 };
+
+
+
+using NotyfyTable = std::vector<const ClsNode*>;
 
 //-----------------------------------------------------------------------------
 } //namespace wh{

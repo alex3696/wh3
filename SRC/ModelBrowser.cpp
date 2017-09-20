@@ -2,39 +2,7 @@
 #include "ModelBrowser.h"
 
 using namespace wh;
-//-----------------------------------------------------------------------------
-class ClsRec64 : public ICls64
-{
-public:
-	ClsRec64(){}
-	ClsRec64(std::shared_ptr<const ICls64>& parent)
-		:mParent(parent)
-	{}
 
-	int64_t		mId;
-	wxString	mTitle;
-	ClsKind		mKind;
-	wxString	mMeasure;
-	std::weak_ptr<const ICls64>			mParent;
-	std::shared_ptr<SpClsConstTable>	mChilds;
-
-	bool SetId(const wxString& str){ return str.ToLongLong(&mId); }
-	void SetId(const int64_t& val) { mId = val; }
-
-	virtual const int64_t&  GetId()const override		{ return mId; }
-	virtual const wxString& GetTitle()const override	{ return mTitle; };
-	virtual       ClsKind	GetKind()const override		{ return mKind; };
-	virtual const wxString& GetMeasure()const override	{ return mMeasure; };
-
-	virtual SpClsConst GetParent()const { return mParent.lock(); }
-	virtual SpClsConstTable GetChilds()const { return *mChilds; }
-
-	virtual const SpObjConstTable&		GetObjects()const override { throw; };
-	virtual const SpPropValConstTable&	GetProperties()const override { throw; };
-
-
-
-};
 //-----------------------------------------------------------------------------
 
 ClsNode::ClsNode()
@@ -47,7 +15,16 @@ ClsNode::ClsNode(const std::shared_ptr<const ClsNode>& parent)
 {
 }
 //-----------------------------------------------------------------------------
-void ClsNode::SetValue(const std::shared_ptr<const ICls64>& new_value)
+ClsNode::ClsNode(const std::shared_ptr<const ClsNode>& parent
+	, const std::shared_ptr<ICls64>& value)
+	: mParent(parent), mValue(value)
+{
+
+}
+
+
+//-----------------------------------------------------------------------------
+void ClsNode::SetValue(const std::shared_ptr<ICls64>& new_value)
 {
 	sigBeforeValChange(*this, mValue, new_value);
 		
@@ -67,18 +44,25 @@ void ClsNode::ClearChilds()
 	mChild.reset();
 }
 //-----------------------------------------------------------------------------
-void ClsNode::AddChild(const std::shared_ptr<ClsNode>& child)
+void ClsNode::AddChild(const std::shared_ptr<ClsNode>& new_node)
 {
 	if (!mChild)
 		mChild = std::make_shared<ChildsTable>();
 
-	mChild->emplace_back(child);
+	mChild->emplace_back(new_node);
 
 }
+
+
 //-----------------------------------------------------------------------------
 std::shared_ptr<const ClsNode> ClsNode::GetParent()const
 { 
 	return mParent.lock(); 
+}
+//-----------------------------------------------------------------------------
+void ClsNode::SetParent(const std::shared_ptr<const ClsNode>& parent)
+{
+	mParent = parent;
 }
 
 
@@ -87,13 +71,13 @@ std::shared_ptr<const ClsNode> ClsNode::GetParent()const
 //-----------------------------------------------------------------------------
 ClsTree::ClsTree()
 {
-	auto value = std::make_shared<ClsRec64>();
+	std::shared_ptr<ClsRec64> value = std::make_shared<ClsRec64>();
 	value->SetId(1);
 	value->mTitle = "ClsRoot";
 	value->mKind = ClsKind::Abstract;
 
-	auto root = std::make_shared<ClsNode>();
-	root->SetValue(value);
+	auto root = std::make_shared<ClsNode>(nullptr, value);
+	//root->SetValue(value);
 
 	mRoot = root;
 	mCurrent = root;
@@ -102,7 +86,15 @@ ClsTree::ClsTree()
 void ClsTree::Up()
 {
 	if (mCurrent != mRoot)
-		mCurrent = mCurrent->GetParent();
+	{
+		auto parent = mCurrent->GetParent();
+
+		std::shared_ptr<ClsRec64> value = std::make_shared<ClsRec64>();
+		value->SetId(mCurrent->GetParent()->GetValue()->GetId());
+
+		mCurrent = std::make_shared<ClsNode>(parent, value);
+	}
+		
 	Refresh();
 }
 //-----------------------------------------------------------------------------
@@ -114,7 +106,12 @@ void ClsTree::Home()
 //-----------------------------------------------------------------------------
 void ClsTree::Refresh()
 {
+	auto p0 = GetTickCount();
+
+	sigBeforePathChange(*mCurrent);
+
 	auto id = mCurrent->GetValue()->GetIdAsString();
+	mCurrent->ClearChilds();
 		
 	mCurrent = mRoot;
 	mRoot->ClearChilds();
@@ -151,7 +148,12 @@ void ClsTree::Refresh()
 		}//if (table)
 
 	}//if ("1" != id)
-	sigCurrChanged(*mCurrent);
+	whDataMgr::GetDB().Commit();
+
+	sigAfterPathChange(*mCurrent);
+
+
+	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
 }
 
 //-----------------------------------------------------------------------------
@@ -194,10 +196,21 @@ wxString ClsTree::GetIdAsString()const
 	return tmp.ToString();
 }
 //-----------------------------------------------------------------------------
+std::shared_ptr<const ClsNode> ClsTree::AddValToCurrent(const std::shared_ptr<ICls64>& val)
+{
+	//auto p0 = GetTickCount();
+	
+	auto new_node = std::make_shared<ClsNode>(mCurrent, val);
+	mCurrent->AddChild(new_node);
+
+	//wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
+	return new_node;
+}
+//-----------------------------------------------------------------------------
 wxString ClsTree::AsString()const //override
 {
 	wxString ret="/";
-	auto curr = mCurrent;
+	std::shared_ptr<const ClsNode> curr = mCurrent;
 	while (curr!=mRoot)
 	{
 		const auto& title = curr->GetValue()->GetTitle();
@@ -281,7 +294,6 @@ void ClsPath::Up()
 
 		//Refresh();
 }
-
 //-----------------------------------------------------------------------------
 void ClsPath::SetId(const wxString& str)
 { 
@@ -317,8 +329,6 @@ wxString ClsPath::GetIdAsString()const
 	wxLongLong tmp(GetId());
 	return tmp.ToString();
 }
-
-
 //-----------------------------------------------------------------------------
 //virtual 
 wxString ClsPath::AsString()const //override
@@ -351,8 +361,11 @@ wxString ClsPath::AsString()const //override
 ModelBrowser::ModelBrowser()
 {
 	//sigClear();
-	mClsPath.sigCurrChanged.connect(sigCurrChanged);
-	mClsPath.sigCurrChanged.connect(std::bind(&ModelBrowser::DoRefresh, this));
+	
+	mClsPath.sigBeforePathChange.connect(sigBeforePathChange);
+	
+	//mClsPath.sigAfterPathChange.connect(sigAfterPathChange);
+	mClsPath.sigAfterPathChange.connect(std::bind(&ModelBrowser::DoRefresh, this));
 	
 }
 //-----------------------------------------------------------------------------
@@ -363,7 +376,75 @@ ModelBrowser::~ModelBrowser()
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoRefresh()
 {
+	sigAfterPathChange(*mClsPath.GetCurrent());
+
+	auto p0 = GetTickCount();
+
+	//mClsPath.Refresh();
+
+
+
 	const auto& parent = mClsPath.GetCurrent()->GetValue();
+
+	auto id = mClsPath.GetIdAsString();
+
+	wxString query = wxString::Format(
+		"SELECT  id, title, kind, measure"
+		", (SELECT COALESCE(SUM(qty), 0)"
+		"		FROM obj WHERE obj.cls_id = acls.id GROUP BY cls_id)  AS qty"
+		" FROM acls"
+		" WHERE acls.id > 100 AND pid = %s"
+		" ORDER BY acls.title ASC"
+		, id
+		);
+	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+
+	//sigClear();
+
+
+	if (table)
+	{
+		wxLogMessage(wxString::Format("%d\t %s LOAD BEGIN", GetTickCount() - p0, __FUNCTION__));
+
+		unsigned int rowQty = table->GetRowCount();
+
+		//expand cache
+		for (size_t i = mClsNodeCache.size(); i < rowQty; i++)
+		{
+			std::shared_ptr<ClsRec64> val = std::make_shared<ClsRec64>();
+			auto parent = mClsPath.GetCurrent();
+			auto new_node = std::make_shared<ClsNode>(parent, val);
+			mClsNodeCache.emplace_back(new_node);
+			mClsValCache.emplace_back(val);
+		}
+			
+		
+		NotyfyTable toinsert;
+		for (size_t i = 0; i < rowQty; i++)
+		{
+			std::shared_ptr<ClsNode>& new_node = mClsNodeCache[i];
+			{
+				const std::shared_ptr<ClsRec64>& curr = mClsValCache[i];
+				curr->SetId(table->GetAsString(0, i));
+				table->GetAsString(1, i, curr->mTitle);
+				ToClsKind(table->GetAsString(2, i), curr->mKind);
+				table->GetAsString(3, i, curr->mMeasure);
+			
+			}
+
+			mClsPath.GetCurrent()->AddChild(new_node);
+			toinsert.emplace_back(new_node.get());
+		}
+		wxLogMessage(wxString::Format("%d\t %s LOAD END", GetTickCount() - p0, __FUNCTION__));
+		if (!toinsert.empty())
+			sigAfterInsert(*mClsPath.GetCurrent(), toinsert);
+
+	}//if (table)
+	whDataMgr::GetDB().Commit();
+	wxLogMessage(wxString::Format("%d\t %s END", GetTickCount() - p0, __FUNCTION__));
+	
+	/*
+	//mClsPath.AddValToCurrent(std::make_shared<ClsNode>())
 
 	size_t offset=0;
 	if (parent->GetId() != 1)
@@ -480,92 +561,21 @@ void ModelBrowser::DoRefresh()
 	//RestoreSelect();
 	auto sel_vec = mClsSelected;
 	DoSelect(sel_vec);
-
+	*/
 
 	
-
-
-
 }
 //-----------------------------------------------------------------------------
-void ModelBrowser::DoActivate(const IIdent64* item)
+void ModelBrowser::DoActivate(const ClsNode& item)
 {
-	mClsSelected.clear();
-	if (item)
-	{
-		if (item->GetId() == mClsAll[0]->GetId())
-			DoUp();
-		else
-			mClsPath.SetId(item->GetId());
-	}
-		
-	else
-		mClsPath.Home();
+	mClsPath.SetId(item.GetValue()->GetId());
 	//DoRefresh();
 }
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoUp()
 {
-	auto id = mClsPath.GetId();
-	mClsSelected.clear();
-	mClsSelected.emplace_back(id);
-
 	mClsPath.Up();
 	//DoRefresh();
-}
-//-----------------------------------------------------------------------------
-void ModelBrowser::DoSelect(const NotyfyTable& sel_vec)
-{
-	mClsSelected.clear();
-	NotyfyTable table;
-	for (const auto& void_ptr : sel_vec)
-	{
-		const auto& ptrIdx = mClsAll.get<2>();
-
-		const auto& it = ptrIdx.find(void_ptr);
-		const auto& ss = *it;
-		if (ptrIdx.cend() != it)
-		{
-			const std::shared_ptr<const ICls64>& sel = *it;
-			table.emplace_back(sel.get());
-			mClsSelected.emplace_back(sel->GetId());
-		}
-	}
-	if (mClsSelected.empty() && !mClsAll.empty())
-	{
-		std::shared_ptr<const ICls64> sel = mClsAll.front();
-		table.emplace_back(sel.get());
-	}
-	sigSelected(table);
-
-}
-//-----------------------------------------------------------------------------
-void ModelBrowser::DoSelect(const std::vector<int64_t>& sel_vec)
-{
-	mClsSelected.clear();
-	NotyfyTable table;
-
-	for (const auto& ll_id : sel_vec)
-	{
-		const auto& idIdx = mClsAll.get<1>();
-		
-		const auto& it = idIdx.find(ll_id);
-		const auto& ss = *it;
-		if (idIdx.cend() != it)
-		{
-			auto sel = *it;
-			table.emplace_back(sel.get());
-			mClsSelected.emplace_back(ll_id);
-		}
-	}
-
-	if (mClsSelected.empty() && !mClsAll.empty())
-	{
-		auto sel = mClsAll.front();
-		table.emplace_back(sel.get());
-	}
-
-	sigSelected(table);
 }
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoAct()
