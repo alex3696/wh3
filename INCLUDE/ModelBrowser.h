@@ -25,16 +25,11 @@ class ClsRec64 : public ICls64
 {
 public:
 	ClsRec64(){}
-	ClsRec64(std::shared_ptr<const ICls64>& parent)
-		:mParent(parent)
-	{}
 
 	int64_t		mId;
 	wxString	mTitle;
 	ClsKind		mKind;
 	wxString	mMeasure;
-	std::weak_ptr<const ICls64>			mParent;
-	std::shared_ptr<SpClsConstTable>	mChilds;
 
 	bool SetId(const wxString& str){ return str.ToLongLong(&mId); }
 	void SetId(const int64_t& val) { mId = val; }
@@ -44,39 +39,9 @@ public:
 	virtual       ClsKind	GetKind()const override		{ return mKind; };
 	virtual const wxString& GetMeasure()const override	{ return mMeasure; };
 
-	virtual SpClsConst GetParent()const { return mParent.lock(); }
-	virtual SpClsConstTable GetChilds()const { return *mChilds; }
-
 	virtual const SpObjConstTable&		GetObjects()const override { throw; };
 	virtual const SpPropValConstTable&	GetProperties()const override { throw; };
 
-
-
-};
-
-
-//-----------------------------------------------------------------------------
-class ClsPath : public IPath64
-{
-	SpClsConstTable	mParents;
-public:
-	ClsPath();
-	void Home();
-	void Refresh();
-	void Up();
-	
-	void SetId(const wxString& str);
-	void SetId(const int64_t& val);
-
-	int64_t  GetId()const;
-	wxString GetIdAsString()const;
-
-	const SpClsConstTable& GetParents()const{ return mParents; };
-
-	sig::signal<void(const wxString&)> sigPathChanged;
-	
-
-	virtual wxString AsString()const override;
 };
 
 //-----------------------------------------------------------------------------

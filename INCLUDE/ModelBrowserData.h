@@ -170,12 +170,8 @@ public:
 	virtual		  ClsKind   GetKind()const = 0;
 	virtual const wxString& GetMeasure()const = 0;
 
-	virtual SpClsConst GetParent()const { return SpClsConst(); }
-	virtual SpClsConstTable GetChilds()const { return SpClsConstTable(); }
-
 	virtual const SpObjConstTable&		GetObjects()const = 0;
 	virtual const SpPropValConstTable&	GetProperties()const = 0;
-	//virtual const IClsPath64&			GetPath()const = 0;
 
 };
 
@@ -212,6 +208,9 @@ public:
 
 class ClsNode
 {
+public:
+	using ChildsTable = std::vector<std::shared_ptr<ClsNode>>;
+private:
 	/*
 	struct extr_void_ptr_ClsNode
 	{
@@ -232,7 +231,7 @@ class ClsNode
 			>
 		>;
 	*/
-	using ChildsTable = std::vector<std::shared_ptr<ClsNode>>;
+	
 
 	std::shared_ptr<ICls64>			mValue;
 	std::weak_ptr<const ClsNode>	mParent;
@@ -243,6 +242,7 @@ class ClsNode
 		, std::shared_ptr<const ICls64>)>;
 
 public:
+
 	sigUpdate sigBeforeValChange;
 	sigUpdate sigAfterValChange;
 

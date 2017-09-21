@@ -31,6 +31,11 @@ public:
 		if (!item.IsOk())
 			return true;
 
+		const auto node = static_cast<const ClsNode*> (item.GetID());
+		const auto cls = std::dynamic_pointer_cast<const ICls64>(node->GetValue());
+		if (cls && ClsKind::Abstract != cls->GetKind())
+			return true;
+
 		return false;
 	}
 
@@ -101,23 +106,27 @@ public:
 	virtual unsigned int GetChildren(const wxDataViewItem &parent
 		, wxDataViewItemArray &array) const override
 	{
-		//if (mRoot.empty())
 		if (!mCurrent)
 			return 0;
 
-		if (!parent.IsOk())
+		std::shared_ptr<ClsNode::ChildsTable> node_parent;
+		if (!parent.IsOk() )
 		{
-			auto childs = mCurrent->GetChilds();
-			if (childs)
+			node_parent = mCurrent->GetChilds();
+		}
+		else
+		{
+			node_parent = (static_cast<const ClsNode*> (parent.GetID()))->GetChilds();
+		}
+			
+		if (node_parent && !node_parent->empty())
+		{
+			for (const auto& child : *node_parent)
 			{
-				for (const auto& child : *childs)
-				{
-					wxDataViewItem dvitem((void*)child.get());
-					array.push_back(dvitem);
-				}
-				return array.size();
-
+				wxDataViewItem dvitem((void*)child.get());
+				array.push_back(dvitem);
 			}
+			return array.size();
 
 		}
 
@@ -133,8 +142,6 @@ public:
 	void AddItems(const ClsNode& parent, const NotyfyTable& list)
 	{
 		const ClsNode* pnode = (&parent == mCurrent) ? nullptr : &parent;
-
-
 		wxDataViewItem dvparent((void*)pnode);
 		
 		wxDataViewItemArray arr;
@@ -148,41 +155,23 @@ public:
 
 	void DelItems(const ClsNode& parent, const NotyfyTable& list)
 	{
-		//std::vector<const NotyfyTable::const_iterator> to_del;
-		/*
 		wxDataViewItem dvroot(nullptr);
 
 		wxDataViewItemArray sel_arr;
 		for (const auto& item : list)
 		{
-			const IIdent64* ff = item;
-			auto it = std::find(mRoot.cbegin(), mRoot.cend(), ff);
-			if (mRoot.cend() != it)
-			{
-				//to_del.emplace_back(it);
-				sel_arr.Add(wxDataViewItem((void*)item));
-				//mRoot.erase(it);
-				
-			}
+			sel_arr.Add(wxDataViewItem((void*)item));
 		}
 		
 		ItemsDeleted(dvroot, sel_arr);
-		
-		//for (const auto& dit : to_del)
-		//	mRoot.erase(dit);
-		*/
 	}
 
 	void UpdateItems(const NotyfyTable& list)
 	{
-		/*
 		wxDataViewItemArray arr;
 		for (const auto& item : list)
-		{
 			arr.Add(wxDataViewItem((void*)item));
-		}
-		this->ItemsChanged(arr);
-		*/
+		ItemsChanged(arr);
 	}
 
 	const ClsNode* FindNode(const int64_t& id)const
@@ -213,9 +202,8 @@ public:
 	void SetCurrent(const ClsNode*	current)
 	{
 		if (mCurrent)
-			Clear();
+			Clear();	
 		mCurrent = current;
-		//Cleared();
 	}
 
 	const ClsNode*	GetCurrent()
@@ -273,13 +261,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	auto renderer2 = new wxDataViewTextRenderer();
 	auto renderer3 = new wxDataViewTextRenderer();
 
-	/*
-	auto renderer0 = new wxDataViewTextRenderer();
-	auto col0 = new wxDataViewColumn("#"
-		, renderer0, 0, -1, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
-	table->AppendColumn(col0);
-	*/
-	table->AppendTextColumn("#", 0,wxDATAVIEW_CELL_INERT,-1, wxALIGN_LEFT);
+	//table->AppendTextColumn("#", 0,wxDATAVIEW_CELL_INERT,-1, wxALIGN_LEFT);
 
 	auto col1 = new wxDataViewColumn("Èìÿ"
 		, renderer1, 1, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
@@ -293,9 +275,6 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	table->AppendColumn(col3);
 
 	//table->SetExpanderColumn(col1);
-
-
-	//table->SetCanFocus(false);
 
 	table->GetTargetWindow()->SetToolTip("ToolTip");
 
@@ -332,12 +311,18 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_Refresh(wxCommandEvent& evt)
 {
+	auto p0 = GetTickCount();
+	wxBusyCursor busyCursor;
+	wxWindowUpdateLocker lock(mTable);
 	sigRefresh();
+	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_Up(wxCommandEvent& evt)
 {
 	auto p0 = GetTickCount();
+	wxBusyCursor busyCursor;
+	wxWindowUpdateLocker lock(mTable);
 	sigUp();
 	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
 }
@@ -352,6 +337,40 @@ void ViewTableBrowser::OnCmd_Select(wxDataViewEvent& evt)
 		const ClsNode* node = static_cast<const ClsNode*> (item.GetID());
 		mClsSelected.emplace_back(node->GetValue()->GetId());
 	}
+
+	bool focus = mTable->HasFocus();
+}
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::RestoreSelect()
+{
+	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+	if (!dvmodel)
+		return;
+
+	wxDataViewItemArray arr;
+	for (const auto& sel : mClsSelected)
+	{
+		const ClsNode* finded = dvmodel->FindNode(sel);
+		if (finded)
+		{
+			wxDataViewItem dvitem((void*)finded);
+			arr.Add(dvitem);
+		}
+	}
+
+	if (arr.empty())
+	{
+		const ClsNode* finded = dvmodel->GetTopItem();
+		wxDataViewItem dvitem((void*)finded);
+		arr.Add(dvitem);
+	}
+
+	
+	mTable->SetSelections(arr);
+	mTable->EnsureVisible(arr[0]);
+	mTable->SetCurrentItem(arr[0]);
+	
+	
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
@@ -378,15 +397,24 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 void ViewTableBrowser::OnCmd_Activate(wxDataViewEvent& evt)
 {
 	auto p0 = GetTickCount();
+	wxBusyCursor busyCursor;
+	wxWindowUpdateLocker lock(mTable);
 	auto item = evt.GetItem();
-	const ClsNode* node = static_cast<const ClsNode*> (item.GetID());
-	if (node)
-	{
-		sigActivate(*node);
-	}
-
-	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
 	
+	if (mTable->GetModel()->IsContainer(item))
+	{
+		if (mTable->IsExpanded(item))
+			mTable->Collapse(item);
+		else
+			mTable->Expand(item);
+	}
+	else
+	{
+		const ClsNode* node = static_cast<const ClsNode*> (item.GetID());
+		if (node)
+			sigActivate(*node);
+	}
+	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
 }
 //-----------------------------------------------------------------------------
 //virtual
@@ -396,15 +424,6 @@ void ViewTableBrowser::SetBeforePathChange(const ClsNode& node)// override;
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 	if (!dvmodel)
 		return;
-	
-	mClsSelected.clear();
-	wxDataViewItemArray sel_arr;
-	int sel_count = mTable->GetSelections(sel_arr);
-	for (const auto& item : sel_arr)
-	{
-		const ClsNode* node = static_cast<const ClsNode*> (item.GetID());
-		mClsSelected.emplace_back(node->GetValue()->GetId());
-	}
 
 	if (dvmodel->GetCurrent())
 		mClsSelected.emplace_back(dvmodel->GetCurrent()->GetValue()->GetId());
@@ -420,6 +439,9 @@ void ViewTableBrowser::SetAfterPathChange(const ClsNode& node)// override;
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 	if (!dvmodel)
 		return;
+
+	mTable->Unselect(mTable->GetSelection());
+	mTable->UnselectAll();
 
 	dvmodel->SetCurrent(&node);
 
@@ -458,39 +480,16 @@ void ViewTableBrowser::SetAfterInsert(const ClsNode& parent, const NotyfyTable& 
 		return;
 
 	dvmodel->AddItems(parent, obj_list);
-
-	//mTable->Unselect(mTable->GetSelection());
-	//mTable->UnselectAll();
-
-	wxDataViewItemArray arr;
-	for (const auto& sel : mClsSelected)
-	{
-		const ClsNode* finded = dvmodel->FindNode(sel);
-		if (finded)
-		{
-			wxDataViewItem dvitem((void*)finded);
-			arr.Add(dvitem);
-		}
-	}
-
-	if (arr.empty())
-	{
-		const ClsNode* finded = dvmodel->GetTopItem();
-		wxDataViewItem dvitem((void*)finded);
-		arr.Add(dvitem);
-	}
-
 	
-	mTable->SetSelections(arr);
-	mTable->EnsureVisible(arr[0]);
-	mTable->Refresh();
-
+	RestoreSelect();
 
 	if (mColAutosize)
 	{
 		for (size_t i = 0; i < mTable->GetColumnCount(); i++)
 			mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
 	}
+
+	
 	
 	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
 }
@@ -503,6 +502,8 @@ void ViewTableBrowser::SetAfterUpdate(const ClsNode& parent, const NotyfyTable& 
 		return;
 
 	dvmodel->UpdateItems(list);
+
+	RestoreSelect();
 }
 //-----------------------------------------------------------------------------
 //virtual
@@ -514,6 +515,7 @@ void ViewTableBrowser::SetBeforeDelete(const ClsNode& parent, const NotyfyTable&
 
 	dvmodel->DelItems(parent, list);
 
+	RestoreSelect();
 
 }
 //-----------------------------------------------------------------------------

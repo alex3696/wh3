@@ -225,137 +225,6 @@ wxString ClsTree::AsString()const //override
 	return ret;
 }
 //-----------------------------------------------------------------------------
-
-
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-ClsPath::ClsPath()
-{	
-	Home();
-}
-//-----------------------------------------------------------------------------
-void ClsPath::Home()
-{
-	SetId(1);
-}
-//-----------------------------------------------------------------------------
-void ClsPath::Refresh()
-{
-	if (!mParents.size())
-		Home();
-
-	auto id = GetIdAsString();
-	mParents.clear();
-	//if (1 != GetId())
-	{
-		wxString query = wxString::Format(
-			"SELECT id, title FROM public.get_path_cls_info(%s, 0)"
-			, id);
-		
-		whDataMgr::GetDB().BeginTransaction();
-		auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
-		if (table)
-		{
-			unsigned int rowQty = table->GetRowCount();
-			for (size_t i = 0; i < rowQty; i++)
-			{
-				auto r = std::make_shared<ClsRec64>();
-				r->SetId(table->GetAsString(0, i));
-				table->GetAsString(1, i, r->mTitle);
-				mParents.emplace_back(r);
-			}
-		}//if (table)
-	}//if ("1" != id)
-	sigPathChanged(AsString());
-}
-//-----------------------------------------------------------------------------
-void ClsPath::Up()
-{
-	if (0 == GetId() || 1 == GetId())
-	{
-		Home();
-		return;
-	}	
-	
-	auto id = GetIdAsString();
-	mParents.clear();
-	wxString query = wxString::Format(
-		"SELECT pid FROM acls WHERE id=%s"
-		, id);
-
-	whDataMgr::GetDB().BeginTransaction();
-	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
-	wxString up_id = table->GetAsString(0, 0);
-	whDataMgr::GetDB().Commit();
-
-	SetId(up_id);
-
-		//Refresh();
-}
-//-----------------------------------------------------------------------------
-void ClsPath::SetId(const wxString& str)
-{ 
-	if (!str.IsEmpty())
-	{
-		int64_t tmp;
-		if (str.ToLongLong(&tmp))
-		{
-			SetId(tmp);
-			return;
-		}
-	}
-	Home();
-	//Refresh();
-};
-//-----------------------------------------------------------------------------
-void ClsPath::SetId(const int64_t& val) 
-{ 
-	mParents.clear();
-	auto r = std::make_shared<ClsRec64>();
-	r->mId = val;
-	mParents.emplace_back(r);
-	Refresh();
-}
-//-----------------------------------------------------------------------------
-int64_t  ClsPath::GetId()const
-{
-	return mParents.empty() ? 1 : mParents.front()->GetId();
-}
-//-----------------------------------------------------------------------------
-wxString ClsPath::GetIdAsString()const
-{
-	wxLongLong tmp(GetId());
-	return tmp.ToString();
-}
-//-----------------------------------------------------------------------------
-//virtual 
-wxString ClsPath::AsString()const //override
-{
-	wxString ret;
-	if (!mParents.empty())
-	{
-		size_t i = mParents.size();
-		do{
-			i--;
-
-			wxString val;
-			if (1 == mParents.at(i)->GetId())
-				val = "Òèï:";
-			else
-				val = mParents.at(i)->GetTitle();
-			if (wxNOT_FOUND == val.Find('/'))
-				ret += wxString::Format("%s/", val);
-			else
-				ret += wxString::Format("[%s]/", val);
-		
-		} while (i);
-	}
-	return ret;
-}
-
-//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 ModelBrowser::ModelBrowser()
@@ -376,13 +245,8 @@ ModelBrowser::~ModelBrowser()
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoRefresh()
 {
-	sigAfterPathChange(*mClsPath.GetCurrent());
-
 	auto p0 = GetTickCount();
-
-	//mClsPath.Refresh();
-
-
+	sigAfterPathChange(*mClsPath.GetCurrent());
 
 	const auto& parent = mClsPath.GetCurrent()->GetValue();
 
@@ -400,14 +264,15 @@ void ModelBrowser::DoRefresh()
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
 
 	//sigClear();
-
+	unsigned int offset = 1;
+	unsigned int arrQty = 
+		mClsPath.GetCurrent()->GetChilds()  ? 
+		mClsPath.GetCurrent()->GetChilds()->size():1;
 
 	if (table)
 	{
 		wxLogMessage(wxString::Format("%d\t %s LOAD BEGIN", GetTickCount() - p0, __FUNCTION__));
-
 		unsigned int rowQty = table->GetRowCount();
-
 		//expand cache
 		for (size_t i = mClsNodeCache.size(); i < rowQty; i++)
 		{
@@ -417,7 +282,7 @@ void ModelBrowser::DoRefresh()
 			mClsNodeCache.emplace_back(new_node);
 			mClsValCache.emplace_back(val);
 		}
-			
+		
 		
 		NotyfyTable toinsert;
 		for (size_t i = 0; i < rowQty; i++)
