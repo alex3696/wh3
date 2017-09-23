@@ -4,69 +4,6 @@
 using namespace wh;
 
 //-----------------------------------------------------------------------------
-
-ClsNode::ClsNode()
-{
-
-}
-//-----------------------------------------------------------------------------
-ClsNode::ClsNode(const std::shared_ptr<const ClsNode>& parent)
-	:mParent(parent)
-{
-}
-//-----------------------------------------------------------------------------
-ClsNode::ClsNode(const std::shared_ptr<const ClsNode>& parent
-	, const std::shared_ptr<ICls64>& value)
-	: mParent(parent), mValue(value)
-{
-
-}
-
-
-//-----------------------------------------------------------------------------
-void ClsNode::SetValue(const std::shared_ptr<ICls64>& new_value)
-{
-	sigBeforeValChange(*this, mValue, new_value);
-		
-	auto tmp = mValue;
-	mValue = new_value;
-
-	sigBeforeValChange(*this, mValue, new_value);
-}
-//-----------------------------------------------------------------------------
-std::shared_ptr<const ICls64> ClsNode::GetValue()const
-{
-	return mValue;
-}
-//-----------------------------------------------------------------------------
-void ClsNode::ClearChilds()
-{
-	mChild.reset();
-}
-//-----------------------------------------------------------------------------
-void ClsNode::AddChild(const std::shared_ptr<ClsNode>& new_node)
-{
-	if (!mChild)
-		mChild = std::make_shared<ChildsTable>();
-
-	mChild->emplace_back(new_node);
-
-}
-
-
-//-----------------------------------------------------------------------------
-std::shared_ptr<const ClsNode> ClsNode::GetParent()const
-{ 
-	return mParent.lock(); 
-}
-//-----------------------------------------------------------------------------
-void ClsNode::SetParent(const std::shared_ptr<const ClsNode>& parent)
-{
-	mParent = parent;
-}
-
-
-//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 ClsTree::ClsTree()

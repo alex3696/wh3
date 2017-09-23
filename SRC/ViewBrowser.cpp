@@ -45,7 +45,7 @@ public:
 	{
 
 		const auto node = static_cast<const ClsNode*> (dvitem.GetID());
-		const auto cls = node->GetValue();
+		const auto cls = std::dynamic_pointer_cast<const ICls64>(node->GetValue());
 		if (!cls)
 		{
 			if(1==col)

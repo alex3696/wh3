@@ -233,33 +233,62 @@ private:
 	*/
 	
 
-	std::shared_ptr<ICls64>			mValue;
+	std::shared_ptr<IIdent64>		mValue;
 	std::weak_ptr<const ClsNode>	mParent;
 	std::shared_ptr<ChildsTable>	mChild;
 
 	using sigUpdate = sig::signal < void(const ClsNode&
-		, std::shared_ptr<const ICls64>
-		, std::shared_ptr<const ICls64>)>;
+		, std::shared_ptr<const IIdent64>
+		, std::shared_ptr<const IIdent64>)>;
 
 public:
 
-	sigUpdate sigBeforeValChange;
-	sigUpdate sigAfterValChange;
+	//sigUpdate sigBeforeValChange;
+	//sigUpdate sigAfterValChange;
 
-	ClsNode();
-	ClsNode(const std::shared_ptr<const ClsNode>& parent);
+	ClsNode(){};
+	ClsNode(const std::shared_ptr<const ClsNode>& parent)
+		:mParent(parent)
+	{}
 	ClsNode(const std::shared_ptr<const ClsNode>& parent
-		, const std::shared_ptr<ICls64>& value);
+		, const std::shared_ptr<ICls64>& value)
+		: mParent(parent), mValue(value)
+	{}
 
-	void SetValue(const std::shared_ptr<ICls64>& new_value);
-	std::shared_ptr<const ICls64> GetValue()const;
-	void ClearChilds();
+	std::shared_ptr<const ClsNode> GetParent()const
+	{
+		return mParent.lock();
+	}
+	void SetParent(const std::shared_ptr<const ClsNode>& parent)
+	{
+		mParent = parent;
+	}
 
-	void AddChild(const std::shared_ptr<ClsNode>& child);
+	std::shared_ptr<const IIdent64> GetValue()const
+	{
+		return mValue;
+	}
+	void SetValue(const std::shared_ptr<IIdent64>& new_value)
+	{
+		mValue = new_value;
+		//sigBeforeValChange(*this, mValue, new_value);
+		//auto tmp = mValue;
+		//mValue = new_value;
+		//sigBeforeValChange(*this, mValue, new_value);
 
-	std::shared_ptr<const ClsNode> GetParent()const;
-	void SetParent(const std::shared_ptr<const ClsNode>& parent);
+	}
+	
+	void ClearChilds()
+	{
+		mChild.reset();
+	}
+	void AddChild(const std::shared_ptr<ClsNode>& new_node)
+	{
+		if (!mChild)
+			mChild = std::make_shared<ChildsTable>();
 
+		mChild->emplace_back(new_node);
+	}
 	const std::shared_ptr<ChildsTable> GetChilds()const
 	{
 		return mChild;
