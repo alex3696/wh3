@@ -130,7 +130,7 @@ DECLARE
   _olog CURSOR IS
     SELECT log_dt, src_oid, log.dst_oid FROM log 
       WHERE mobj_id= _oid 
-        AND act_id IS NULL
+        AND (act_id =0 OR act_id IS NULL)
         AND log_dt>=_begin AND log_dt<=_end 
     ORDER BY log_dt ASC
     ;
