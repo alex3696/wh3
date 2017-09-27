@@ -15,7 +15,7 @@ class ViewTableBrowser : public IViewTableBrowser
 
 	bool			mColAutosize = true;
 
-	std::vector<int64_t> mClsSelected;
+	int64_t mClsSelected=0;
 	void RestoreSelect();
 protected:
 	void OnCmd_Refresh(wxCommandEvent& evt);

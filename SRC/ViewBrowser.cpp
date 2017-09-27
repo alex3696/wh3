@@ -95,9 +95,11 @@ public:
 			return wxDataViewItem(nullptr);
 
 		const auto node = static_cast<const ClsNode*> (item.GetID());
-		if (node && !(node->GetParent().get() == mCurrent))
+		if (node)
 		{
-			return wxDataViewItem((void*)node->GetParent().get());
+			const ClsNode* parent = node->GetParent().get();
+			if(parent!= mCurrent)
+				return wxDataViewItem((void*)node->GetParent().get());
 		}
 			
 
@@ -329,16 +331,12 @@ void ViewTableBrowser::OnCmd_Up(wxCommandEvent& evt)
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_Select(wxDataViewEvent& evt)
 {
-	mClsSelected.clear();
-	wxDataViewItemArray sel_arr;
-	int sel_count = mTable->GetSelections(sel_arr);
-	for (const auto& item : sel_arr)
-	{
-		const ClsNode* node = static_cast<const ClsNode*> (item.GetID());
-		mClsSelected.emplace_back(node->GetValue()->GetId());
-	}
+	mClsSelected=0;
+	
+	const ClsNode* node = static_cast<const ClsNode*> (mTable->GetCurrentItem().GetID());
+	if(node)
+		mClsSelected=node->GetValue()->GetId();
 
-	bool focus = mTable->HasFocus();
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::RestoreSelect()
@@ -347,29 +345,25 @@ void ViewTableBrowser::RestoreSelect()
 	if (!dvmodel)
 		return;
 
-	wxDataViewItemArray arr;
-	for (const auto& sel : mClsSelected)
+	wxDataViewItem dvitem;
+	if(mClsSelected)
 	{
-		const ClsNode* finded = dvmodel->FindNode(sel);
+		const ClsNode* finded = dvmodel->FindNode(mClsSelected);
 		if (finded)
-		{
-			wxDataViewItem dvitem((void*)finded);
-			arr.Add(dvitem);
-		}
+			dvitem = wxDataViewItem((void*)finded);
 	}
 
-	if (arr.empty())
+	if (!dvitem.IsOk())
 	{
 		const ClsNode* finded = dvmodel->GetTopItem();
-		wxDataViewItem dvitem((void*)finded);
-		arr.Add(dvitem);
+		if (finded)
+			dvitem = wxDataViewItem((void*)finded);
 	}
-
 	
-	mTable->SetSelections(arr);
-	mTable->EnsureVisible(arr[0]);
-	mTable->SetCurrentItem(arr[0]);
 	
+	mTable->SetCurrentItem(dvitem);
+	mTable->Select(dvitem);
+	mTable->EnsureVisible(dvitem);
 	
 }
 //-----------------------------------------------------------------------------
@@ -426,7 +420,7 @@ void ViewTableBrowser::SetBeforePathChange(const ClsNode& node)// override;
 		return;
 
 	if (dvmodel->GetCurrent())
-		mClsSelected.emplace_back(dvmodel->GetCurrent()->GetValue()->GetId());
+		mClsSelected=dvmodel->GetCurrent()->GetValue()->GetId();
 	
 	dvmodel->Clear();
 	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
@@ -440,11 +434,7 @@ void ViewTableBrowser::SetAfterPathChange(const ClsNode& node)// override;
 	if (!dvmodel)
 		return;
 
-	mTable->Unselect(mTable->GetSelection());
-	mTable->UnselectAll();
-
 	dvmodel->SetCurrent(&node);
-
 
 	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
 }

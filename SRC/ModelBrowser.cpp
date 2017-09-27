@@ -76,7 +76,7 @@ void ClsTree::Refresh()
 				auto curr = std::make_shared<ClsNode>(mCurrent);
 				curr->SetValue(value);
 
-				mRoot->AddChild(curr);
+				mCurrent->AddChild(curr);
 				mCurrent = curr;
 
 					
@@ -183,11 +183,10 @@ ModelBrowser::~ModelBrowser()
 void ModelBrowser::DoRefresh()
 {
 	auto p0 = GetTickCount();
-	sigAfterPathChange(*mClsPath.GetCurrent());
-
-	const auto& parent = mClsPath.GetCurrent()->GetValue();
-
+	std::shared_ptr<ClsNode>& parent_node = mClsPath.GetCurrent();
 	auto id = mClsPath.GetIdAsString();
+	
+	sigAfterPathChange(*parent_node);
 
 	wxString query = wxString::Format(
 		"SELECT  id, title, kind, measure"
@@ -203,19 +202,20 @@ void ModelBrowser::DoRefresh()
 	//sigClear();
 	unsigned int offset = 1;
 	unsigned int arrQty = 
-		mClsPath.GetCurrent()->GetChilds()  ? 
-		mClsPath.GetCurrent()->GetChilds()->size():1;
+		parent_node->GetChilds()  ?
+		parent_node->GetChilds()->size():1;
 
 	if (table)
 	{
 		wxLogMessage(wxString::Format("%d\t %s LOAD BEGIN", GetTickCount() - p0, __FUNCTION__));
 		unsigned int rowQty = table->GetRowCount();
 		//expand cache
+		for (size_t i = 0; i < mClsNodeCache.size(); i++)
+			mClsNodeCache[i]->SetParent(parent_node);
 		for (size_t i = mClsNodeCache.size(); i < rowQty; i++)
 		{
 			std::shared_ptr<ClsRec64> val = std::make_shared<ClsRec64>();
-			auto parent = mClsPath.GetCurrent();
-			auto new_node = std::make_shared<ClsNode>(parent, val);
+			auto new_node = std::make_shared<ClsNode>(parent_node, val);
 			mClsNodeCache.emplace_back(new_node);
 			mClsValCache.emplace_back(val);
 		}
@@ -234,12 +234,12 @@ void ModelBrowser::DoRefresh()
 			
 			}
 
-			mClsPath.GetCurrent()->AddChild(new_node);
+			parent_node->AddChild(new_node);
 			toinsert.emplace_back(new_node.get());
 		}
 		wxLogMessage(wxString::Format("%d\t %s LOAD END", GetTickCount() - p0, __FUNCTION__));
 		if (!toinsert.empty())
-			sigAfterInsert(*mClsPath.GetCurrent(), toinsert);
+			sigAfterInsert(*parent_node, toinsert);
 
 	}//if (table)
 	whDataMgr::GetDB().Commit();
