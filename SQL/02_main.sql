@@ -528,7 +528,7 @@ CREATE TABLE obj_num (
      REFERENCES obj_num( id )       MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
 
  ,CONSTRAINT pk_objnum__id          PRIMARY KEY(id)
- ,CONSTRAINT uk_objnum__id_cid      UNIQUE (id,cls_id)
+ ,CONSTRAINT uk_objnum__cid_id      UNIQUE (cls_id, id)
  ,CONSTRAINT fk_objnum__idclsid     FOREIGN KEY (id,cls_id,cls_kind)
     REFERENCES                          obj_name(id,cls_id,cls_kind)
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
@@ -560,7 +560,7 @@ CREATE TABLE obj_qtyi (
    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX idx_objqtyi_pid ON obj_qtyi (pid) ;
-CREATE INDEX idx_objqtyi_id_cid ON obj_qtyi (id, cls_id);
+CREATE INDEX idx_objqtyi_cid_id ON obj_qtyi (cls_id, id);
 
 GRANT SELECT        ON TABLE obj_qtyi  TO "Guest";
 GRANT INSERT        ON TABLE obj_qtyi  TO "User";
@@ -586,7 +586,7 @@ CREATE TABLE obj_qtyf (
    MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX idx_objqtyf_pid ON obj_qtyf (pid) ;
-CREATE INDEX idx_objqtyf_id_cid ON obj_qtyf (id, cls_id);
+CREATE INDEX idx_objqtyf_cid_id ON obj_qtyf (cls_id, id);
 
 GRANT SELECT        ON TABLE obj_qtyf  TO "Guest";
 GRANT INSERT        ON TABLE obj_qtyf  TO "User";
@@ -732,8 +732,8 @@ GRANT DELETE,INSERT,UPDATE  ON TABLE report TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 DROP VIEW IF EXISTS obj CASCADE;
-CREATE VIEW obj AS
-SELECT id, pid, title, cdif.cls_id, prop, qty, move_logid, act_logid,cdif.cls_kind FROM
+CREATE OR REPLACE VIEW obj AS
+SELECT id, pid, title, cdif.cls_id, prop, qty, move_logid, act_logid,cdif.cls_kind::smallint FROM
 (
 SELECT id, pid,1::NUMERIC AS qty,cls_id,cls_kind FROM obj_num
 UNION ALL
