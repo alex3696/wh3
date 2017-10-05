@@ -43,6 +43,39 @@ public:
 	virtual const SpPropValConstTable&	GetProperties()const override { throw; };
 
 };
+//-----------------------------------------------------------------------------
+class ObjRec64 : public IObj64
+{
+public:
+	ObjRec64() {}
+
+	int64_t		mId;
+	wxString	mTitle;
+	wxString	mQty;
+	int64_t		mParentOid;
+
+	std::shared_ptr<ICls64>	mCls;
+
+	bool SetId(const wxString& str) { return str.ToLongLong(&mId); }
+	void SetId(const int64_t& val) { mId = val; }
+
+	virtual const int64_t&  GetId()const override { return mId; }
+	virtual const wxString& GetTitle()const override { return mTitle; };
+
+	bool SetParentOid(const wxString& str) 
+	{ 
+		return str.ToLongLong(&mParentOid);
+	}
+
+
+	virtual SpClsConst GetCls()const override { return mCls; }
+
+	virtual const SpPropValConstTable&	GetProperties()const override { throw; }
+	virtual const IObjPath64&			GetPath()const override { throw; }
+
+};
+
+
 
 //-----------------------------------------------------------------------------
 class ClsTree : public IPath64
@@ -67,7 +100,7 @@ public:
 	wxString GetIdAsString()const;
 
 	
-	std::shared_ptr<const ClsNode> AddValToCurrent(const std::shared_ptr<ICls64>& val);
+	//std::shared_ptr<const ClsNode> AddValToCurrent(const std::shared_ptr<ICls64>& val);
 
 
 	virtual wxString AsString()const override;
@@ -79,22 +112,21 @@ public:
 //-----------------------------------------------------------------------------
 class ModelBrowser
 {
+	bool mGroupByType;
+
 	ClsTree		mClsPath;
 
-	std::vector<std::shared_ptr<ClsNode>> mClsNodeCache;
-	std::vector<std::shared_ptr<ClsRec64>> mClsValCache;
-
-
-
-	SpClsTable	mClsAll;
-	
+	std::vector<std::shared_ptr<ClsNode>>	mClsNodeCache;
+	std::vector<std::shared_ptr<ClsRec64>>	mClsValCache;
 
 public:
 	ModelBrowser();
 	~ModelBrowser();
 
 	void DoRefresh();
-	void DoActivate(const ClsNode& item);
+	void DoRefreshNodeChilds(const std::shared_ptr<ClsNode>& parent_node);
+
+	void DoActivate(int64_t id);
 	void DoUp();
 
 	void DoAct();

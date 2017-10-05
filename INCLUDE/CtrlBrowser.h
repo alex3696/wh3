@@ -36,13 +36,15 @@ public:
 
 	void Refresh();
 	void Up();
-	void Activate(const ClsNode&);
+	void Activate(int64_t id);
 
 
 };
 //-----------------------------------------------------------------------------
 class CtrlToolbarBrowser final : public CtrlWindowBase<IViewToolbarBrowser, ModelPageBrowser>
 {
+	sig::scoped_connection connModel_GroupByType;
+
 	sig::scoped_connection connViewCmd_Refresh;
 	sig::scoped_connection connViewCmd_Up;
 

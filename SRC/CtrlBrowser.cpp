@@ -56,9 +56,9 @@ void CtrlTableBrowser::Up()
 	mModel->GetModelBrowser()->DoUp();
 }
 //---------------------------------------------------------------------------
-void CtrlTableBrowser::Activate(const ClsNode& item)
+void CtrlTableBrowser::Activate(int64_t id)
 {
-	mModel->GetModelBrowser()->DoActivate(item);
+	mModel->GetModelBrowser()->DoActivate(id);
 }
 
 //---------------------------------------------------------------------------
@@ -70,6 +70,10 @@ CtrlToolbarBrowser::CtrlToolbarBrowser(
 	: CtrlWindowBase(view, model)
 {
 	namespace ph = std::placeholders;
+
+	connModel_GroupByType = mModel->GetModelBrowser()->sigGroupByType.connect
+		(std::bind(&IViewToolbarBrowser::SetGroupByType, mView.get(), ph::_1));
+
 
 	connViewCmd_Refresh = mView->sigRefresh
 		.connect(std::bind(&CtrlToolbarBrowser::Refresh, this));

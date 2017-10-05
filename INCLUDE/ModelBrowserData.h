@@ -251,7 +251,7 @@ public:
 		:mParent(parent)
 	{}
 	ClsNode(const std::shared_ptr<const ClsNode>& parent
-		, const std::shared_ptr<ICls64>& value)
+		, const std::shared_ptr<IIdent64>& value)
 		: mParent(parent), mValue(value)
 	{}
 
@@ -287,9 +287,10 @@ public:
 		if (!mChild)
 			mChild = std::make_shared<ChildsTable>();
 
+		//new_node->SetParent(shared_from_this);
 		mChild->emplace_back(new_node);
 	}
-	const std::shared_ptr<ChildsTable> GetChilds()const
+	const std::shared_ptr<const ChildsTable> GetChilds()const
 	{
 		return mChild;
 	}

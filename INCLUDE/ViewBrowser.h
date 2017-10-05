@@ -23,6 +23,7 @@ protected:
 	void OnCmd_Select(wxDataViewEvent& evt);
 	void OnCmd_MouseMove(wxMouseEvent& evt);
 	void OnCmd_Activate(wxDataViewEvent& evt);
+	void OnCmd_Expanding(wxDataViewEvent& evt);
 	
 public:
 	ViewTableBrowser(wxWindow* parent);

@@ -133,6 +133,7 @@ wxString ClsTree::GetIdAsString()const
 	return tmp.ToString();
 }
 //-----------------------------------------------------------------------------
+/*
 std::shared_ptr<const ClsNode> ClsTree::AddValToCurrent(const std::shared_ptr<ICls64>& val)
 {
 	//auto p0 = GetTickCount();
@@ -143,6 +144,7 @@ std::shared_ptr<const ClsNode> ClsTree::AddValToCurrent(const std::shared_ptr<IC
 	//wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
 	return new_node;
 }
+*/
 //-----------------------------------------------------------------------------
 wxString ClsTree::AsString()const //override
 {
@@ -180,13 +182,78 @@ ModelBrowser::~ModelBrowser()
 	
 }
 //-----------------------------------------------------------------------------
+void ModelBrowser::DoRefreshNodeChilds(const std::shared_ptr<ClsNode>& parent_node)
+{
+	auto p0 = GetTickCount();
+	auto cls = std::dynamic_pointer_cast<const ClsRec64>(parent_node->GetValue());
+	if (!cls)
+		return;
+
+	NotyfyTable todelete;
+	const auto& curr_childs = parent_node->GetChilds();
+	if (curr_childs && !curr_childs->empty())
+	{
+		for (const auto& child : *curr_childs)
+			todelete.emplace_back(child.get());
+		sigBeforeDelete(*parent_node, todelete);
+		parent_node->ClearChilds();
+	}
+	
+
+
+	wxString query = wxString::Format(
+		"SELECT o.id, o.title, o.qty, o.pid "
+		" FROM obj o "
+		" WHERE o.id>0 AND o.cls_id = %s "
+		" ORDER BY "
+		"   (substring(o.title, '^[0-9]+')::INT, o.title ) ASC "
+		, cls->GetIdAsString()
+	);
+	whDataMgr::GetDB().BeginTransaction();
+	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+	if (table)
+	{
+		unsigned int rowQty = table->GetRowCount();
+
+		NotyfyTable toinsert;
+		for (size_t i = 0; i < rowQty; i++)
+		{
+			std::shared_ptr<ClsNode>& new_node = std::make_shared<ClsNode>();
+			{
+				std::shared_ptr<ObjRec64>& obj = std::make_shared<ObjRec64>();
+				obj->SetId(table->GetAsString(0, i));
+				table->GetAsString(1, i, obj->mTitle);
+				table->GetAsString(2, i, obj->mQty);
+				obj->SetParentOid(table->GetAsString(3, i));
+
+				new_node->SetValue(obj);
+			}
+			
+			new_node->SetParent(parent_node);
+
+			parent_node->AddChild(new_node);
+			toinsert.emplace_back(new_node.get());
+		}
+		//if (!toinsert.empty())
+		//	sigAfterInsert(*parent_node, toinsert);
+
+
+	}//if (table)
+	whDataMgr::GetDB().Commit();
+	wxLogMessage(wxString::Format("%d\t %s END", GetTickCount() - p0, __FUNCTION__));
+
+}
+
+//-----------------------------------------------------------------------------
 void ModelBrowser::DoRefresh()
 {
 	auto p0 = GetTickCount();
 	std::shared_ptr<ClsNode>& parent_node = mClsPath.GetCurrent();
 	auto id = mClsPath.GetIdAsString();
 	
-	sigAfterPathChange(*parent_node);
+	//sigClear();
+	parent_node->ClearChilds();
+	//sigAfterPathChange(*parent_node); // при смене корня сбрасывается весь кэш
 
 	wxString query = wxString::Format(
 		"SELECT  id, title, kind, measure"
@@ -197,21 +264,14 @@ void ModelBrowser::DoRefresh()
 		" ORDER BY acls.title ASC"
 		, id
 		);
+	whDataMgr::GetDB().BeginTransaction();
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
-
-	//sigClear();
-	unsigned int offset = 1;
-	unsigned int arrQty = 
-		parent_node->GetChilds()  ?
-		parent_node->GetChilds()->size():1;
 
 	if (table)
 	{
-		wxLogMessage(wxString::Format("%d\t %s LOAD BEGIN", GetTickCount() - p0, __FUNCTION__));
 		unsigned int rowQty = table->GetRowCount();
+		/*
 		//expand cache
-		for (size_t i = 0; i < mClsNodeCache.size(); i++)
-			mClsNodeCache[i]->SetParent(parent_node);
 		for (size_t i = mClsNodeCache.size(); i < rowQty; i++)
 		{
 			std::shared_ptr<ClsRec64> val = std::make_shared<ClsRec64>();
@@ -219,27 +279,34 @@ void ModelBrowser::DoRefresh()
 			mClsNodeCache.emplace_back(new_node);
 			mClsValCache.emplace_back(val);
 		}
+		*/
 		
-		
+		//insert
 		NotyfyTable toinsert;
 		for (size_t i = 0; i < rowQty; i++)
 		{
-			std::shared_ptr<ClsNode>& new_node = mClsNodeCache[i];
-			{
-				const std::shared_ptr<ClsRec64>& curr = mClsValCache[i];
-				curr->SetId(table->GetAsString(0, i));
-				table->GetAsString(1, i, curr->mTitle);
-				ToClsKind(table->GetAsString(2, i), curr->mKind);
-				table->GetAsString(3, i, curr->mMeasure);
 			
-			}
+			//const std::shared_ptr<ClsRec64>&	curr = mClsValCache[i];
+			auto curr = std::make_shared<ClsRec64>();
+			curr->SetId(table->GetAsString(0, i));
+			table->GetAsString(1, i, curr->mTitle);
+			ToClsKind(table->GetAsString(2, i), curr->mKind);
+			table->GetAsString(3, i, curr->mMeasure);
 
+			//const std::shared_ptr<ClsNode>&		new_node = mClsNodeCache[i];
+			//new_node->SetValue(curr);
+			//new_node->SetParent(parent_node);
+			auto new_node = std::make_shared<ClsNode>(parent_node, curr);
+			
+			
+			
 			parent_node->AddChild(new_node);
 			toinsert.emplace_back(new_node.get());
 		}
-		wxLogMessage(wxString::Format("%d\t %s LOAD END", GetTickCount() - p0, __FUNCTION__));
-		if (!toinsert.empty())
-			sigAfterInsert(*parent_node, toinsert);
+		sigAfterPathChange(*parent_node);
+
+		//if (!toinsert.empty())
+		//	sigAfterInsert(*parent_node, toinsert);
 
 	}//if (table)
 	whDataMgr::GetDB().Commit();
@@ -368,10 +435,38 @@ void ModelBrowser::DoRefresh()
 	
 }
 //-----------------------------------------------------------------------------
-void ModelBrowser::DoActivate(const ClsNode& item)
+void ModelBrowser::DoActivate(int64_t id)
 {
-	mClsPath.SetId(item.GetValue()->GetId());
-	//DoRefresh();
+	auto p0 = GetTickCount();
+
+	const auto& curr_childs = mClsPath.GetCurrent()->GetChilds();
+	if (!curr_childs || curr_childs->empty() )
+		return;
+
+	auto it = std::find_if(curr_childs->cbegin(), curr_childs->cend()
+		, [&id](const std::shared_ptr<ClsNode>& it)
+		{
+			return it->GetValue()->GetId() == id;
+		});
+
+	if (curr_childs->cend() == it)
+		return;
+
+	const std::shared_ptr<ClsNode>& parent_node = *it;
+
+
+
+	auto cls = std::dynamic_pointer_cast<const ClsRec64>(parent_node->GetValue());
+
+	if (cls)
+	{
+		if(ClsKind::Abstract == cls->GetKind())
+			mClsPath.SetId(id);
+		else
+			DoRefreshNodeChilds(parent_node);
+	}
+		
+
 }
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoUp()
@@ -410,6 +505,8 @@ void ModelBrowser::DoUpdateSelected()
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoGroupByType(bool enable_group_by_type)
 {
+	mGroupByType = enable_group_by_type;
+	sigGroupByType(mGroupByType);
 }
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoCollapseGroupByType(bool enable_collapse_by_type)
