@@ -30,6 +30,7 @@ public:
 	wxString	mTitle;
 	ClsKind		mKind;
 	wxString	mMeasure;
+	wxString	mObjQty;
 
 	bool SetId(const wxString& str){ return str.ToLongLong(&mId); }
 	void SetId(const int64_t& val) { mId = val; }
@@ -38,6 +39,7 @@ public:
 	virtual const wxString& GetTitle()const override	{ return mTitle; };
 	virtual       ClsKind	GetKind()const override		{ return mKind; };
 	virtual const wxString& GetMeasure()const override	{ return mMeasure; };
+	virtual const wxString& GetObjectsQty()const override { return mObjQty; };
 
 	virtual const SpObjConstTable&		GetObjects()const override { throw; };
 	virtual const SpPropValConstTable&	GetProperties()const override { throw; };
@@ -54,13 +56,15 @@ public:
 	wxString	mQty;
 	int64_t		mParentOid;
 
-	std::shared_ptr<ICls64>	mCls;
+	std::shared_ptr<const ICls64>	mCls;
 
 	bool SetId(const wxString& str) { return str.ToLongLong(&mId); }
 	void SetId(const int64_t& val) { mId = val; }
 
 	virtual const int64_t&  GetId()const override { return mId; }
 	virtual const wxString& GetTitle()const override { return mTitle; };
+
+	virtual wxString					GetQty()const override { return mQty; };
 
 	bool SetParentOid(const wxString& str) 
 	{ 

@@ -16,7 +16,10 @@ class ViewTableBrowser : public IViewTableBrowser
 	bool			mColAutosize = true;
 
 	int64_t mClsSelected=0;
+	int64_t mObjSelected = 0;
+
 	void RestoreSelect();
+	void AutosizeColumns();
 protected:
 	void OnCmd_Refresh(wxCommandEvent& evt);
 	void OnCmd_Up(wxCommandEvent& evt);

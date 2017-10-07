@@ -169,6 +169,7 @@ class ICls64 : public IIdent64
 public:
 	virtual		  ClsKind   GetKind()const = 0;
 	virtual const wxString& GetMeasure()const = 0;
+	virtual const wxString& GetObjectsQty()const = 0;
 
 	virtual const SpObjConstTable&		GetObjects()const = 0;
 	virtual const SpPropValConstTable&	GetProperties()const = 0;
@@ -179,6 +180,8 @@ public:
 class IObj64 : public IIdent64
 {
 public:
+	virtual wxString					GetQty()const = 0;
+
 	virtual SpClsConst					GetCls()const = 0;
 
 	virtual const SpPropValConstTable&	GetProperties()const = 0;

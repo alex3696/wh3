@@ -221,6 +221,7 @@ void ModelBrowser::DoRefreshNodeChilds(const std::shared_ptr<ClsNode>& parent_no
 			std::shared_ptr<ClsNode>& new_node = std::make_shared<ClsNode>();
 			{
 				std::shared_ptr<ObjRec64>& obj = std::make_shared<ObjRec64>();
+				obj->mCls = cls;
 				obj->SetId(table->GetAsString(0, i));
 				table->GetAsString(1, i, obj->mTitle);
 				table->GetAsString(2, i, obj->mQty);
@@ -260,7 +261,7 @@ void ModelBrowser::DoRefresh()
 		", (SELECT COALESCE(SUM(qty), 0)"
 		"		FROM obj WHERE obj.cls_id = acls.id GROUP BY cls_id)  AS qty"
 		" FROM acls"
-		" WHERE acls.id > 100 AND pid = %s"
+		" WHERE acls.id > 99 AND pid = %s"
 		" ORDER BY acls.title ASC"
 		, id
 		);
@@ -292,6 +293,7 @@ void ModelBrowser::DoRefresh()
 			table->GetAsString(1, i, curr->mTitle);
 			ToClsKind(table->GetAsString(2, i), curr->mKind);
 			table->GetAsString(3, i, curr->mMeasure);
+			table->GetAsString(4, i, curr->mObjQty);
 
 			//const std::shared_ptr<ClsNode>&		new_node = mClsNodeCache[i];
 			//new_node->SetValue(curr);

@@ -67,26 +67,31 @@ public:
 			case ClsKind::QtyByFloat:
 			default: ico = &mgr->m_ico_type_qty24;	break;
 			}
-			variant << wxDataViewIconText(cls->GetTitle(), *ico);
+			variant << wxDataViewIconText(
+				ClsKind::Abstract == cls->GetKind() ? cls->GetTitle() : wxString::Format("%s - %s (%s)"
+																					, cls->GetTitle()
+																					, cls->GetObjectsQty()
+																					, cls->GetMeasure() )
+				, *ico);
 			break;
-		case 2:		break;
-		case 3:		variant = cls->GetMeasure();	break;
 		default: break;
 		}
 	}
 
 	void GetObjValue(wxVariant &variant, unsigned int col
-		, const std::shared_ptr<const IObj64>& cls) const
+		, const std::shared_ptr<const IObj64>& obj) const
 	{
 		const wxIcon*  ico(&wxNullIcon);
 		auto mgr = ResMgr::GetInstance();
 
 		switch (col)
 		{
-		case 0: variant = cls->GetIdAsString();	break;
-		case 1: variant << wxDataViewIconText(cls->GetTitle(), *ico); break;
-		case 2:		break;
-		case 3:		break;
+		case 0: variant = obj->GetIdAsString();	break;
+		case 1: variant << wxDataViewIconText(obj->GetTitle(), *ico); break;
+		case 2: variant = wxString::Format("%s (%s)"
+							, obj->GetQty()
+							, obj->GetCls()->GetMeasure() ); 
+			break;
 		default: break;
 		}
 	}
@@ -324,7 +329,6 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	renderer1->SetAttr(attr);
 
 	auto renderer2 = new wxDataViewTextRenderer();
-	auto renderer3 = new wxDataViewTextRenderer();
 
 	//table->AppendTextColumn("#", 0,wxDATAVIEW_CELL_INERT,-1, wxALIGN_LEFT);
 
@@ -335,11 +339,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 		, renderer2, 2, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
 	table->AppendColumn(col2);
 	
-	auto col3 = new wxDataViewColumn("Ед.изм"
-		, renderer3, 3, 80, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
-	table->AppendColumn(col3);
-
-	auto col4 = table->AppendTextColumn("Тип/Местоположение", 4);
+	auto col3 = table->AppendTextColumn("Тип/Местоположение", 3);
 
 
 	//table->SetExpanderColumn(col1);
@@ -402,10 +402,26 @@ void ViewTableBrowser::OnCmd_Up(wxCommandEvent& evt)
 void ViewTableBrowser::OnCmd_Select(wxDataViewEvent& evt)
 {
 	mClsSelected=0;
+	mObjSelected = 0;
 	
 	const ClsNode* node = static_cast<const ClsNode*> (mTable->GetCurrentItem().GetID());
-	if(node)
-		mClsSelected=node->GetValue()->GetId();
+	if (node)
+	{
+		const auto ident = node->GetValue();
+		const auto& obj = std::dynamic_pointer_cast<const IObj64>(ident);
+		if (obj)
+		{
+			mObjSelected = obj->GetId();
+			mClsSelected = obj->GetCls()->GetId();
+		}
+		else
+		{
+			const auto& cls = std::dynamic_pointer_cast<const ICls64>(ident);
+			if(cls)
+				mClsSelected = cls->GetId();
+		}
+	}//if (node)
+
 
 }
 //-----------------------------------------------------------------------------
@@ -436,6 +452,16 @@ void ViewTableBrowser::RestoreSelect()
 	mTable->EnsureVisible(dvitem);
 	
 }
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::AutosizeColumns()
+{
+	if (mColAutosize)
+	{
+		for (size_t i = 0; i < mTable->GetColumnCount(); i++)
+			mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
+	}
+}
+
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 {
@@ -519,6 +545,7 @@ void ViewTableBrowser::SetAfterPathChange(const ClsNode& node)// override;
 		return;
 
 	dvmodel->SetCurrent(&node);
+	AutosizeColumns();
 	RestoreSelect();
 
 	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
@@ -568,12 +595,7 @@ void ViewTableBrowser::SetAfterInsert(const ClsNode& parent, const NotyfyTable& 
 	
 	
 
-	if (mColAutosize)
-	{
-		for (size_t i = 0; i < mTable->GetColumnCount(); i++)
-			mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
-	}
-	
+	AutosizeColumns();
 	RestoreSelect();
 
 	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
