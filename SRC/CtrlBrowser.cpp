@@ -22,8 +22,6 @@ CtrlTableBrowser::CtrlTableBrowser(
 
 	connModel_GroupByType = mModel->GetModelBrowser()->sigGroupByType.connect
 		(std::bind(&IViewTableBrowser::SetGroupByType, mView.get(), ph::_1));
-	connModel_CollapsedGroupByType = mModel->GetModelBrowser()->sigCollapsedGroupByType.connect
-		(std::bind(&IViewTableBrowser::SetCollapsedGroupByType, mView.get(), ph::_1));
 
 	connModel_BeforePathChange = mModel->GetModelBrowser()->sigBeforePathChange
 		.connect(std::bind(&IViewTableBrowser::SetBeforePathChange, mView.get(), ph::_1));
@@ -34,16 +32,10 @@ CtrlTableBrowser::CtrlTableBrowser(
 	sig::scoped_connection connModel_BeforePathChanged;
 	sig::scoped_connection connModel_AfterPathChanged;
 
-	connModel_BeforeClear = mModel->GetModelBrowser()->sigClear.connect
-		(std::bind(&IViewTableBrowser::SetClear , mView.get()));
-	connModel_AfterInsert = mModel->GetModelBrowser()->sigAfterInsert.connect
-		(std::bind(&IViewTableBrowser::SetAfterInsert, mView.get(), ph::_1, ph::_2));
-	connModel_AfterUpdate = mModel->GetModelBrowser()->sigAfterUpdate.connect
-		(std::bind(&IViewTableBrowser::SetAfterUpdate, mView.get(), ph::_1, ph::_2));
-	connModel_BeforeDelete = mModel->GetModelBrowser()->sigBeforeDelete.connect
-		(std::bind(&IViewTableBrowser::SetBeforeDelete, mView.get(), ph::_1, ph::_2));
-	connModel_ModeChanged = mModel->GetModelBrowser()->sigModeChanged.connect
-		(std::bind(&IViewTableBrowser::SetPathMode, mView.get(), ph::_1));
+
+	connModel_ObjOperation = mModel->GetModelBrowser()->sigObjOperation.connect
+		(std::bind(&IViewTableBrowser::SetObjOperation, mView.get(), ph::_1, ph::_2));
+	
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::Refresh()
@@ -56,9 +48,9 @@ void CtrlTableBrowser::Up()
 	mModel->GetModelBrowser()->DoUp();
 }
 //---------------------------------------------------------------------------
-void CtrlTableBrowser::Activate(int64_t id)
+void CtrlTableBrowser::Activate(const ICls64* cls)
 {
-	mModel->GetModelBrowser()->DoActivate(id);
+	mModel->GetModelBrowser()->DoActivate(cls);
 }
 
 //---------------------------------------------------------------------------
@@ -98,8 +90,6 @@ CtrlToolbarBrowser::CtrlToolbarBrowser(
 
 	connViewCmd_GroupByType = mView->sigGroupByType
 		.connect(std::bind(&CtrlToolbarBrowser::GroupByType, this, ph::_1));
-	connViewCmd_CollapseGroupByType = mView->sigCollapseGroupByType
-		.connect(std::bind(&CtrlToolbarBrowser::CollapseGroupByType, this, ph::_1));
 
 
 
@@ -155,11 +145,7 @@ void CtrlToolbarBrowser::GroupByType(bool enable_group_by_type)
 {
 	mModel->GetModelBrowser()->DoGroupByType(enable_group_by_type);
 }
-//---------------------------------------------------------------------------
-void CtrlToolbarBrowser::CollapseGroupByType(bool enable_collapse_by_type)
-{
-	mModel->GetModelBrowser()->DoCollapseGroupByType(enable_collapse_by_type);
-}
+
 
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -173,8 +159,6 @@ CtrlPathBrowser::CtrlPathBrowser(
 
 	connModel_PathChanged = mModel->GetModelBrowser()->sigAfterPathChange
 		.connect(std::bind(&IViewPathBrowser::SetPathString, mView.get(), ph::_1));
-	connModel_ModeChanged = mModel->GetModelBrowser()->sigModeChanged.connect
-		(std::bind(&IViewPathBrowser::SetPathMode, mView.get(), ph::_1));
 
 }
 

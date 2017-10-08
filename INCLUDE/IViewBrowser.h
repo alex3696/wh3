@@ -13,21 +13,15 @@ class IViewTableBrowser : public IViewWindow
 {
 public:
 	virtual void SetGroupByType(bool enable) = 0;
-	virtual void SetCollapsedGroupByType(bool enable) = 0;
-
 	virtual void SetBeforePathChange(const ICls64& node) = 0;
 	virtual void SetAfterPathChange(const ICls64& node) = 0;
+	
+	virtual void SetObjOperation(Operation, const std::vector<const IObj64*>&) = 0;
 
-	virtual void SetClear() = 0;
-	virtual void SetAfterInsert(const ICls64&, const NotyfyTable& list) = 0;
-	virtual void SetAfterUpdate(const ICls64&, const NotyfyTable& list) = 0;
-	virtual void SetBeforeDelete(const ICls64&, const NotyfyTable& list) = 0;
-	virtual void SetPathMode(const int mode) = 0;
 
 	sig::signal<void()> sigRefresh;
 	sig::signal<void()> sigUp;
-
-	sig::signal<void(int64_t id)>		sigActivate;
+	sig::signal<void(const ICls64*)> sigActivate;
 };
 //-----------------------------------------------------------------------------
 class IViewToolbarBrowser : public IViewWindow
@@ -35,7 +29,6 @@ class IViewToolbarBrowser : public IViewWindow
 public:
 	virtual void SetVisibleFilters(bool enable) = 0;
 	virtual void SetGroupByType(bool enable) = 0;
-	virtual void SetCollapsedGroupByType(bool enable) = 0;
 
 	sig::signal<void()> sigRefresh;
 	sig::signal<void()> sigUp;
@@ -50,7 +43,6 @@ public:
 	sig::signal<void()> sigUpdateSelected;
 
 	sig::signal<void(bool)>	 sigGroupByType;
-	sig::signal<void(bool)>	 sigCollapseGroupByType;
 
 	sig::signal<void(bool)>	 sigShowDetail;
 	sig::signal<void(bool)>	 sigShowFilters;

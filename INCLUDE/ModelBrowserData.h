@@ -5,6 +5,49 @@
 #include "db_rec.h"
 
 
+class FuncTester
+{
+	wxString	mFname;
+	ULONG		mStart;
+public:	
+	FuncTester(const char* fname)
+		:mFname(fname), mStart(GetTickCount())
+	{}
+
+	~FuncTester()
+	{
+		wxLogMessage(wxString::Format("%d\t %s "
+			, GetTickCount() - mStart
+			, mFname));
+	}
+};
+
+#define TEST_FUNC_TIME FuncTester ftester(__FUNCTION__);
+
+
+
+enum class BrowserMode
+{
+	Home = 0
+	, ByType = 1
+	, ByPath = 2
+	, FilterByType = 10
+	, FilterByPath = 20
+	, FindByType = 100
+	, FindByPath = 200
+};
+
+enum class Operation
+{
+	  BeforeInsert
+	, AfterInsert
+	, BeforeUpdate
+	, AfterUpdate
+	, BeforeDelete
+	, AfterDelete
+};
+
+
 enum class ClsKind
 {
 	Abstract = 0,
@@ -218,10 +261,6 @@ public:
 	virtual const wxString& GetValue()const = 0;
 };
 
-
-
-
-using NotyfyTable = std::vector<const IObj64*>;
 
 //-----------------------------------------------------------------------------
 } //namespace wh{

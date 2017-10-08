@@ -8,19 +8,6 @@
 namespace wh{
 
 //-----------------------------------------------------------------------------
-
-enum class BrowserMode
-{
-	  Home = 0
-	, ByType = 1
-	, ByPath = 2
-	, FilterByType = 10
-	, FilterByPath = 20
-	, FindByType = 100
-	, FindByPath = 200
-};
-
-//-----------------------------------------------------------------------------
 class ClsRec64 : 
 	public ICls64
 	, public  std::enable_shared_from_this<ClsRec64>
@@ -174,7 +161,6 @@ public:
 	ClsTree();
 	std::shared_ptr<ICls64> GetCurrent()const { return mCurrent; }
 
-	void Home();
 	void Refresh();
 	void Up();
 
@@ -198,15 +184,15 @@ class ModelBrowser
 
 	ClsTree		mClsPath;
 
+	void DoRefreshObjects(const std::shared_ptr<ICls64>& cls);
 public:
 	ModelBrowser();
 	~ModelBrowser();
 
 	void DoRefresh();
-	void DoRefreshObjects(const std::shared_ptr<ICls64>& parent_node);
-
-	void DoActivate(int64_t id);
+	void DoActivate(const ICls64* cls);
 	void DoUp();
+
 
 	void DoAct();
 	void DoMove();
@@ -216,20 +202,25 @@ public:
 	void DoDeleteSelected();
 	void DoUpdateSelected();
 	void DoGroupByType(bool enable_group_by_type);
-	void DoCollapseGroupByType(bool enable_collapse_by_type);
 		
 	sig::signal<void(bool)>	 sigGroupByType;
-	sig::signal<void(bool)>	 sigCollapsedGroupByType;
 	
-	sig::signal<void()> sigClear;
-	sig::signal<void(const ICls64&, const NotyfyTable&)> sigAfterInsert;
-	sig::signal<void(const ICls64&, const NotyfyTable&)> sigAfterUpdate;
-	sig::signal<void(const ICls64&, const NotyfyTable&)> sigBeforeDelete;
-
 	sig::signal<void(const ICls64&)> sigBeforePathChange;
 	sig::signal<void(const ICls64&)> sigAfterPathChange;
+	
 
-	sig::signal<void(const int)> sigModeChanged;
+	sig::signal<void(
+		  Operation op
+		, const BrowserMode mode
+		, const ICls64* root
+		, const std::vector<const ICls64*>*
+		, const std::vector<const IObj64*>*
+		)> sigTreeOperation;
+
+	sig::signal<void(Operation op
+		, const std::vector<const IObj64*>& )> sigObjOperation;
+	//sig::signal<void(Operation op
+	//	, const std::vector<const ICls64*>&)> sigClsOperation;
 
 
 };

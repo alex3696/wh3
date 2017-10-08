@@ -11,13 +11,17 @@ namespace wh{
 //-----------------------------------------------------------------------------
 class ViewTableBrowser : public IViewTableBrowser
 {
-	wxDataViewCtrl* mTable;
-
-	bool			mColAutosize = true;
-
-	int64_t mClsSelected=0;
+	int64_t mClsSelected = 0;
 	int64_t mObjSelected = 0;
 
+	wxDataViewCtrl* mTable;
+	bool mGroupByType = true;
+	const ICls64*	mNode = nullptr;
+	bool mColAutosize = true;
+	
+	size_t FindChildClsPos(const int64_t& id)const;
+	const ICls64* FindChildCls(const int64_t& id)const;
+	const ICls64* GetTopChildCls()const;
 	void RestoreSelect();
 	void AutosizeColumns();
 protected:
@@ -41,13 +45,8 @@ public:
 
 
 	virtual void SetGroupByType(bool enable) override;
-	virtual void SetCollapsedGroupByType(bool enable) override;
 
-	virtual void SetClear() override;
-	virtual void SetAfterInsert(const ICls64&, const NotyfyTable& list) override;
-	virtual void SetAfterUpdate(const ICls64&, const NotyfyTable& list) override;
-	virtual void SetBeforeDelete(const ICls64&, const NotyfyTable& list) override;
-	virtual void SetPathMode(const int mode) override;
+	virtual void SetObjOperation(Operation, const std::vector<const IObj64*>&) override;
 };
 //-----------------------------------------------------------------------------
 class ViewToolbarBrowser : public IViewToolbarBrowser
@@ -63,7 +62,6 @@ public:
 
 	virtual void SetVisibleFilters(bool enable) override;
 	virtual void SetGroupByType(bool enable) override;
-	virtual void SetCollapsedGroupByType(bool enable) override;
 
 
 	void OnCmd_Refresh(wxCommandEvent& evt = wxCommandEvent());

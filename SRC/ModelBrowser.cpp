@@ -138,12 +138,6 @@ void ClsTree::Up()
 	Refresh();
 }
 //-----------------------------------------------------------------------------
-void ClsTree::Home()
-{
-	mCurrent = mRoot;
-	Refresh();
-}
-//-----------------------------------------------------------------------------
 void ClsTree::Refresh()
 {
 	auto p0 = GetTickCount();
@@ -204,7 +198,7 @@ void ClsTree::SetId(const wxString& str)
 			return;
 		}
 	}
-	Home();
+	SetId(1);
 }
 //-----------------------------------------------------------------------------
 void ClsTree::SetId(const int64_t& val)
@@ -266,13 +260,12 @@ ModelBrowser::~ModelBrowser()
 	
 }
 //-----------------------------------------------------------------------------
-void ModelBrowser::DoRefreshObjects(const std::shared_ptr<ICls64>& parent_node)
+void ModelBrowser::DoRefreshObjects(const std::shared_ptr<ICls64>& cls)
 {
-	auto cls = parent_node;
 	if (!cls)
 		return;
 
-	NotyfyTable todelete;
+	std::vector<const IObj64*> todelete;
 	
 	if (cls->GetObjTable())
 	{
@@ -282,7 +275,7 @@ void ModelBrowser::DoRefreshObjects(const std::shared_ptr<ICls64>& parent_node)
 		}
 	}
 	if (!todelete.empty())
-		sigBeforeDelete(*cls, todelete);
+		sigObjOperation(Operation::BeforeDelete, todelete);
 	
 	auto cls64 = std::dynamic_pointer_cast<ClsRec64>(cls);
 	cls64->RefreshObjects();
@@ -338,6 +331,7 @@ void ModelBrowser::DoRefresh()
 	cls64->RefreshChilds();
 
 	sigAfterPathChange(*cls);
+
 	/*
 	auto p0 = GetTickCount();
 	std::shared_ptr<ICls64>& parent_node = mClsPath.GetCurrent();
@@ -393,36 +387,36 @@ void ModelBrowser::DoRefresh()
 	*/
 }
 //-----------------------------------------------------------------------------
-void ModelBrowser::DoActivate(int64_t id)
+//void ModelBrowser::DoActivate(int64_t id)
+void ModelBrowser::DoActivate(const ICls64* cls)
 {
-	auto p0 = GetTickCount();
-
-	const auto& curr_childs = mClsPath.GetCurrent()->GetChilds();
-	if (!curr_childs || curr_childs->empty() )
+	if (!cls)
 		return;
 
-	auto it = std::find_if(curr_childs->cbegin(), curr_childs->cend()
-		, [&id](const std::shared_ptr<ICls64>& it)
-		{
-			return it->GetId() == id;
-		});
-
-	if (curr_childs->cend() == it)
-		return;
-
-	const std::shared_ptr<ICls64>& parent_node = *it;
+	auto id = cls->GetId();
 
 
-
-	auto cls = std::dynamic_pointer_cast<const ClsRec64>(parent_node);
-
-	if (cls)
+	if (ClsKind::Abstract == cls->GetKind())
+		mClsPath.SetId(id);
+	else
 	{
-		if(ClsKind::Abstract == cls->GetKind())
-			mClsPath.SetId(id);
-		else
-			DoRefreshObjects(parent_node);
+		std::shared_ptr<ICls64>& node = mClsPath.GetCurrent();
+		const auto childs = node->GetChilds();
+		if (childs && !childs->empty())
+		{
+			size_t i = 0;
+			for (; i < childs->size(); ++i)
+			{
+				if (childs->at(i)->GetId() == id)
+				{
+					DoRefreshObjects(childs->at(i));
+					break;
+				}
+			}
+		}
+
 	}
+		
 		
 
 }
@@ -465,10 +459,6 @@ void ModelBrowser::DoGroupByType(bool enable_group_by_type)
 {
 	mGroupByType = enable_group_by_type;
 	sigGroupByType(mGroupByType);
-}
-//-----------------------------------------------------------------------------
-void ModelBrowser::DoCollapseGroupByType(bool enable_collapse_by_type)
-{
 }
 
 //-----------------------------------------------------------------------------
