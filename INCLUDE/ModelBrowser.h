@@ -21,16 +21,32 @@ enum class BrowserMode
 };
 
 //-----------------------------------------------------------------------------
-class ClsRec64 : public ICls64
+class ClsRec64 : 
+	public ICls64
+	, public  std::enable_shared_from_this<ClsRec64>
 {
+protected:
+	ClsRec64() {}
+	struct MakeSharedEnabler;
 public:
-	ClsRec64(){}
+	
+	static std::shared_ptr<ClsRec64> MakeShared()
+	{
+		struct MakeSharedEnabler : public ClsRec64
+		{
+			MakeSharedEnabler() : ClsRec64() {}
+		};
+		return std::make_shared<MakeSharedEnabler>();
+	}
+
 
 	int64_t		mId;
 	wxString	mTitle;
-	ClsKind		mKind;
 	wxString	mMeasure;
 	wxString	mObjQty;
+	ClsKind		mKind;
+
+
 
 	bool SetId(const wxString& str){ return str.ToLongLong(&mId); }
 	void SetId(const int64_t& val) { mId = val; }
@@ -41,8 +57,53 @@ public:
 	virtual const wxString& GetMeasure()const override	{ return mMeasure; };
 	virtual const wxString& GetObjectsQty()const override { return mObjQty; };
 
-	virtual const SpObjConstTable&		GetObjects()const override { throw; };
 	virtual const SpPropValConstTable&	GetProperties()const override { throw; };
+
+	
+
+	std::shared_ptr<ObjTable>	mObjTable;
+	virtual void ClearObjTable() override
+	{
+		mObjTable.reset();
+	}
+	virtual void AddObj(const std::shared_ptr<IObj64>& new_obj) override
+	{
+		if (!mObjTable)
+			mObjTable = std::make_shared<ObjTable>();
+		mObjTable->emplace_back(new_obj);
+	}
+	virtual const std::shared_ptr<const ObjTable> GetObjTable()const override
+	{
+		return mObjTable;
+	}
+	void RefreshObjects();
+
+	std::weak_ptr<const ICls64>		mParent;
+	std::shared_ptr<ChildsTable>	mChild;
+
+	virtual std::shared_ptr<const ICls64> GetParent()const override
+	{
+		return mParent.lock();
+	}
+	virtual void SetParent(const std::shared_ptr<const ICls64>& parent) override
+	{
+		mParent = parent;
+	}
+	virtual void ClearChilds() override
+	{
+		mChild.reset();
+	}
+	virtual void AddChild(const std::shared_ptr<ICls64>& new_child)override
+	{
+		if (!mChild)
+			mChild = std::make_shared<ChildsTable>();
+		mChild->emplace_back(new_child);
+	}
+	virtual const std::shared_ptr<const ChildsTable> GetChilds()const override
+	{
+		return mChild;
+	}
+	void RefreshChilds();
 
 };
 //-----------------------------------------------------------------------------
@@ -54,9 +115,8 @@ public:
 	int64_t		mId;
 	wxString	mTitle;
 	wxString	mQty;
-	int64_t		mParentOid;
 
-	std::shared_ptr<const ICls64>	mCls;
+	std::weak_ptr<const ICls64>	mCls;
 
 	bool SetId(const wxString& str) { return str.ToLongLong(&mId); }
 	void SetId(const int64_t& val) { mId = val; }
@@ -66,16 +126,37 @@ public:
 
 	virtual wxString					GetQty()const override { return mQty; };
 
-	bool SetParentOid(const wxString& str) 
-	{ 
-		return str.ToLongLong(&mParentOid);
-	}
-
-
-	virtual SpClsConst GetCls()const override { return mCls; }
+	virtual SpClsConst GetCls()const override { return mCls.lock(); }
 
 	virtual const SpPropValConstTable&	GetProperties()const override { throw; }
-	virtual const IObjPath64&			GetPath()const override { throw; }
+
+
+	std::weak_ptr<const IObj64>		mParent;
+	std::shared_ptr<ChildsTable>	mChild;
+
+
+	virtual std::shared_ptr<const IObj64> GetParent()const override
+	{
+		return mParent.lock();
+	}
+	virtual void SetParent(const std::shared_ptr<const IObj64>& parent) override
+	{
+		mParent = parent;
+	}
+	virtual void ClearChilds() override
+	{
+		mChild.reset();
+	}
+	virtual void AddChild(const std::shared_ptr<IObj64>& new_child)override
+	{
+		if (!mChild)
+			mChild = std::make_shared<ChildsTable>();
+		mChild->emplace_back(new_child);
+	}
+	virtual const std::shared_ptr<const ChildsTable> GetChilds()const override
+	{
+		return mChild;
+	}
 
 };
 
@@ -84,14 +165,14 @@ public:
 //-----------------------------------------------------------------------------
 class ClsTree : public IPath64
 {
-	std::shared_ptr<ClsNode> mRoot;
-	std::shared_ptr<ClsNode> mCurrent;
+	std::shared_ptr<ICls64> mRoot;
+	std::shared_ptr<ICls64> mCurrent;
 public:
-	sig::signal<void(const ClsNode&)> sigBeforePathChange;
-	sig::signal<void(const ClsNode&)> sigAfterPathChange;
+	sig::signal<void(const ICls64&)> sigBeforePathChange;
+	sig::signal<void(const ICls64&)> sigAfterPathChange;
 
 	ClsTree();
-	std::shared_ptr<ClsNode> GetCurrent()const { return mCurrent; }
+	std::shared_ptr<ICls64> GetCurrent()const { return mCurrent; }
 
 	void Home();
 	void Refresh();
@@ -102,9 +183,6 @@ public:
 
 	int64_t  GetId()const;
 	wxString GetIdAsString()const;
-
-	
-	//std::shared_ptr<const ClsNode> AddValToCurrent(const std::shared_ptr<ICls64>& val);
 
 
 	virtual wxString AsString()const override;
@@ -120,15 +198,12 @@ class ModelBrowser
 
 	ClsTree		mClsPath;
 
-	std::vector<std::shared_ptr<ClsNode>>	mClsNodeCache;
-	std::vector<std::shared_ptr<ClsRec64>>	mClsValCache;
-
 public:
 	ModelBrowser();
 	~ModelBrowser();
 
 	void DoRefresh();
-	void DoRefreshNodeChilds(const std::shared_ptr<ClsNode>& parent_node);
+	void DoRefreshObjects(const std::shared_ptr<ICls64>& parent_node);
 
 	void DoActivate(int64_t id);
 	void DoUp();
@@ -145,15 +220,14 @@ public:
 		
 	sig::signal<void(bool)>	 sigGroupByType;
 	sig::signal<void(bool)>	 sigCollapsedGroupByType;
-	sig::signal<void(const NotyfyTable&)> sigSelected;
 	
 	sig::signal<void()> sigClear;
-	sig::signal<void(const ClsNode&, const NotyfyTable&)> sigAfterInsert;
-	sig::signal<void(const ClsNode&, const NotyfyTable&)> sigAfterUpdate;
-	sig::signal<void(const ClsNode&, const NotyfyTable&)> sigBeforeDelete;
+	sig::signal<void(const ICls64&, const NotyfyTable&)> sigAfterInsert;
+	sig::signal<void(const ICls64&, const NotyfyTable&)> sigAfterUpdate;
+	sig::signal<void(const ICls64&, const NotyfyTable&)> sigBeforeDelete;
 
-	sig::signal<void(const ClsNode&)> sigBeforePathChange;
-	sig::signal<void(const ClsNode&)> sigAfterPathChange;
+	sig::signal<void(const ICls64&)> sigBeforePathChange;
+	sig::signal<void(const ICls64&)> sigAfterPathChange;
 
 	sig::signal<void(const int)> sigModeChanged;
 

@@ -167,27 +167,40 @@ using SpPropValConstTable = TSpTable<SpPropValConst>;
 class ICls64 : public IIdent64
 {
 public:
+	using ChildsTable = std::vector<std::shared_ptr<ICls64>>;
+	using ObjTable = std::vector<std::shared_ptr<IObj64>>;
+
 	virtual		  ClsKind   GetKind()const = 0;
 	virtual const wxString& GetMeasure()const = 0;
 	virtual const wxString& GetObjectsQty()const = 0;
-
-	virtual const SpObjConstTable&		GetObjects()const = 0;
 	virtual const SpPropValConstTable&	GetProperties()const = 0;
+	
+	virtual void ClearObjTable() = 0;
+	virtual void AddObj(const std::shared_ptr<IObj64>&) = 0;
+	virtual const std::shared_ptr<const ObjTable> GetObjTable()const = 0;
 
+	virtual std::shared_ptr<const ICls64> GetParent()const = 0;
+	virtual void SetParent(const std::shared_ptr<const ICls64>&) = 0;
+	virtual void ClearChilds() = 0;
+	virtual void AddChild(const std::shared_ptr<ICls64>&) = 0;
+	virtual const std::shared_ptr<const ChildsTable> GetChilds()const = 0;
 };
 
 //-----------------------------------------------------------------------------
 class IObj64 : public IIdent64
 {
 public:
+	using ChildsTable = std::vector<std::shared_ptr<IObj64>>;
+
 	virtual wxString					GetQty()const = 0;
-
 	virtual SpClsConst					GetCls()const = 0;
-
 	virtual const SpPropValConstTable&	GetProperties()const = 0;
-	virtual const IObjPath64&			GetPath()const = 0;
 
-
+	virtual std::shared_ptr<const IObj64> GetParent()const = 0;
+	virtual void SetParent(const std::shared_ptr<const IObj64>&) = 0;
+	virtual void ClearChilds() = 0;
+	virtual void AddChild(const std::shared_ptr<IObj64>&) = 0;
+	virtual const std::shared_ptr<const ChildsTable> GetChilds()const = 0;
 };
 
 class IProp64 : public IIdent64
@@ -208,101 +221,7 @@ public:
 
 
 
-
-class ClsNode
-{
-public:
-	using ChildsTable = std::vector<std::shared_ptr<ClsNode>>;
-private:
-	/*
-	struct extr_void_ptr_ClsNode
-	{
-		typedef const void* result_type;
-		inline result_type operator()(const std::shared_ptr<const ClsNode>& r)const
-		{
-			return r.get();
-		}
-	};
-
-	using ChildsTable = boost::multi_index_container
-		<
-			std::shared_ptr<ClsNode>,
-			indexed_by
-			<
-				random_access<> //SQL order
-				, ordered_unique< extr_void_ptr_ClsNode >
-			>
-		>;
-	*/
-	
-
-	std::shared_ptr<IIdent64>		mValue;
-	std::weak_ptr<const ClsNode>	mParent;
-	std::shared_ptr<ChildsTable>	mChild;
-
-	using sigUpdate = sig::signal < void(const ClsNode&
-		, std::shared_ptr<const IIdent64>
-		, std::shared_ptr<const IIdent64>)>;
-
-public:
-
-	//sigUpdate sigBeforeValChange;
-	//sigUpdate sigAfterValChange;
-
-	ClsNode(){};
-	ClsNode(const std::shared_ptr<const ClsNode>& parent)
-		:mParent(parent)
-	{}
-	ClsNode(const std::shared_ptr<const ClsNode>& parent
-		, const std::shared_ptr<IIdent64>& value)
-		: mParent(parent), mValue(value)
-	{}
-
-	std::shared_ptr<const ClsNode> GetParent()const
-	{
-		return mParent.lock();
-	}
-	void SetParent(const std::shared_ptr<const ClsNode>& parent)
-	{
-		mParent = parent;
-	}
-
-	std::shared_ptr<const IIdent64> GetValue()const
-	{
-		return mValue;
-	}
-	void SetValue(const std::shared_ptr<IIdent64>& new_value)
-	{
-		mValue = new_value;
-		//sigBeforeValChange(*this, mValue, new_value);
-		//auto tmp = mValue;
-		//mValue = new_value;
-		//sigBeforeValChange(*this, mValue, new_value);
-
-	}
-	
-	void ClearChilds()
-	{
-		mChild.reset();
-	}
-	void AddChild(const std::shared_ptr<ClsNode>& new_node)
-	{
-		if (!mChild)
-			mChild = std::make_shared<ChildsTable>();
-
-		//new_node->SetParent(shared_from_this);
-		mChild->emplace_back(new_node);
-	}
-	const std::shared_ptr<const ChildsTable> GetChilds()const
-	{
-		return mChild;
-	}
-
-};
-
-
-
-using NotyfyTable = std::vector<const ClsNode*>;
+using NotyfyTable = std::vector<const IObj64*>;
 
 //-----------------------------------------------------------------------------
 } //namespace wh{

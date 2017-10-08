@@ -36,17 +36,17 @@ public:
 		return mTable;
 	}
 
-	virtual void SetBeforePathChange(const ClsNode& node) override;
-	virtual void SetAfterPathChange(const ClsNode& node) override;
+	virtual void SetBeforePathChange(const ICls64& node) override;
+	virtual void SetAfterPathChange(const ICls64& node) override;
 
 
 	virtual void SetGroupByType(bool enable) override;
 	virtual void SetCollapsedGroupByType(bool enable) override;
 
 	virtual void SetClear() override;
-	virtual void SetAfterInsert(const ClsNode&, const NotyfyTable& list) override;
-	virtual void SetAfterUpdate(const ClsNode&, const NotyfyTable& list) override;
-	virtual void SetBeforeDelete(const ClsNode&, const NotyfyTable& list) override;
+	virtual void SetAfterInsert(const ICls64&, const NotyfyTable& list) override;
+	virtual void SetAfterUpdate(const ICls64&, const NotyfyTable& list) override;
+	virtual void SetBeforeDelete(const ICls64&, const NotyfyTable& list) override;
 	virtual void SetPathMode(const int mode) override;
 };
 //-----------------------------------------------------------------------------
@@ -101,7 +101,7 @@ public:
 	}
 
 	virtual void SetPathMode(const int mode) override;
-	virtual void SetPathString(const ClsNode& node) override;
+	virtual void SetPathString(const ICls64& node) override;
 };
 //-----------------------------------------------------------------------------
 class ViewBrowserPage : public IViewBrowserPage
@@ -133,7 +133,7 @@ public:
 	
 
 	virtual void SetPathMode(const int mode) override;
-	virtual void SetPathString(const ClsNode& node) override;
+	virtual void SetPathString(const ICls64& node) override;
 };
 
 
