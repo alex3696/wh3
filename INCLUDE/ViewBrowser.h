@@ -11,12 +11,18 @@ namespace wh{
 //-----------------------------------------------------------------------------
 class ViewTableBrowser : public IViewTableBrowser
 {
+	std::vector<const ICls64*> mClsList;
+
+	wxDataViewColumn* mSortCol = nullptr;
+	bool mSortAsc = true;
+	
+	
+	
 	int64_t mClsSelected = 0;
 	int64_t mObjSelected = 0;
 
 	wxDataViewCtrl* mTable;
 	bool mGroupByType = true;
-	const ICls64*	mNode = nullptr;
 	bool mColAutosize = true;
 	
 	size_t FindChildClsPos(const int64_t& id)const;
@@ -31,6 +37,7 @@ protected:
 	void OnCmd_MouseMove(wxMouseEvent& evt);
 	void OnCmd_Activate(wxDataViewEvent& evt);
 	void OnCmd_Expanding(wxDataViewEvent& evt);
+	void OnCmd_Expanded(wxDataViewEvent& evt);
 	
 public:
 	ViewTableBrowser(wxWindow* parent);
@@ -42,6 +49,8 @@ public:
 
 	virtual void SetBeforePathChange(const ICls64& node) override;
 	virtual void SetAfterPathChange(const ICls64& node) override;
+	virtual void SetBeforeRefreshCls(const std::vector<const ICls64*>&) override;
+	virtual void SetAfterRefreshCls(const std::vector<const ICls64*>&) override;
 
 
 	virtual void SetGroupByType(bool enable) override;

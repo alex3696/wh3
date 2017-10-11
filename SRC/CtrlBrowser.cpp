@@ -28,6 +28,12 @@ CtrlTableBrowser::CtrlTableBrowser(
 	connModel_AfterPathChange = mModel->GetModelBrowser()->sigAfterPathChange
 		.connect(std::bind(&IViewTableBrowser::SetAfterPathChange, mView.get(), ph::_1));
 
+	connModel_BeforeRefreshCls = mModel->GetModelBrowser()->sigBeforeRefreshCls
+		.connect(std::bind(&IViewTableBrowser::SetBeforeRefreshCls, mView.get(), ph::_1));
+	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
+		.connect(std::bind(&IViewTableBrowser::SetAfterRefreshCls, mView.get(), ph::_1));
+
+
 
 	sig::scoped_connection connModel_BeforePathChanged;
 	sig::scoped_connection connModel_AfterPathChanged;

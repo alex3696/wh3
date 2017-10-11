@@ -53,7 +53,7 @@ public:
 	{
 		mObjTable.reset();
 	}
-	virtual void AddObj(const std::shared_ptr<IObj64>& new_obj) override
+	virtual void AddObj(const std::shared_ptr<const IObj64>& new_obj) override
 	{
 		if (!mObjTable)
 			mObjTable = std::make_shared<ObjTable>();
@@ -63,7 +63,7 @@ public:
 	{
 		return mObjTable;
 	}
-	void RefreshObjects();
+	//void RefreshObjects();
 
 	std::weak_ptr<const ICls64>		mParent;
 	std::shared_ptr<ChildsTable>	mChild;
@@ -94,14 +94,30 @@ public:
 
 };
 //-----------------------------------------------------------------------------
+class ObjPath64 : public IObjPath64
+{
+public:
+	wxString	mStrPath;
+	
+	virtual wxString AsString()const override
+	{
+		return mStrPath;
+	}
+
+
+};
+//-----------------------------------------------------------------------------
+
 class ObjRec64 : public IObj64
 {
 public:
 	ObjRec64() {}
-
+	
 	int64_t		mId;
 	wxString	mTitle;
 	wxString	mQty;
+	
+	std::shared_ptr<ObjPath64> mPath;
 
 	std::weak_ptr<const ICls64>	mCls;
 
@@ -114,6 +130,11 @@ public:
 	virtual wxString					GetQty()const override { return mQty; };
 
 	virtual SpClsConst GetCls()const override { return mCls.lock(); }
+
+	virtual std::shared_ptr<const IObjPath64> GetPath()const override
+	{
+		return mPath;
+	}
 
 	virtual const SpPropValConstTable&	GetProperties()const override { throw; }
 
@@ -150,39 +171,137 @@ public:
 
 
 //-----------------------------------------------------------------------------
-class ClsTree : public IPath64
+class ClsTree 
 {
 	std::shared_ptr<ICls64> mRoot;
 	std::shared_ptr<ICls64> mCurrent;
+
+	void Refresh();
 public:
 	sig::signal<void(const ICls64&)> sigBeforePathChange;
 	sig::signal<void(const ICls64&)> sigAfterPathChange;
 
 	ClsTree();
-	std::shared_ptr<ICls64> GetCurrent()const { return mCurrent; }
-
-	void Refresh();
-	void Up();
-
+	
 	void SetId(const wxString& str);
 	void SetId(const int64_t& val);
+	void Up();
+	
 
-	int64_t  GetId()const;
-	wxString GetIdAsString()const;
+	std::shared_ptr<ICls64> GetCurrent() { return mCurrent; }
+
+};
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+class ClsCache
+{
+public:
+	using Cache = boost::multi_index_container
+		<
+		std::shared_ptr<ClsRec64>,
+		indexed_by
+		<
+		random_access<> //SQL order
+		, ordered_unique< extr_id_IIdent64 >
+		, ordered_unique< extr_void_ptr_IIdent64 >
+		>
+		>;
+	using fnModify = std::function<void(const std::shared_ptr<ClsRec64>& obj)>;
 
 
-	virtual wxString AsString()const override;
+	const std::shared_ptr<ClsRec64>& GetById(const int64_t& id, const fnModify& fn = nullptr)
+	{
+		auto& idxId = mCache.get<1>();
+		auto it = idxId.find(id);
+		if (idxId.end() == it)
+		{
+			if (fn)
+			{
+				auto obj = ClsRec64::MakeShared(); //std::make_shared<ClsRec64>();
+				fn(obj);
+				return *mCache.emplace_back(obj).first;
+			}
+			//else
+			//	return nullptr;
+		}
+		else
+		{
+			if (fn)
+				idxId.modify(it, fn);
+			return *it;
+		}
+		return mNullObj;
+	}
+private:
+	Cache mCache;
+	std::shared_ptr<ClsRec64> mNullObj;
+
 };
 
 
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+class ObjCache
+{
+public:
+	using Cache = boost::multi_index_container
+	<
+		std::shared_ptr<ObjRec64>,
+		indexed_by
+		<
+			random_access<> //SQL order
+			, ordered_unique< extr_id_IIdent64 >
+			, ordered_unique< extr_void_ptr_IIdent64 >
+		>
+	>;
+	using fnModify = std::function<void(const std::shared_ptr<ObjRec64>& obj)>;
 
 
+	const std::shared_ptr<ObjRec64>& GetObjById(const int64_t& id, const fnModify& fn = nullptr)
+	{
+		auto& idxId = mCache.get<1>();
+		auto it = idxId.find(id);
+		if (idxId.end() == it)
+		{
+			if (fn)
+			{
+				auto obj = std::make_shared<ObjRec64>();
+				fn(obj);
+				return *mCache.emplace_back(obj).first;
+			}
+			//else
+			//	return nullptr;
+		}
+		else
+		{
+			if (fn)
+				idxId.modify(it, fn);
+			return *it;
+		}
+		return mNullObj;
+	}
+private:
+	Cache mCache;
+	std::shared_ptr<ObjRec64> mNullObj;
+
+};
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 class ModelBrowser
 {
 	bool mGroupByType;
 
 	ClsTree		mClsPath;
+
+	ClsCache	mClsCache;
+	ObjCache	mObjCache;
 
 	void DoRefreshObjects(const std::shared_ptr<ICls64>& cls);
 public:
@@ -208,19 +327,14 @@ public:
 	sig::signal<void(const ICls64&)> sigBeforePathChange;
 	sig::signal<void(const ICls64&)> sigAfterPathChange;
 	
+	sig::signal<void(const std::vector<const ICls64*>&)>	sigBeforeRefreshCls;
+	sig::signal<void(const std::vector<const ICls64*>& )>	sigAfterRefreshCls;
 
-	sig::signal<void(
-		  Operation op
-		, const BrowserMode mode
-		, const ICls64* root
-		, const std::vector<const ICls64*>*
-		, const std::vector<const IObj64*>*
-		)> sigTreeOperation;
 
 	sig::signal<void(Operation op
-		, const std::vector<const IObj64*>& )> sigObjOperation;
+		, const std::vector<const IObj64*>& )>	sigObjOperation;
 	//sig::signal<void(Operation op
-	//	, const std::vector<const ICls64*>&)> sigClsOperation;
+	//	, const std::vector<const ICls64*>&)>	sigClsOperation;
 
 
 };
