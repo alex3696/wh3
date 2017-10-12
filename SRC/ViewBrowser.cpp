@@ -138,7 +138,7 @@ public:
 	{
 		return false;
 	}
-
+	
 	virtual int Compare(const wxDataViewItem &item1, const wxDataViewItem &item2
 		, unsigned int column, bool ascending) const override
 	{
@@ -171,7 +171,6 @@ public:
 		
 		return wxDataViewModel::Compare(item1, item2, column, ascending);
 	}
-
 
 	virtual wxDataViewItem GetParent(const wxDataViewItem &item) const override
 	{
@@ -219,7 +218,6 @@ public:
 		return 0;
 	}
 
-
 	void SetGroupByType(bool group)
 	{
 		mGroupByType = group;
@@ -230,13 +228,11 @@ public:
 		return !mGroupByType;
 	}
 
-
 	void SetClsList(const std::vector<const ICls64*>* current)
 	{
 		mClsList = current;
 		Cleared();
 	}
-
 
 
 };
@@ -270,7 +266,8 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 		, wxDV_ROW_LINES 
 		 | wxDV_VERT_RULES 
 		 //| wxDV_HORIZ_RULES
-		 | wxDV_MULTIPLE);
+		 | wxDV_MULTIPLE
+		);
 	auto dv_model = new wxDVTableBrowser();
 	table->AssociateModel(dv_model);
 	dv_model->DecRef();
@@ -345,16 +342,13 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 void ViewTableBrowser::OnCmd_Refresh(wxCommandEvent& evt)
 {
 	TEST_FUNC_TIME;
-	wxBusyCursor busyCursor;
-	wxWindowUpdateLocker lock(mTable);
 	sigRefresh();
+
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_Up(wxCommandEvent& evt)
 {
 	TEST_FUNC_TIME;
-	wxBusyCursor busyCursor;
-	wxWindowUpdateLocker lock(mTable);
 	sigUp();
 }
 //-----------------------------------------------------------------------------
@@ -386,9 +380,117 @@ void ViewTableBrowser::OnCmd_Select(wxDataViewEvent& evt)
 
 
 }
+
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
+{
+	/*
+	wxDataViewColumn* col = nullptr;
+	wxDataViewItem item(nullptr);
+	auto pos = evt.GetPosition();
+	mTable->HitTest(pos, item, col);
+
+	wxString str;
+	if (col && item.IsOk())
+	{
+	wxVariant var;
+	mTable->GetModel()->GetValue(var, item, col->GetModelColumn());
+	wxDataViewIconText2 ico_txt;
+	ico_txt << var;
+	str = ico_txt.GetText();
+	}
+	mTable->GetTargetWindow()->GetToolTip()->SetTip(str);
+	*/
+}
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::OnCmd_Activate(wxDataViewEvent& evt)
+{
+	TEST_FUNC_TIME;
+	
+	auto item = evt.GetItem();
+
+	if (mTable->GetModel()->IsContainer(item))
+	{
+		if (mTable->IsExpanded(item))
+			mTable->Collapse(item);
+		else
+			mTable->Expand(item);
+	}
+	else
+	{
+		const IIdent64* node = static_cast<const IIdent64*> (item.GetID());
+		const ICls64* cls = dynamic_cast<const ICls64*> (node);
+		if (cls)
+		{
+			wxBusyCursor busyCursor;
+			// если убрать этот локер, выделится первый элемент, даже в обратной сортировке
+			wxWindowUpdateLocker lock(mTable);
+
+			sigActivate(cls);
+		}
+			
+	}
+
+}
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::OnCmd_Expanding(wxDataViewEvent& evt)
+{
+	TEST_FUNC_TIME;
+	auto item = evt.GetItem();
+
+	const IIdent64* node = static_cast<const IIdent64*> (item.GetID());
+	const ICls64* cls = dynamic_cast<const ICls64*> (node);
+	if (cls)
+	{
+		mSortCol = mTable->GetSortingColumn();
+		if (mSortCol)
+		{
+			mSortAsc = mSortCol->IsSortOrderAscending();
+			mSortCol->UnsetAsSortKey();
+		}
+
+		wxBusyCursor busyCursor;
+		wxWindowUpdateLocker lock(mTable);
+
+		sigActivate(cls);
+
+	}
+
+}
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::OnCmd_Expanded(wxDataViewEvent& evt)
+{
+	TEST_FUNC_TIME;
+	if (mSortCol)
+	{
+	
+		mSortCol->SetSortable(true);
+		mSortCol->SetSortOrder(mSortAsc);
+
+		wxBusyCursor busyCursor;
+		wxWindowUpdateLocker lock(mTable);
+
+		mTable->GetModel()->Resort();
+	}
+
+
+}
 //-----------------------------------------------------------------------------
 const ICls64* ViewTableBrowser::FindChildCls(const int64_t& id)const
 {
+	//wxDataViewItem dvparent(nullptr);
+	//auto model = mTable->GetModel();
+	//wxDataViewItemArray arr;
+	//model->GetChildren(dvparent, arr);
+
+	//for (size_t i = 0; i < arr.size() ; i++)
+	//{
+	//	const auto ident = static_cast<const IIdent64*> (arr[i].GetID());
+	//	const auto cls = dynamic_cast<const ICls64*>(ident);
+	//	if (cls && cls->GetId() == id)
+	//		return cls;
+	//}
+
 	if (mClsList.empty())
 		return nullptr;
 	auto it = std::find_if(mClsList.cbegin(), mClsList.cend()
@@ -399,12 +501,23 @@ const ICls64* ViewTableBrowser::FindChildCls(const int64_t& id)const
 
 	if (mClsList.cend() != it)
 		return (*it);
-
+	
 	return nullptr;
 }
 //-----------------------------------------------------------------------------
 const ICls64* ViewTableBrowser::GetTopChildCls()const
 {
+	//wxDataViewItem dvparent(nullptr);
+	//auto model = mTable->GetModel();
+	//wxDataViewItemArray arr;
+	//model->GetChildren(dvparent, arr);
+
+	//const auto ident = static_cast<const IIdent64*> (arr[0].GetID());
+	//const auto cls = dynamic_cast<const ICls64*>(ident);
+	//if (cls)
+	//	return cls;
+	//return nullptr;
+
 	if (!mClsList.empty())
 		return mClsList.front();
 	return nullptr;
@@ -418,7 +531,10 @@ void ViewTableBrowser::RestoreSelect()
 	{
 		const auto finded = FindChildCls(mClsSelected);
 		if (finded)
+		{
+			//auto title = finded->GetTitle();
 			dvitem = wxDataViewItem((void*)finded);
+		}
 
 		auto oid = mObjSelected;
 		if (oid && mGroupByType)
@@ -441,18 +557,30 @@ void ViewTableBrowser::RestoreSelect()
 		if (finded)
 			dvitem = wxDataViewItem((void*)finded);
 	}
-	
+
+	auto model = mTable->GetModel();
 	
 	mTable->SetCurrentItem(dvitem);
 	mTable->Select(dvitem);
 	mTable->EnsureVisible(dvitem);
+
+	//auto new_sel = mTable->GetCurrentItem();
+	//const auto ident = static_cast<const IIdent64*> (new_sel.GetID());
+	//const auto cls = dynamic_cast<const ICls64*>(ident);
+	//if (cls)
+	//{
+	//	auto title = cls->GetTitle();
+	//	auto id = cls->GetIdAsString();
+	//}
+
+	
+	
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::AutosizeColumns()
 {
 	TEST_FUNC_TIME;
 	wxBusyCursor busyCursor;
-	wxWindowUpdateLocker lock(mTable);
 
 	if (mColAutosize)
 	{
@@ -462,92 +590,11 @@ void ViewTableBrowser::AutosizeColumns()
 }
 
 //-----------------------------------------------------------------------------
-void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
-{
-	/*
-	wxDataViewColumn* col = nullptr;
-	wxDataViewItem item(nullptr);
-	auto pos = evt.GetPosition();
-	mTable->HitTest(pos, item, col);
-
-	wxString str;
-	if (col && item.IsOk())
-	{
-		wxVariant var;
-		mTable->GetModel()->GetValue(var, item, col->GetModelColumn());
-		wxDataViewIconText2 ico_txt;
-		ico_txt << var;
-		str = ico_txt.GetText();
-	}
-	mTable->GetTargetWindow()->GetToolTip()->SetTip(str);
-	*/
-}
-//-----------------------------------------------------------------------------
-void ViewTableBrowser::OnCmd_Activate(wxDataViewEvent& evt)
-{
-	TEST_FUNC_TIME;
-	wxBusyCursor busyCursor;
-	wxWindowUpdateLocker lock(mTable);
-	auto item = evt.GetItem();
-
-
-	if (mTable->GetModel()->IsContainer(item))
-	{
-		if (mTable->IsExpanded(item))
-			mTable->Collapse(item);
-		else
-			mTable->Expand(item);
-	}
-	else
-	{
-		const IIdent64* node = static_cast<const IIdent64*> (item.GetID());
-		const ICls64* cls = dynamic_cast<const ICls64*> (node);
-		if (cls)
-			sigActivate(cls);
-	}
-
-}
-//-----------------------------------------------------------------------------
-void ViewTableBrowser::OnCmd_Expanding(wxDataViewEvent& evt)
-{
-	TEST_FUNC_TIME;
-	wxBusyCursor busyCursor;
-	wxWindowUpdateLocker lock(mTable);
-	auto item = evt.GetItem();
-
-	const IIdent64* node = static_cast<const IIdent64*> (item.GetID());
-	const ICls64* cls = dynamic_cast<const ICls64*> (node);
-	if (cls)
-	{
-		mSortCol = mTable->GetSortingColumn();
-		if (mSortCol)
-		{
-			mSortAsc = mSortCol->IsSortOrderAscending();
-			mSortCol->UnsetAsSortKey();
-		}
-		
-		sigActivate(cls); 
-		
-	}
-		
-}
-//-----------------------------------------------------------------------------
-void ViewTableBrowser::OnCmd_Expanded(wxDataViewEvent& evt)
-{
-	if (mSortCol)
-	{
-		mSortCol->SetSortable(true);
-		mSortCol->SetSortOrder(mSortAsc);
-		mTable->GetModel()->Resort();
-	}
-
-	
-}
-//-----------------------------------------------------------------------------
 //virtual
 void ViewTableBrowser::SetBeforePathChange(const ICls64& node)// override;
 {
 	TEST_FUNC_TIME;
+
 
 	mClsSelected = node.GetId();
 	mObjSelected = 0;
@@ -557,7 +604,6 @@ void ViewTableBrowser::SetBeforePathChange(const ICls64& node)// override;
 	{
 		dvmodel->SetClsList(nullptr);
 		dvmodel->Cleared();
-
 	}
 
 }
@@ -572,7 +618,11 @@ void ViewTableBrowser::SetAfterPathChange(const ICls64& node)// override;
 //virtual 
 void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const ICls64*>& vec) //override;
 {
+	TEST_FUNC_TIME;
+	//wxBusyCursor busyCursor;
+	//wxWindowUpdateLocker lock(mTable);
 
+	//OnCmd_Select(wxDataViewEvent());
 }
 //-----------------------------------------------------------------------------
 //virtual 
@@ -580,20 +630,17 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const ICls64*>& vec)
 {
 	TEST_FUNC_TIME;
 	wxBusyCursor busyCursor;
-	wxWindowUpdateLocker lock(mTable);
-
-
-	mClsList = vec;
-
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (dvmodel)
 	{
-		dvmodel->SetClsList(&mClsList);
+		wxWindowUpdateLocker lock(mTable);
+
+		mClsList = vec;
+		auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+		if (dvmodel)
+			dvmodel->SetClsList(&mClsList);
 	}
 
-	AutosizeColumns();
 	RestoreSelect();
-
+	AutosizeColumns();
 }
 
 //-----------------------------------------------------------------------------
@@ -602,19 +649,18 @@ void ViewTableBrowser::SetGroupByType(bool enable)// override;
 {
 	TEST_FUNC_TIME;
 	wxBusyCursor busyCursor;
-	wxWindowUpdateLocker lock(mTable);
 
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 	if (!dvmodel)
 		return;
 
-	mGroupByType = enable;
-	dvmodel->SetGroupByType(enable);
+	{
+		wxWindowUpdateLocker lock(mTable);
 
-	dvmodel->Cleared();
-
-	//auto col1 = mTable->GetColumnAt(0);
-	//mTable->SetExpanderColumn(col1);
+		mGroupByType = enable;
+		dvmodel->SetGroupByType(enable);
+		dvmodel->Cleared();
+	}
 		
 	AutosizeColumns();
 	RestoreSelect();
@@ -625,13 +671,14 @@ void ViewTableBrowser::SetGroupByType(bool enable)// override;
 void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IObj64*>& obj_list)// override;
 {
 	TEST_FUNC_TIME;
-	wxBusyCursor busyCursor;
-	wxWindowUpdateLocker lock(mTable);
 
 
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 	if (!dvmodel || !mGroupByType)
 		return;
+
+	wxBusyCursor busyCursor;
+	wxWindowUpdateLocker lock(mTable);
 
 	switch (op)
 	{
@@ -712,6 +759,7 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 	tool_bar->AddTool(wxID_EDIT, "Редактировать", mgr->m_ico_edit24, "Редактировать(CTRL+E)");
 
 	tool_bar->AddTool(wxID_VIEW_LIST , "Группировать по типу", wxArtProvider::GetBitmap(wxART_LIST_VIEW, wxART_TOOLBAR), "Группировать по типу(CTRL+G)");
+	tool_bar->FindTool(wxID_VIEW_LIST)->SetState(wxAUI_BUTTON_STATE_CHECKED);
 
 	tool_bar->AddSeparator();
 
