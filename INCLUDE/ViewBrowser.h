@@ -25,7 +25,6 @@ class ViewTableBrowser : public IViewTableBrowser
 	bool mGroupByType = true;
 	bool mColAutosize = true;
 	
-	size_t FindChildClsPos(const int64_t& id)const;
 	const ICls64* FindChildCls(const int64_t& id)const;
 	const ICls64* GetTopChildCls()const;
 	void RestoreSelect();
