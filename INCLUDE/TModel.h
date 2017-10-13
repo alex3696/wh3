@@ -98,7 +98,7 @@ public:
 		BeforeDelete,	// $1=NULL, 2$=old=const
 		AfterDelete,		// $1=NULL, 2$=old=nonconst
 	};
-	using ArrayChange = std::vector <const SptrIModel >;
+	using ArrayChange = std::vector <SptrIModel>;
 	// 
 	using Signal = sig::signal< void(const IModel&, const ArrayChange&, const ArrayChange&) >;
 

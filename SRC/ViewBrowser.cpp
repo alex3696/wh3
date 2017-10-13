@@ -295,7 +295,8 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 		, renderer2, 2, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
 	table->AppendColumn(col2);
 	
-	auto col3 = table->AppendTextColumn("Тип/Местоположение", 3);
+	auto col3 = table->AppendTextColumn("Тип/Местоположение", 3,wxDATAVIEW_CELL_INERT,-1
+		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 
 
 	//table->SetExpanderColumn(col1);
@@ -306,7 +307,10 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	table->Bind(wxEVT_MOTION, &ViewTableBrowser::OnCmd_MouseMove, this);
 
 	table->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED
-		, &ViewTableBrowser::OnCmd_Select, this);
+		, [this](wxDataViewEvent& evt) { StoreSelect(); });
+	table->Bind(wxEVT_DATAVIEW_COLUMN_SORTED
+		, [this](wxDataViewEvent& evt) { RestoreSelect(); });
+
 
 	table->Bind(wxEVT_DATAVIEW_ITEM_ACTIVATED
 		, &ViewTableBrowser::OnCmd_Activate, this);
@@ -316,7 +320,8 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	table->Bind(wxEVT_DATAVIEW_ITEM_EXPANDED
 		, &ViewTableBrowser::OnCmd_Expanded, this);
 
-
+	table->Bind(wxEVT_DATAVIEW_ITEM_COLLAPSED
+		, &ViewTableBrowser::OnCmd_Collapseded, this);
 
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED
 		,&ViewTableBrowser::OnCmd_Refresh, this, wxID_REFRESH);
@@ -352,39 +357,8 @@ void ViewTableBrowser::OnCmd_Up(wxCommandEvent& evt)
 	sigUp();
 }
 //-----------------------------------------------------------------------------
-void ViewTableBrowser::OnCmd_Select(wxDataViewEvent& evt)
-{
-	mClsSelected = 0;
-	mObjSelected = 0;
-
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (dvmodel)
-	{
-		const IIdent64* ident = static_cast<const IIdent64*> (mTable->GetCurrentItem().GetID());
-		if (ident)
-		{
-			const auto& obj = dynamic_cast<const IObj64*>(ident);
-			if (obj)
-			{
-				mObjSelected = obj->GetId();
-				mClsSelected = obj->GetCls()->GetId();
-			}
-			else
-			{
-				const auto& cls = dynamic_cast<const ICls64*>(ident);
-				if (cls)
-					mClsSelected = cls->GetId();
-			}
-		}//if (ident)
-	}//if (dvmodel)
-
-
-}
-
-//-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 {
-	/*
 	wxDataViewColumn* col = nullptr;
 	wxDataViewItem item(nullptr);
 	auto pos = evt.GetPosition();
@@ -393,14 +367,13 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 	wxString str;
 	if (col && item.IsOk())
 	{
-	wxVariant var;
-	mTable->GetModel()->GetValue(var, item, col->GetModelColumn());
-	wxDataViewIconText2 ico_txt;
-	ico_txt << var;
-	str = ico_txt.GetText();
+		wxVariant var;
+		mTable->GetModel()->GetValue(var, item, col->GetModelColumn());
+		wxDataViewIconText2 ico_txt;
+		ico_txt << var;
+		str = ico_txt.GetText();
 	}
 	mTable->GetTargetWindow()->GetToolTip()->SetTip(str);
-	*/
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_Activate(wxDataViewEvent& evt)
@@ -476,6 +449,20 @@ void ViewTableBrowser::OnCmd_Expanded(wxDataViewEvent& evt)
 
 }
 //-----------------------------------------------------------------------------
+void ViewTableBrowser::OnCmd_Collapseded(wxDataViewEvent& evt)
+{
+	if (evt.GetItem().IsOk())
+	{
+		auto model = mTable->GetModel();
+		auto dvparent = evt.GetItem();
+		wxDataViewItemArray arr;
+		model->GetChildren(dvparent, arr);
+		model->ItemsDeleted(dvparent, arr);
+	}
+
+}
+
+//-----------------------------------------------------------------------------
 const ICls64* ViewTableBrowser::FindChildCls(const int64_t& id)const
 {
 	//wxDataViewItem dvparent(nullptr);
@@ -522,6 +509,30 @@ const ICls64* ViewTableBrowser::GetTopChildCls()const
 		return mClsList.front();
 	return nullptr;
 }
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::StoreSelect()
+{
+	mClsSelected = 0;
+	mObjSelected = 0;
+
+	const IIdent64* ident = static_cast<const IIdent64*> (mTable->GetCurrentItem().GetID());
+	if (ident)
+	{
+		const auto& obj = dynamic_cast<const IObj64*>(ident);
+		if (obj)
+		{
+			mObjSelected = obj->GetId();
+			mClsSelected = obj->GetCls()->GetId();
+		}
+		else
+		{
+			const auto& cls = dynamic_cast<const ICls64*>(ident);
+			if (cls)
+				mClsSelected = cls->GetId();
+		}
+	}//if (ident)
+
+}
 
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::RestoreSelect()
@@ -532,6 +543,7 @@ void ViewTableBrowser::RestoreSelect()
 		const auto finded = FindChildCls(mClsSelected);
 		if (finded)
 		{
+			//auto id = finded->GetIdAsString();
 			//auto title = finded->GetTitle();
 			dvitem = wxDataViewItem((void*)finded);
 		}
@@ -560,6 +572,8 @@ void ViewTableBrowser::RestoreSelect()
 
 	auto model = mTable->GetModel();
 	
+	mTable->UnselectAll();
+
 	mTable->SetCurrentItem(dvitem);
 	mTable->Select(dvitem);
 	mTable->EnsureVisible(dvitem);
@@ -590,35 +604,35 @@ void ViewTableBrowser::AutosizeColumns()
 }
 
 //-----------------------------------------------------------------------------
-//virtual
-void ViewTableBrowser::SetBeforePathChange(const ICls64& node)// override;
+//virtual 
+void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const ICls64*>& vec, const ICls64* parent) //override;
 {
 	TEST_FUNC_TIME;
 
-
-	mClsSelected = node.GetId();
+	mClsSelected = 0;
 	mObjSelected = 0;
+	if (parent && mParent )
+	{
+		auto curr_id = mParent->GetId();
+		auto  new_id = parent->GetId();
+		if(curr_id== new_id)
+			StoreSelect();
+		else
+			mClsSelected = curr_id;
+	}
+	else
+		mClsSelected = parent->GetId();
+	
 
+	mParent = nullptr;
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 	if (dvmodel)
 	{
 		dvmodel->SetClsList(nullptr);
 		dvmodel->Cleared();
 	}
-
-}
-//-----------------------------------------------------------------------------
-//virtual
-void ViewTableBrowser::SetAfterPathChange(const ICls64& node)// override;
-{
-	TEST_FUNC_TIME;
-
-}
-//-----------------------------------------------------------------------------
-//virtual 
-void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const ICls64*>& vec) //override;
-{
-	TEST_FUNC_TIME;
+	
+	
 	//wxBusyCursor busyCursor;
 	//wxWindowUpdateLocker lock(mTable);
 
@@ -626,13 +640,14 @@ void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const ICls64*>& vec
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const ICls64*>& vec) //override;
+void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const ICls64*>& vec, const ICls64* root) //override;
 {
 	TEST_FUNC_TIME;
 	wxBusyCursor busyCursor;
 	{
 		wxWindowUpdateLocker lock(mTable);
 
+		mParent = root;
 		mClsList = vec;
 		auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 		if (dvmodel)

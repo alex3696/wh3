@@ -11,7 +11,8 @@ namespace wh{
 //-----------------------------------------------------------------------------
 class ViewTableBrowser : public IViewTableBrowser
 {
-	std::vector<const ICls64*> mClsList;
+	const ICls64*				mParent = nullptr;
+	std::vector<const ICls64*>	mClsList;
 
 	wxDataViewColumn* mSortCol = nullptr;
 	bool mSortAsc = true;
@@ -27,16 +28,19 @@ class ViewTableBrowser : public IViewTableBrowser
 	
 	const ICls64* FindChildCls(const int64_t& id)const;
 	const ICls64* GetTopChildCls()const;
+	
+	void StoreSelect();
 	void RestoreSelect();
 	void AutosizeColumns();
 protected:
 	void OnCmd_Refresh(wxCommandEvent& evt);
 	void OnCmd_Up(wxCommandEvent& evt);
-	void OnCmd_Select(wxDataViewEvent& evt);
 	void OnCmd_MouseMove(wxMouseEvent& evt);
 	void OnCmd_Activate(wxDataViewEvent& evt);
 	void OnCmd_Expanding(wxDataViewEvent& evt);
 	void OnCmd_Expanded(wxDataViewEvent& evt);
+
+	void OnCmd_Collapseded(wxDataViewEvent& evt);
 	
 public:
 	ViewTableBrowser(wxWindow* parent);
@@ -46,10 +50,8 @@ public:
 		return mTable;
 	}
 
-	virtual void SetBeforePathChange(const ICls64& node) override;
-	virtual void SetAfterPathChange(const ICls64& node) override;
-	virtual void SetBeforeRefreshCls(const std::vector<const ICls64*>&) override;
-	virtual void SetAfterRefreshCls(const std::vector<const ICls64*>&) override;
+	virtual void SetBeforeRefreshCls(const std::vector<const ICls64*>&, const ICls64*) override;
+	virtual void SetAfterRefreshCls(const std::vector<const ICls64*>&, const ICls64*) override;
 
 
 	virtual void SetGroupByType(bool enable) override;

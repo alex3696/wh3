@@ -13,10 +13,8 @@ class IViewTableBrowser : public IViewWindow
 {
 public:
 	virtual void SetGroupByType(bool enable) = 0;
-	virtual void SetBeforePathChange(const ICls64& node) = 0;
-	virtual void SetAfterPathChange(const ICls64& node) = 0;
-	virtual void SetBeforeRefreshCls(const std::vector<const ICls64*>&)=0;
-	virtual void SetAfterRefreshCls(const std::vector<const ICls64*>&) = 0;
+	virtual void SetBeforeRefreshCls(const std::vector<const ICls64*>&, const ICls64*)=0;
+	virtual void SetAfterRefreshCls(const std::vector<const ICls64*>&, const ICls64*) = 0;
 
 
 	virtual void SetObjOperation(Operation, const std::vector<const IObj64*>&) = 0;

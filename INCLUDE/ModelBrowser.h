@@ -327,8 +327,11 @@ public:
 	sig::signal<void(const ICls64&)> sigBeforePathChange;
 	sig::signal<void(const ICls64&)> sigAfterPathChange;
 	
-	sig::signal<void(const std::vector<const ICls64*>&)>	sigBeforeRefreshCls;
-	sig::signal<void(const std::vector<const ICls64*>& )>	sigAfterRefreshCls;
+	using SigRefreshCls = 
+		sig::signal<void(const std::vector<const ICls64*>&, const ICls64*)>;
+	
+	SigRefreshCls	sigBeforeRefreshCls;
+	SigRefreshCls	sigAfterRefreshCls;
 
 
 	sig::signal<void(Operation op

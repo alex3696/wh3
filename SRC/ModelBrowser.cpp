@@ -230,9 +230,20 @@ ModelBrowser::ModelBrowser()
 	//sigClear();
 	
 	mClsPath.sigBeforePathChange.connect(sigBeforePathChange);
+
+	
+	//mClsPath.sigBeforePathChange.connect([this](const ICls64& parent)
+	//	{
+
+	//	});
+		
 	
 	mClsPath.sigAfterPathChange.connect(sigAfterPathChange);
-	mClsPath.sigAfterPathChange.connect(std::bind(&ModelBrowser::DoRefresh, this));
+	mClsPath.sigAfterPathChange.connect([this](const ICls64&)
+		{
+			DoRefresh();
+			//sigAfterRefreshCls(toinsert, parent_node.get()); // internal in DoRefresh
+		});
 	
 }
 //-----------------------------------------------------------------------------
@@ -323,11 +334,12 @@ void ModelBrowser::DoRefresh()
 	//cls64->RefreshChilds();
 	//sigAfterPathChange(*cls);
 
-	std::vector<const ICls64*> toinsert;
-	sigBeforeRefreshCls(toinsert);
-	
 	std::shared_ptr<ICls64>& parent_node = mClsPath.GetCurrent();
 	auto id = parent_node->GetIdAsString();
+	
+	std::vector<const ICls64*> toinsert;
+	sigBeforeRefreshCls(toinsert, parent_node.get());
+	
 	
 	parent_node->ClearChilds();
 	//insert
@@ -377,7 +389,7 @@ void ModelBrowser::DoRefresh()
 	whDataMgr::GetDB().Commit();
 	
 	if (!toinsert.empty())
-		sigAfterRefreshCls(toinsert);
+		sigAfterRefreshCls(toinsert, parent_node.get());
 }
 //-----------------------------------------------------------------------------
 //void ModelBrowser::DoActivate(int64_t id)

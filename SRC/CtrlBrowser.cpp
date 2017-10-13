@@ -23,15 +23,10 @@ CtrlTableBrowser::CtrlTableBrowser(
 	connModel_GroupByType = mModel->GetModelBrowser()->sigGroupByType.connect
 		(std::bind(&IViewTableBrowser::SetGroupByType, mView.get(), ph::_1));
 
-	connModel_BeforePathChange = mModel->GetModelBrowser()->sigBeforePathChange
-		.connect(std::bind(&IViewTableBrowser::SetBeforePathChange, mView.get(), ph::_1));
-	connModel_AfterPathChange = mModel->GetModelBrowser()->sigAfterPathChange
-		.connect(std::bind(&IViewTableBrowser::SetAfterPathChange, mView.get(), ph::_1));
-
 	connModel_BeforeRefreshCls = mModel->GetModelBrowser()->sigBeforeRefreshCls
-		.connect(std::bind(&IViewTableBrowser::SetBeforeRefreshCls, mView.get(), ph::_1));
+		.connect(std::bind(&IViewTableBrowser::SetBeforeRefreshCls, mView.get(), ph::_1, ph::_2));
 	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
-		.connect(std::bind(&IViewTableBrowser::SetAfterRefreshCls, mView.get(), ph::_1));
+		.connect(std::bind(&IViewTableBrowser::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2));
 
 
 

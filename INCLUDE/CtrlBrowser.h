@@ -14,8 +14,6 @@ class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPag
 	sig::scoped_connection connViewCmd_Up;
 	sig::scoped_connection connViewCmd_Activate;
 	
-	sig::scoped_connection connModel_BeforePathChange;
-	sig::scoped_connection connModel_AfterPathChange;
 
 	sig::scoped_connection connModel_BeforeRefreshCls;
 	sig::scoped_connection connModel_AfterRefreshCls;
