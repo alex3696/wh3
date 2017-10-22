@@ -279,6 +279,7 @@ void ModelBrowser::DoRefreshObjects(const std::shared_ptr<ICls64>& cls)
 	wxString query = wxString::Format(
 		"SELECT o.id, o.title, o.qty, o.pid "
 		"       ,get_path_objnum(o.pid,1)  AS path"
+		"       ,prop"
 		" FROM obj o "
 		" WHERE o.id>0 AND o.cls_id = %s "
 		" ORDER BY "

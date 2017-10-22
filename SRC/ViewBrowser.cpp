@@ -131,8 +131,21 @@ public:
 		}
 		
 	}
-	//virtual bool GetAttr (const wxDataViewItem &item, unsigned int col, 
-	//	wxDataViewItemAttr &attr) const ; 
+	virtual bool GetAttr (const wxDataViewItem &item, unsigned int col, 
+		wxDataViewItemAttr &attr) const override
+	{
+		if (item.IsOk())
+		{
+			const auto node = static_cast<const IIdent64*> (item.GetID());
+			const auto cls = dynamic_cast<const ICls64*>(node);
+			if (!cls)
+			{
+				attr.SetBold(true);
+				return true;
+			}
+		}
+		return false;
+	} 
 	virtual bool SetValue(const wxVariant &variant, const wxDataViewItem &item,
 		unsigned int col)override
 	{
@@ -203,7 +216,7 @@ public:
 		}
 		const auto ident = static_cast<const IIdent64*> (parent.GetID());
 		const auto cls = dynamic_cast<const ICls64*>(ident);
-		if (cls && cls->GetObjTable() )
+		if (mGroupByType && cls && cls->GetObjTable() )
 		{
 			const auto& obj_list = *cls->GetObjTable();
 			for (const auto& sp_obj : obj_list)
@@ -302,9 +315,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	//table->SetExpanderColumn(col1);
 
 	table->GetTargetWindow()->SetToolTip("ToolTip");
-
-
-	table->Bind(wxEVT_MOTION, &ViewTableBrowser::OnCmd_MouseMove, this);
+	table->GetTargetWindow()->Bind(wxEVT_MOTION, &ViewTableBrowser::OnCmd_MouseMove, this);
 
 	table->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED
 		, [this](wxDataViewEvent& evt) { StoreSelect(); });
@@ -365,15 +376,20 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 	mTable->HitTest(pos, item, col);
 
 	wxString str;
+
 	if (col && item.IsOk())
 	{
 		wxVariant var;
-		mTable->GetModel()->GetValue(var, item, col->GetModelColumn());
-		wxDataViewIconText2 ico_txt;
-		ico_txt << var;
-		str = ico_txt.GetText();
+		//mTable->GetModel()->GetValue(var, item, col->GetModelColumn());
+		//wxDataViewIconText2 ico_txt;
+		//ico_txt << var;
+		//str = ico_txt.GetText();
+
+		mTable->GetModel()->GetValue(var, item, 0);
+		str = var.GetString();
+		mTable->GetTargetWindow()->GetToolTip()->SetTip(str);
 	}
-	mTable->GetTargetWindow()->GetToolTip()->SetTip(str);
+	
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_Activate(wxDataViewEvent& evt)

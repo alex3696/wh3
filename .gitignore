@@ -49,6 +49,8 @@ Thumbs.db
 *.tmp
 *.bak
 *.exe
+*.ipdb
+*.iobj
 RESOURCES/Thumbs.db
 DOC/html
 BUILD/wh3/Debug
