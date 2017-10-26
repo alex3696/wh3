@@ -12,6 +12,7 @@ using namespace wh;
 class wxDVTableBrowser
 	: public wxDataViewModel
 {
+	const ICls64* mCurrentRoot = nullptr;
 	const	std::vector<const ICls64*>* mClsList = nullptr;
 	bool	mGroupByType = true;
 	wxRegEx mStartNum = "(^[0-9]+)";
@@ -42,7 +43,10 @@ public:
 		
 		const auto node = static_cast<const IIdent64*> (item.GetID());
 		const auto cls = dynamic_cast<const ICls64*>(node);
-		if (mGroupByType && cls && ClsKind::Abstract != cls->GetKind())
+		if (mGroupByType 
+			&& cls 
+			&& cls != mCurrentRoot
+			&& ClsKind::Abstract != cls->GetKind())
 			return true;
 		
 		return false;
@@ -62,6 +66,12 @@ public:
 	{
 		const wxIcon*  ico(&wxNullIcon);
 		auto mgr = ResMgr::GetInstance();
+
+		if (1== col && mCurrentRoot == &cls)
+		{
+			variant << wxDataViewIconText("..", mgr->m_ico_back24);
+			return;
+		}
 
 		switch (col)
 		{
@@ -160,6 +170,14 @@ public:
 		GetValue(value1, item1, column);
 		GetValue(value2, item2, column);
 
+		if (mCurrentRoot)
+		{
+			if (static_cast<const IIdent64*> (item1.GetID()) == mCurrentRoot)
+				return -1;
+			else if (static_cast<const IIdent64*> (item2.GetID()) == mCurrentRoot)
+				return 1;
+		}
+
 		if (!ascending)
 			std::swap(value1, value2);
 
@@ -186,37 +204,34 @@ public:
 			//wxRegEx mStartNum = "(^[0-9]+)";
 			if (mStartNum.Matches(str1))
 			{
-				size_t start;
-				size_t len;
+				size_t start1;
+				size_t len1;
 				long num1;
-				bool match = mStartNum.GetMatch(&start, &len);
-				if (match && str1.substr(start, len).ToLong(&num1))
+				bool match = mStartNum.GetMatch(&start1, &len1);
+				if (match && str1.substr(start1, len1).ToLong(&num1))
 				{
-					str1.erase(start, start + len);
 					if (mStartNum.Matches(str2))
 					{
+						size_t start2;
+						size_t len2;
 						long num2;
-						match = mStartNum.GetMatch(&start, &len);
-						if (match && str2.substr(start, len).ToLong(&num2))
+						match = mStartNum.GetMatch(&start2, &len2);
+						if (match && str2.substr(start2, len2).ToLong(&num2))
 						{
-							str2.erase(start, start + len);
+							
 							if (num1 < num2)
 								return -1;
 							else if (num1 > num2)
 								return 1;
-							else
-							{
-								int res = str1.CmpNoCase(str2);
-								if (res)
-									return res;
-							}
+							str1.erase(start1, start1 + len1);
+							str2.erase(start2, start2 + len2);
 						}
 					}//if (mStartNum.Matches(str1))
 				}//if (match && str1.substr(start, len).ToLong(&num1))
 			}//if (mStartNum.Matches(str1))
 
 			int res = str1.CmpNoCase(str2);
-			if (res != 0)
+			if (res)
 				return res;
 
 			// items must be different
@@ -250,6 +265,11 @@ public:
 	{
 		if (!parent.IsOk() && mClsList)
 		{
+			if (mCurrentRoot && 1<mCurrentRoot->GetId())
+			{
+				wxDataViewItem dvitem((void*)mCurrentRoot);
+				arr.push_back(dvitem);
+			}
 			for (const auto& child_cls : *mClsList)
 			{
 				wxDataViewItem dvitem((void*)child_cls);
@@ -284,8 +304,9 @@ public:
 		return !mGroupByType;
 	}
 
-	void SetClsList(const std::vector<const ICls64*>* current)
+	void SetClsList(const std::vector<const ICls64*>* current, const ICls64* curr= nullptr)
 	{
+		mCurrentRoot = curr;
 		mClsList = current;
 		Cleared();
 	}
@@ -354,6 +375,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	
 	auto col3 = table->AppendTextColumn("Тип/Местоположение", 3,wxDATAVIEW_CELL_INERT,-1
 		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+	col3->GetRenderer()->EnableEllipsize(wxELLIPSIZE_START);
 
 
 	//table->SetExpanderColumn(col1);
@@ -362,7 +384,13 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	table->GetTargetWindow()->Bind(wxEVT_MOTION, &ViewTableBrowser::OnCmd_MouseMove, this);
 
 	table->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED
-		, [this](wxDataViewEvent& evt) { StoreSelect(); });
+		, [this](wxDataViewEvent& evt) 
+		{ 
+			if (evt.GetItem().IsOk())
+				StoreSelect();
+			else
+				RestoreSelect();
+		});
 	table->Bind(wxEVT_DATAVIEW_COLUMN_SORTED
 		, [this](wxDataViewEvent& evt) { RestoreSelect(); });
 
@@ -456,10 +484,17 @@ void ViewTableBrowser::OnCmd_Activate(wxDataViewEvent& evt)
 		if (cls)
 		{
 			wxBusyCursor busyCursor;
-			// если убрать этот локер, выделится первый элемент, даже в обратной сортировке
-			wxWindowUpdateLocker lock(mTable);
-
-			sigActivate(cls);
+			
+			if(mParent && cls== mParent)
+				sigUp();
+			else
+			{
+				// если убрать этот локер, выделится первый элемент,
+				// даже в обратной сортировке
+				wxWindowUpdateLocker lock(mTable);
+				sigActivate(cls);
+			}
+				
 		}
 			
 	}
@@ -565,6 +600,8 @@ const ICls64* ViewTableBrowser::GetTopChildCls()const
 	//	return cls;
 	//return nullptr;
 
+	if (mParent && 1 != mParent->GetId())
+		return mParent;
 	if (!mClsList.empty())
 		return mClsList.front();
 	return nullptr;
@@ -688,8 +725,7 @@ void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const ICls64*>& vec
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 	if (dvmodel)
 	{
-		dvmodel->SetClsList(nullptr);
-		dvmodel->Cleared();
+		dvmodel->SetClsList(nullptr, nullptr);
 	}
 	
 	
@@ -711,7 +747,7 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const ICls64*>& vec,
 		mClsList = vec;
 		auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 		if (dvmodel)
-			dvmodel->SetClsList(&mClsList);
+			dvmodel->SetClsList(&mClsList, (root && 1 != root->GetId()) ? root : nullptr );
 	}
 
 	RestoreSelect();
@@ -822,7 +858,7 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 		;
 	auto tool_bar = new wxAuiToolBar(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
 
-	//tool_bar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh24, "Обновить(CTRL+R)");
+	tool_bar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh24, "Обновить(CTRL+R)");
 	//tool_bar->AddTool(wxID_UP,"Вверх", mgr->m_ico_back24, "Вверх(BACKSPACE)");
 
 	tool_bar->AddTool(wxID_EXECUTE, "Выполнить", mgr->m_ico_act24, "Выполнить(F9)");
@@ -1009,14 +1045,14 @@ ViewBrowserPage::ViewBrowserPage(wxWindow* parent)
 		);
 	
 	long style = wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_PLAIN_BACKGROUND;
-	auto navigateToolBar = new wxAuiToolBar(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
-	navigateToolBar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh16, "Обновить(CTRL+R)");
-	navigateToolBar->AddTool(wxID_UP,"Вверх", mgr->m_ico_sort_asc16, "Вверх(BACKSPACE)");
-	navigateToolBar->Realize();
-	panel->mAuiMgr.AddPane(navigateToolBar, wxAuiPaneInfo().Name(wxT("navigateToolBar"))
-		.Top().CaptionVisible(false).Dock().Fixed().DockFixed(true)
-		.Row(1).Layer(0)
-	);
+	//auto navigateToolBar = new wxAuiToolBar(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
+	//navigateToolBar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh16, "Обновить(CTRL+R)");
+	//navigateToolBar->AddTool(wxID_UP,"Вверх", mgr->m_ico_sort_asc16, "Вверх(BACKSPACE)");
+	//navigateToolBar->Realize();
+	//panel->mAuiMgr.AddPane(navigateToolBar, wxAuiPaneInfo().Name(wxT("navigateToolBar"))
+	//	.Top().CaptionVisible(false).Dock().Fixed().DockFixed(true)
+	//	.Row(1).Layer(0)
+	//);
 
 	mViewPathBrowser = std::make_shared<ViewPathBrowser>(panel);
 	panel->mAuiMgr.AddPane(mViewPathBrowser->GetWnd(), wxAuiPaneInfo().Name(wxT("PathBrowser"))
@@ -1024,9 +1060,15 @@ ViewBrowserPage::ViewBrowserPage(wxWindow* parent)
 		.Row(1).Layer(0)
 	);
 
+	auto mCtrlFind = new wxTextCtrl(panel, wxID_ANY);
+	panel->mAuiMgr.AddPane(mCtrlFind, wxAuiPaneInfo().Name("mCtrlFind")
+		.Top().CaptionVisible(false).Dock().Fixed()
+		.Row(1).Layer(0)
+	);
+
 	auto findToolBar = new wxAuiToolBar(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
-	auto mCtrlFind = new wxTextCtrl(findToolBar, wxID_ANY);
-	findToolBar->AddControl(mCtrlFind, "Поиск");
+	//auto mCtrlFind = new wxTextCtrl(findToolBar, wxID_ANY);
+	//findToolBar->AddControl(mCtrlFind, "Поиск");
 	findToolBar->AddTool(wxID_FIND, "Поиск", wxArtProvider::GetBitmap(wxART_FIND, wxART_MENU), "Поиск(CTRL+F)");
 	findToolBar->Realize();
 	panel->mAuiMgr.AddPane(findToolBar, wxAuiPaneInfo().Name(wxT("findToolBar"))
