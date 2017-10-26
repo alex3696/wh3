@@ -3,7 +3,8 @@
 
 using namespace wh;
 
-
+std::shared_ptr<ClsRec64>  ClsCache::mNullObj = std::shared_ptr<ClsRec64>(nullptr);
+std::shared_ptr<ObjRec64>  ObjCache::mNullObj = std::shared_ptr<ObjRec64>(nullptr);
 
 /*
 ObjCache gObjCache;
@@ -282,8 +283,7 @@ void ModelBrowser::DoRefreshObjects(const std::shared_ptr<ICls64>& cls)
 		"       ,prop"
 		" FROM obj o "
 		" WHERE o.id>0 AND o.cls_id = %s "
-		" ORDER BY "
-		"   (substring(o.title, '^[0-9]+')::INT, o.title ) ASC "
+		//" ORDER BY (substring(o.title, '^[0-9]+')::INT, o.title ) ASC "
 		, cls->GetIdAsString()
 	);
 	whDataMgr::GetDB().BeginTransaction();
@@ -297,9 +297,13 @@ void ModelBrowser::DoRefreshObjects(const std::shared_ptr<ICls64>& cls)
 		const ObjCache::fnModify fn = [&parent_node, &table, &i](const std::shared_ptr<ObjRec64>& obj)
 		{
 			obj->mCls = parent_node;
+			obj->mId = 0;
 			obj->SetId(table->GetAsString(0, i));
 			table->GetAsString(1, i, obj->mTitle);
 			table->GetAsString(2, i, obj->mQty);
+
+			obj->mParentId = 0;
+			obj->SetParentId(table->GetAsString(3, i));
 
 			obj->mPath = std::make_shared<ObjPath64>();
 			table->GetAsString(4, i, obj->mPath->mStrPath );
@@ -310,11 +314,14 @@ void ModelBrowser::DoRefreshObjects(const std::shared_ptr<ICls64>& cls)
 		std::vector<const IObj64*> toinsert;
 		for (; i < rowQty; i++)
 		{
-			int64_t id;
+			int64_t id, parentId;
 			if (!table->GetAsString(0, i).ToLongLong(&id))
 				throw;
-			const std::shared_ptr<ObjRec64>& obj = mObjCache.GetObjById(id, fn);
-
+			if (!table->GetAsString(3, i).ToLongLong(&parentId))
+				throw;
+			const std::shared_ptr<ObjRec64>& obj = mObjCache.GetObjById(id, parentId, fn);
+			if (!obj)
+				throw;
 			parent_node->AddObj(obj);
 			toinsert.emplace_back(obj.get());
 		}
@@ -353,7 +360,7 @@ void ModelBrowser::DoRefresh()
 		"		FROM obj WHERE obj.cls_id = acls.id GROUP BY cls_id)  AS qty"
 		" FROM acls"
 		" WHERE acls.id > 99 AND pid = %s"
-		" ORDER BY acls.title ASC"
+		//" ORDER BY acls.title ASC"
 		, id
 		);
 	whDataMgr::GetDB().BeginTransaction();

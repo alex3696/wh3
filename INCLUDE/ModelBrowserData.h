@@ -243,6 +243,7 @@ public:
 	virtual const SpPropValConstTable&	GetProperties()const = 0;
 
 	virtual std::shared_ptr<const IObj64> GetParent()const = 0;
+	virtual int64_t GetParentId()const = 0;
 	virtual void SetParent(const std::shared_ptr<const IObj64>&) = 0;
 	virtual void ClearChilds() = 0;
 	virtual void AddChild(const std::shared_ptr<IObj64>&) = 0;

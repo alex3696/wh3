@@ -91,7 +91,6 @@ IMPLEMENT_DYNAMIC_CLASS(PGFileLinkEditor, wxPGTextCtrlEditor)
 
 //-------------------------------------------------------------------------------------------------
 PGFileLinkEditor* gPGFileLinkEditor = NULL;
-#include "unistd.h"
 
 whPGFileLinkProperty::whPGFileLinkProperty(const wxString& label, const wxString& name, const wxString& value)
 : wxStringProperty(label, name, value)
@@ -122,6 +121,7 @@ whPGFileLinkProperty::whPGFileLinkProperty(const wxString& label, const wxString
 		//wxWidget
 		//wxShell(str);
 		// std
+		//#include "unistd.h"
 		//execl(prop->GetValueAsString().c_str(),nullptr);
 		return true;
 	};

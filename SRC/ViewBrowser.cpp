@@ -14,6 +14,7 @@ class wxDVTableBrowser
 {
 	const	std::vector<const ICls64*>* mClsList = nullptr;
 	bool	mGroupByType = true;
+	wxRegEx mStartNum = "(^[0-9]+)";
 public:
 	wxDVTableBrowser(){};
 	~wxDVTableBrowser(){};
@@ -138,7 +139,7 @@ public:
 		{
 			const auto node = static_cast<const IIdent64*> (item.GetID());
 			const auto cls = dynamic_cast<const ICls64*>(node);
-			if (!cls)
+			if (!cls && (1==col || 2 == col) )
 			{
 				attr.SetBold(true);
 				return true;
@@ -162,24 +163,66 @@ public:
 		if (!ascending)
 			std::swap(value1, value2);
 
-		if (value1.GetType() == wxT("string"))
+		// all columns sorted by TRY FIRST numberic value
+		if (value1.GetType() == "string" || value1.GetType() == "wxDataViewIconText")
 		{
-			wxString str1 = value1.GetString();
-			wxString str2 = value2.GetString();
+			wxString str1;
+			wxString str2;
+
+			if (value1.GetType() == "wxDataViewIconText")
+			{
+				wxDataViewIconText iconText1, iconText2;
+
+				iconText1 << value1;
+				iconText2 << value2;
+				str1 = iconText1.GetText();
+				str2 = iconText2.GetText();
+			}
+			else
+			{
+				str1 = value1.GetString();
+				str2 = value2.GetString();
+			}
+			//wxRegEx mStartNum = "(^[0-9]+)";
+			if (mStartNum.Matches(str1))
+			{
+				size_t start;
+				size_t len;
+				long num1;
+				bool match = mStartNum.GetMatch(&start, &len);
+				if (match && str1.substr(start, len).ToLong(&num1))
+				{
+					str1.erase(start, start + len);
+					if (mStartNum.Matches(str2))
+					{
+						long num2;
+						match = mStartNum.GetMatch(&start, &len);
+						if (match && str2.substr(start, len).ToLong(&num2))
+						{
+							str2.erase(start, start + len);
+							if (num1 < num2)
+								return -1;
+							else if (num1 > num2)
+								return 1;
+							else
+							{
+								int res = str1.CmpNoCase(str2);
+								if (res)
+									return res;
+							}
+						}
+					}//if (mStartNum.Matches(str1))
+				}//if (match && str1.substr(start, len).ToLong(&num1))
+			}//if (mStartNum.Matches(str1))
+
 			int res = str1.CmpNoCase(str2);
-			if (res)
-				return res;
-		}
-		else if (value1.GetType() == wxT("wxDataViewIconText"))
-		{
-			wxDataViewIconText iconText1, iconText2;
-
-			iconText1 << value1;
-			iconText2 << value2;
-
-			int res = iconText1.GetText().CmpNoCase(iconText2.GetText());
 			if (res != 0)
 				return res;
+
+			// items must be different
+			wxUIntPtr id1 = wxPtrToUInt(item1.GetID()),
+				id2 = wxPtrToUInt(item2.GetID());
+			return ascending ? id1 - id2 : id2 - id1;
 		}
 		
 		return wxDataViewModel::Compare(item1, item2, column, ascending);
@@ -304,8 +347,9 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	auto col1 = new wxDataViewColumn("Имя"
 		, renderer1, 1, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE );
 	table->AppendColumn(col1);
+	col1->SetSortOrder(true);
 	auto col2 = new wxDataViewColumn("Количество"
-		, renderer2, 2, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
+		, renderer2, 2, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 	table->AppendColumn(col2);
 	
 	auto col3 = table->AppendTextColumn("Тип/Местоположение", 3,wxDATAVIEW_CELL_INERT,-1
@@ -1036,3 +1080,4 @@ void ViewBrowserPage::SetPathString(const ICls64& path_string) //override;
 {
 
 }
+

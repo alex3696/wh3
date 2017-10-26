@@ -116,6 +116,7 @@ public:
 	int64_t		mId;
 	wxString	mTitle;
 	wxString	mQty;
+	int64_t		mParentId;
 	
 	std::shared_ptr<ObjPath64> mPath;
 
@@ -147,6 +148,15 @@ public:
 	{
 		return mParent.lock();
 	}
+	virtual int64_t GetParentId()const override
+	{
+		return mParentId;
+	}
+	bool SetParentId(const wxString& str)
+	{
+		return str.ToLongLong(&mParentId);
+	}
+
 	virtual void SetParent(const std::shared_ptr<const IObj64>& parent) override
 	{
 		mParent = parent;
@@ -200,15 +210,15 @@ class ClsCache
 {
 public:
 	using Cache = boost::multi_index_container
-		<
+	<
 		std::shared_ptr<ClsRec64>,
 		indexed_by
 		<
-		random_access<> //SQL order
-		, ordered_unique< extr_id_IIdent64 >
-		, ordered_unique< extr_void_ptr_IIdent64 >
+			random_access<> //SQL order
+			, ordered_unique< extr_id_IIdent64 >
+			, ordered_unique< extr_void_ptr_IIdent64 >
 		>
-		>;
+	>;
 	using fnModify = std::function<void(const std::shared_ptr<ClsRec64>& obj)>;
 
 
@@ -237,7 +247,7 @@ public:
 	}
 private:
 	Cache mCache;
-	std::shared_ptr<ClsRec64> mNullObj;
+	static std::shared_ptr<ClsRec64> mNullObj;
 
 };
 
@@ -248,6 +258,15 @@ private:
 
 class ObjCache
 {
+	struct extr_parentId_IObj64
+	{
+		typedef const int64_t result_type;
+		inline result_type operator()(const std::shared_ptr<IObj64>& r)const
+		{
+			return r->GetParentId();
+		}
+	};
+
 public:
 	using Cache = boost::multi_index_container
 	<
@@ -255,24 +274,34 @@ public:
 		indexed_by
 		<
 			random_access<> //SQL order
-			, ordered_unique< extr_id_IIdent64 >
+			, ordered_unique < 
+		                      composite_key
+		                      <
+		                       std::shared_ptr<ObjRec64>
+		                       , extr_id_IIdent64
+		                       , extr_parentId_IObj64
+							  > 
+			                 >
 			, ordered_unique< extr_void_ptr_IIdent64 >
 		>
 	>;
 	using fnModify = std::function<void(const std::shared_ptr<ObjRec64>& obj)>;
 
 
-	const std::shared_ptr<ObjRec64>& GetObjById(const int64_t& id, const fnModify& fn = nullptr)
+	const std::shared_ptr<ObjRec64>& GetObjById(const int64_t& id, const int64_t& parentId
+		, const fnModify& fn = nullptr)
 	{
 		auto& idxId = mCache.get<1>();
-		auto it = idxId.find(id);
+		auto it = idxId.find(boost::make_tuple(id, parentId));
 		if (idxId.end() == it)
 		{
 			if (fn)
 			{
 				auto obj = std::make_shared<ObjRec64>();
 				fn(obj);
-				return *mCache.emplace_back(obj).first;
+				auto ins_it = mCache.emplace_back(obj);//return *mCache.emplace_back(obj).first;
+				if(ins_it.second)
+					return *ins_it.first;
 			}
 			//else
 			//	return nullptr;
@@ -287,7 +316,7 @@ public:
 	}
 private:
 	Cache mCache;
-	std::shared_ptr<ObjRec64> mNullObj;
+	static std::shared_ptr<ObjRec64> mNullObj;
 
 };
 
