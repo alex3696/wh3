@@ -148,8 +148,8 @@ public:
 		if (item.IsOk())
 		{
 			const auto node = static_cast<const IIdent64*> (item.GetID());
-			const auto cls = dynamic_cast<const ICls64*>(node);
-			if (!cls && (1==col || 2 == col) )
+			const auto obj = dynamic_cast<const IObj64*>(node);
+			if (obj && (1 == col || (2 == col && ClsKind::Single != obj->GetCls()->GetKind()))  )
 			{
 				attr.SetBold(true);
 				return true;
@@ -279,15 +279,18 @@ public:
 		}
 		const auto ident = static_cast<const IIdent64*> (parent.GetID());
 		const auto cls = dynamic_cast<const ICls64*>(ident);
-		if (mGroupByType && cls && cls->GetObjTable() )
+		if (mGroupByType && cls)
 		{
-			const auto& obj_list = *cls->GetObjTable();
-			for (const auto& sp_obj : obj_list)
+			const auto obj_list = cls->GetObjTable();
+			if (obj_list && obj_list->size())
 			{
-				wxDataViewItem dvitem((void*)sp_obj.get());
-				arr.push_back(dvitem);
+				for (const auto& sp_obj : *obj_list)
+				{
+					wxDataViewItem dvitem((void*)sp_obj.get());
+					arr.push_back(dvitem);
+				}
+				return arr.size();
 			}
-			return arr.size();
 		}
 
 
@@ -368,7 +371,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	auto col1 = new wxDataViewColumn("Имя"
 		, renderer1, 1, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE );
 	table->AppendColumn(col1);
-	col1->SetSortOrder(true);
+	//col1->SetSortOrder(true);
 	auto col2 = new wxDataViewColumn("Количество"
 		, renderer2, 2, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 	table->AppendColumn(col2);
@@ -648,14 +651,17 @@ void ViewTableBrowser::RestoreSelect()
 		auto oid = mObjSelected;
 		if (oid && mGroupByType)
 		{
-			sigActivate(finded);
-			auto it = std::find_if(finded->GetObjTable()->cbegin(), finded->GetObjTable()->cend()
+			//sigActivate(finded);
+			mTable->Expand(dvitem);// finded cls
+
+			const auto objTable = finded->GetObjTable();
+			auto it = std::find_if(objTable->cbegin(), objTable->cend()
 				, [oid](const std::shared_ptr<const IObj64>& it)
 			{
 				return it->GetId() == oid;
 			});
 
-			if (finded->GetObjTable()->cend() != it)
+			if (objTable->cend() != it)
 				dvitem = wxDataViewItem((void*)(it->get()));
 		}
 	}
@@ -671,9 +677,10 @@ void ViewTableBrowser::RestoreSelect()
 	
 	mTable->UnselectAll();
 
+	mTable->EnsureVisible(dvitem);
 	mTable->SetCurrentItem(dvitem);
 	mTable->Select(dvitem);
-	mTable->EnsureVisible(dvitem);
+	
 
 	//auto new_sel = mTable->GetCurrentItem();
 	//const auto ident = static_cast<const IIdent64*> (new_sel.GetID());
@@ -683,8 +690,6 @@ void ViewTableBrowser::RestoreSelect()
 	//	auto title = cls->GetTitle();
 	//	auto id = cls->GetIdAsString();
 	//}
-
-	
 	
 }
 //-----------------------------------------------------------------------------
@@ -752,6 +757,15 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const ICls64*>& vec,
 
 	RestoreSelect();
 	AutosizeColumns();
+
+	auto new_sel = mTable->GetCurrentItem();
+	const auto ident = static_cast<const IIdent64*> (new_sel.GetID());
+	const auto obj = dynamic_cast<const IObj64*>(ident);
+	if (obj)
+	{
+		auto title = obj->GetTitle();
+		auto id = obj->GetIdAsString();
+	}
 }
 
 //-----------------------------------------------------------------------------

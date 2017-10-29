@@ -3,147 +3,65 @@
 
 using namespace wh;
 
-std::shared_ptr<ClsRec64>  ClsCache::mNullObj = std::shared_ptr<ClsRec64>(nullptr);
-std::shared_ptr<ObjRec64>  ObjCache::mNullObj = std::shared_ptr<ObjRec64>(nullptr);
+const std::shared_ptr<ClsRec64>  ClsCache::mNullObj = std::shared_ptr<ClsRec64>(nullptr);
+const std::shared_ptr<ObjRec64>  ObjCache::mNullObj = std::shared_ptr<ObjRec64>(nullptr);
 
-/*
-ObjCache gObjCache;
+//virtual 
+std::shared_ptr<const ICls64> ClsRec64::GetParent()const //override
+{
+	return mTable->GetCache()->mClsTable.GetById(mParentId);
+}
+//-----------------------------------------------------------------------------
+//virtual 
+void ClsRec64::ClearObjTable() //override
+{
+	mTable->GetCache()->mObjTable.DeleteObjByClsId(GetId());
+}
+//-----------------------------------------------------------------------------
+//virtual 
+const std::shared_ptr<const ICls64::ObjTable> ClsRec64::GetObjTable()const //override;
+{
+	//return mObjTable;
+	return mTable->GetCache()->mObjTable.GetObjByClsId(GetId());
+}
 
 //-----------------------------------------------------------------------------
-void ClsRec64::RefreshObjects()
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//virtual 
+SpClsConst ObjRec64::GetCls()const //override 
+{ 
+	return mTable->GetCache()->mClsTable.GetById(mClsId);
+}
+//-----------------------------------------------------------------------------
+//virtual 
+std::shared_ptr<const IObj64> ObjRec64::GetParent()const //override
 {
-	TEST_FUNC_TIME;
+	return mTable->GetObjById(mId,mParentId);
+}
 
-	ClearObjTable();
 
-	wxString query = wxString::Format(
-		"SELECT o.id, o.title, o.qty, o.pid "
-		//"       ,get_path_objnum(o.pid,1)  AS path"
-		" FROM obj o "
-		" WHERE o.id>0 AND o.cls_id = %s "
-		" ORDER BY "
-		"   (substring(o.title, '^[0-9]+')::INT, o.title ) ASC "
-		, GetIdAsString()
-	);
-	whDataMgr::GetDB().BeginTransaction();
-	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
 
-	if (table)
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+ClsTree::ClsTree(ClsCache* clsTable)
+	:mClsCache(clsTable)
+{
+	const ClsCache::fnModify fn = [](const std::shared_ptr<ClsRec64>& cls)
 	{
-		const unsigned int rowQty = table->GetRowCount();
-
-		size_t i = 0;
-		const ObjCache::fnModify fn = [this, &table, &i](const std::shared_ptr<ObjRec64>& obj)
-		{
-			obj->mCls = this->shared_from_this();
-			obj->SetId(table->GetAsString(0, i));
-			table->GetAsString(1, i, obj->mTitle);
-			table->GetAsString(2, i, obj->mQty);
-		};
-
-
-		//NotyfyTable toinsert;
-		for (; i < rowQty; i++)
-		{
-			int64_t id;
-			if ( !table->GetAsString(0, i).ToLongLong(&id) )
-				throw;
-			const std::shared_ptr<ObjRec64>& obj = gObjCache.GetObjById(id, fn);
-
-			//std::shared_ptr<ObjRec64>& obj = std::make_shared<ObjRec64>();
-			//obj->mCls = this->shared_from_this();
-			//obj->SetId(table->GetAsString(0, i));
-			//table->GetAsString(1, i, obj->mTitle);
-			//table->GetAsString(2, i, obj->mQty);
-
-			// удаляется привыходе из области видимости
-			//std::shared_ptr<ObjRec64>& parent_obj = std::make_shared<ObjRec64>();
-			//parent_obj->SetId(table->GetAsString(3, i));
-			//obj->SetParent(parent_obj);
-
-
-			AddObj(obj);
-			//toinsert.emplace_back(obj.get());
-		}
-		//if (!toinsert.empty())
-		//	sigAfterInsert(*cls, toinsert);
-
-
-	}//if (table)
-	whDataMgr::GetDB().Commit();
-	
-}
-*/
-
-
-//-----------------------------------------------------------------------------
-void ClsRec64::RefreshChilds()
-{
-	TEST_FUNC_TIME;
-
-	auto id = GetIdAsString();
-
-	//sigClear();
-	ClearChilds();
-	//sigAfterPathChange(*parent_node); // при смене корня сбрасывается весь кэш
-
-	wxString query = wxString::Format(
-		"SELECT  id, title, kind, measure"
-		", (SELECT COALESCE(SUM(qty), 0)"
-		"		FROM obj WHERE obj.cls_id = acls.id GROUP BY cls_id)  AS qty"
-		" FROM acls"
-		" WHERE acls.id > 99 AND pid = %s"
-		" ORDER BY acls.title ASC"
-		, id
-	);
-	whDataMgr::GetDB().BeginTransaction();
-	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
-
-	if (table)
-	{
-		unsigned int rowQty = table->GetRowCount();
-		//insert
-		//NotyfyTable toinsert;
-		for (size_t i = 0; i < rowQty; i++)
-		{
-
-			//auto curr = std::make_shared<ClsRec64>();
-			auto curr = ClsRec64::MakeShared();
-			curr->SetId(table->GetAsString(0, i));
-			table->GetAsString(1, i, curr->mTitle);
-			ToClsKind(table->GetAsString(2, i), curr->mKind);
-			table->GetAsString(3, i, curr->mMeasure);
-			table->GetAsString(4, i, curr->mObjQty);
-
-
-			curr->SetParent(this->shared_from_this());
-
-			AddChild(curr);
-			//toinsert.emplace_back(new_node.get());
-		}
-
-		//if (!toinsert.empty())
-		//	sigAfterInsert(*parent_node, toinsert);
-
-	}//if (table)
-	whDataMgr::GetDB().Commit();
-
+		//cls->SetId(1);
+		cls->mTitle = "ClsRoot";
+		cls->mKind = ClsKind::Abstract;
+		cls->mMeasure.Clear();
+		cls->mObjQty.Clear();
+		cls->SetParentId(0);
+	};
+	mRoot = mClsCache->GetById(1, fn);
+	mCurrent = mRoot;
 }
 
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-ClsTree::ClsTree()
-{
-	//std::shared_ptr<ClsRec64> value = std::make_shared<ClsRec64>();
-	std::shared_ptr<ClsRec64> root = ClsRec64::MakeShared();
-	root->SetId(1);
-	root->mTitle = "ClsRoot";
-	root->mKind = ClsKind::Abstract;
-	
-	mRoot = root;
-	mCurrent = root;
-}
 //-----------------------------------------------------------------------------
 void ClsTree::Up()
 {
@@ -159,32 +77,40 @@ void ClsTree::Refresh()
 	TEST_FUNC_TIME;
 
 	auto id = mCurrent->GetIdAsString();
-	mCurrent->ClearChilds();
+	//mCurrent->ClearChilds();
 		
 	mCurrent = mRoot;
-	mRoot->ClearChilds();
+	//mRoot->ClearChilds();
 
 	wxString query = wxString::Format(
-		"SELECT id, title,kind FROM public.get_path_cls_info(%s, 1)"
+		"SELECT id, title,kind,pid FROM public.get_path_cls_info(%s, 1)"
 		, id);
 
 	whDataMgr::GetDB().BeginTransaction();
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
 	if (table)
 	{
+		size_t row = 0;
+		const ClsCache::fnModify fn = [this, &table, &row](const std::shared_ptr<ClsRec64>& cls)
+		{
+			//cls->SetId(table->GetAsString(0, row));
+			table->GetAsString(1, row, cls->mTitle);
+			ToClsKind(table->GetAsString(2, row), cls->mKind);
+			cls->mMeasure.Clear();
+			cls->mObjQty.Clear();
+			cls->SetParentId(table->GetAsString(3, row));
+		};
+
 		unsigned int rowQty = table->GetRowCount();
 		for (size_t i = rowQty; i > 0 ; --i)
 		{
-			size_t pos = i - 1;
-			//auto value = std::make_shared<ClsRec64>();
-			auto value = ClsRec64::MakeShared();
-			value->SetId(table->GetAsString(0, pos));
-			table->GetAsString(1, pos, value->mTitle);
-			ToClsKind(table->GetAsString(2, pos), value->mKind);
-
-			value->SetParent(mCurrent);
-			mCurrent->AddChild(value);
+			row = i - 1;
+			int64_t id;
+			if (!table->GetAsString(0, row).ToLongLong(&id))
+				throw;
+			const std::shared_ptr<ClsRec64>& value = mClsCache->GetById(id, fn);
 			mCurrent = value;
+
 
 		}
 	}//if (table)
@@ -213,8 +139,14 @@ void ClsTree::SetId(const wxString& str)
 //-----------------------------------------------------------------------------
 void ClsTree::SetId(const int64_t& val)
 {
-	auto new_curr = ClsRec64::MakeShared();
-	new_curr->SetId(val);
+	const ClsCache::fnModify fn = [&val](const std::shared_ptr<ClsRec64>& cls)
+	{
+		//cls->SetId(val);
+	};
+	const std::shared_ptr<ClsRec64>& new_curr = mClsCache->GetById(val, fn);
+	
+	//auto new_curr = ClsRec64::MakeShared();
+	//new_curr->SetId(val);
 
 	sigBeforePathChange(*mCurrent);
 	mCurrent = new_curr;
@@ -228,9 +160,11 @@ void ClsTree::SetId(const int64_t& val)
 //-----------------------------------------------------------------------------
 ModelBrowser::ModelBrowser()
 {
+	mClsPath = std::make_unique<ClsTree>(&mCache.mClsTable);
+
 	//sigClear();
 	
-	mClsPath.sigBeforePathChange.connect(sigBeforePathChange);
+	mClsPath->sigBeforePathChange.connect(sigBeforePathChange);
 
 	
 	//mClsPath.sigBeforePathChange.connect([this](const ICls64& parent)
@@ -239,8 +173,8 @@ ModelBrowser::ModelBrowser()
 	//	});
 		
 	
-	mClsPath.sigAfterPathChange.connect(sigAfterPathChange);
-	mClsPath.sigAfterPathChange.connect([this](const ICls64&)
+	mClsPath->sigAfterPathChange.connect(sigAfterPathChange);
+	mClsPath->sigAfterPathChange.connect([this](const ICls64&)
 		{
 			DoRefresh();
 			//sigAfterRefreshCls(toinsert, parent_node.get()); // internal in DoRefresh
@@ -264,7 +198,8 @@ void ModelBrowser::DoRefreshObjects(const std::shared_ptr<ICls64>& cls)
 	
 	if (cls->GetObjTable())
 	{
-		for (const auto& obj : *cls->GetObjTable())
+		auto objTable = *cls->GetObjTable();
+		for (const auto& obj : objTable)
 		{
 			todelete.emplace_back(obj.get());
 		}
@@ -281,9 +216,10 @@ void ModelBrowser::DoRefreshObjects(const std::shared_ptr<ICls64>& cls)
 		"SELECT o.id, o.title, o.qty, o.pid "
 		"       ,get_path_objnum(o.pid,1)  AS path"
 		"       ,prop"
+		"       ,cls_id"
 		" FROM obj o "
 		" WHERE o.id>0 AND o.cls_id = %s "
-		//" ORDER BY (substring(o.title, '^[0-9]+')::INT, o.title ) ASC "
+		" ORDER BY (substring(o.title, '^[0-9]+')::INT, o.title ) ASC "
 		, cls->GetIdAsString()
 	);
 	whDataMgr::GetDB().BeginTransaction();
@@ -296,18 +232,18 @@ void ModelBrowser::DoRefreshObjects(const std::shared_ptr<ICls64>& cls)
 		size_t i = 0;
 		const ObjCache::fnModify fn = [&parent_node, &table, &i](const std::shared_ptr<ObjRec64>& obj)
 		{
-			obj->mCls = parent_node;
-			obj->mId = 0;
+			//obj->mClsId = parent_node->GetId();
+			//obj->mCls = parent_node;
 			obj->SetId(table->GetAsString(0, i));
 			table->GetAsString(1, i, obj->mTitle);
 			table->GetAsString(2, i, obj->mQty);
 
-			obj->mParentId = 0;
 			obj->SetParentId(table->GetAsString(3, i));
 
 			obj->mPath = std::make_shared<ObjPath64>();
 			table->GetAsString(4, i, obj->mPath->mStrPath );
 			
+			obj->SetClsId(table->GetAsString(6, i));
 		};
 
 		
@@ -319,10 +255,10 @@ void ModelBrowser::DoRefreshObjects(const std::shared_ptr<ICls64>& cls)
 				throw;
 			if (!table->GetAsString(3, i).ToLongLong(&parentId))
 				throw;
-			const std::shared_ptr<ObjRec64>& obj = mObjCache.GetObjById(id, parentId, fn);
+			const std::shared_ptr<ObjRec64>& obj = mCache.mObjTable.GetObjById(id, parentId, fn);
 			if (!obj)
 				throw;
-			parent_node->AddObj(obj);
+			//parent_node->AddObj(obj);
 			toinsert.emplace_back(obj.get());
 		}
 		if (!toinsert.empty())
@@ -337,19 +273,14 @@ void ModelBrowser::DoRefresh()
 {
 	TEST_FUNC_TIME;
 
-	//std::shared_ptr<ICls64>& cls = mClsPath.GetCurrent();
-	//auto& cls64 = std::dynamic_pointer_cast<ClsRec64>(cls);
-	//cls64->RefreshChilds();
-	//sigAfterPathChange(*cls);
-
-	std::shared_ptr<ICls64>& parent_node = mClsPath.GetCurrent();
+	std::shared_ptr<ICls64>& parent_node = mClsPath->GetCurrent();
 	auto id = parent_node->GetIdAsString();
 	
 	std::vector<const ICls64*> toinsert;
 	sigBeforeRefreshCls(toinsert, parent_node.get());
 	
 	
-	parent_node->ClearChilds();
+	//parent_node->ClearChilds();
 	//insert
 	
 
@@ -358,9 +289,10 @@ void ModelBrowser::DoRefresh()
 		"SELECT  id, title, kind, measure"
 		", (SELECT COALESCE(SUM(qty), 0)"
 		"		FROM obj WHERE obj.cls_id = acls.id GROUP BY cls_id)  AS qty"
+		", pid "
 		" FROM acls"
 		" WHERE acls.id > 99 AND pid = %s"
-		//" ORDER BY acls.title ASC"
+		" ORDER BY acls.title ASC"
 		, id
 		);
 	whDataMgr::GetDB().BeginTransaction();
@@ -369,26 +301,24 @@ void ModelBrowser::DoRefresh()
 	if (table)
 	{
 		unsigned int rowQty = table->GetRowCount();
-		size_t i = 0;
-		const ClsCache::fnModify fn = [&parent_node, &table, &i](const std::shared_ptr<ClsRec64>& cls)
+		size_t row = 0;
+		const ClsCache::fnModify fn = [&parent_node, &table, &row](const std::shared_ptr<ClsRec64>& cls)
 		{
-			cls->SetId(table->GetAsString(0, i));
-			table->GetAsString(1, i, cls->mTitle);
-			ToClsKind(table->GetAsString(2, i), cls->mKind);
-			table->GetAsString(3, i, cls->mMeasure);
-			table->GetAsString(4, i, cls->mObjQty);
-			cls->SetParent(parent_node);
+			//cls->SetId(table->GetAsString(0, row));
+			table->GetAsString(1, row, cls->mTitle);
+			ToClsKind(table->GetAsString(2, row), cls->mKind);
+			table->GetAsString(3, row, cls->mMeasure);
+			table->GetAsString(4, row, cls->mObjQty);
+			cls->SetParentId(table->GetAsString(5, row));
 		};
 
 
-		for (; i < rowQty; i++)
+		for (; row < rowQty; row++)
 		{
 			int64_t id;
-			if (!table->GetAsString(0, i).ToLongLong(&id))
+			if (!table->GetAsString(0, row).ToLongLong(&id))
 				throw;
-			const std::shared_ptr<ClsRec64>& curr = mClsCache.GetById(id, fn);
-			
-			parent_node->AddChild(curr);
+			const std::shared_ptr<ClsRec64>& curr = mCache.mClsTable.GetById(id, fn);
 			
 			toinsert.emplace_back(curr.get());
 		}
@@ -410,23 +340,11 @@ void ModelBrowser::DoActivate(const ICls64* cls)
 
 
 	if (ClsKind::Abstract == cls->GetKind())
-		mClsPath.SetId(id);
+		mClsPath->SetId(id);
 	else
 	{
-		std::shared_ptr<ICls64>& node = mClsPath.GetCurrent();
-		const auto childs = node->GetChilds();
-		if (childs && !childs->empty())
-		{
-			for (size_t i = 0; i < childs->size(); ++i)
-			{
-				if (childs->at(i)->GetId() == id)
-				{
-					DoRefreshObjects(childs->at(i));
-					break;
-				}
-			}
-		}
-
+		const std::shared_ptr<ICls64>& node = mCache.mClsTable.GetById(id);
+		DoRefreshObjects(node);
 	}
 		
 		
@@ -435,7 +353,7 @@ void ModelBrowser::DoActivate(const ICls64* cls)
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoUp()
 {
-	mClsPath.Up();
+	mClsPath->Up();
 	//DoRefresh();
 }
 //-----------------------------------------------------------------------------

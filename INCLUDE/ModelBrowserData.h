@@ -213,20 +213,17 @@ public:
 	using ChildsTable = std::vector<std::shared_ptr<ICls64>>;
 	using ObjTable = std::vector<std::shared_ptr<const IObj64>>;
 
+	virtual const int64_t& GetParentId()const = 0;
+
 	virtual		  ClsKind   GetKind()const = 0;
 	virtual const wxString& GetMeasure()const = 0;
 	virtual const wxString& GetObjectsQty()const = 0;
 	virtual const SpPropValConstTable&	GetProperties()const = 0;
 	
 	virtual void ClearObjTable() = 0;
-	virtual void AddObj(const std::shared_ptr<const IObj64>&) = 0;
 	virtual const std::shared_ptr<const ObjTable> GetObjTable()const = 0;
 
 	virtual std::shared_ptr<const ICls64> GetParent()const = 0;
-	virtual void SetParent(const std::shared_ptr<const ICls64>&) = 0;
-	virtual void ClearChilds() = 0;
-	virtual void AddChild(const std::shared_ptr<ICls64>&) = 0;
-	virtual const std::shared_ptr<const ChildsTable> GetChilds()const = 0;
 };
 
 //-----------------------------------------------------------------------------
@@ -237,6 +234,7 @@ public:
 
 	virtual wxString					GetQty()const = 0;
 	virtual SpClsConst					GetCls()const = 0;
+	virtual int64_t GetClsId()const = 0;
 
 	virtual std::shared_ptr<const IObjPath64> GetPath()const = 0;
 	
@@ -244,10 +242,6 @@ public:
 
 	virtual std::shared_ptr<const IObj64> GetParent()const = 0;
 	virtual int64_t GetParentId()const = 0;
-	virtual void SetParent(const std::shared_ptr<const IObj64>&) = 0;
-	virtual void ClearChilds() = 0;
-	virtual void AddChild(const std::shared_ptr<IObj64>&) = 0;
-	virtual const std::shared_ptr<const ChildsTable> GetChilds()const = 0;
 };
 
 class IProp64 : public IIdent64
