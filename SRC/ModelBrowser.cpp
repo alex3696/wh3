@@ -83,7 +83,8 @@ void ClsTree::Refresh()
 	//mRoot->ClearChilds();
 
 	wxString query = wxString::Format(
-		"SELECT id, title,kind,pid FROM public.get_path_cls_info(%s, 1)"
+		"SELECT id, title,kind,pid, measure"
+		" FROM public.get_path_cls_info(%s, 1)"
 		, id);
 
 	whDataMgr::GetDB().BeginTransaction();
@@ -96,9 +97,9 @@ void ClsTree::Refresh()
 			//cls->SetId(table->GetAsString(0, row));
 			table->GetAsString(1, row, cls->mTitle);
 			ToClsKind(table->GetAsString(2, row), cls->mKind);
-			cls->mMeasure.Clear();
-			cls->mObjQty.Clear();
 			cls->SetParentId(table->GetAsString(3, row));
+			table->GetAsString(4, row, cls->mMeasure);
+			cls->mObjQty.Clear();
 		};
 
 		unsigned int rowQty = table->GetRowCount();
@@ -194,7 +195,7 @@ void ModelBrowser::DoRefreshObjects(const std::shared_ptr<ICls64>& cls)
 	if (!cls)
 		return;
 
-	std::vector<const IObj64*> todelete;
+	std::vector<const IIdent64*> todelete;
 	
 	if (cls->GetObjTable())
 	{
@@ -205,12 +206,29 @@ void ModelBrowser::DoRefreshObjects(const std::shared_ptr<ICls64>& cls)
 		}
 	}
 	if (!todelete.empty())
-		sigObjOperation(Operation::BeforeDelete, todelete);
+	{
+		if (mGroupByType)
+			sigObjOperation(Operation::BeforeDelete, todelete);
+		else
+			sigBeforeRefreshCls(todelete, cls.get());
+	}
+	std::shared_ptr<ClsRec64> parent_node = std::dynamic_pointer_cast<ClsRec64>(cls);
+
+	if (parent_node->mObjLoaded)
+	{
+		std::vector<const IIdent64*> toinsert;
+		sigBeforeRefreshCls(toinsert, cls.get());
+		mCache.mObjTable.GetObjByClsId(cls->GetId(), toinsert);
+		sigAfterRefreshCls(toinsert, cls.get());
+		return;
+	}
+		
 	
 	//auto cls64 = std::dynamic_pointer_cast<ClsRec64>(cls);
 	//cls64->RefreshObjects();
 	
 	cls->ClearObjTable();
+	
 
 	wxString query = wxString::Format(
 		"SELECT o.id, o.title, o.qty, o.pid "
@@ -227,7 +245,7 @@ void ModelBrowser::DoRefreshObjects(const std::shared_ptr<ICls64>& cls)
 	if (table)
 	{
 		unsigned int rowQty = table->GetRowCount();
-		std::shared_ptr<ClsRec64> parent_node = std::dynamic_pointer_cast<ClsRec64>(cls);
+		
 
 		size_t i = 0;
 		const ObjCache::fnModify fn = [&parent_node, &table, &i](const std::shared_ptr<ObjRec64>& obj)
@@ -247,7 +265,7 @@ void ModelBrowser::DoRefreshObjects(const std::shared_ptr<ICls64>& cls)
 		};
 
 		
-		std::vector<const IObj64*> toinsert;
+		std::vector<const IIdent64*> toinsert;
 		for (; i < rowQty; i++)
 		{
 			int64_t id, parentId;
@@ -262,10 +280,17 @@ void ModelBrowser::DoRefreshObjects(const std::shared_ptr<ICls64>& cls)
 			toinsert.emplace_back(obj.get());
 		}
 		if (!toinsert.empty())
-			sigObjOperation(Operation::AfterInsert, toinsert);
+		{
+			if(mGroupByType)
+				sigObjOperation(Operation::AfterInsert, toinsert);
+			else
+				sigAfterRefreshCls(toinsert, cls.get());
+		}
+			
 
 	}//if (table)
 	whDataMgr::GetDB().Commit();
+	parent_node->mObjLoaded = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -275,25 +300,47 @@ void ModelBrowser::DoRefresh()
 
 	std::shared_ptr<ICls64>& parent_node = mClsPath->GetCurrent();
 	auto id = parent_node->GetIdAsString();
+
+	if (ClsKind::Abstract != parent_node->GetKind())
+	{
+		DoRefreshObjects(parent_node);
+		return;
+	}
+
 	
-	std::vector<const ICls64*> toinsert;
+	std::vector<const IIdent64*> toinsert;
 	sigBeforeRefreshCls(toinsert, parent_node.get());
 	
 	
 	//parent_node->ClearChilds();
 	//insert
+
+	wxString search;
+	if (!mSearchWords.empty())
+	{
+		for (const auto& word: mSearchWords)
+		{
+			search += wxString::Format(" acls.title ~~*'%%%s%%' OR", word);
+		}
+		search.RemoveLast(2);
+		search = wxString::Format("AND (%s)", search);
+		//search = " AND (" + search + ")";
+	}
+	else
+		search = wxString::Format("AND pid = %s", id);
 	
 
 
 	wxString query = wxString::Format(
 		"SELECT  id, title, kind, measure"
 		", (SELECT COALESCE(SUM(qty), 0)"
-		"		FROM obj WHERE obj.cls_id = acls.id GROUP BY cls_id)  AS qty"
+		"   FROM obj WHERE obj.cls_id = acls.id GROUP BY cls_id)  AS qty"
 		", pid "
 		" FROM acls"
-		" WHERE acls.id > 99 AND pid = %s"
+		" WHERE acls.id > 99 "
+		" %s " //" AND pid = %s"
 		" ORDER BY acls.title ASC"
-		, id
+		, search
 		);
 	whDataMgr::GetDB().BeginTransaction();
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
@@ -310,6 +357,7 @@ void ModelBrowser::DoRefresh()
 			table->GetAsString(3, row, cls->mMeasure);
 			table->GetAsString(4, row, cls->mObjQty);
 			cls->SetParentId(table->GetAsString(5, row));
+			cls->mObjLoaded = false;
 		};
 
 
@@ -335,15 +383,18 @@ void ModelBrowser::DoActivate(const ICls64* cls)
 {
 	if (!cls)
 		return;
+	mSearchWords.clear();
 
 	auto id = cls->GetId();
-
 
 	if (ClsKind::Abstract == cls->GetKind())
 		mClsPath->SetId(id);
 	else
 	{
-		const std::shared_ptr<ICls64>& node = mCache.mClsTable.GetById(id);
+		if (!mGroupByType)
+			mClsPath->SetId(id);
+
+		const std::shared_ptr<ClsRec64>& node = mCache.mClsTable.GetById(id);
 		DoRefreshObjects(node);
 	}
 		
@@ -365,8 +416,33 @@ void ModelBrowser::DoMove()
 {
 }
 //-----------------------------------------------------------------------------
-void ModelBrowser::DoFind(const wxString&)
+void ModelBrowser::DoFind(const wxString& str)
 {
+	mSearchWords.clear();
+
+	if (!str.empty())
+	{
+		size_t start = 0;
+		while (wxString::npos != start)
+		{
+			size_t next = str.find(" ", start);
+
+			wxString word;
+
+			if (wxString::npos != next)
+			{
+				word = str.substr(start, next - start);
+				next++;
+			}
+			else
+				word = str.substr(start, str.size() - start);
+
+			mSearchWords.emplace_back(word);
+			start = next;
+		}
+	}
+	
+	DoRefresh();
 }
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoAddType()

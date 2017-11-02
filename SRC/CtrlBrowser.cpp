@@ -77,8 +77,6 @@ CtrlToolbarBrowser::CtrlToolbarBrowser(
 		.connect(std::bind(&CtrlToolbarBrowser::Act, this));
 	connViewCmd_Move = mView->sigMove
 		.connect(std::bind(&CtrlToolbarBrowser::Move, this));
-	connViewCmd_Find = mView->sigFind
-		.connect(std::bind(&CtrlToolbarBrowser::Find, this, ph::_1));
 	
 	connViewCmd_AddType = mView->sigAddType
 		.connect(std::bind(&CtrlToolbarBrowser::AddType, this));
@@ -115,11 +113,6 @@ void CtrlToolbarBrowser::Act()
 void CtrlToolbarBrowser::Move()
 {
 	mModel->GetModelBrowser()->DoMove();
-}
-//---------------------------------------------------------------------------
-void CtrlToolbarBrowser::Find(const wxString& str)
-{
-	mModel->GetModelBrowser()->DoFind(str);
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::AddType()
@@ -180,5 +173,14 @@ CtrlPageBrowser::CtrlPageBrowser(
 	mCtrlPathBrowser
 		= std::make_shared<CtrlPathBrowser>(view->GetViewPathBrowser(), model);
 
+	namespace ph = std::placeholders;
 
+	connViewCmd_Find = mView->sigFind
+		.connect(std::bind(&CtrlPageBrowser::Find, this, ph::_1));
+
+}
+//---------------------------------------------------------------------------
+void CtrlPageBrowser::Find(const wxString& str)
+{
+	mModel->GetModelBrowser()->DoFind(str);
 }

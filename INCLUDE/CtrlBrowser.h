@@ -45,7 +45,6 @@ class CtrlToolbarBrowser final : public CtrlWindowBase<IViewToolbarBrowser, Mode
 
 	sig::scoped_connection connViewCmd_Act;
 	sig::scoped_connection connViewCmd_Move;
-	sig::scoped_connection connViewCmd_Find;
 
 	sig::scoped_connection connViewCmd_AddType;
 	sig::scoped_connection connViewCmd_AddObject;
@@ -68,7 +67,6 @@ public:
 
 	void Act();
 	void Move();
-	void Find(const wxString&);
 	
 	void AddType();
 	void AddObject();
@@ -97,11 +95,13 @@ class CtrlPageBrowser final : public CtrlWindowBase<IViewBrowserPage, ModelPageB
 	std::shared_ptr<CtrlPathBrowser>	mCtrlPathBrowser;
 	std::shared_ptr<CtrlTableBrowser>	mCtrlTableBrowser;
 
+	sig::scoped_connection connViewCmd_Find;
 public:
 	CtrlPageBrowser(const std::shared_ptr<IViewBrowserPage>& view
 		, const  std::shared_ptr<ModelPageBrowser>& model);
 
 
+	void Find(const wxString&);
 };
 
 

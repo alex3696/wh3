@@ -26,6 +26,7 @@ private:
 	ClsCache*	mTable = nullptr;
 public:
 	ClsKind		mKind;
+	bool		mObjLoaded = false;
 protected:
 	//struct MakeSharedEnabler;
 public:
@@ -286,6 +287,24 @@ public:
 		return mNullObj;
 	}
 
+
+	void GetObjByClsId(const int64_t& clsId, std::vector<const IIdent64*>& table)const
+	{
+		table.clear();
+
+		const auto& idxClsId = mCache.get<1>();
+
+		Cache::nth_index<1>::type::const_iterator it0, it1;
+
+		boost::tuples::tie(it0, it1) = idxClsId.equal_range(clsId);
+		while(it0!=it1)
+		{
+			std::shared_ptr<const IObj64> obj = *it0;
+			table.emplace_back(obj.get());
+			++it0;
+		}
+	}
+
 	
 	const std::shared_ptr<const ICls64::ObjTable> GetObjByClsId(const int64_t& clsId)const
 	{
@@ -377,6 +396,8 @@ class ModelBrowser
 	std::unique_ptr<ClsTree> mClsPath;
 
 	DbCache		mCache;
+
+	std::vector<wxString>	mSearchWords;
 	//ClsCache	mClsCache;
 	//ObjCache	mObjCache;
 
@@ -405,14 +426,14 @@ public:
 	sig::signal<void(const ICls64&)> sigAfterPathChange;
 	
 	using SigRefreshCls = 
-		sig::signal<void(const std::vector<const ICls64*>&, const ICls64*)>;
+		sig::signal<void(const std::vector<const IIdent64*>&, const IIdent64*)>;
 	
 	SigRefreshCls	sigBeforeRefreshCls;
 	SigRefreshCls	sigAfterRefreshCls;
 
 
 	sig::signal<void(Operation op
-		, const std::vector<const IObj64*>& )>	sigObjOperation;
+		, const std::vector<const IIdent64*>& )>	sigObjOperation;
 	//sig::signal<void(Operation op
 	//	, const std::vector<const ICls64*>&)>	sigClsOperation;
 

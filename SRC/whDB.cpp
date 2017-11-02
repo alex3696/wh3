@@ -288,6 +288,7 @@ int whTable::Exec(const wxString& query,bool with_result)
 		, GetTickCount() - p0
 		, __FUNCTION__
 		, query);
+	str.Replace("%", "?");
 	wxLogMessage(str);
 
 	return result;	
@@ -366,6 +367,7 @@ int whTable::Exec(const wxString& query,std::deque<wxString>& pathes)
 		, GetTickCount() - p0
 		, __FUNCTION__
 		, query);
+	str.Replace("%", "?");
 	wxLogMessage(str);
 
 	return result;	

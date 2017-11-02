@@ -12,8 +12,8 @@ using namespace wh;
 class wxDVTableBrowser
 	: public wxDataViewModel
 {
-	const ICls64* mCurrentRoot = nullptr;
-	const	std::vector<const ICls64*>* mClsList = nullptr;
+	const IIdent64* mCurrentRoot = nullptr;
+	const	std::vector<const IIdent64*>* mClsList = nullptr;
 	bool	mGroupByType = true;
 	wxRegEx mStartNum = "(^[0-9]+)";
 public:
@@ -67,16 +67,18 @@ public:
 		const wxIcon*  ico(&wxNullIcon);
 		auto mgr = ResMgr::GetInstance();
 
-		if (1== col && mCurrentRoot == &cls)
+		if (mCurrentRoot == &cls)
 		{
-			variant << wxDataViewIconText("..", mgr->m_ico_back24);
+			if(col)
+				variant << wxDataViewIconText("..", mgr->m_ico_back24); 
 			return;
 		}
 
 		switch (col)
 		{
 		case 0:variant = cls.GetIdAsString();	break;
-		case 1:
+		case 1: {
+
 			switch (cls.GetKind())
 			{
 			case ClsKind::Abstract: ico = &mgr->m_ico_type_abstract24; break;
@@ -85,15 +87,32 @@ public:
 			case ClsKind::QtyByFloat:
 			default: ico = &mgr->m_ico_type_qty24;	break;
 			}
-			variant << wxDataViewIconText(
-				ClsKind::Abstract == cls.GetKind() ? cls.GetTitle() 
-					: wxString::Format("%s - %s (%s)"
-						, cls.GetTitle()
-						, cls.GetObjectsQty()
-						, cls.GetMeasure() 
-						)
-				, *ico);
-			break;
+			if (ClsKind::Abstract == cls.GetKind() || !mGroupByType)
+			{
+				variant << wxDataViewIconText(cls.GetTitle(), *ico);
+			}
+			else
+			{
+				wxString qty_str = wxString::Format("%s - %s (%s)"
+					,cls.GetTitle(), cls.GetObjectsQty(), cls.GetMeasure());
+				variant << wxDataViewIconText(qty_str, *ico);
+			}
+		}break;
+			
+		case 2: {
+			switch (cls.GetKind())
+			{
+			case ClsKind::Single:
+			case ClsKind::QtyByOne:
+			case ClsKind::QtyByFloat:
+				variant = wxString::Format("%s (%s)"
+					, cls.GetObjectsQty(), cls.GetMeasure());
+				break;
+			case ClsKind::Abstract:
+			default: break;
+			}
+		}break;
+			
 		default: break;
 		}
 	}
@@ -128,13 +147,13 @@ public:
 			return;
 		}
 		
-		const auto& cls = dynamic_cast<const ICls64*>(ident);
+		const auto cls = dynamic_cast<const ICls64*>(ident);
 		if (cls)
 		{
 			GetClsValue(variant, col, *cls);
 			return;
 		}
-		const auto& obj = dynamic_cast<const IObj64*>(ident);
+		const auto obj = dynamic_cast<const IObj64*>(ident);
 		if (obj)
 		{
 			GetObjValue(variant, col, *obj);
@@ -307,7 +326,7 @@ public:
 		return !mGroupByType;
 	}
 
-	void SetClsList(const std::vector<const ICls64*>* current, const ICls64* curr= nullptr)
+	void SetClsList(const std::vector<const IIdent64*>* current, const IIdent64* curr= nullptr)
 	{
 		mCurrentRoot = curr;
 		mClsList = current;
@@ -376,7 +395,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 		, renderer2, 2, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 	table->AppendColumn(col2);
 	
-	auto col3 = table->AppendTextColumn("Тип/Местоположение", 3,wxDATAVIEW_CELL_INERT,-1
+	auto col3 = table->AppendTextColumn("Местоположение", 3,wxDATAVIEW_CELL_INERT,-1
 		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 	col3->GetRenderer()->EnableEllipsize(wxELLIPSIZE_START);
 
@@ -561,7 +580,7 @@ void ViewTableBrowser::OnCmd_Collapseded(wxDataViewEvent& evt)
 }
 
 //-----------------------------------------------------------------------------
-const ICls64* ViewTableBrowser::FindChildCls(const int64_t& id)const
+const IIdent64* ViewTableBrowser::FindChildCls(const int64_t& id)const
 {
 	//wxDataViewItem dvparent(nullptr);
 	//auto model = mTable->GetModel();
@@ -579,7 +598,7 @@ const ICls64* ViewTableBrowser::FindChildCls(const int64_t& id)const
 	if (mClsList.empty())
 		return nullptr;
 	auto it = std::find_if(mClsList.cbegin(), mClsList.cend()
-		, [&id](const ICls64* it)
+		, [&id](const IIdent64* it)
 		{ 
 			return it->GetId() == id; 
 		});
@@ -590,7 +609,7 @@ const ICls64* ViewTableBrowser::FindChildCls(const int64_t& id)const
 	return nullptr;
 }
 //-----------------------------------------------------------------------------
-const ICls64* ViewTableBrowser::GetTopChildCls()const
+const IIdent64* ViewTableBrowser::GetTopChildCls()const
 {
 	//wxDataViewItem dvparent(nullptr);
 	//auto model = mTable->GetModel();
@@ -653,8 +672,8 @@ void ViewTableBrowser::RestoreSelect()
 		{
 			//sigActivate(finded);
 			mTable->Expand(dvitem);// finded cls
-
-			const auto objTable = finded->GetObjTable();
+			const auto& cls = dynamic_cast<const ICls64*>(finded);
+			const auto objTable = cls->GetObjTable();
 			auto it = std::find_if(objTable->cbegin(), objTable->cend()
 				, [oid](const std::shared_ptr<const IObj64>& it)
 			{
@@ -707,7 +726,7 @@ void ViewTableBrowser::AutosizeColumns()
 
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const ICls64*>& vec, const ICls64* parent) //override;
+void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>& vec, const IIdent64* parent) //override;
 {
 	TEST_FUNC_TIME;
 
@@ -741,7 +760,7 @@ void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const ICls64*>& vec
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const ICls64*>& vec, const ICls64* root) //override;
+void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& vec, const IIdent64* root) //override;
 {
 	TEST_FUNC_TIME;
 	wxBusyCursor busyCursor;
@@ -752,7 +771,11 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const ICls64*>& vec,
 		mClsList = vec;
 		auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 		if (dvmodel)
-			dvmodel->SetClsList(&mClsList, (root && 1 != root->GetId()) ? root : nullptr );
+		{
+			dvmodel->SetClsList(&mClsList, (root && 1 != root->GetId()) ? root : nullptr);
+
+		}
+			
 	}
 
 	RestoreSelect();
@@ -793,7 +816,7 @@ void ViewTableBrowser::SetGroupByType(bool enable)// override;
 }
 //-----------------------------------------------------------------------------
 //virtual
-void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IObj64*>& obj_list)// override;
+void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IIdent64*>& obj_list)// override;
 {
 	TEST_FUNC_TIME;
 
@@ -829,9 +852,10 @@ void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IOb
 	case Operation::BeforeDelete:	
 		for (const auto& item : obj_list)
 		{
-			wxDataViewItem cls((void*)item->GetCls().get());
-			wxDataViewItem obj((void*)item);
-			dvmodel->ItemDeleted(cls, obj);
+			const auto obj = dynamic_cast<const IObj64*>(item);
+			wxDataViewItem item_cls((void*)obj->GetCls().get());
+			wxDataViewItem item_obj((void*)item);
+			dvmodel->ItemDeleted(item_cls, item_obj);
 		}
 		break;
 	case Operation::AfterDelete:	break;
@@ -904,7 +928,7 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_Act, this, wxID_EXECUTE);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_Move, this, wxID_REPLACE);
-	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_Find, this, wxID_FIND);
+	
 	
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_AddType, this, wxID_NEW_TYPE);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_AddObject, this, wxID_NEW_OBJECT);
@@ -950,10 +974,6 @@ void ViewToolbarBrowser::OnCmd_Act(wxCommandEvent& evt)
 //-----------------------------------------------------------------------------
 //virtual 
 void ViewToolbarBrowser::OnCmd_Move(wxCommandEvent& evt)
-{}
-//-----------------------------------------------------------------------------
-//virtual 
-void ViewToolbarBrowser::OnCmd_Find(wxCommandEvent& evt)
 {}
 //-----------------------------------------------------------------------------
 //virtual 
@@ -1074,7 +1094,8 @@ ViewBrowserPage::ViewBrowserPage(wxWindow* parent)
 		.Row(1).Layer(0)
 	);
 
-	auto mCtrlFind = new wxTextCtrl(panel, wxID_ANY);
+	mCtrlFind = new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition,
+									wxDefaultSize, wxTE_PROCESS_ENTER);
 	panel->mAuiMgr.AddPane(mCtrlFind, wxAuiPaneInfo().Name("mCtrlFind")
 		.Top().CaptionVisible(false).Dock().Fixed()
 		.Row(1).Layer(0)
@@ -1102,6 +1123,14 @@ ViewBrowserPage::ViewBrowserPage(wxWindow* parent)
 	mViewTableBrowser->GetWnd()->SetFocus();
 	panel->mAuiMgr.Update();
 
+
+	mCtrlFind->Bind(wxEVT_COMMAND_TEXT_ENTER, &ViewBrowserPage::OnCmd_Find, this);
+	panel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewBrowserPage::OnCmd_Find, this, wxID_FIND);
+}
+//-----------------------------------------------------------------------------
+void ViewBrowserPage::OnCmd_Find(wxCommandEvent& evt)
+{
+	sigFind(mCtrlFind->GetValue());
 }
 //-----------------------------------------------------------------------------
 //virtual 

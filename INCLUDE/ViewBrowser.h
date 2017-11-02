@@ -11,8 +11,8 @@ namespace wh{
 //-----------------------------------------------------------------------------
 class ViewTableBrowser : public IViewTableBrowser
 {
-	const ICls64*				mParent = nullptr;
-	std::vector<const ICls64*>	mClsList;
+	const IIdent64*					mParent = nullptr;
+	std::vector<const IIdent64*>	mClsList;
 
 	wxDataViewColumn* mSortCol = nullptr;
 	bool mSortAsc = true;
@@ -26,8 +26,8 @@ class ViewTableBrowser : public IViewTableBrowser
 	bool mGroupByType = true;
 	bool mColAutosize = true;
 	
-	const ICls64* FindChildCls(const int64_t& id)const;
-	const ICls64* GetTopChildCls()const;
+	const IIdent64* FindChildCls(const int64_t& id)const;
+	const IIdent64* GetTopChildCls()const;
 	
 	void StoreSelect();
 	void RestoreSelect();
@@ -50,13 +50,13 @@ public:
 		return mTable;
 	}
 
-	virtual void SetBeforeRefreshCls(const std::vector<const ICls64*>&, const ICls64*) override;
-	virtual void SetAfterRefreshCls(const std::vector<const ICls64*>&, const ICls64*) override;
+	virtual void SetBeforeRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*) override;
+	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*) override;
 
 
 	virtual void SetGroupByType(bool enable) override;
 
-	virtual void SetObjOperation(Operation, const std::vector<const IObj64*>&) override;
+	virtual void SetObjOperation(Operation, const std::vector<const IIdent64*>&) override;
 };
 //-----------------------------------------------------------------------------
 class ViewToolbarBrowser : public IViewToolbarBrowser
@@ -79,7 +79,6 @@ public:
 
 	void OnCmd_Act(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_Move(wxCommandEvent& evt = wxCommandEvent());
-	void OnCmd_Find(wxCommandEvent& evt = wxCommandEvent());
 
 	void OnCmd_AddType(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_AddObject(wxCommandEvent& evt = wxCommandEvent());
@@ -122,6 +121,8 @@ class ViewBrowserPage : public IViewBrowserPage
 	std::shared_ptr<IViewTableBrowser>		mViewTableBrowser;
 	
 
+	wxTextCtrl* mCtrlFind;
+	void OnCmd_Find(wxCommandEvent& evt = wxCommandEvent());
 protected:
 	virtual void OnShow()override
 	{

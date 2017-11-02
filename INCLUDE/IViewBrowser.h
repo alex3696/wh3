@@ -13,11 +13,11 @@ class IViewTableBrowser : public IViewWindow
 {
 public:
 	virtual void SetGroupByType(bool enable) = 0;
-	virtual void SetBeforeRefreshCls(const std::vector<const ICls64*>&, const ICls64*)=0;
-	virtual void SetAfterRefreshCls(const std::vector<const ICls64*>&, const ICls64*) = 0;
+	virtual void SetBeforeRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*)=0;
+	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*) = 0;
 
 
-	virtual void SetObjOperation(Operation, const std::vector<const IObj64*>&) = 0;
+	virtual void SetObjOperation(Operation, const std::vector<const IIdent64*>&) = 0;
 
 
 	sig::signal<void()> sigRefresh;
@@ -36,7 +36,6 @@ public:
 	
 	sig::signal<void()> sigAct;
 	sig::signal<void()> sigMove;
-	sig::signal<void(const wxString&)> sigFind;
 
 	sig::signal<void()> sigAddType;
 	sig::signal<void()> sigAddObject;
@@ -69,6 +68,8 @@ public:
 
 	virtual void SetPathMode(const int mode) = 0;
 	virtual void SetPathString(const ICls64& node) = 0;
+
+	sig::signal<void(const wxString&)> sigFind;
 };
 
 
