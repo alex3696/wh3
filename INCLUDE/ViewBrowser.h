@@ -11,7 +11,7 @@ namespace wh{
 //-----------------------------------------------------------------------------
 class ViewTableBrowser : public IViewTableBrowser
 {
-	const IIdent64*					mParent = nullptr;
+	int64_t							mParentCid = 0;
 	std::vector<const IIdent64*>	mClsList;
 
 	wxDataViewColumn* mSortCol = nullptr;

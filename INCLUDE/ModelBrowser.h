@@ -402,6 +402,7 @@ class ModelBrowser
 	//ObjCache	mObjCache;
 
 	void DoRefreshObjects(const std::shared_ptr<ICls64>& cls);
+	void DoRefreshFindInClsTree();
 public:
 	ModelBrowser();
 	~ModelBrowser();
