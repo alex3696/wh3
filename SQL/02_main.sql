@@ -342,7 +342,7 @@ CREATE TABLE ref_cls_act (
     MATCH FULL ON UPDATE CASCADE ON DELETE CASCADE
 );
 DROP INDEX IF EXISTS  idx_ref_cls_act__cid_aid_nnperiod;
-CREATE INDEX idx_ref_cls_act__cid_aid_nnperiod
+CREATE UNIQUE INDEX idx_ref_cls_act__cid_aid_nnperiod
   ON ref_cls_act (cls_id,act_id)
   WHERE ( period IS NOT NULL );
 GRANT SELECT        ON TABLE ref_cls_act  TO "Guest";
