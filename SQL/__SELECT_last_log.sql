@@ -412,7 +412,7 @@ ORDER BY cid
 
 SELECT  cid, fav_all.aid,fav_all.visible
 FROM
-  (SELECT id AS cid FROM acls WHERE pid=112
+  (SELECT id AS cid FROM acls WHERE pid=1
   )cls_list
     LEFT JOIN LATERAL
   (SELECT aid,visible  FROM  fav_act WHERE fav_act.usr = CURRENT_USER AND fav_act.cid=cls_list.cid
@@ -481,7 +481,7 @@ SELECT * FROM
     SELECT  current_fav.cid, parent_fav.aid, parent_fav.visible
       FROM current_fav
       LEFT JOIN fav_act ON fav_act.cid= current_fav.cid AND fav_act.usr = CURRENT_USER 
-      LEFT JOIN parent_fav ON TRUE
+      INNER JOIN parent_fav ON TRUE
     UNION ALL
     SELECT current_fav.* FROM current_fav 
     WHERE current_fav.aid IS NOT NULL
@@ -499,7 +499,7 @@ ORDER BY w2.cid,w2.aid
 -- вывод всех видимых столбцов для ветки классов ОБЩАЯ по pid 
 -- оптимизированный c вложенными запросами + периодами
 WITH 
-  curr AS (SELECT 112::BIGINT AS pid)  
+  curr AS (SELECT 1::BIGINT AS pid)  
   ,current_fav(cid,aid,visible) AS (
     SELECT  acls.id AS cid, fav_act.aid, fav_act.visible
     FROM acls   
@@ -517,13 +517,13 @@ WITH
       SELECT  current_fav.cid, parent_fav.aid, parent_fav.visible
         FROM current_fav
         LEFT JOIN fav_act ON fav_act.cid= current_fav.cid AND fav_act.usr = CURRENT_USER 
-        LEFT JOIN parent_fav ON TRUE
+        INNER JOIN parent_fav ON TRUE
       UNION ALL
       SELECT current_fav.* 
         FROM current_fav 
         WHERE current_fav.aid IS NOT NULL
   )
-  SELECT all_fav.* ,period 
+  SELECT all_fav.*,period 
   FROM all_fav
   LEFT JOIN  LATERAL (SELECT ct.id,ref_cls_act.period
                       --FROM get_path_cls_info( all_fav.cid, 1) ct
@@ -552,28 +552,30 @@ ORDER BY cid,aid
 -- вывод всех видимых столбцов для ветки классов ОБЩАЯ по pid 
 -- базовый вариант++ вложенные подзапросы
 
-SELECT * -- cid,aid, visible,period 
+SELECT cid,aid, visible,period 
 FROM
   (SELECT id AS cid FROM acls WHERE pid=112
   )cls_list
-  LEFT JOIN LATERAL(
+  INNER JOIN LATERAL(
     WITH  cls_tree(id) AS (
       SELECT id FROM  get_path_cls_info(cls_list.cid, 1)
     )
-    SELECT aid,period FROM cls_tree
-      INNER JOIN fav_act ww0 ON ww0.usr = CURRENT_USER AND ww0.cid=cls_tree.id
-    /*  
+    SELECT fav_act.aid,fav_act.visible ,period
+    FROM cls_tree
+      INNER JOIN fav_act ON fav_act.cid=cls_tree.id AND fav_act.usr = CURRENT_USER 
+
+/*
     INNER JOIN  (SELECT cid,aid,visible FROM fav_act WHERE 
                         fav_act.cid IN (SELECT ct.id FROM cls_tree ct) 
                           AND fav_act.usr = CURRENT_USER
                       )ww0 ON ww0.cid=cls_tree.id 
-      */
+*/
                       
       LEFT  JOIN LATERAL(SELECT cls_tree.id,period FROM cls_tree
           INNER JOIN ref_cls_act ON ref_cls_act.cls_id  = cls_tree.id
                                   AND ref_cls_act.period IS NOT NULL
-                                  AND ref_cls_act.act_id = ww0.aid) pp ON TRUE
-
+                                  AND ref_cls_act.act_id = fav_act.aid) pp ON TRUE
+     
 
   )fav_all  ON TRUE 
 
@@ -584,22 +586,13 @@ ORDER BY cid,aid
 -- вывод всех видимых столбцов для ветки классов ОБЩАЯ по pid 
 -- базовый вариант 
 SELECT cid,fav_all.aid, fav_all.visible ,period
--- ,CASE WHEN((visible & 1)>0) THEN true ELSE FALSE END  AS previos
---,CASE WHEN((visible & 2)>0) THEN true ELSE FALSE END  AS period
--- ,CASE WHEN((visible & 4)>0) THEN true ELSE FALSE END  AS next
--- ,CASE WHEN((visible & 8)>0) THEN true ELSE FALSE END  AS left
---,fav_all.visible
---, pp.period
  FROM
---(SELECT DISTINCT ON (cls_id) cls_id AS cid FROM obj WHERE pid=108)  cls_list -- по месту
---(SELECT cls_id AS cid FROM obj WHERE pid=108 GROUP BY cls_id)  cls_list -- по месту
-(SELECT id AS cid FROM acls WHERE pid=112) cls_list -- по типу
-LEFT JOIN LATERAL
+(SELECT id AS cid FROM acls WHERE pid=1) cls_list -- по типу
+INNER JOIN LATERAL
 (SELECT aid,visible FROM fav_act WHERE 
  fav_act.cid IN (SELECT id FROM get_path_cls_info(cls_list.cid, 1))
                  AND fav_act.usr = CURRENT_USER
 )fav_all ON TRUE
-
 LEFT JOIN LATERAL
 (SELECT ref_cls_act.*  FROM get_path_cls_info(cls_list.cid, 1) cls_tree
 INNER JOIN ref_cls_act ON cls_tree.id=ref_cls_act.cls_id AND ref_cls_act.period IS NOT NULL
