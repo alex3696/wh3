@@ -412,7 +412,7 @@ ORDER BY cid
 
 SELECT  cid, fav_all.aid,fav_all.visible
 FROM
-  (SELECT id AS cid FROM acls WHERE pid=1
+  (SELECT id AS cid FROM acls WHERE pid=112
   )cls_list
     LEFT JOIN LATERAL
   (SELECT aid,visible  FROM  fav_act WHERE fav_act.usr = CURRENT_USER AND fav_act.cid=cls_list.cid
@@ -499,7 +499,7 @@ ORDER BY w2.cid,w2.aid
 -- вывод всех видимых столбцов для ветки классов ОБЩАЯ по pid 
 -- оптимизированный c вложенными запросами + периодами
 WITH 
-  curr AS (SELECT 1::BIGINT AS pid)  
+  curr AS (SELECT 112::BIGINT AS pid)  
   ,current_fav(cid,aid,visible) AS (
     SELECT  acls.id AS cid, fav_act.aid, fav_act.visible
     FROM acls   
@@ -514,7 +514,7 @@ WITH
       INNER JOIN fav_act ON fav_act.usr = CURRENT_USER AND fav_act.cid=cls.id
   )
   ,all_fav(cid,aid,visible) AS (
-      SELECT  current_fav.cid, parent_fav.aid, parent_fav.visible
+      SELECT  DISTINCT(current_fav.cid), parent_fav.aid, parent_fav.visible
         FROM current_fav
         LEFT JOIN fav_act ON fav_act.cid= current_fav.cid AND fav_act.usr = CURRENT_USER 
         INNER JOIN parent_fav ON TRUE
@@ -575,10 +575,8 @@ FROM
           INNER JOIN ref_cls_act ON ref_cls_act.cls_id  = cls_tree.id
                                   AND ref_cls_act.period IS NOT NULL
                                   AND ref_cls_act.act_id = fav_act.aid) pp ON TRUE
-     
 
   )fav_all  ON TRUE 
-
 
 ORDER BY cid,aid
 
@@ -587,7 +585,7 @@ ORDER BY cid,aid
 -- базовый вариант 
 SELECT cid,fav_all.aid, fav_all.visible ,period
  FROM
-(SELECT id AS cid FROM acls WHERE pid=1) cls_list -- по типу
+(SELECT id AS cid FROM acls WHERE pid=112) cls_list -- по типу
 INNER JOIN LATERAL
 (SELECT aid,visible FROM fav_act WHERE 
  fav_act.cid IN (SELECT id FROM get_path_cls_info(cls_list.cid, 1))
