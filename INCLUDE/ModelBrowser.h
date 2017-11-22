@@ -334,6 +334,105 @@ public:
 
 
 };
+
+//-----------------------------------------------------------------------------
+// cid-aid-period VIEW
+//-----------------------------------------------------------------------------
+class ViewCidAidPeriod
+{
+public:
+	struct RowType 
+	{
+		int64_t mCid;
+		int64_t mAid;
+		long	 mVisible;
+		wxString mPeriod;
+	};
+
+	using ModifyFunction = std::function<void(RowType& row)>;
+protected:
+	using Storage = boost::multi_index_container
+	<
+		RowType,
+		indexed_by
+		<
+			 ordered_unique < 
+		                      composite_key
+		                      <
+								 RowType
+		                       , member<RowType, int64_t, &RowType::mCid>
+							   , member<RowType, int64_t, &RowType::mAid>
+							  > 
+			                 >
+			, ordered_non_unique< member<RowType, int64_t, &RowType::mCid> >
+		    , ordered_non_unique< member<RowType, int64_t, &RowType::mAid> >
+			//, random_access<> //SQL order	
+			//, ordered_unique< extr_void_ptr_IIdent64 >
+		>
+	>;
+
+	Storage		mData;
+	DbCache*	mDbCache;
+public:
+	ViewCidAidPeriod(DbCache* dbCache)
+		:mDbCache(dbCache)
+	{}
+	DbCache* GetCache()const { return mDbCache; }
+
+	void Clear()
+	{
+		mData.clear();
+	}
+
+
+	void LoadByParentOid()	{}
+
+	void LoadByParentCid(const wxString& parent_id);
+
+	std::vector<std::pair<int64_t, long>> GetBoolActs()const
+	{
+		std::vector<std::pair<int64_t, long>> vec;
+
+
+		const auto& idxAid = mData.get<2>();
+
+		auto first = idxAid.cbegin();
+		auto last = idxAid.cend();
+		auto aid = 0;
+		auto visible = 0;
+
+		while (first != last)
+		{
+			auto tmp = *first;
+			
+			aid = first->mAid;
+			visible = first->mVisible;
+			first++;
+			if (first != last)
+			{
+				if (first->mAid == aid)
+					visible &= first->mVisible;
+				else
+				{
+					vec.emplace_back(std::make_pair(aid, visible));
+					continue;
+				}
+					
+
+			}
+			else
+				vec.emplace_back(std::make_pair(aid, visible));
+
+
+		}
+		return vec;
+		
+	}
+
+	
+
+
+};//class ViewCidAidPeriod
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -344,6 +443,7 @@ public:
 	DbCache()
 		:mClsTable(this)
 		, mObjTable(this)
+		, mViewCidAidPeriod(this)
 	{
 	
 	}
@@ -352,10 +452,12 @@ public:
 	{
 		mObjTable.Clear();
 		mClsTable.Clear();
+		mViewCidAidPeriod.Clear();
 	}
 
 	ClsCache mClsTable;
 	ObjCache mObjTable;
+	ViewCidAidPeriod mViewCidAidPeriod;
 };
 
 
@@ -368,20 +470,21 @@ class ClsTree
 	std::shared_ptr<ICls64> mRoot;
 	std::shared_ptr<ICls64> mCurrent;
 	
+	std::unique_ptr<ClsCache>	mClsCache;
 	void Refresh();
 public:
-	ClsCache*	mClsCache;
+	
 	sig::signal<void(const ICls64&)> sigBeforePathChange;
 	sig::signal<void(const ICls64&)> sigAfterPathChange;
 
-	ClsTree(ClsCache* clsTable);
+	ClsTree();
 
 	void SetId(const wxString& str);
 	void SetId(const int64_t& val);
 	void Up();
 
 
-	std::shared_ptr<ICls64> GetCurrent() { return mCurrent; }
+	std::shared_ptr<const ICls64> GetCurrent() { return mCurrent; }
 
 };
 
@@ -391,24 +494,42 @@ public:
 
 class ModelBrowser
 {
-	bool mGroupByType;
+	int		mMode = 0;
+	int64_t mRootId = 0;
+	bool mGroupByType = true;
+	wxString mSearchString;
+
+
+	
+
 
 	std::unique_ptr<ClsTree> mClsPath;
-
 	DbCache		mCache;
-
-	std::vector<wxString>	mSearchWords;
 	//ClsCache	mClsCache;
 	//ObjCache	mObjCache;
 
-	void DoRefreshObjects(const std::shared_ptr<ICls64>& cls);
+	
 	void DoRefreshFindInClsTree();
+public:
+	int			GetMode()const;
+	int64_t		GetRootId()const;
+	wxString	GetSearchString()const;
+	bool		GetGroupedByType()const;
+
+	void SetMode(int);
+	void SetRootId(int64_t);
+	void SetSearchString(const wxString&);
+	void SetGroupedByType(bool);
+
+	wxString GetPathTitle()const;
 public:
 	ModelBrowser();
 	~ModelBrowser();
 
 	void DoRefresh();
-	void DoActivate(const ICls64* cls);
+	void DoActivate(int64_t cid);
+	void DoRefreshObjects(int64_t cid);
+
 	void DoUp();
 
 
@@ -446,9 +567,8 @@ class ModelPageBrowser : public IModelWindow
 	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_type24;
 	const wxString mTitle = "Object Browser";
 
-	bool mFiltersVisible;
-	bool mGroupedByType;
-	bool mCollapsedGroup;
+
+
 
 	ModelBrowser mModelBrowser;
 public:
@@ -456,13 +576,10 @@ public:
 
 	ModelBrowser *const GetModelBrowser(){ return &mModelBrowser; }
 
-	void DoShowFilters(bool show_filters);
 	void DoEnableGroupByType(bool enable_group_by_type);
-	void DoCollapsedGroupByType(bool enable_collapse_by_type);
 
-	sig::signal<void(bool)>	 sigUpdateVisibleFilters;
+	
 	sig::signal<void(bool)>	 sigUpdateGroupByType;
-	sig::signal<void(bool)>	 sigUpdateCollapsedGroupByType;
 
 
 	// IModelWindow
@@ -470,8 +587,8 @@ public:
 	virtual const wxString& GetTitle()const override { return mTitle; }
 	virtual void UpdateTitle()override;
 	virtual void Show()override;
-	virtual void Load(const boost::property_tree::ptree& page_val)override;
-	virtual void Save(boost::property_tree::ptree& page_val)override;
+	virtual void Load(const boost::property_tree::wptree& page_val)override;
+	virtual void Save(boost::property_tree::wptree& page_val)override;
 
 };
 //-----------------------------------------------------------------------------

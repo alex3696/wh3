@@ -499,34 +499,30 @@ ORDER BY w2.cid,w2.aid
 -- вывод всех видимых столбцов для ветки классов ОБЩАЯ по pid 
 -- оптимизированный c вложенными запросами + периодами
 WITH 
-  curr AS (SELECT 112::BIGINT AS pid)  
-  ,current_fav(cid,aid,visible) AS (
-    SELECT  acls.id AS cid, fav_act.aid, fav_act.visible
-    FROM acls   
-    LEFT JOIN  fav_act ON fav_act.cid=acls.id AND fav_act.usr = CURRENT_USER 
-    WHERE acls.pid=(SELECT pid FROM curr)
-  )
+  curr AS (SELECT 1::BIGINT AS pid)  
   ,parent_tree(id) AS (
     SELECT id FROM get_path_cls_info( (SELECT pid FROM curr), 1) 
   )
   ,parent_fav(aid,visible) AS (
     SELECT aid, visible FROM parent_tree cls
-      INNER JOIN fav_act ON fav_act.usr = CURRENT_USER AND fav_act.cid=cls.id
+      INNER JOIN fav_act ON fav_act.cid=cls.id AND fav_act.usr = CURRENT_USER 
+  )
+  ,current_list(cid) AS (
+    SELECT id FROM acls WHERE acls.pid=(SELECT pid FROM curr)
   )
   ,all_fav(cid,aid,visible) AS (
-      SELECT  DISTINCT(current_fav.cid), parent_fav.aid, parent_fav.visible
-        FROM current_fav
-        LEFT JOIN fav_act ON fav_act.cid= current_fav.cid AND fav_act.usr = CURRENT_USER 
-        INNER JOIN parent_fav ON TRUE
+      SELECT  current_list.cid, parent_fav.aid, parent_fav.visible
+        FROM current_list
+        RIGHT JOIN parent_fav ON TRUE
       UNION ALL
-      SELECT current_fav.* 
-        FROM current_fav 
-        WHERE current_fav.aid IS NOT NULL
+      SELECT  current_list.cid, fav_act.aid, fav_act.visible
+        FROM current_list
+        INNER JOIN  fav_act ON fav_act.cid=current_list.cid AND fav_act.usr = CURRENT_USER 
   )
-  SELECT all_fav.*,period 
-  FROM all_fav
-  LEFT JOIN  LATERAL (SELECT ct.id,ref_cls_act.period
-                      --FROM get_path_cls_info( all_fav.cid, 1) ct
+  --SELECT DISTINCT ON(cid,aid) cid,aid,visible ,period FROM all_fav
+  SELECT * FROM all_fav
+  LEFT JOIN  LATERAL (SELECT ref_cls_act.period
+                        --FROM get_path_cls_info( all_fav.cid, 1) ct
                         FROM (SELECT * FROM parent_tree UNION SELECT all_fav.cid ) ct
                         INNER JOIN ref_cls_act ON ref_cls_act.period IS NOT NULL
                                               AND ref_cls_act.cls_id = ct.id
@@ -534,8 +530,6 @@ WITH
                      )ref_ca ON TRUE
 
 ORDER BY cid,aid
-
-
 
 --SET enable_seqscan = ON;
 --SET enable_seqscan = OFF;

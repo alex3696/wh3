@@ -525,7 +525,7 @@ void ViewTableBrowser::OnCmd_Activate(wxDataViewEvent& evt)
 				// если убрать этот локер, выделится первый элемент,
 				// даже в обратной сортировке
 				wxWindowUpdateLocker lock(mTable);
-				sigActivate(cls);
+				sigActivate(cls->GetId());
 			}
 				
 		}
@@ -553,8 +553,8 @@ void ViewTableBrowser::OnCmd_Expanding(wxDataViewEvent& evt)
 		wxBusyCursor busyCursor;
 		wxWindowUpdateLocker lock(mTable);
 
-		sigActivate(cls);
-
+		//sigActivate(cls->GetId());
+		sigRefreshClsObjects(cls->GetId());
 	}
 
 }
@@ -713,10 +713,12 @@ void ViewTableBrowser::RestoreSelect()
 	
 	mTable->UnselectAll();
 
-	mTable->EnsureVisible(dvitem);
-	mTable->SetCurrentItem(dvitem);
-	mTable->Select(dvitem);
-	
+	if (dvitem.IsOk())
+	{
+		mTable->EnsureVisible(dvitem);
+		mTable->SetCurrentItem(dvitem);
+		mTable->Select(dvitem);
+	}
 
 	//auto new_sel = mTable->GetCurrentItem();
 	//const auto ident = static_cast<const IIdent64*> (new_sel.GetID());

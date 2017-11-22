@@ -22,7 +22,8 @@ public:
 
 	sig::signal<void()> sigRefresh;
 	sig::signal<void()> sigUp;
-	sig::signal<void(const ICls64*)> sigActivate;
+	sig::signal<void(int64_t)> sigActivate;
+	sig::signal<void(int64_t)> sigRefreshClsObjects;
 };
 //-----------------------------------------------------------------------------
 class IViewToolbarBrowser : public IViewWindow

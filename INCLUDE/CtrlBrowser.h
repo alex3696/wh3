@@ -13,6 +13,7 @@ class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPag
 	sig::scoped_connection connViewCmd_Refresh;
 	sig::scoped_connection connViewCmd_Up;
 	sig::scoped_connection connViewCmd_Activate;
+	sig::scoped_connection connViewCmd_RefreshClsObjects;
 	
 
 	sig::scoped_connection connModel_BeforeRefreshCls;
@@ -31,7 +32,8 @@ public:
 
 	void Refresh();
 	void Up();
-	void Activate(const ICls64*);
+	void Activate(int64_t cid);
+	void RefreshClsObjects(int64_t cid);
 
 
 };

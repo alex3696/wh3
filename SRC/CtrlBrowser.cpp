@@ -18,6 +18,9 @@ CtrlTableBrowser::CtrlTableBrowser(
 
 	connViewCmd_Activate = mView->sigActivate
 		.connect(std::bind(&CtrlTableBrowser::Activate, this, ph::_1));
+	connViewCmd_RefreshClsObjects = mView->sigRefreshClsObjects
+		.connect(std::bind(&CtrlTableBrowser::RefreshClsObjects, this, ph::_1));
+
 
 
 	connModel_GroupByType = mModel->GetModelBrowser()->sigGroupByType.connect
@@ -49,9 +52,14 @@ void CtrlTableBrowser::Up()
 	mModel->GetModelBrowser()->DoUp();
 }
 //---------------------------------------------------------------------------
-void CtrlTableBrowser::Activate(const ICls64* cls)
+void CtrlTableBrowser::Activate(int64_t cid)
 {
-	mModel->GetModelBrowser()->DoActivate(cls);
+	mModel->GetModelBrowser()->DoActivate(cid);
+}
+//---------------------------------------------------------------------------
+void CtrlTableBrowser::RefreshClsObjects(int64_t cid)
+{
+	mModel->GetModelBrowser()->DoRefreshObjects (cid);
 }
 
 //---------------------------------------------------------------------------
