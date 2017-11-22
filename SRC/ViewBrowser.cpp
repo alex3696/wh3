@@ -574,6 +574,7 @@ void ViewTableBrowser::OnCmd_Expanded(wxDataViewEvent& evt)
 		mTable->GetModel()->Resort();
 	}
 
+	AutosizeColumns();
 
 }
 //-----------------------------------------------------------------------------

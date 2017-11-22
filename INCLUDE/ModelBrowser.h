@@ -521,7 +521,7 @@ public:
 	void SetSearchString(const wxString&);
 	void SetGroupedByType(bool);
 
-	wxString GetPathTitle()const;
+	const ICls64& GetRootCls()const;
 public:
 	ModelBrowser();
 	~ModelBrowser();
@@ -567,8 +567,8 @@ class ModelPageBrowser : public IModelWindow
 	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_type24;
 	const wxString mTitle = "Object Browser";
 
-
-
+	sig::scoped_connection connModelBrowser_AfterPathChange;
+	void DoUpdateTitle(const ICls64& node);
 
 	ModelBrowser mModelBrowser;
 public:

@@ -751,9 +751,9 @@ void ModelBrowser::DoGroupByType(bool enable_group_by_type)
 	DoRefresh();
 }
 //-----------------------------------------------------------------------------
-wxString ModelBrowser::GetPathTitle() const
+const ICls64& ModelBrowser::GetRootCls() const
 {
-	return mClsPath->GetCurrent()->GetTitle();
+	return *mClsPath->GetCurrent();
 }
 
 //-----------------------------------------------------------------------------
@@ -761,6 +761,8 @@ wxString ModelBrowser::GetPathTitle() const
 //-----------------------------------------------------------------------------
 ModelPageBrowser::ModelPageBrowser()
 {
+	connModelBrowser_AfterPathChange = mModelBrowser.sigAfterPathChange
+		.connect(std::bind(&ModelPageBrowser::UpdateTitle, this));
 
 }
 //-----------------------------------------------------------------------------
@@ -772,14 +774,29 @@ void ModelPageBrowser::DoEnableGroupByType(bool group_by_type)
 //virtual 
 void ModelPageBrowser::UpdateTitle() //override;
 {
-	sigUpdateTitle(mModelBrowser.GetPathTitle(), mIco);
+	const ICls64& node = mModelBrowser.GetRootCls();
+	wxString title;
+	if (node.GetParentId() > 0)
+		title = "..";
+	if (node.GetId() == 1)
+		title = "/";
+	else
+		title += node.GetTitle();
+
+	auto ss = mModelBrowser.GetSearchString();
+	if (!ss.empty())
+		title = wxString::Format("поиск:'%s' в %s ", ss, title);
+		
+
+	sigUpdateTitle(title, mIco);
 }
 //---------------------------------------------------------------------------
 //virtual 
 void ModelPageBrowser::Show()//override;
 {
-	//Update();
+	mModelBrowser.DoRefresh();
 	sigShow();
+
 }
 //---------------------------------------------------------------------------
 //virtual 
