@@ -72,18 +72,18 @@ public:
 		OnSigPathInsert(*mWhModel->mPath.get(), std::vector<wh::SptrIModel>(), nullptr);
 	}
 
-	virtual void Load(const boost::property_tree::ptree& page_val)override
+	virtual void Load(const boost::property_tree::wptree& page_val)override
 	{
-		unsigned long oid = page_val.get<int>("CtrlPageObjByPathList.ParentOid", 0);
+		unsigned long oid = page_val.get<int>(L"CtrlPageObjByPathList.ParentOid", 0);
 		mWhModel->SetCatFilter(oid, true);
 		mWhModel->Load(); 
 	}
-	virtual void Save(boost::property_tree::ptree& page_val)override
+	virtual void Save(boost::property_tree::wptree& page_val)override
 	{
-		using ptree = boost::property_tree::ptree;
+		using ptree = boost::property_tree::wptree;
 		ptree content;
-		content.put("ParentOid", mWhModel->GetRoot().mObj.mId.toStr());
-		page_val.push_back(std::make_pair("CtrlPageObjByPathList", content));
+		content.put(L"ParentOid", mWhModel->GetRoot().mObj.mId.toStr().wc_str());
+		page_val.push_back(std::make_pair(L"CtrlPageObjByPathList", content));
 	}
 
 	wh::SptrIModel GetWhModel()const

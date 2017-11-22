@@ -150,14 +150,14 @@ std::shared_ptr<CtrlNotebook> CtrlMain::GetNotebook()
 //---------------------------------------------------------------------------
 void CtrlMain::Load()
 {
-	using ptree = boost::property_tree::ptree;
+	using ptree = boost::property_tree::wptree;
 	const ptree& app_cfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->GetData();
 	Load(app_cfg);
 }
 //---------------------------------------------------------------------------
 void CtrlMain::Save()
 {
-	using ptree = boost::property_tree::ptree;
+	using ptree = boost::property_tree::wptree;
 	ptree app_cfg;
 	Save(app_cfg);
 	whDataMgr::GetInstance()->mDbCfg->mGuiCfg->SetData(app_cfg);
@@ -171,31 +171,31 @@ void CtrlMain::RmView()//override
 	//CtrlWindowBase::RmView();
 }
 //---------------------------------------------------------------------------
-void CtrlMain::Load(const boost::property_tree::ptree& app_cfg) //override
+void CtrlMain::Load(const boost::property_tree::wptree& app_cfg) //override
 {
 	mModel->Load(app_cfg);
 
-	auto it = app_cfg.find("CtrlNotebook");
+	auto it = app_cfg.find(L"CtrlNotebook");
 	if (app_cfg.not_found() != it)
 		mCtrlNotebook->Load(it->second);
 
-	it = app_cfg.find("Default");
+	it = app_cfg.find(L"Default");
 	if (app_cfg.not_found() != it)
 		whDataMgr::GetInstance()->mDbCfg->mGuiCfg->LoadDefaults(it->second);
 
 }
 //---------------------------------------------------------------------------
-void CtrlMain::Save(boost::property_tree::ptree& app_cfg) //override
+void CtrlMain::Save(boost::property_tree::wptree& app_cfg) //override
 {
 	mModel->Save(app_cfg);
 
-	using ptree = boost::property_tree::ptree;
+	using ptree = boost::property_tree::wptree;
 	ptree notebook;
 	mCtrlNotebook->Save(notebook);
-	app_cfg.add_child("CtrlNotebook", notebook);
+	app_cfg.add_child(L"CtrlNotebook", notebook);
 
 	ptree defaults;
 	whDataMgr::GetInstance()->mDbCfg->mGuiCfg->SaveDefaults(defaults);
-	app_cfg.add_child("Default", defaults);
+	app_cfg.add_child(L"Default", defaults);
 }
 

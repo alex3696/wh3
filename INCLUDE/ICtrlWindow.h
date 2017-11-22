@@ -18,8 +18,8 @@ public:
 	virtual void MkView() {};
 	virtual void Init() {};
 
-	virtual void Load(const boost::property_tree::ptree&) = 0;
-	virtual void Save(boost::property_tree::ptree&) = 0;
+	virtual void Load(const boost::property_tree::wptree&) = 0;
+	virtual void Save(boost::property_tree::wptree&) = 0;
 
 	sig::signal<void(ICtrlWindow*, const wxString&, const wxIcon&)>	sigUpdateTitle;
 	sig::signal<void(ICtrlWindow*)>	sigShow;

@@ -21,16 +21,16 @@ public:
 	virtual const wxIcon& GetIcon()const override { return mIco; }
 	virtual const wxString& GetTitle()const override { return mTitle; }
 
-	virtual void Load(const boost::property_tree::ptree& page_val)override
+	virtual void Load(const boost::property_tree::wptree& page_val)override
 	{
 		
 	}
 
-	virtual void Save(boost::property_tree::ptree& page_val)override
+	virtual void Save(boost::property_tree::wptree& page_val)override
 	{
-		using ptree = boost::property_tree::ptree;
+		using ptree = boost::property_tree::wptree;
 		ptree content;
-		page_val.push_back(std::make_pair("CtrlPageUserList", content));
+		page_val.push_back(std::make_pair(L"CtrlPageUserList", content));
 	}
 
 

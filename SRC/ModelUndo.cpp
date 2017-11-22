@@ -306,10 +306,10 @@ void ModelUndoWindow::Init()//override
 }
 //---------------------------------------------------------------------------
 //virtual 
-void ModelUndoWindow::Load(const boost::property_tree::ptree& page_val)//override;
+void ModelUndoWindow::Load(const boost::property_tree::wptree& page_val)//override;
 {
-	using ptree = boost::property_tree::ptree;
-	auto it = page_val.find("UndoWindow");//CtrlPageHistory
+	using ptree = boost::property_tree::wptree;
+	auto it = page_val.find(L"UndoWindow");//CtrlPageHistory
 	//const wxString oid = page_val.get<std::string>("CtrlPageDetail.Oid");
 	//const wxString parent_oid = page_val.get<std::string>("CtrlPageDetail.parentOid");
 	//mModelUndo->Set(oid, parent_oid);
@@ -318,9 +318,9 @@ void ModelUndoWindow::Load(const boost::property_tree::ptree& page_val)//overrid
 }
 //---------------------------------------------------------------------------
 //virtual 
-void ModelUndoWindow::Save(boost::property_tree::ptree& page_val)//override;
+void ModelUndoWindow::Save(boost::property_tree::wptree& page_val)//override;
 {
-	using ptree = boost::property_tree::ptree;
+	using ptree = boost::property_tree::wptree;
 	ptree content;
 	//const rec::ObjInfo& obj = mModelObjDetail->Get();
 	//content.put("Oid", obj.mObj.mId.toStr());

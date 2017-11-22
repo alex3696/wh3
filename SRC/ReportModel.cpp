@@ -274,23 +274,23 @@ void ReportModel::Export()
 }
 //-----------------------------------------------------------------------------
 
-void ReportModel::Load(const boost::property_tree::ptree& page_val)
+void ReportModel::Load(const boost::property_tree::wptree& page_val)
 {
-	mRepId = page_val.get<std::string>("CtrlPageReport.RepId");
+	mRepId = page_val.get<std::wstring>(L"CtrlPageReport.RepId");
 
 	auto container = whDataMgr::GetInstance()->mContainer;
-	auto modelRepList = container->GetObject<ReportListModel>("ModelPageReportList");
+	auto modelRepList = container->GetObject<ReportListModel>(L"ModelPageReportList");
 	auto ri = modelRepList->LoadAll(mRepId);
 	if (!ri)
 		return;
 }
 //-----------------------------------------------------------------------------
-void ReportModel::Save(boost::property_tree::ptree& page_val)
+void ReportModel::Save(boost::property_tree::wptree& page_val)
 {
-	using ptree = boost::property_tree::ptree;
+	using ptree = boost::property_tree::wptree;
 	ptree content;
-	content.put("RepId", mRepId.c_str());
-	page_val.push_back(std::make_pair("CtrlPageReport", content));
+	content.put(L"RepId", mRepId.wc_str());
+	page_val.push_back(std::make_pair(L"CtrlPageReport", content));
 	
 }
 //-----------------------------------------------------------------------------

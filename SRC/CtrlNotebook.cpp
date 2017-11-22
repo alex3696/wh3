@@ -75,14 +75,14 @@ void CtrlNotebook::CloseAllPages()
 }
 //-----------------------------------------------------------------------------
 //virtual override
-void CtrlNotebook::Load(const boost::property_tree::ptree& val)
+void CtrlNotebook::Load(const boost::property_tree::wptree& val)
 {
 	wxWindowUpdateLocker lock(mView->GetWnd());
 	CtrlWindowBase::Load(val);
 }
 //-----------------------------------------------------------------------------
 ////virtual override
-//void CtrlNotebook::Save(boost::property_tree::ptree& val)
+//void CtrlNotebook::Save(boost::property_tree::wptree& val)
 //{
 //	CtrlWindowBase::Save(val);
 //};

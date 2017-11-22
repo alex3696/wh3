@@ -22,20 +22,20 @@ public:
 
 	virtual const wxIcon& GetIcon()const override { return mIco; }
 	virtual const wxString& GetTitle()const override { return mTitle; }
-	virtual void Load(const boost::property_tree::ptree& page_val)override
+	virtual void Load(const boost::property_tree::wptree& page_val)override
 	{
-		//using ptree = boost::property_tree::ptree;
+		//using ptree = boost::property_tree::wptree;
 		//ptree::value_type page = *page_val.begin();
 		//auto name = page.first.c_str();
 		//int val1 = page.second.get<int>("id", 0);
 		//int val2 = page_val.get<int>("CtrlPageActList.id", 0);
 	}
-	virtual void Save(boost::property_tree::ptree& page_val)override
+	virtual void Save(boost::property_tree::wptree& page_val)override
 	{
-		using ptree = boost::property_tree::ptree;
+		using ptree = boost::property_tree::wptree;
 		ptree content;
 		//content.put("id", (int)-1);
-		page_val.push_back(std::make_pair("CtrlPageActList", content));
+		page_val.push_back(std::make_pair(L"CtrlPageActList", content));
 		//page_val.put("CtrlPageActList.id", 33);
 	}
 

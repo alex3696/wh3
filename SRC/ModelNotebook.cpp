@@ -102,14 +102,14 @@ void ModelNotebook::ShowWindowByPos(size_t pos)
 }
 //-----------------------------------------------------------------------------
 
-void ModelNotebook::Load(const boost::property_tree::ptree& notebook)
+void ModelNotebook::Load(const boost::property_tree::wptree& notebook)
 {
 try{
-	using ptree = boost::property_tree::ptree;
+	using ptree = boost::property_tree::wptree;
 
-	if (notebook.not_found() != notebook.find("Pages"))
+	if (notebook.not_found() != notebook.find(L"Pages"))
 	{
-		for (const ptree::value_type &v : notebook.get_child("Pages"))
+		for (const ptree::value_type &v : notebook.get_child(L"Pages"))
 		{
 			ptree::value_type page = *v.second.begin();
 			auto name = page.first.c_str();
@@ -123,7 +123,7 @@ try{
 			}
 		}//for 
 	}
-	auto active_page = notebook.get<int>("ActivePage", 0);
+	auto active_page = notebook.get<int>(L"ActivePage", 0);
 	ShowWindowByPos(active_page);
 
 }//try
@@ -139,10 +139,10 @@ catch (...)
 	
 }
 //-----------------------------------------------------------------------------
-void ModelNotebook::Save(boost::property_tree::ptree& notebook)
+void ModelNotebook::Save(boost::property_tree::wptree& notebook)
 {
 try{
-	using ptree = boost::property_tree::ptree;
+	using ptree = boost::property_tree::wptree;
 	
 	ptree pages;
 
@@ -151,11 +151,11 @@ try{
 		ptree page;
 		auto ctrl = item->mCtrlWindow;
 		ctrl->Save(page);
-		pages.push_back(std::make_pair("", page));
+		pages.push_back(std::make_pair(L"", page));
 	}
 
-	notebook.put_child("Pages", pages);
-	notebook.put("ActivePage", "0");
+	notebook.put_child(L"Pages", pages);
+	notebook.put(L"ActivePage", L"0");
 	
 	
 

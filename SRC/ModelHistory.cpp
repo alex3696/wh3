@@ -96,36 +96,36 @@ void ModelPageHistory::Show()//override;
 }
 //---------------------------------------------------------------------------
 //virtual 
-void ModelPageHistory::Load(const boost::property_tree::ptree& page_val)//override;
+void ModelPageHistory::Load(const boost::property_tree::wptree& page_val)//override;
 {
 	rec::PageHistory cfg;
-	cfg.mRowsOffset = page_val.get<size_t>("CtrlPageHistory.Offset", 0);
-	cfg.mRowsLimit = page_val.get<size_t>("CtrlPageHistory.Limit", 20);
-	cfg.mStringPerRow = page_val.get<size_t>("CtrlPageHistory.StringPerRow", 4);
-	cfg.mShowFilterList = page_val.get<bool>("CtrlPageHistory.ShowFilterList", false);
-	cfg.mShowPropertyList = page_val.get<bool>("CtrlPageHistory.ShowPropertyList", false);
-	cfg.mColAutosize = page_val.get<bool>("CtrlPageHistory.ColAutosize", false);
-	cfg.mPathInProperties = page_val.get<bool>("CtrlPageHistory.PathInProperties", false);
-	cfg.mVisibleColumnClsObj = page_val.get<bool>("CtrlPageHistory.VisibleColumnClsObj", true);
+	cfg.mRowsOffset = page_val.get<size_t>(L"CtrlPageHistory.Offset", 0);
+	cfg.mRowsLimit = page_val.get<size_t>(L"CtrlPageHistory.Limit", 20);
+	cfg.mStringPerRow = page_val.get<size_t>(L"CtrlPageHistory.StringPerRow", 4);
+	cfg.mShowFilterList = page_val.get<bool>(L"CtrlPageHistory.ShowFilterList", false);
+	cfg.mShowPropertyList = page_val.get<bool>(L"CtrlPageHistory.ShowPropertyList", false);
+	cfg.mColAutosize = page_val.get<bool>(L"CtrlPageHistory.ColAutosize", false);
+	cfg.mPathInProperties = page_val.get<bool>(L"CtrlPageHistory.PathInProperties", false);
+	cfg.mVisibleColumnClsObj = page_val.get<bool>(L"CtrlPageHistory.VisibleColumnClsObj", true);
 	SetGuiModel(std::move(cfg));
 
 	/////Update();
 }
 //---------------------------------------------------------------------------
 //virtual 
-void ModelPageHistory::Save(boost::property_tree::ptree& page_val)//override;
+void ModelPageHistory::Save(boost::property_tree::wptree& page_val)//override;
 {
-	using ptree = boost::property_tree::ptree;
+	using ptree = boost::property_tree::wptree;
 	ptree content;
-	content.put("Offset", mGuiModel.mRowsOffset);
-	content.put("Limit", mGuiModel.mRowsLimit);
-	content.put("StringPerRow", mGuiModel.mStringPerRow);
-	content.put("ShowFilterList", mGuiModel.mShowFilterList);
-	content.put("ShowPropertyList", mGuiModel.mShowPropertyList);
-	content.put("ColAutosize", mGuiModel.mColAutosize);
-	content.put("PathInProperties", mGuiModel.mPathInProperties);
-	content.put("VisibleColumnClsObj", mGuiModel.mVisibleColumnClsObj);
-	page_val.push_back(std::make_pair("CtrlPageHistory", content));
+	content.put(L"Offset", mGuiModel.mRowsOffset);
+	content.put(L"Limit", mGuiModel.mRowsLimit);
+	content.put(L"StringPerRow", mGuiModel.mStringPerRow);
+	content.put(L"ShowFilterList", mGuiModel.mShowFilterList);
+	content.put(L"ShowPropertyList", mGuiModel.mShowPropertyList);
+	content.put(L"ColAutosize", mGuiModel.mColAutosize);
+	content.put(L"PathInProperties", mGuiModel.mPathInProperties);
+	content.put(L"VisibleColumnClsObj", mGuiModel.mVisibleColumnClsObj);
+	page_val.push_back(std::make_pair(L"CtrlPageHistory", content));
 	//page_val.put("CtrlPageLogList.id", 33);
 
 }

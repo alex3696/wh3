@@ -36,8 +36,8 @@ public:
 	void ShowWindow(wxWindow* wnd);
 
 	//ICtrlWindow
-	virtual void Load(const boost::property_tree::ptree& val)override;
-	//virtual void Save(boost::property_tree::ptree& val)override;
+	virtual void Load(const boost::property_tree::wptree& val)override;
+	//virtual void Save(boost::property_tree::wptree& val)override;
 	virtual void RmView()override;
 
 	

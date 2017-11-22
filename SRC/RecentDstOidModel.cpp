@@ -44,19 +44,19 @@ void RecentDstOidModel::Insert(const wxString& item)
 //-----------------------------------------------------------------------------
 void RecentDstOidModel::GetFromConfig()
 {
-	using ptree = boost::property_tree::ptree;
+	using ptree = boost::property_tree::wptree;
 	const ptree& app_cfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->GetData();
 	Clear();
-	ptree::const_assoc_iterator it = app_cfg.find("RecentDstOid");
+	ptree::const_assoc_iterator it = app_cfg.find(L"RecentDstOid");
 
 	if (it != app_cfg.not_found())
 	{
-		mFilterEnable = it->second.get<int>("FilterEnable", 1);
-		mRecentEnable = it->second.get<int>("RecentEnable", 1);
-		mMaxItems = it->second.get<int>("MaxQty", 10);
-		for (const ptree::value_type &v : it->second.get_child("Oid"))
+		mFilterEnable = it->second.get<int>(L"FilterEnable", 1);
+		mRecentEnable = it->second.get<int>(L"RecentEnable", 1);
+		mMaxItems = it->second.get<int>(L"MaxQty", 10);
+		for (const ptree::value_type &v : it->second.get_child(L"Oid"))
 		{
-			wxString str = v.second.get_value<std::string>();
+			wxString str = v.second.get_value<std::wstring>();
 			InsertWithoutSig(str);
 		}
 	}
@@ -66,21 +66,21 @@ void RecentDstOidModel::GetFromConfig()
 //-----------------------------------------------------------------------------
 void RecentDstOidModel::SetToConfig()const
 {
-	using ptree = boost::property_tree::ptree;
+	using ptree = boost::property_tree::wptree;
 	ptree app_cfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->GetData();
 
 	ptree recent;
-	recent.put("MaxQty", mMaxItems);
-	recent.put("FilterEnable", (int)mFilterEnable);
-	recent.put("RecentEnable", (int)mRecentEnable);
+	recent.put(L"MaxQty", mMaxItems);
+	recent.put(L"FilterEnable", (int)mFilterEnable);
+	recent.put(L"RecentEnable", (int)mRecentEnable);
 
 	ptree recent_dst_oid;
 	ptree recent_oid;
 
 	for (const auto& item : mMruList)
 	{
-		std::string str = item.c_str();
-		recent_dst_oid.push_back(ptree::value_type("", ptree(str)));
+		std::wstring str = item.wc_str();
+		recent_dst_oid.push_back(ptree::value_type(L"", ptree(str)));
 	}
 	
 	//recent_oid.put_value("11"); recent_dst_oid.push_back(std::make_pair("", recent_oid));
@@ -88,8 +88,8 @@ void RecentDstOidModel::SetToConfig()const
 	//recent_dst_oid.push_back(ptree::value_type("", ptree("33")));
 	
 	
-	recent.add_child("Oid", recent_dst_oid);
-	app_cfg.add_child("RecentDstOid", recent);
+	recent.add_child(L"Oid", recent_dst_oid);
+	app_cfg.add_child(L"RecentDstOid", recent);
 
 	whDataMgr::GetInstance()->mDbCfg->mGuiCfg->SetData(app_cfg);
 }

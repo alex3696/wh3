@@ -9,47 +9,47 @@ MGuiCfg::MGuiCfg(const char option)
 {
 }
 //-----------------------------------------------------------------------------
-void MGuiCfg::LoadDefaults(const boost::property_tree::ptree& default_cfg)
+void MGuiCfg::LoadDefaults(const boost::property_tree::wptree& default_cfg)
 {
-	auto it = default_cfg.find("LogListCfg");
+	auto it = default_cfg.find(L"LogListCfg");
 	if (default_cfg.not_found() != it)
 	{
 		auto cnt = whDataMgr::GetInstance()->mContainer;
-		auto default_loglist_cfg = cnt->GetObject<rec::PageHistory>("DefaultLogListInfo");
+		auto default_loglist_cfg = cnt->GetObject<rec::PageHistory>(L"DefaultLogListInfo");
 
-		using ptree = boost::property_tree::ptree;
+		using ptree = boost::property_tree::wptree;
 
-		default_loglist_cfg->mRowsLimit = it->second.get<int>("RowsLimit", 50);
-		default_loglist_cfg->mRowsOffset = it->second.get<int>("RowsOffset", 0);
-		default_loglist_cfg->mStringPerRow = it->second.get<int>("StringPerRow", 4);
+		default_loglist_cfg->mRowsLimit = it->second.get<int>(L"RowsLimit", 50);
+		default_loglist_cfg->mRowsOffset = it->second.get<int>(L"RowsOffset", 0);
+		default_loglist_cfg->mStringPerRow = it->second.get<int>(L"StringPerRow", 4);
 
-		default_loglist_cfg->mPathInProperties = it->second.get<bool>("PathInProperties", true);
-		default_loglist_cfg->mColAutosize = it->second.get<bool>("ColAutosize", false);
-		default_loglist_cfg->mShowPropertyList = it->second.get<bool>("ShowPropertyList", false);
-		default_loglist_cfg->mShowFilterList = it->second.get<bool>("ShowFilterList", false);
+		default_loglist_cfg->mPathInProperties = it->second.get<bool>(L"PathInProperties", true);
+		default_loglist_cfg->mColAutosize = it->second.get<bool>(L"ColAutosize", false);
+		default_loglist_cfg->mShowPropertyList = it->second.get<bool>(L"ShowPropertyList", false);
+		default_loglist_cfg->mShowFilterList = it->second.get<bool>(L"ShowFilterList", false);
 		//default_loglist_cfg->mVisibleColumnClsObj = it->second.get<bool>("VisibleColumnClsObj", true);
 	}
 }
 //-----------------------------------------------------------------------------
-void MGuiCfg::SaveDefaults(boost::property_tree::ptree& default_cfg)
+void MGuiCfg::SaveDefaults(boost::property_tree::wptree& default_cfg)
 {
 	auto cnt = whDataMgr::GetInstance()->mContainer;
-	auto default_loglist_cfg = cnt->GetObject<rec::PageHistory>("DefaultLogListInfo");
+	auto default_loglist_cfg = cnt->GetObject<rec::PageHistory>(L"DefaultLogListInfo");
 	
-	using ptree = boost::property_tree::ptree;
+	using ptree = boost::property_tree::wptree;
 	ptree content;
 
-	content.put("RowsLimit", default_loglist_cfg->mRowsLimit);
-	content.put("RowsOffset", default_loglist_cfg->mRowsOffset);
-	content.put("StringPerRow", default_loglist_cfg->mStringPerRow);
+	content.put(L"RowsLimit", default_loglist_cfg->mRowsLimit);
+	content.put(L"RowsOffset", default_loglist_cfg->mRowsOffset);
+	content.put(L"StringPerRow", default_loglist_cfg->mStringPerRow);
 
-	content.put("PathInProperties", default_loglist_cfg->mPathInProperties);
-	content.put("ColAutosize", default_loglist_cfg->mColAutosize);
-	content.put("ShowPropertyList", default_loglist_cfg->mShowPropertyList);
-	content.put("ShowFilterList", default_loglist_cfg->mShowFilterList);
+	content.put(L"PathInProperties", default_loglist_cfg->mPathInProperties);
+	content.put(L"ColAutosize", default_loglist_cfg->mColAutosize);
+	content.put(L"ShowPropertyList", default_loglist_cfg->mShowPropertyList);
+	content.put(L"ShowFilterList", default_loglist_cfg->mShowFilterList);
 	//content.put("VisibleColumnClsObj", default_loglist_cfg->mVisibleColumnClsObj);
 
-	default_cfg.push_back(std::make_pair("LogListCfg", content));
+	default_cfg.push_back(std::make_pair(L"LogListCfg", content));
 
 }
 //-----------------------------------------------------------------------------
@@ -57,7 +57,7 @@ void MGuiCfg::SaveDefaults(boost::property_tree::ptree& default_cfg)
 void MGuiCfg::LoadData()
 {
 	try{
-		using ptree = boost::property_tree::ptree;
+		using ptree = boost::property_tree::wptree;
 		ptree	app_cfg;
 		//boost::property_tree::read_json(std::string("notepad_cfg.txt"), notepad_cfg);
 		//whDataMgr::GetDB().BeginTransaction();
@@ -66,7 +66,7 @@ void MGuiCfg::LoadData()
 		wxString str_app_config;
 		table->GetAsString(0, 0, str_app_config);
 		//whDataMgr::GetDB().Commit();
-		std::stringstream ss(str_app_config.ToStdString());
+		std::wstringstream ss(str_app_config.ToStdWstring());
 		boost::property_tree::read_json(ss, app_cfg);
 		this->SetData(app_cfg, true);
 
@@ -86,7 +86,7 @@ void MGuiCfg::LoadData()
 void MGuiCfg::SaveData()
 {
 	try{
-		std::ostringstream  ss;
+		std::wostringstream  ss;
 		boost::property_tree::write_json(ss, this->GetData() );
 
 		wxString s;

@@ -154,32 +154,32 @@ void ModelPageDetail::Init()//override
 }
 //---------------------------------------------------------------------------
 //virtual 
-void ModelPageDetail::Load(const boost::property_tree::ptree& page_val)//override;
+void ModelPageDetail::Load(const boost::property_tree::wptree& page_val)//override;
 {
-	using ptree = boost::property_tree::ptree;
-	auto it = page_val.find("CtrlPageDetail");//CtrlPageHistory
+	using ptree = boost::property_tree::wptree;
+	auto it = page_val.find(L"CtrlPageDetail");//CtrlPageHistory
 	if (page_val.not_found() != it)
 	{
 		mModelPageHistory->Load(it->second);
 	}
-	const wxString oid = page_val.get<std::string>("CtrlPageDetail.Oid");
-	const wxString parent_oid = page_val.get<std::string>("CtrlPageDetail.parentOid");
+	const wxString oid = page_val.get<std::wstring>(L"CtrlPageDetail.Oid");
+	const wxString parent_oid = page_val.get<std::wstring>(L"CtrlPageDetail.parentOid");
 	mModelObjDetail->Set(oid, parent_oid);
 	
 	/////Update();
 }
 //---------------------------------------------------------------------------
 //virtual 
-void ModelPageDetail::Save(boost::property_tree::ptree& page_val)//override;
+void ModelPageDetail::Save(boost::property_tree::wptree& page_val)//override;
 {
-	using ptree = boost::property_tree::ptree;
+	using ptree = boost::property_tree::wptree;
 	ptree content;
 	mModelPageHistory->Save(content);
 
 	const rec::ObjInfo& obj = mModelObjDetail->Get();
-	content.put("Oid", obj.mObj.mId.toStr());
-	content.put("parentOid", obj.mObj.mParent.mId.toStr());
+	content.put(L"Oid", obj.mObj.mId.toStr().wc_str());
+	content.put(L"parentOid", obj.mObj.mParent.mId.toStr().wc_str());
 
-	page_val.push_back(std::make_pair("CtrlPageDetail", content));
+	page_val.push_back(std::make_pair(L"CtrlPageDetail", content));
 
 }

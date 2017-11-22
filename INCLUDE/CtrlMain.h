@@ -49,8 +49,8 @@ public:
 	std::shared_ptr<CtrlNotebook> GetNotebook();
 
 	virtual void RmView()override;
-	virtual void Load(const boost::property_tree::ptree& app_cfg) override;
-	virtual void Save(boost::property_tree::ptree& app_cfg) override;
+	virtual void Load(const boost::property_tree::wptree& app_cfg) override;
+	virtual void Save(boost::property_tree::wptree& app_cfg) override;
 
 	void Load();
 	void Save();

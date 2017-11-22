@@ -65,8 +65,8 @@ public:
 	void RmAll();
 	void ShowWindow(wxWindow* wnd);
 	
-	virtual void Load(const boost::property_tree::ptree& val)override;
-	virtual void Save(boost::property_tree::ptree& val)override;
+	virtual void Load(const boost::property_tree::wptree& val)override;
+	virtual void Save(boost::property_tree::wptree& val)override;
 
 	sig::signal<void(ICtrlWindow*)>									sigAfterMkWindow;
 	sig::signal<void(ICtrlWindow*)>									sigBeforeRmWindow;

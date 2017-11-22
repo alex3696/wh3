@@ -30,8 +30,8 @@ public:
 	}
 
 	virtual void Init()											{}
-	virtual void Load(const boost::property_tree::ptree& val)	{}
-	virtual void Save(boost::property_tree::ptree& val) 		{}
+	virtual void Load(const boost::property_tree::wptree& val)	{}
+	virtual void Save(boost::property_tree::wptree& val) 		{}
 
 };
 //---------------------------------------------------------------------------

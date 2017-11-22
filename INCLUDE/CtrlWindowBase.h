@@ -108,12 +108,12 @@ public:
 	}
 
 
-	virtual void Load(const boost::property_tree::ptree& val) override
+	virtual void Load(const boost::property_tree::wptree& val) override
 	{
 		mModel->Load(val);
 	}
 
-	virtual void Save(boost::property_tree::ptree& val) override
+	virtual void Save(boost::property_tree::wptree& val) override
 	{
 		mModel->Save(val);
 	}

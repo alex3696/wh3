@@ -37,8 +37,8 @@ public:
 	virtual const wxString& GetTitle()const override { return mTitle; }
 	virtual void UpdateTitle()override;
 	virtual void Show()override;
-	virtual void Load(const boost::property_tree::ptree& page_val)override;
-	virtual void Save(boost::property_tree::ptree& page_val)override;
+	virtual void Load(const boost::property_tree::wptree& page_val)override;
+	virtual void Save(boost::property_tree::wptree& page_val)override;
 
 };
 

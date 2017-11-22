@@ -31,7 +31,7 @@ void ModelObjPropList::Show()//override;
 }
 //---------------------------------------------------------------------------
 //virtual 
-void ModelObjPropList::Load(const boost::property_tree::ptree& page_val)//override;
+void ModelObjPropList::Load(const boost::property_tree::wptree& page_val)//override;
 {
 	//size_t offset = page_val.get<size_t>("CtrlPageHistory.Offset", 0);
 	//size_t limit = page_val.get<size_t>("CtrlPageHistory.Limit", 20);
@@ -41,9 +41,9 @@ void ModelObjPropList::Load(const boost::property_tree::ptree& page_val)//overri
 }
 //---------------------------------------------------------------------------
 //virtual 
-void ModelObjPropList::Save(boost::property_tree::ptree& page_val)//override;
+void ModelObjPropList::Save(boost::property_tree::wptree& page_val)//override;
 {
-	//using ptree = boost::property_tree::ptree;
+	//using ptree = boost::property_tree::wptree;
 	//ptree content;
 	//content.put("Offset", mDataModel.GetRowsOffset());
 	//content.put("Limit", mDataModel.GetRowsLimit());

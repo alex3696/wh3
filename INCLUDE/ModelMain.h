@@ -22,8 +22,8 @@ public:
 	virtual const wxIcon& GetIcon()const override { return mIco; }
 	virtual const wxString& GetTitle()const override { return mTitle; }
 
-	virtual void Load(const boost::property_tree::ptree& val)override { }
-	virtual void Save(boost::property_tree::ptree& page)override { }
+	virtual void Load(const boost::property_tree::wptree& val)override { }
+	virtual void Save(boost::property_tree::wptree& page)override { }
 
 };
 //---------------------------------------------------------------------------
