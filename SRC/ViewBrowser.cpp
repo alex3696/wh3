@@ -576,17 +576,29 @@ void ViewTableBrowser::OnCmd_Expanded(wxDataViewEvent& evt)
 
 	AutosizeColumns();
 
+	auto item = evt.GetItem();
+	const IIdent64* node = static_cast<const IIdent64*> (item.GetID());
+	const ICls64* cls = dynamic_cast<const ICls64*> (node);
+	if (cls)
+		mExpandedCls.insert(cls->GetId());
+	
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_Collapseded(wxDataViewEvent& evt)
 {
-	if (evt.GetItem().IsOk())
+	auto item = evt.GetItem();
+	if (item.IsOk())
 	{
 		auto model = mTable->GetModel();
 		auto dvparent = evt.GetItem();
 		wxDataViewItemArray arr;
 		model->GetChildren(dvparent, arr);
 		model->ItemsDeleted(dvparent, arr);
+
+		const IIdent64* node = static_cast<const IIdent64*> (item.GetID());
+		const ICls64* cls = dynamic_cast<const ICls64*> (node);
+		if (cls)
+			mExpandedCls.erase(cls->GetId());
 	}
 
 }
@@ -816,20 +828,22 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& ve
 			dvmodel->SetClsList(&mClsList, (root && 1 != root->GetId()) ? root : nullptr);
 
 		}
-			
-	}
 
+		for (const auto& cid : mExpandedCls)
+		{
+			auto ident = FindChildCls(cid);
+			if (ident)
+			{
+				wxDataViewItem item((void*)ident);
+				mTable->Expand(item);
+			}
+		}//for (const auto& cid : mExpandedCls)
+
+	}
+	
 	RestoreSelect();
 	AutosizeColumns();
 
-	auto new_sel = mTable->GetCurrentItem();
-	const auto ident = static_cast<const IIdent64*> (new_sel.GetID());
-	const auto obj = dynamic_cast<const IObj64*>(ident);
-	if (obj)
-	{
-		auto title = obj->GetTitle();
-		auto id = obj->GetIdAsString();
-	}
 }
 
 //-----------------------------------------------------------------------------

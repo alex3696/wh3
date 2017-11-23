@@ -21,6 +21,7 @@ class ViewTableBrowser : public IViewTableBrowser
 	
 	int64_t mClsSelected = 0;
 	int64_t mObjSelected = 0;
+	std::set<int64_t> mExpandedCls;
 
 	wxDataViewCtrl* mTable;
 	bool mGroupByType = true;

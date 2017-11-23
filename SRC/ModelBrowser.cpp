@@ -460,6 +460,8 @@ void ModelBrowser::DoRefreshFindInClsTree()
 		}
 	}
 
+	if( mRootId!= mClsPath->GetCurrent()->GetId() )
+		mClsPath->SetId(mRootId);
 
 	std::shared_ptr<const ICls64> parent_node = mClsPath->GetCurrent();
 	auto parent_id = parent_node->GetIdAsString();
