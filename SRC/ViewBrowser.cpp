@@ -779,6 +779,7 @@ void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>& ,
 	}
 		
 	
+	mClsList.clear();
 	mParentCid = 0;
 	//mParent = nullptr;
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
@@ -805,13 +806,8 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& ve
 		auto col3 = mTable->GetColumn(1);
 		if (root)
 		{
-			const auto ident = static_cast<const IIdent64*> (root);
-			const auto cls = dynamic_cast<const ICls64*>(ident);
-			
-			if (cls && ClsKind::Abstract == cls->GetKind() )
-				col3->SetHidden(true);
-			else
-				col3->SetHidden(false);
+			// and CLASS catalog 
+			col3->SetHidden(true);
 		}
 		else
 		{
