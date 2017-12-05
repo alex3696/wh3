@@ -109,6 +109,7 @@ class wxRegExpValidator : public wxValidator
 public:
 	wxRegExpValidator(const wxString& regexp);
 	wxRegExpValidator(const wxRegExpValidator& tocopy);
+	wxRegExpValidator& operator=(const wxRegExpValidator& rv);
 	virtual wxObject* Clone() const { return new wxRegExpValidator(*this); }
 
 	virtual bool Validate(wxWindow* parent);

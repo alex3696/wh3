@@ -595,8 +595,7 @@ void XMoveObjView::OnClickSearchBtn(wxCommandEvent& event)
 				mTree->EnsureVisible(item, mTree->GetColumn(0));
 				//mTree->SetFocus();
 				isFind = true;
-				if (isFind)
-					break;
+				break;
 
 			}
 		}//for

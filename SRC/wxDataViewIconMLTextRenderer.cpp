@@ -98,7 +98,7 @@ wxSize wxDataViewIconMLTextRenderer::GetSize() const //override;
 	{
 		size_t sz = m_text.size();
 		size_t nStart = 0; 
-		size_t line = 0;
+		//size_t line = 0;
 		wxSize text_sz;
 		while (nStart < sz)
 		{
@@ -109,7 +109,7 @@ wxSize wxDataViewIconMLTextRenderer::GetSize() const //override;
 			text_sz.x = curr_sz.x > text_sz.x ? curr_sz.x : text_sz.x;
 			text_sz.y += curr_sz.y;
 			nStart = nEnd + 1;
-			line++;
+			//line++;
 		}
 		const wxIcon& icon = m_value.GetIcon();
 		if (icon.IsOk())

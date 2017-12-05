@@ -50,14 +50,16 @@ public:
 	void SetData(DataType&& new_data)
 	{
 		DoSignal(moBeforeUpdate, new_data, *mCurrent);
-		mCurrent = std::make_unique<DataType>(std::forward<DataType>(new_data));
-		DoSignal(moAfterUpdate, new_data, *mCurrent);
+		auto val = std::make_unique<DataType>(std::forward<DataType>(new_data));
+		val.swap(mCurrent);
+		DoSignal(moAfterUpdate, *mCurrent, *val);
 	}
 	void SetData(const DataType& new_data)
 	{
 		DoSignal(moBeforeUpdate, new_data, *mCurrent);
-		mCurrent = std::make_unique<DataType>(new_data);
-		DoSignal(moAfterUpdate, new_data, *mCurrent);
+		auto val = std::make_unique<DataType>(new_data);
+		val.swap(mCurrent);
+		DoSignal(moAfterUpdate, *mCurrent, *val);
 	}
 
 	sig::connection ConnBU(const Slot &slot)

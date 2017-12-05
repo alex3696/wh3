@@ -411,6 +411,13 @@ wxRegExpValidator::wxRegExpValidator(const wxRegExpValidator& tocopy)
 	mRegExp.Compile(mRegStr, wxRE_DEFAULT);
 }
 //-----------------------------------------------------------------------------
+wxRegExpValidator& wxRegExpValidator::operator=(const wxRegExpValidator& rv)
+{
+	mRegStr = rv.mRegStr;
+	mRegExp.Compile(rv.mRegStr, wxRE_DEFAULT);
+	return *this;
+}
+//-----------------------------------------------------------------------------
 bool wxRegExpValidator::Validate(wxWindow *WXUNUSED(parent))
 {
 	wxTextCtrl* tc = wxDynamicCast(GetWindow(), wxTextCtrl);

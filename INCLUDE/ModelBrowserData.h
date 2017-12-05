@@ -113,7 +113,7 @@ public:
 	void Set(const int64_t& val) { mId = val; };
 
 	Bigint& operator=(const wxString& str)	{ str.ToLongLong(&mId); return *this; };
-	Bigint& operator=(const int64_t& rv)	{ mId = rv; };
+	Bigint& operator=(const int64_t& rv) { mId = rv; return *this; };
 };
 //-----------------------------------------------------------------------------
 class IIdent64
