@@ -22,10 +22,10 @@ public:
 	wxString	mObjQty;
 private:
 	int64_t		mId;
-	int64_t		mParentId;
+	int64_t		mParentId = 0;
 	ClsCache*	mTable = nullptr;
 public:
-	ClsKind		mKind;
+	ClsKind		mKind = ClsKind::Abstract;
 	bool		mObjLoaded = false;
 protected:
 	//struct MakeSharedEnabler;

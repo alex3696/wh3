@@ -14,7 +14,7 @@ class ViewUndoWindow final : public IViewUndoWindow
 
 public:
 	ViewUndoWindow(wxWindow* parent);
-	ViewUndoWindow(std::shared_ptr<IViewWindow> parent);
+	ViewUndoWindow(const std::shared_ptr<IViewWindow>& parent);
 	virtual wxWindow* GetWnd()const override {	return mPanel;	}
 	virtual void OnShow()override;
 	virtual void OnUpdateTitle(const wxString&, const wxIcon&)override;

@@ -64,7 +64,6 @@ public:
 	void GetClsValue(wxVariant &variant, unsigned int col
 		, const ICls64& cls) const
 	{
-		const wxIcon*  ico(&wxNullIcon);
 		auto mgr = ResMgr::GetInstance();
 
 		if (mCurrentRoot == &cls)
@@ -73,12 +72,12 @@ public:
 				variant << wxDataViewIconText("..", mgr->m_ico_back24); 
 			return;
 		}
-
+		
 		switch (col)
 		{
 		case 0:variant = cls.GetIdAsString();	break;
 		case 1: {
-
+			const wxIcon*  ico(&wxNullIcon);
 			switch (cls.GetKind())
 			{
 			case ClsKind::Abstract: ico = &mgr->m_ico_type_abstract24; break;
@@ -86,7 +85,7 @@ public:
 			case ClsKind::QtyByOne:
 			case ClsKind::QtyByFloat:
 			default: ico = &mgr->m_ico_type_qty24;	break;
-			}
+			}//switch
 			if (ClsKind::Abstract == cls.GetKind() || !mGroupByType)
 			{
 				variant << wxDataViewIconText(cls.GetTitle(), *ico);
@@ -114,7 +113,7 @@ public:
 		}break;
 			
 		default: break;
-		}
+		}//switch (col)
 	}
 
 	void GetObjValue(wxVariant &variant, unsigned int col
@@ -361,7 +360,7 @@ public:
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-ViewTableBrowser::ViewTableBrowser(std::shared_ptr<IViewWindow> parent)
+ViewTableBrowser::ViewTableBrowser(const std::shared_ptr<IViewWindow>& parent)
 	:ViewTableBrowser(parent->GetWnd())
 {}
 //-----------------------------------------------------------------------------
@@ -646,7 +645,7 @@ const IIdent64* ViewTableBrowser::GetTopChildCls()const
 	//	return cls;
 	//return nullptr;
 
-	if (mParentCid && 1 < mParentCid)	//(mParent && 1 != mParent->GetId())
+	if (1 < mParentCid)	//(mParent && 1 != mParent->GetId())
 	{
 		auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 		if (dvmodel)
@@ -931,7 +930,7 @@ void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IId
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-ViewToolbarBrowser::ViewToolbarBrowser(std::shared_ptr<IViewWindow> parent)
+ViewToolbarBrowser::ViewToolbarBrowser(const std::shared_ptr<IViewWindow>& parent)
 	:ViewToolbarBrowser(parent->GetWnd())
 {}
 //-----------------------------------------------------------------------------
@@ -1059,7 +1058,7 @@ void ViewToolbarBrowser::OnCmd_CollapseGroupByType(wxCommandEvent& evt )
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-ViewPathBrowser::ViewPathBrowser(std::shared_ptr<IViewWindow> parent)
+ViewPathBrowser::ViewPathBrowser(const std::shared_ptr<IViewWindow>& parent)
 	:ViewPathBrowser(parent->GetWnd())
 {
 }
@@ -1101,7 +1100,7 @@ void ViewPathBrowser::SetPathString(const ICls64& node)// override;
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-ViewBrowserPage::ViewBrowserPage(std::shared_ptr<IViewWindow> parent)
+ViewBrowserPage::ViewBrowserPage(const std::shared_ptr<IViewWindow>& parent)
 	:ViewBrowserPage(parent->GetWnd())
 {
 }

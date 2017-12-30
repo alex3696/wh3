@@ -96,7 +96,7 @@ class Bigint
 	//std::unique_ptr<int64_t> mIdPtr;
 	int64_t mId;
 public:
-	Bigint(){}
+	Bigint():mId(0){}
 	Bigint(const wxString& str){ str.ToLongLong(&mId); };
 	Bigint(const int64_t& val):mId(val) { };
 

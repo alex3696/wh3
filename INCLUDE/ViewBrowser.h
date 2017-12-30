@@ -45,7 +45,7 @@ protected:
 	
 public:
 	ViewTableBrowser(wxWindow* parent);
-	ViewTableBrowser(std::shared_ptr<IViewWindow> parent);
+	ViewTableBrowser(const std::shared_ptr<IViewWindow>& parent);
 	virtual wxWindow* GetWnd()const override
 	{
 		return mTable;
@@ -65,7 +65,7 @@ class ViewToolbarBrowser : public IViewToolbarBrowser
 	wxAuiToolBar*		mToolbar;
 public:
 	ViewToolbarBrowser(wxWindow* parent);
-	ViewToolbarBrowser(std::shared_ptr<IViewWindow> parent);
+	ViewToolbarBrowser(const std::shared_ptr<IViewWindow>& parent);
 	virtual wxWindow* GetWnd()const override
 	{
 		return mToolbar;
@@ -102,7 +102,7 @@ class ViewPathBrowser : public IViewPathBrowser
 	wxTextCtrl* mPathCtrl;
 public:
 	ViewPathBrowser(wxWindow* parent);
-	ViewPathBrowser(std::shared_ptr<IViewWindow> parent);
+	ViewPathBrowser(const std::shared_ptr<IViewWindow>& parent);
 	virtual wxWindow* GetWnd()const override
 	{
 		return mPathCtrl;
@@ -131,7 +131,7 @@ protected:
 	}
 public:
 	ViewBrowserPage(wxWindow* parent);
-	ViewBrowserPage(std::shared_ptr<IViewWindow> parent);
+	ViewBrowserPage(const std::shared_ptr<IViewWindow>& parent);
 	virtual wxWindow* GetWnd()const override
 	{
 		return mPanel;

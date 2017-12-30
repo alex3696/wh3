@@ -12,7 +12,7 @@ class ViewToolbarAct final : public IViewToolbarAct
 	wxAuiToolBar*		mToolbar;
 public:
 	ViewToolbarAct(wxWindow* parent);
-	ViewToolbarAct(std::shared_ptr<IViewWindow> parent)
+	ViewToolbarAct(const std::shared_ptr<IViewWindow>& parent)
 		:ViewToolbarAct(parent->GetWnd())
 	{}
 	virtual wxWindow* GetWnd()const override

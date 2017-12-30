@@ -114,8 +114,9 @@ std::shared_ptr<const IObj64> ObjRec64::GetParent()const //override
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 ClsTree::ClsTree()
+	:mClsCache(std::make_unique<ClsCache>(nullptr))
 {
-	mClsCache = std::make_unique<ClsCache>(nullptr);
+	
 	const ClsCache::fnModify fn = [](const std::shared_ptr<ClsRec64>& cls)
 	{
 		//cls->SetId(1);
@@ -271,8 +272,8 @@ void ModelBrowser::SetGroupedByType(bool group)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 ModelBrowser::ModelBrowser()
+	:mClsPath (std::make_unique<ClsTree>())
 {
-	mClsPath = std::make_unique<ClsTree>();
 
 	//sigClear();
 	

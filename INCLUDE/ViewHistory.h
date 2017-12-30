@@ -13,7 +13,7 @@ class ViewTableHistory final: public IViewTableHistory
 	wxDataViewCtrl* mTable;
 public:
 	ViewTableHistory(wxWindow* parent);
-	ViewTableHistory(std::shared_ptr<IViewWindow> parent)
+	ViewTableHistory(const std::shared_ptr<IViewWindow>& parent)
 		:ViewTableHistory(parent->GetWnd())
 	{}
 	virtual wxWindow* GetWnd()const override
@@ -63,7 +63,7 @@ class ViewToolbarHistory final : public IViewToolbarHistory
 
 public:
 	ViewToolbarHistory(wxWindow* parent);
-	ViewToolbarHistory(std::shared_ptr<IViewWindow> parent)
+	ViewToolbarHistory(const std::shared_ptr<IViewWindow>& parent)
 		:ViewToolbarHistory(parent->GetWnd())
 	{}
 	virtual wxWindow* GetWnd()const override
@@ -108,7 +108,7 @@ class ViewHistory final: public IViewHistory
 	std::shared_ptr<IViewFilterList>		mViewFilterList;
 	std::shared_ptr<IViewObjPropList>		mViewObjPropList;
 public:
-	ViewHistory(std::shared_ptr<IViewWindow> parent);
+	ViewHistory(const std::shared_ptr<IViewWindow>& parent);
 	virtual wxWindow* GetWnd()const override
 	{
 		return mPanel;

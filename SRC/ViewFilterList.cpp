@@ -493,7 +493,7 @@ ViewFilterList::ViewFilterList(wxWindow* parent)
 		
 }
 //-----------------------------------------------------------------------------
-ViewFilterList::ViewFilterList(std::shared_ptr<IViewWindow> parent)
+ViewFilterList::ViewFilterList(const std::shared_ptr<IViewWindow>& parent)
 	:ViewFilterList(parent->GetWnd())
 {
 }

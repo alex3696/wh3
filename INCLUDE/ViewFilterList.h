@@ -58,7 +58,7 @@ class ViewFilterList : public IViewFilterList
 public:
 	using NotyfyItem = ModelFilterList::NotyfyItem;
 
-	ViewFilterList(std::shared_ptr<IViewWindow> parent);
+	ViewFilterList(const std::shared_ptr<IViewWindow>& parent);
 	ViewFilterList(wxWindow* parent);
 	virtual wxWindow* GetWnd()const override;
 

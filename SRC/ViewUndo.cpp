@@ -59,7 +59,7 @@ ViewUndoWindow::ViewUndoWindow(wxWindow* parent)
 	
 }
 //-----------------------------------------------------------------------------
-ViewUndoWindow::ViewUndoWindow(std::shared_ptr<IViewWindow> parent)
+ViewUndoWindow::ViewUndoWindow(const std::shared_ptr<IViewWindow>& parent)
 	: ViewUndoWindow(parent->GetWnd())
 {
 

@@ -74,7 +74,7 @@ protected:
 
 	//TODO void ThrowNoResultSet()const;
 public:
-	typedef std::tr1::shared_ptr<whTable>	shared_ptr;
+	typedef std::shared_ptr<whTable>	shared_ptr;
 
 	whTable(whDB* db=NULL);
 	~whTable();

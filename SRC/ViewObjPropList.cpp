@@ -21,7 +21,7 @@ ViewObjPropList::ViewObjPropList(wxWindow* parent)
 	mPanel->Layout();
 }
 //-----------------------------------------------------------------------------
-ViewObjPropList::ViewObjPropList(std::shared_ptr<IViewWindow> parent)
+ViewObjPropList::ViewObjPropList(const std::shared_ptr<IViewWindow>& parent)
 	:ViewObjPropList(parent->GetWnd())
 {
 }

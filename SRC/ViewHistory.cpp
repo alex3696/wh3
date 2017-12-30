@@ -497,7 +497,7 @@ void ViewToolbarHistory::SetCfg(const rec::PageHistory& cfg) //override;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-ViewHistory::ViewHistory(std::shared_ptr<IViewWindow> parent)
+ViewHistory::ViewHistory(const std::shared_ptr<IViewWindow>& parent)
 {
 	auto panel = new wxAuiPanel(parent->GetWnd());
 

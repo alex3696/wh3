@@ -171,15 +171,10 @@ CtrlPageBrowser::CtrlPageBrowser(
 	const std::shared_ptr<IViewBrowserPage>& view
 	, const std::shared_ptr<ModelPageBrowser>& model)
 	: CtrlWindowBase(view, model)
+	, mCtrlTableBrowser(std::make_shared<CtrlTableBrowser>(view->GetViewTableBrowser(), model))
+	, mCtrlToolbarBrowser(std::make_shared<CtrlToolbarBrowser>(view->GetViewToolbarBrowser(), model))
+	, mCtrlPathBrowser(std::make_shared<CtrlPathBrowser>(view->GetViewPathBrowser(), model))
 {
-	mCtrlTableBrowser
-		= std::make_shared<CtrlTableBrowser>(view->GetViewTableBrowser(), model);
-
-	mCtrlToolbarBrowser
-		= std::make_shared<CtrlToolbarBrowser>(view->GetViewToolbarBrowser(), model);
-
-	mCtrlPathBrowser
-		= std::make_shared<CtrlPathBrowser>(view->GetViewPathBrowser(), model);
 
 	namespace ph = std::placeholders;
 

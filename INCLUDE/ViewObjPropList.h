@@ -13,7 +13,7 @@ class ViewObjPropList : public IViewObjPropList
 
 public:
 	ViewObjPropList(wxWindow* parent);
-	ViewObjPropList(std::shared_ptr<IViewWindow> parent);
+	ViewObjPropList(const std::shared_ptr<IViewWindow>& parent);
 	virtual wxWindow* GetWnd()const override;
 	
 	virtual void SetPropList(const PropValTable& rt, const IAct*) override;
