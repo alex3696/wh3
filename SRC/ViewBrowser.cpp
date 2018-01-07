@@ -7,6 +7,39 @@
 using namespace wh;
 
 //-----------------------------------------------------------------------------
+struct ActInfoColumn
+{
+	int64_t		mAid;
+	//wxString	mActTitle;
+	char		mAcol;
+	int			mIndex;
+	
+	ActInfoColumn() 
+		:mAid(0), mAcol(0), mIndex(0)
+	{}
+	ActInfoColumn(const int64_t& aid, const char acol,int idx)
+		:mAid(aid), mAcol(acol), mIndex(idx)
+	{}
+};
+//-----------------------------------------------------------------------------
+using Columns = boost::multi_index_container
+<
+	ActInfoColumn,
+	indexed_by
+	<
+		ordered_unique < 
+							composite_key
+							<
+								ActInfoColumn
+								, member<ActInfoColumn, int64_t, &ActInfoColumn::mAid>
+								, member<ActInfoColumn, char, &ActInfoColumn::mAcol>
+							> 
+						>
+		, ordered_unique<member<ActInfoColumn, int, &ActInfoColumn::mIndex>>
+	>
+>;
+
+//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 class wxDVTableBrowser
@@ -16,7 +49,11 @@ class wxDVTableBrowser
 	const	std::vector<const IIdent64*>* mClsList = nullptr;
 	bool	mGroupByType = true;
 	wxRegEx mStartNum = "(^[0-9]+)";
+
+	
 public:
+	Columns			mActColumns;
+
 	wxDVTableBrowser(){};
 	~wxDVTableBrowser(){};
 
@@ -132,7 +169,21 @@ public:
 			break;
 		case 3: variant = obj.GetCls()->GetTitle();	break;
 		case 4: variant = obj.GetPath()->AsString(); break;
-		default: break;
+
+		default:{
+			const auto& idxCol = mActColumns.get<1>();
+			const auto it = idxCol.find(col);
+			if (idxCol.end() != it)
+			{
+				wxLongLong ll(it->mAid);
+				std::wstring ss = ll.ToString() << L"." << (int)it->mAcol;
+				std::wstring act_val = obj.GetActInfo().get<std::wstring>(ss,L"");
+				variant = (0==act_val.compare(L"null"))? wxString("..") : wxString(act_val);
+			}
+
+		}break;
+			
+			
 		}
 	}
 
@@ -319,6 +370,7 @@ public:
 	void SetGroupByType(bool group)
 	{
 		mGroupByType = group;
+		Cleared();
 	}
 
 	virtual bool  IsListModel() const override
@@ -333,7 +385,7 @@ public:
 		Cleared();
 	}
 
-	const IIdent64* GetTopItem()const
+	const IIdent64* GetCurrentRoot()const
 	{
 		return mCurrentRoot;
 	}
@@ -463,7 +515,6 @@ void ViewTableBrowser::OnCmd_Refresh(wxCommandEvent& evt)
 {
 	TEST_FUNC_TIME;
 	sigRefresh();
-
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_Up(wxCommandEvent& evt)
@@ -499,7 +550,7 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 void ViewTableBrowser::OnCmd_Activate(wxDataViewEvent& evt)
 {
 	TEST_FUNC_TIME;
-	
+
 	auto item = evt.GetItem();
 
 	if (mTable->GetModel()->IsContainer(item))
@@ -536,6 +587,11 @@ void ViewTableBrowser::OnCmd_Activate(wxDataViewEvent& evt)
 void ViewTableBrowser::OnCmd_Expanding(wxDataViewEvent& evt)
 {
 	TEST_FUNC_TIME;
+
+	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+	if (!dvmodel || mTable->GetModel()->IsListModel())
+		return;
+
 	auto item = evt.GetItem();
 
 	const IIdent64* node = static_cast<const IIdent64*> (item.GetID());
@@ -554,6 +610,15 @@ void ViewTableBrowser::OnCmd_Expanding(wxDataViewEvent& evt)
 
 		//sigActivate(cls->GetId());
 		sigRefreshClsObjects(cls->GetId());
+		const std::shared_ptr<const ICls64::ObjTable> ot = cls->GetObjTable();
+		if (ot && ot->size())
+		{
+			std::vector<const IIdent64*> vec;
+			for (const auto& obj : *ot)
+				vec.emplace_back(obj.get());
+			RebuildClsColumns(vec);
+		}
+
 	}
 
 }
@@ -649,7 +714,7 @@ const IIdent64* ViewTableBrowser::GetTopChildCls()const
 	{
 		auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 		if (dvmodel)
-			return dvmodel->GetTopItem();
+			return dvmodel->GetCurrentRoot();
 	}
 		
 	if (!mClsList.empty())
@@ -694,7 +759,7 @@ void ViewTableBrowser::RestoreSelect()
 			//auto title = finded->GetTitle();
 			dvitem = wxDataViewItem((void*)finded);
 
-			if (mGroupByType && mObjSelected)
+			if (!mTable->GetModel()->IsListModel() && mObjSelected)
 			{
 				//sigActivate(finded);
 				mTable->Expand(dvitem);// finded cls
@@ -754,10 +819,85 @@ void ViewTableBrowser::AutosizeColumns()
 			mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
 	}
 }
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::ClearPropColumns()
+{
+	wxWindowUpdateLocker lock(mTable);
+
+	unsigned int pos = mTable->GetColumnCount() - 1;
+	while(pos > 3)
+	{
+		auto col = mTable->GetColumn(pos);
+		mTable->DeleteColumn(col);
+		pos = mTable->GetColumnCount() - 1;
+	}
+
+	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+	if (dvmodel)
+		dvmodel->mActColumns.clear();
+
+
+}
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec)
+{
+	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+	if (!dvmodel)
+		return;
+
+	for (const auto& ident : vec)
+	{
+		const auto obj = dynamic_cast<const IObj64*>(ident);
+		if (!obj)
+			continue;
+
+		auto begin = obj->GetActInfo().begin();
+		auto end = obj->GetActInfo().end();
+		while (begin != end)
+		{
+			auto act_col_begin = begin->second.begin();
+			auto act_col_end = begin->second.end();
+			while (act_col_begin != act_col_end)
+			{
+				wxString str_aid = begin->first.data();
+				int64_t aid;
+				if (str_aid.ToLongLong(&aid))
+				{
+					wxString str_ainfo = act_col_begin->first.data();
+					long ainfo;
+					if (str_ainfo.ToLong(&ainfo))
+					{
+						auto& idx0 = dvmodel->mActColumns.get<0>();
+						auto it = idx0.find(boost::make_tuple(aid, (char)ainfo));
+						if (idx0.end() == it)
+						{
+							ActInfoColumn acol(aid
+								, (char)ainfo
+								, mTable->GetColumnCount() + 1);
+
+							dvmodel->mActColumns.emplace(acol);
+
+							wxString str;
+							str << acol.mAid << ":" << (int)acol.mAcol;
+							this->mTable->AppendTextColumn(str, acol.mIndex);
+						}
+
+					}//if (str_ainfo.ToLong(&ainfo))
+				}//if (str_aid.ToLongLong(&aid))
+				++act_col_begin;
+			}
+			++begin;
+		}//while (begin != end)
+	}//for (const auto& obj : *ot)
+	
+}
 
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>& , const IIdent64* parent) //override;
+void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>& 
+											, const IIdent64* parent
+											, const wxString&
+											) //override;
 {
 	TEST_FUNC_TIME;
 
@@ -777,7 +917,7 @@ void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>& ,
 		mClsSelected = parent->GetId();
 	}
 		
-	
+	ClearPropColumns();
 	mClsList.clear();
 	mParentCid = 0;
 	//mParent = nullptr;
@@ -795,7 +935,9 @@ void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>& ,
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& vec, const IIdent64* root) //override;
+void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& vec
+											, const IIdent64* root
+											, const wxString& ss) //override;
 {
 	TEST_FUNC_TIME;
 	wxBusyCursor busyCursor;
@@ -810,7 +952,7 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& ve
 		}
 		else
 		{
-			col3->SetHidden(mGroupByType);
+			col3->SetHidden(!mTable->GetModel()->IsListModel());
 		}
 			
 		
@@ -824,15 +966,24 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& ve
 
 		}
 
-		for (const auto& cid : mExpandedCls)
+		if (!dvmodel->IsListModel())
 		{
-			auto ident = FindChildCls(cid);
-			if (ident)
+			for (const auto& cid : mExpandedCls)
 			{
-				wxDataViewItem item((void*)ident);
-				mTable->Expand(item);
-			}
-		}//for (const auto& cid : mExpandedCls)
+				auto ident = FindChildCls(cid);
+				if (ident)
+				{
+					wxDataViewItem item((void*)ident);
+					mTable->Expand(item);
+				}
+			}//for (const auto& cid : mExpandedCls)
+		}
+		else
+		{
+			RebuildClsColumns(vec);
+		}
+
+
 
 	}
 	
@@ -854,10 +1005,7 @@ void ViewTableBrowser::SetGroupByType(bool enable)// override;
 
 	{
 		wxWindowUpdateLocker lock(mTable);
-
-		mGroupByType = enable;
 		dvmodel->SetGroupByType(enable);
-		dvmodel->Cleared();
 	}
 		
 	AutosizeColumns();
@@ -872,7 +1020,7 @@ void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IId
 
 
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (!dvmodel || !mGroupByType)
+	if (!dvmodel || mTable->GetModel()->IsListModel())
 		return;
 
 	wxBusyCursor busyCursor;
@@ -889,6 +1037,7 @@ void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IId
 		//	wxDataViewItem obj((void*)item);
 		//	dvmodel->ItemAdded(cls, obj);
 		//}
+		RebuildClsColumns(obj_list);
 		break;
 	case Operation::BeforeUpdate:	break;
 	case Operation::AfterUpdate:	
@@ -906,14 +1055,22 @@ void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IId
 			wxDataViewItem item_cls((void*)obj->GetCls().get());
 			wxDataViewItem item_obj((void*)item);
 			dvmodel->ItemDeleted(item_cls, item_obj);
+
+
+
+
+			
+
 		}
 		break;
 	case Operation::AfterDelete:	break;
 	default:	break;
 	}
 
+	
 	AutosizeColumns();
 
+	
 }
 
 
@@ -1215,4 +1372,11 @@ void ViewBrowserPage::SetPathString(const ICls64& path_string) //override;
 {
 
 }
-
+//-----------------------------------------------------------------------------
+//virtual 
+void ViewBrowserPage::SetAfterRefreshCls(const std::vector<const IIdent64*>& vec
+	, const IIdent64* root
+	, const wxString& ss) //override;
+{
+	mCtrlFind->SetValue(ss);
+}

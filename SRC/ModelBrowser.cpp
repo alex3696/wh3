@@ -2,7 +2,55 @@
 #include "ModelBrowser.h"
 
 using namespace wh;
+//-----------------------------------------------------------------------------
+void ActCache::LoadDetailById(const std::set<int64_t>& aid_vector)
+{
+	if (aid_vector.empty())
+		return;
+	//Clear();
 
+	wxString str_aid;
+	for (const int64_t& aid : aid_vector)
+	{
+		wxLongLong ll(aid);
+		str_aid += wxString::Format(" OR id=%s", ll.ToString() );
+	}
+	str_aid.Remove(0, 3);
+
+	wxString query = wxString::Format(
+		"SELECT id, title, note, color"
+		" FROM act WHERE %s"
+		, str_aid);
+
+	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+	if (table)
+	{
+		unsigned int rowQty = table->GetRowCount();
+		size_t row = 0;
+		const fnModify fn = [this, &table, &row](const std::shared_ptr<RowType>& iact)
+		{
+			auto act = std::dynamic_pointer_cast<ActRec64>(iact);
+			//act->SetId(table->GetAsString(0, row));
+			act->SetTitle(table->GetAsString(1, row));
+			act->SetColour(table->GetAsString(2, row));
+		};
+
+
+		for (; row < rowQty; row++)
+		{
+			int64_t id;
+			if (!table->GetAsString(0, row).ToLongLong(&id))
+				throw;
+
+			UpdateOrInsert(id, fn);
+		}//for
+	}//if (table)
+
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void ViewCidAidPeriod::LoadByParentCid(const wxString& parent_id)
 {
 	Clear();
@@ -10,36 +58,36 @@ void ViewCidAidPeriod::LoadByParentCid(const wxString& parent_id)
 	wxString query = wxString::Format(
 		"WITH "
 		"curr AS(SELECT %s::BIGINT AS pid) "
-		", current_fav(cid, aid, visible) AS( "
-		"	SELECT  acls.id AS cid, fav_act.aid, fav_act.visible "
-		"	FROM acls "
-		"	LEFT JOIN  fav_act ON fav_act.cid = acls.id AND fav_act.usr = CURRENT_USER "
-		"	WHERE acls.pid = (SELECT pid FROM curr) "
-		") "
 		", parent_tree(id) AS( "
 		"	SELECT id FROM get_path_cls_info((SELECT pid FROM curr), 1) "
 		") "
 		", parent_fav(aid, visible) AS( "
 		"	SELECT aid, visible FROM parent_tree cls "
-		"	INNER JOIN fav_act ON fav_act.usr = CURRENT_USER AND fav_act.cid = cls.id "
+		"	INNER JOIN fav_act ON fav_act.cid = cls.id AND fav_act.usr = CURRENT_USER "
+		") "
+		", current_list(cid) AS( "
+		"	SELECT id FROM acls WHERE acls.pid = (SELECT pid FROM curr) "
 		") "
 		", all_fav(cid, aid, visible) AS( "
-		"	SELECT  DISTINCT(current_fav.cid), parent_fav.aid, parent_fav.visible "
-		"	FROM current_fav "
-		"	LEFT JOIN fav_act ON fav_act.cid = current_fav.cid AND fav_act.usr = CURRENT_USER "
-		"	INNER JOIN parent_fav ON TRUE "
+		"	SELECT  current_list.cid, parent_fav.aid, parent_fav.visible "
+		"	FROM current_list "
+		"	RIGHT JOIN parent_fav ON TRUE "
 		"	UNION ALL "
-		"	SELECT current_fav.* "
-		"	FROM current_fav "
-		"	WHERE current_fav.aid IS NOT NULL "
+		"	SELECT  current_list.cid, fav_act.aid, fav_act.visible "
+		"	FROM current_list "
+		"	INNER JOIN  fav_act ON fav_act.cid = current_list.cid AND fav_act.usr = CURRENT_USER "
 		") "
-		"SELECT all_fav.*, period "
-		"FROM all_fav "
-		"LEFT JOIN  LATERAL(SELECT ct.id, ref_cls_act.period "
-		"	FROM(SELECT * FROM parent_tree UNION SELECT all_fav.cid) ct "
+		", all_fav_bitor(cid, aid, visible) AS( "
+		"	SELECT cid, aid, bit_or(visible) "
+		"	FROM all_fav "
+		"	GROUP BY cid, aid "
+		") "
+		"SELECT * FROM all_fav_bitor "
+		"LEFT JOIN  LATERAL(SELECT ref_cls_act.period "
+		"	FROM(SELECT * FROM parent_tree UNION SELECT all_fav_bitor.cid) ct "
 		"	INNER JOIN ref_cls_act ON ref_cls_act.period IS NOT NULL "
 		"	AND ref_cls_act.cls_id = ct.id "
-		"	AND ref_cls_act.act_id = all_fav.aid "
+		"	AND ref_cls_act.act_id = all_fav_bitor.aid "
 		")ref_ca ON TRUE "
 		,parent_id);
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
@@ -70,7 +118,7 @@ void ViewCidAidPeriod::LoadByParentCid(const wxString& parent_id)
 
 
 
-const std::shared_ptr<ClsRec64>  ClsCache::mNullObj = std::shared_ptr<ClsRec64>(nullptr);
+const std::shared_ptr<ClsRec64>  ClsCache::NullValue = std::shared_ptr<ClsRec64>(nullptr);
 const std::shared_ptr<ObjRec64>  ObjCache::mNullObj = std::shared_ptr<ObjRec64>(nullptr);
 
 //virtual 
@@ -341,7 +389,7 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 		if (mGroupByType)
 			sigObjOperation(Operation::BeforeDelete, todelete);
 		else
-			sigBeforeRefreshCls(todelete, cls.get());
+			sigBeforeRefreshCls(todelete, cls.get(), mSearchString);
 	}
 	std::shared_ptr<ClsRec64> parent_node = std::dynamic_pointer_cast<ClsRec64>(cls);
 
@@ -351,14 +399,14 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 		if (mGroupByType)
 			sigObjOperation(Operation::BeforeInsert, toinsert); 
 		else
-			sigBeforeRefreshCls(toinsert, cls.get());
+			sigBeforeRefreshCls(toinsert, cls.get(), mSearchString);
 		
 		mCache.mObjTable.GetObjByClsId(cls->GetId(), toinsert);
 		
 		if (mGroupByType)
 			sigObjOperation(Operation::AfterDelete, toinsert);
 		else
-			sigAfterRefreshCls(toinsert, cls.get()); 
+			sigAfterRefreshCls(toinsert, cls.get(), mSearchString);
 		
 		return;
 	}
@@ -374,7 +422,30 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 		"SELECT o.id, o.title, o.qty, o.pid "
 		"       ,get_path_objnum(o.pid,1)  AS path"
 		"       ,prop"
-		"       ,cls_id"
+		"		,(WITH  cls_tree(id) AS( "
+		"			SELECT id FROM get_path_cls_info(o.cls_id, 1) "
+		"			) "
+		"			SELECT jsonb_object_agg(all_fav_bitor.aid  "
+		"				, CASE WHEN((visible & 1)>0) THEN jsonb_build_object('1', previos) ELSE '{}'::jsonb END "
+		"				|| CASE WHEN((visible & 2)>0) THEN jsonb_build_object('2', period) ELSE '{}' END "
+		"				|| CASE WHEN((visible & 4)>0) THEN jsonb_build_object('4', previos + period) ELSE '{}' END "
+		"				|| CASE WHEN((visible & 8)>0) THEN jsonb_build_object('8', ROUND((EXTRACT(EPOCH FROM(previos + period - now())) / 86400)::NUMERIC, 2))  ELSE '{}' END "
+		"				) as last_act "
+		"		FROM(SELECT aid, bit_or(visible) AS visible FROM cls_tree cls "
+		"			INNER JOIN fav_act ON fav_act.cid = cls.id AND fav_act.usr = CURRENT_USER "
+		"			GROUP BY aid)all_fav_bitor "
+		"		LEFT JOIN  LATERAL(SELECT ref_cls_act.period "
+		"			FROM cls_tree ct "
+		"			INNER JOIN ref_cls_act ON ref_cls_act.period IS NOT NULL "
+		"			AND ref_cls_act.cls_id = ct.id "
+		"			AND ref_cls_act.act_id = all_fav_bitor.aid "
+		"		)ref_ca ON TRUE "
+		"		LEFT JOIN(SELECT MAX(timemark) AS previos, act_id AS aid, obj_id AS oid "
+		"			FROM log_main GROUP BY obj_id, act_id) "
+		"		last_log             ON  last_log.oid = o.id "
+		"		AND last_log.aid = all_fav_bitor.aid "
+		"		AND last_log.aid<>0 "
+		"	) AS ainfo "
 		" FROM obj o "
 		" WHERE o.id>0 AND o.cls_id = %s "
 		" ORDER BY (substring(o.title, '^[0-9]+')::INT, o.title ) ASC "
@@ -388,7 +459,8 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 		
 
 		size_t i = 0;
-		const ObjCache::fnModify fn = [&parent_node, &table, &i](const std::shared_ptr<ObjRec64>& obj)
+		const ObjCache::fnModify fn = [&parent_node, &table, &i,&cls]
+		(const std::shared_ptr<ObjRec64>& obj)
 		{
 			//obj->mClsId = parent_node->GetId();
 			//obj->mCls = parent_node;
@@ -401,10 +473,26 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 			obj->mPath = std::make_shared<ObjPath64>();
 			table->GetAsString(4, i, obj->mPath->mStrPath );
 			
-			obj->SetClsId(table->GetAsString(6, i));
+			obj->SetClsId(cls->GetId());
+
+			wxString str;
+			table->GetAsString(5, i, str);
+			if (!str.empty())
+			{
+				std::wstringstream ss(str.ToStdWstring());
+				obj->mProp.clear();
+				boost::property_tree::read_json(ss, obj->mProp);
+			}
+			str.clear();
+			table->GetAsString(6, i, str);
+			if (!str.empty())
+			{
+				std::wstringstream ss(str.ToStdWstring());
+				obj->mActInfo.clear();
+				boost::property_tree::read_json(ss, obj->mActInfo);
+			}
 		};
 
-		
 		std::vector<const IIdent64*> toinsert;
 		for (; i < rowQty; i++)
 		{
@@ -421,10 +509,10 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 		}
 		if (!toinsert.empty())
 		{
-			if(mGroupByType)
+			if (mGroupByType)
 				sigObjOperation(Operation::AfterInsert, toinsert);
 			else
-				sigAfterRefreshCls(toinsert, cls.get());
+				sigAfterRefreshCls(toinsert, cls.get(), mSearchString);
 		}
 			
 
@@ -468,7 +556,7 @@ void ModelBrowser::DoRefreshFindInClsTree()
 	auto parent_id = parent_node->GetIdAsString();
 
 	std::vector<const IIdent64*> toinsert;
-	sigBeforeRefreshCls(toinsert, parent_node.get());
+	sigBeforeRefreshCls(toinsert, parent_node.get(), mSearchString);
 	mCache.Clear();
 
 
@@ -493,6 +581,31 @@ void ModelBrowser::DoRefreshFindInClsTree()
 		"      ,sum(qty) OVER(PARTITION BY cls._id ORDER BY cls._id DESC)  AS allqty "
 		"      ,obj.id, obj.pid, obj.title, obj.qty "
 		"      ,get_path_objnum(obj.pid,1)  AS path"
+		"      ,obj.prop "
+		"		,(WITH  cls_tree(id) AS( "
+		"			SELECT id FROM get_path_cls_info(obj.cls_id, 1) "
+		"			) "
+		"			SELECT jsonb_object_agg(all_fav_bitor.aid  "
+		"				, CASE WHEN((visible & 1)>0) THEN jsonb_build_object('1', previos) ELSE '{}'::jsonb END "
+		"				|| CASE WHEN((visible & 2)>0) THEN jsonb_build_object('2', period) ELSE '{}' END "
+		"				|| CASE WHEN((visible & 4)>0) THEN jsonb_build_object('4', previos + period) ELSE '{}' END "
+		"				|| CASE WHEN((visible & 8)>0) THEN jsonb_build_object('8', ROUND((EXTRACT(EPOCH FROM(previos + period - now())) / 86400)::NUMERIC, 2))  ELSE '{}' END "
+		"				) as last_act "
+		"		FROM(SELECT aid, bit_or(visible) AS visible FROM cls_tree cls "
+		"			INNER JOIN fav_act ON fav_act.cid = cls.id AND fav_act.usr = CURRENT_USER "
+		"			GROUP BY aid)all_fav_bitor "
+		"		LEFT JOIN  LATERAL(SELECT ref_cls_act.period "
+		"			FROM cls_tree ct "
+		"			INNER JOIN ref_cls_act ON ref_cls_act.period IS NOT NULL "
+		"			AND ref_cls_act.cls_id = ct.id "
+		"			AND ref_cls_act.act_id = all_fav_bitor.aid "
+		"		)ref_ca ON TRUE "
+		"		LEFT JOIN(SELECT MAX(timemark) AS previos, act_id AS aid, obj_id AS oid "
+		"			FROM log_main GROUP BY obj_id, act_id) "
+		"		last_log             ON  last_log.oid = obj.id "
+		"		AND last_log.aid = all_fav_bitor.aid "
+		"		AND last_log.aid<>0 "
+		"	) AS ainfo "
 		" FROM get_childs_cls(%s) cls "
 		" INNER JOIN obj obj ON obj.cls_id = cls._id "
 		" WHERE %s"
@@ -528,6 +641,23 @@ void ModelBrowser::DoRefreshFindInClsTree()
 
 			obj->mPath = std::make_shared<ObjPath64>();
 			table->GetAsString(10, row, obj->mPath->mStrPath);
+
+			wxString str;
+			table->GetAsString(11, row, str);
+			if (!str.empty())
+			{
+				std::wstringstream ss(str.ToStdWstring());
+				obj->mProp.clear();
+				boost::property_tree::read_json(ss, obj->mProp);
+			}
+			str.clear();
+			table->GetAsString(12, row, str);
+			if (!str.empty())
+			{
+				std::wstringstream ss(str.ToStdWstring());
+				obj->mActInfo.clear();
+				boost::property_tree::read_json(ss, obj->mActInfo);
+			}
 			
 		};
 
@@ -564,8 +694,8 @@ void ModelBrowser::DoRefreshFindInClsTree()
 	whDataMgr::GetDB().Commit();
 
 	if (!toinsert.empty())
-		sigAfterRefreshCls(toinsert, nullptr);
-
+		sigAfterRefreshCls(toinsert, nullptr, mSearchString);
+		//sigAfterRefreshCls(toinsert, parent_node.get(), mSearchString);
 
 
 }
@@ -611,7 +741,7 @@ void ModelBrowser::DoRefresh()
 
 	
 	std::vector<const IIdent64*> toinsert;
-	sigBeforeRefreshCls(toinsert, parent_node.get());
+	sigBeforeRefreshCls(toinsert, parent_node.get(), mSearchString);
 	
 	
 	//parent_node->ClearChilds();
@@ -659,13 +789,11 @@ void ModelBrowser::DoRefresh()
 
 	}//if (table)
 
-	mCache.mViewCidAidPeriod.LoadByParentCid(parent_id);
-	auto vec = mCache.mViewCidAidPeriod.GetBoolActs();
 
 	whDataMgr::GetDB().Commit();
 	
 	if (!toinsert.empty())
-		sigAfterRefreshCls(toinsert, parent_node.get());
+		sigAfterRefreshCls(toinsert, parent_node.get(), mSearchString);
 }
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoActivate(int64_t id)

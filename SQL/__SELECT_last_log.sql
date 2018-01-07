@@ -83,91 +83,47 @@ SELECT
   ,oo.id AS oid
   ,acls.title AS ctitle
   ,oo.title AS otitle
-
+/** fav_prop
+,( SELECT jsonb_object_agg( favorite_prop.prop_id ,prop->>favorite_prop.prop_id::TEXT  ) 
+   FROM favorite_prop
+   INNER JOIN (SELECT id FROM get_path_cls_info(oo.cls_id, 1))tree ON tree.id= cls_id  AND user_label=CURRENT_USER
+ )::JSONB AS fav_prop
+*/
 
 ,( WITH  cls_tree(id) AS (
     SELECT id FROM get_path_cls_info(oo.cls_id, 1)
    )
-    SELECT jsonb_object_agg( fav_act.aid  --ref_cls_act.act_id
---                 ,  jsonb_build_object('visible', visible) 
---			    ||  jsonb_build_object('previos',previos ) 
---			    || jsonb_build_object('period', period ) 
---			    || jsonb_build_object('next',previos+period) 
---			    || jsonb_build_object('left',ROUND( (EXTRACT(EPOCH FROM (previos+period-now()) )/86400)::NUMERIC,2 ) ) 
-
-                , CASE WHEN((visible & 1)>0) THEN jsonb_build_object('previos',previos ) ELSE '{}'::jsonb END 
-                || CASE WHEN((visible & 2)>0) THEN jsonb_build_object('period',period ) ELSE '{}' END 
-                || CASE WHEN((visible & 4)>0) THEN jsonb_build_object('next',previos+period ) ELSE '{}' END 
-                || CASE WHEN((visible & 8)>0) THEN jsonb_build_object('left',ROUND( (EXTRACT(EPOCH FROM (previos+period-now()) )/86400)::NUMERIC,2 ) )  ELSE '{}' END 
-                ) as last_act
-
-FROM fav_act 
-
-    LEFT JOIN LATERAL(SELECT MAX(timemark) AS previos, act_id AS aid , obj_id AS oid 
-                FROM log_main
-            --WHERE log_main.obj_id= oo.id
-            --AND log_main.act_id=fav_act.aid 
-            --AND log_main.act_id<>0 
-                GROUP BY obj_id,act_id) 
-    last_log 
-    --ON TRUE
-    ON  last_log.oid = oo.id
-    AND last_log.aid = fav_act.aid
-    AND last_log.aid<>0 
-
-    LEFT JOIN ref_cls_act  ON  ref_cls_act.act_id = fav_act.aid
-                           AND ref_cls_act.period IS NOT NULL 
-                           AND fav_act.visible>1
-                           AND ref_cls_act.cls_id IN (SELECT id FROM cls_tree ) --(SELECT id FROM get_path_cls_info(oo.cls_id, 1) )
-  
-WHERE fav_act.usr = CURRENT_USER
-      --fav_act.cid = oo.cls_id
-      AND fav_act.cid IN  (SELECT id FROM cls_tree ) --(SELECT id FROM get_path_cls_info(oo.cls_id, 1) ) 
-/*
-                FROM get_path_cls_info(oo.cls_id, 1) tree
-
-                INNER JOIN fav_act ON fav_act.cid = tree.id
-                                  AND fav_act.usr = CURRENT_USER
-                                      
-                LEFT JOIN (SELECT MAX(timemark) AS previos , act_id AS aid , obj_id AS oid 
-                            FROM log_main 
-                            GROUP BY obj_id,act_id)
-                last_log ON last_log.oid= oo.id
-                        AND last_log.aid=fav_act.aid 
-                        AND last_log.aid<>0 
-
-                LEFT JOIN ref_cls_act  ON  ref_cls_act.act_id = fav_act.aid
-                                       AND ref_cls_act.period IS NOT NULL 
-                                       AND  ref_cls_act.cls_id IN (SELECT id FROM get_path_cls_info(oo.cls_id, 1))
-                                       AND fav_act.visible>1
-*/
-/*
-                LEFT JOIN LATERAL (SELECT MAX(timemark) AS previos --, act_id AS aid , obj_id AS oid 
-                                    FROM log_main 
-                                    WHERE
-                                    log_main.obj_id= oo.id
-                                    AND log_main.act_id=fav_act.aid 
-                                    AND log_main.act_id<>0 
-                                    GROUP BY obj_id,act_id)
-                last_log ON TRUE 
-*/
-/*
-                          LEFT JOIN LATERAL (SELECT DISTINCT ON (obj_id,act_id) obj_id AS oid, act_id AS aid,timemark AS previos  
-                                                     FROM log_main 
-                                                     WHERE
-					             log_main.obj_id= oo.id
-						     AND log_main.act_id=ref_cls_act.act_id 
-					             AND log_main.act_id<>0 
-					             ORDER BY obj_id, act_id, timemark DESC LIMIT 1)
-					     last_log ON TRUE 
-
-
-*/
-  
-  
-
-   
-   ) AS pp
+  SELECT(jsonb_build_object('fav_prop',
+                              (SELECT jsonb_object_agg( favorite_prop.prop_id ,prop->>favorite_prop.prop_id::TEXT  ) 
+                                    FROM favorite_prop
+                                    INNER JOIN cls_tree tree ON tree.id= cls_id  AND user_label=CURRENT_USER
+                              )
+                            )
+        )
+        ||
+         jsonb_build_object('fav_act',
+                              jsonb_object_agg( all_fav_bitor.aid  --ref_cls_act.act_id
+                                               , CASE WHEN((visible & 1)>0) THEN jsonb_build_object('previos',previos ) ELSE '{}'::jsonb END 
+                                              || CASE WHEN((visible & 2)>0) THEN jsonb_build_object('period',period ) ELSE '{}' END 
+                                              || CASE WHEN((visible & 4)>0) THEN jsonb_build_object('next',previos+period ) ELSE '{}' END 
+                                              || CASE WHEN((visible & 8)>0) THEN jsonb_build_object('left',ROUND( (EXTRACT(EPOCH FROM (previos+period-now()) )/86400)::NUMERIC,2 ) )  ELSE '{}' END 
+                                              )
+                           ) as last_act
+        FROM (SELECT aid, bit_or(visible) AS visible FROM cls_tree cls
+                       INNER JOIN fav_act ON fav_act.cid=cls.id AND fav_act.usr = CURRENT_USER 
+                       GROUP BY aid)all_fav_bitor
+        LEFT JOIN  LATERAL (SELECT ref_cls_act.period
+                            FROM cls_tree ct
+                            INNER JOIN ref_cls_act ON ref_cls_act.period IS NOT NULL
+                                              AND ref_cls_act.cls_id = ct.id
+                                              AND ref_cls_act.act_id = all_fav_bitor.aid
+                     )ref_ca ON TRUE
+        LEFT JOIN(SELECT MAX(timemark) AS previos, act_id AS aid, obj_id AS oid
+                    FROM log_main GROUP BY obj_id, act_id) 	
+                    last_log             ON  last_log.oid = oo.id 
+                                         AND last_log.aid = all_fav_bitor.aid 
+                                         AND last_log.aid<>0 
+       ) AS ainfo  
    --,get_path_objnum(oo.pid,1)  AS path
    --,oo.prop
 
@@ -389,8 +345,8 @@ SELECT cid,fav_all.aid, fav_all.visible,period
 --, pp.period
  FROM
 --(SELECT DISTINCT ON (cls_id) cls_id AS cid FROM obj WHERE pid=108)  cls_list -- по месту
---(SELECT cls_id AS cid FROM obj WHERE pid=108 GROUP BY cls_id)  cls_list -- по месту
-(SELECT id AS cid FROM acls WHERE pid=112) cls_list -- по типу
+(SELECT cls_id AS cid FROM obj WHERE pid=108 GROUP BY cls_id)  cls_list -- по месту
+--(SELECT id AS cid FROM acls WHERE pid=112) cls_list -- по типу
 LEFT JOIN LATERAL
 (SELECT aid,visible FROM fav_act WHERE 
  fav_act.cid IN (SELECT id FROM get_path_cls_info(cls_list.cid, 1))
@@ -403,7 +359,7 @@ INNER JOIN ref_cls_act ON cls_tree.id=ref_cls_act.cls_id AND ref_cls_act.period 
  AND ref_cls_act.act_id = aid
 )pp ON TRUE
 
-ORDER BY cid
+ORDER BY cid,aid
 
 
 
@@ -499,7 +455,7 @@ ORDER BY w2.cid,w2.aid
 -- вывод всех видимых столбцов для ветки классов ОБЩАЯ по pid 
 -- оптимизированный c вложенными запросами + периодами
 WITH 
-  curr AS (SELECT 1::BIGINT AS pid)  
+  curr AS (SELECT 112::BIGINT AS pid)  
   ,parent_tree(id) AS (
     SELECT id FROM get_path_cls_info( (SELECT pid FROM curr), 1) 
   )
@@ -519,15 +475,20 @@ WITH
         FROM current_list
         INNER JOIN  fav_act ON fav_act.cid=current_list.cid AND fav_act.usr = CURRENT_USER 
   )
-  --SELECT DISTINCT ON(cid,aid) cid,aid,visible ,period FROM all_fav
-  SELECT * FROM all_fav
+  ,all_fav_bitor(cid,aid,visible) AS (
+    SELECT cid,aid,bit_or(visible) 
+      FROM all_fav 
+      GROUP BY cid,aid
+  )
+  SELECT * FROM all_fav_bitor
   LEFT JOIN  LATERAL (SELECT ref_cls_act.period
                         --FROM get_path_cls_info( all_fav.cid, 1) ct
-                        FROM (SELECT * FROM parent_tree UNION SELECT all_fav.cid ) ct
+                        FROM (SELECT * FROM parent_tree UNION SELECT all_fav_bitor.cid ) ct
                         INNER JOIN ref_cls_act ON ref_cls_act.period IS NOT NULL
                                               AND ref_cls_act.cls_id = ct.id
-                                             AND ref_cls_act.act_id = all_fav.aid
+                                              AND ref_cls_act.act_id = all_fav_bitor.aid
                      )ref_ca ON TRUE
+                     
 
 ORDER BY cid,aid
 
@@ -612,3 +573,11 @@ ORDER BY cid,aid
 
 
 
+SELECT id, pid, title, cls_id
+--, prop
+--,prop->>'101' --AS "101"
+--,prop->>'121' --AS "121"
+,json_build_object(101,prop->>'101',121,prop->>'121')
+  FROM public.obj
+  WHERE prop IS NOT NULL
+  OFFSET 1000 LIMIT 10

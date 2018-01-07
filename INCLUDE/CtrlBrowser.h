@@ -98,6 +98,8 @@ class CtrlPageBrowser final : public CtrlWindowBase<IViewBrowserPage, ModelPageB
 	std::shared_ptr<CtrlTableBrowser>	mCtrlTableBrowser;
 
 	sig::scoped_connection connViewCmd_Find;
+	
+	sig::scoped_connection connModel_AfterRefreshCls;
 public:
 	CtrlPageBrowser(const std::shared_ptr<IViewBrowserPage>& view
 		, const  std::shared_ptr<ModelPageBrowser>& model);

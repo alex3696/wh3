@@ -8,6 +8,8 @@
 
 
 namespace wh{
+
+
 //-----------------------------------------------------------------------------
 class ViewTableBrowser : public IViewTableBrowser
 {
@@ -24,7 +26,9 @@ class ViewTableBrowser : public IViewTableBrowser
 	std::set<int64_t> mExpandedCls;
 
 	wxDataViewCtrl* mTable;
-	bool mGroupByType = true;
+	
+
+
 	bool mColAutosize = true;
 	
 	const IIdent64* FindChildCls(const int64_t& id)const;
@@ -33,6 +37,9 @@ class ViewTableBrowser : public IViewTableBrowser
 	void StoreSelect();
 	void RestoreSelect();
 	void AutosizeColumns();
+
+	void ClearPropColumns();
+	void RebuildClsColumns(const std::vector<const IIdent64*>&);
 protected:
 	void OnCmd_Refresh(wxCommandEvent& evt);
 	void OnCmd_Up(wxCommandEvent& evt);
@@ -51,8 +58,8 @@ public:
 		return mTable;
 	}
 
-	virtual void SetBeforeRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*) override;
-	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*) override;
+	virtual void SetBeforeRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&) override;
+	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&) override;
 
 
 	virtual void SetGroupByType(bool enable) override;
@@ -144,6 +151,7 @@ public:
 
 	virtual void SetPathMode(const int mode) override;
 	virtual void SetPathString(const ICls64& node) override;
+	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&) override;
 };
 
 

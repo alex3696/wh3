@@ -10,6 +10,7 @@ namespace wh{
 class DbCache;
 class ClsCache;
 class ObjCache;
+class ActCache;
 
 //-----------------------------------------------------------------------------
 class ClsRec64 : 
@@ -87,6 +88,9 @@ public:
 	wxString	mTitle;
 	wxString	mQty;
 	std::shared_ptr<ObjPath64> mPath;
+
+	boost::property_tree::wptree mProp;
+	boost::property_tree::wptree mActInfo;
 private:
 	int64_t		mId;
 	int64_t		mParentId;
@@ -109,8 +113,11 @@ public:
 	virtual const wxString& GetTitle()const override { return mTitle; };
 
 	virtual wxString					GetQty()const override { return mQty; };
+	virtual const boost::property_tree::wptree& GetProp()const override { return mProp;	}
+	virtual const boost::property_tree::wptree& GetActInfo()const override { return mActInfo; }
 
 	bool SetClsId(const wxString& str) { return str.ToLongLong(&mClsId); }
+	bool SetClsId(const int64_t& cid) { return mClsId=cid; }
 
 	virtual SpClsConst GetCls()const override;// { return mCls.lock(); }
 	virtual int64_t GetClsId()const override  { return mClsId; }
@@ -133,7 +140,32 @@ public:
 	}
 
 };
+//-----------------------------------------------------------------------------
+class ActRec64 : public IAct64
+{
+private:
+	int64_t		mId;
+	wxString	mTitle;
+	wxString	mColour;
+	
+	ActCache*	mTable = nullptr;
+public:
+	//ObjRec64() {}
+	ActRec64(const int64_t id
+		, ActCache* table)
+		:mId(id), mTable(table)
+	{
+	}
 
+	virtual const int64_t&  GetId()const override { return mId; }
+	virtual const wxString& GetTitle()const override { return mTitle; };
+	virtual const wxString& GetColour()const override { return mColour; };
+
+	bool SetId(const wxString& str) { return str.ToLongLong(&mId); }
+	void SetId(const int64_t& val) { mId = val; }
+	void SetTitle(const wxString& str) { mTitle = str; };
+	void SetColour(const wxString& str) { mColour = str; };
+};
 
 
 //-----------------------------------------------------------------------------
@@ -169,7 +201,7 @@ public:
 	{}
 	DbCache* GetCache()const { return mDbCache; }
 
-	static const std::shared_ptr<ClsRec64> mNullObj;
+	static const std::shared_ptr<ClsRec64> NullValue;
 
 	using fnModify = std::function<void(const std::shared_ptr<ClsRec64>& obj)>;
 
@@ -196,7 +228,7 @@ public:
 				idxId.modify(it, fn);
 			return *it;
 		}
-		return mNullObj;
+		return NullValue;
 	}
 
 	void Clear() { mCache.clear(); }
@@ -389,50 +421,94 @@ public:
 
 	void LoadByParentCid(const wxString& parent_id);
 
-	std::vector<std::pair<int64_t, long>> GetBoolActs()const
+	void GetVisibeActInfo(std::map<int64_t, long>& aid_map)const
 	{
-		std::vector<std::pair<int64_t, long>> vec;
-
-
+		aid_map.clear();
 		const auto& idxAid = mData.get<2>();
 
 		auto first = idxAid.cbegin();
 		auto last = idxAid.cend();
 		auto aid = 0;
-		auto visible = 0;
 
 		while (first != last)
 		{
-			auto tmp = *first;
-			
-			aid = first->mAid;
-			visible = first->mVisible;
-			first++;
-			if (first != last)
-			{
-				if (first->mAid == aid)
-					visible &= first->mVisible;
-				else
-				{
-					vec.emplace_back(std::make_pair(aid, visible));
-					continue;
-				}
-					
-
-			}
-			else
-				vec.emplace_back(std::make_pair(aid, visible));
-
-
+			aid_map.emplace(first->mAid, first->mVisible);
+			++first;
 		}
-		return vec;
-		
 	}
 
 	
-
-
 };//class ViewCidAidPeriod
+
+//-----------------------------------------------------------------------------
+// ACT TABLE
+//-----------------------------------------------------------------------------
+class ActCache
+{
+public:
+	typedef IAct64 RowType;
+
+	using Storage = boost::multi_index_container
+	<
+		std::shared_ptr<RowType>,
+		indexed_by
+		<
+			 ordered_unique <	extr_id_IIdent64 >
+			//, random_access<> //SQL order	
+			//, ordered_unique< extr_void_ptr_IIdent64 >
+		>
+	>;
+private:
+	Storage		mData;
+	DbCache*	mDbCache;
+public:
+	ActCache(DbCache* dbCache)
+		:mDbCache(dbCache)
+	{}
+	DbCache* GetCache()const { return mDbCache; }
+
+	void Clear()
+	{
+		mData.clear();
+	}
+
+	size_t size()const
+	{
+		return mData.size();
+	}
+
+	using fnModify = std::function<void(const std::shared_ptr<RowType>& obj)>;
+
+	std::shared_ptr<const RowType> GetById(const int64_t& id)
+	{
+		auto& idxId = mData.get<0>();
+		auto it = idxId.find(id);
+		if (idxId.end() == it)
+			throw;
+		return *it;
+	}
+
+	const std::shared_ptr<RowType>& UpdateOrInsert(const int64_t& id, const fnModify& fn)
+	{
+		auto& idxId = mData.get<0>();
+		auto it = idxId.find(id);
+		if (idxId.end() == it)
+		{
+			auto act = std::make_shared<ActRec64>(id, this);
+			fn(act);
+			auto ins_it = idxId.emplace(act);
+			return *ins_it.first;
+		}
+		
+		idxId.modify(it, fn);
+		return *it;
+	}
+
+
+	void LoadDetailById(const std::set<int64_t>& aid_vector);
+};
+
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -444,6 +520,7 @@ public:
 		:mClsTable(this)
 		, mObjTable(this)
 		, mViewCidAidPeriod(this)
+		, mActTable(this)
 	{
 	
 	}
@@ -453,11 +530,13 @@ public:
 		mObjTable.Clear();
 		mClsTable.Clear();
 		mViewCidAidPeriod.Clear();
+		mActTable.Clear();
 	}
 
 	ClsCache mClsTable;
 	ObjCache mObjTable;
 	ViewCidAidPeriod mViewCidAidPeriod;
+	ActCache mActTable;
 };
 
 
@@ -548,7 +627,11 @@ public:
 	sig::signal<void(const ICls64&)> sigAfterPathChange;
 	
 	using SigRefreshCls = 
-		sig::signal<void(const std::vector<const IIdent64*>&, const IIdent64*)>;
+		sig::signal	<void	(	const std::vector<const IIdent64*>&, 
+								const IIdent64*,
+								const wxString&
+							)
+					>;
 	
 	SigRefreshCls	sigBeforeRefreshCls;
 	SigRefreshCls	sigAfterRefreshCls;

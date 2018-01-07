@@ -27,9 +27,9 @@ CtrlTableBrowser::CtrlTableBrowser(
 		(std::bind(&IViewTableBrowser::SetGroupByType, mView.get(), ph::_1));
 
 	connModel_BeforeRefreshCls = mModel->GetModelBrowser()->sigBeforeRefreshCls
-		.connect(std::bind(&IViewTableBrowser::SetBeforeRefreshCls, mView.get(), ph::_1, ph::_2));
+		.connect(std::bind(&IViewTableBrowser::SetBeforeRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3));
 	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
-		.connect(std::bind(&IViewTableBrowser::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2));
+		.connect(std::bind(&IViewTableBrowser::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3));
 
 
 
@@ -180,6 +180,9 @@ CtrlPageBrowser::CtrlPageBrowser(
 
 	connViewCmd_Find = mView->sigFind
 		.connect(std::bind(&CtrlPageBrowser::Find, this, ph::_1));
+
+	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
+		.connect(std::bind(&IViewBrowserPage::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3));
 
 }
 //---------------------------------------------------------------------------

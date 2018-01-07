@@ -234,6 +234,9 @@ public:
 
 	virtual wxString					GetQty()const = 0;
 	virtual SpClsConst					GetCls()const = 0;
+	virtual const boost::property_tree::wptree& GetProp()const = 0;
+	virtual const boost::property_tree::wptree& GetActInfo()const = 0;
+
 	virtual int64_t GetClsId()const = 0;
 
 	virtual std::shared_ptr<const IObjPath64> GetPath()const = 0;
@@ -243,7 +246,7 @@ public:
 	virtual std::shared_ptr<const IObj64> GetParent()const = 0;
 	virtual int64_t GetParentId()const = 0;
 };
-
+//-----------------------------------------------------------------------------
 class IProp64 : public IIdent64
 {
 public:
@@ -251,15 +254,22 @@ public:
 
 	FieldType GetType()const	{ return ToFieldType(GetKind()); }
 };
-
+//-----------------------------------------------------------------------------
 class IPropVal64
 {
 public:
 	virtual const IProp64&	GetProp()const = 0;
 	virtual const wxString& GetValue()const = 0;
 };
-
-
+//-----------------------------------------------------------------------------
+class IAct64 : public IIdent64
+{
+public:
+	virtual const wxString& GetColour()const = 0;
+	
+};
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 } //namespace wh{
 #endif // __*_H
