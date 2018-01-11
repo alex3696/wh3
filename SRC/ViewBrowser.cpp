@@ -62,17 +62,20 @@ public:
 	// implementation of base class virtuals to define model
 	virtual unsigned int	GetColumnCount() const override
 	{
-		return 3;
+		return 4;
 	}
 	virtual wxString		GetColumnType(unsigned int col) const override 
 	{
 		switch (col)
 		{
-		case 0: return "long";
-		case 1: return "wxDataViewIconText";
+		case 0: return "wxDataViewIconText";
 		default: break;
 		}
 		return "string";
+	}
+	virtual bool HasContainerColumns(const wxDataViewItem& WXUNUSED(item)) const override
+	{
+		return true;
 	}
 
 	virtual bool IsContainer(const wxDataViewItem &item)const override
@@ -93,7 +96,7 @@ public:
 
 	void GetErrorValue(wxVariant &variant, unsigned int col) const
 	{
-		if(1==col)
+		if(0==col)
 			variant << wxDataViewIconText("*ERROR*", wxNullIcon);
 		else
 			variant = "*ERROR*";
@@ -107,15 +110,14 @@ public:
 
 		if (mCurrentRoot == &cls)
 		{
-			if(1==col)
+			if(0==col)
 				variant << wxDataViewIconText("..", mgr->m_ico_back24); 
 			return;
 		}
 		
 		switch (col)
 		{
-		case 0:variant = cls.GetIdAsString();	break;
-		case 1: {
+		case 0: {
 			const wxIcon*  ico(&wxNullIcon);
 			switch (cls.GetKind())
 			{
@@ -125,32 +127,20 @@ public:
 			case ClsKind::QtyByFloat:
 			default: ico = &mgr->m_ico_type_qty24;	break;
 			}//switch
-			if (ClsKind::Abstract == cls.GetKind() || !mGroupByType)
-			{
-				variant << wxDataViewIconText(cls.GetTitle(), *ico);
-			}
-			else
-			{
-				wxString qty_str = wxString::Format("%s - %s (%s)"
-					, cls.GetTitle(), cls.GetObjectsQty(), cls.GetMeasure());
-				variant << wxDataViewIconText(qty_str, *ico);
-			}
+			variant << wxDataViewIconText(cls.GetTitle(), *ico);
 		}break;
-			
+		//case 1: variant = wxString("qwe2");  break;
 		case 2: {
 			switch (cls.GetKind())
 			{
-			case ClsKind::Single:
-			case ClsKind::QtyByOne:
-			case ClsKind::QtyByFloat:
-				variant = wxString::Format("%s (%s)"
-					, cls.GetObjectsQty(), cls.GetMeasure());
+			case ClsKind::Single: case ClsKind::QtyByOne: case ClsKind::QtyByFloat:
+				variant = wxString::Format("%s (%s)", cls.GetObjectsQty(), cls.GetMeasure());
 				break;
 			case ClsKind::Abstract:
 			default: break;
 			}
 		}break;
-			
+		//case 3: variant = wxString("qwe3");  break;
 		default: break;
 		}//switch (col)
 	}
@@ -163,14 +153,13 @@ public:
 
 		switch (col)
 		{
-		case 0: variant = obj.GetIdAsString();	break;
-		case 1: variant << wxDataViewIconText(obj.GetTitle(), *ico); break;
+		case 0: variant << wxDataViewIconText(obj.GetTitle(), *ico); break;
+		case 1: variant = obj.GetCls()->GetTitle();	break;
 		case 2: variant = wxString::Format("%s (%s)"
 			, obj.GetQty()
 			, obj.GetCls()->GetMeasure());
 			break;
-		case 3: variant = obj.GetCls()->GetTitle();	break;
-		case 4: variant = obj.GetPath()->AsString(); break;
+		case 3: variant = obj.GetPath()->AsString(); break;
 
 		default:{
 			const auto& idxCol = mActColumns.get<1>();
@@ -183,7 +172,7 @@ public:
 				if (!act_val.empty())
 				{
 					if (0 == act_val.compare(L"null"))
-						variant = wxString("--");
+						variant = wxString("не выполнялась");
 					else
 					{
 						switch (it->mAcol)
@@ -262,15 +251,22 @@ public:
 	virtual bool GetAttr(const wxDataViewItem &item, unsigned int col,
 		wxDataViewItemAttr &attr) const override
 	{
-		if (item.IsOk())
+		
+		if (!item.IsOk())
+			return false;
+		
+		switch (col)
 		{
+		case 0:/*case 1:*/case 2:/*case 3:*/{
 			const auto node = static_cast<const IIdent64*> (item.GetID());
 			const auto obj = dynamic_cast<const IObj64*>(node);
-			if (obj && (1 == col || (2 == col && ClsKind::Single != obj->GetCls()->GetKind())))
+			if (obj && (0 == col || (2 == col && ClsKind::Single != obj->GetCls()->GetKind())))
 			{
 				attr.SetBold(true);
 				return true;
 			}
+		}break;
+		default:{
 			const auto& idxCol = mActColumns.get<1>();
 			const auto it = idxCol.find(col);
 			if (idxCol.end() != it)
@@ -278,7 +274,7 @@ public:
 				if (it->mAcol & 8)
 				{
 					wxVariant val;
-					GetValue(val,item, col);
+					GetValue(val, item, col);
 					if (val.IsType("string"))
 					{
 						auto left_str = val.GetString();
@@ -304,52 +300,22 @@ public:
 								}//if (left< 10)
 							}
 							else
-								if (left_str == "--")
+							{
+								//if (left_str == "--")
 								{
-									attr.SetBold(true); 
-									attr.SetBackgroundColour(wxColour(255, 200, 200));
+									attr.SetBold(true);
+									//attr.SetBackgroundColour(wxColour(255, 200, 200));
 									attr.SetColour(*wxRED);
 									return true;
 								}
+							}
 						}//if (!left_str.empty())
 					}//if (val.IsType("string"))
-					else
-					{
-						//wxVariant val;
-						//GetValue(val, item, col);
-						attr.SetBackgroundColour(*wxLIGHT_GREY);
-						return true;
-					}
-					/*
-					wxDateTime previos_dt;
-					if (obj->GetActPrevios(it->mAid, previos_dt))
-					{
-						wxString period;
-						obj->GetActPeriod(it->mAid, period);
-						double dperiod;
-						if (period.ToDouble(&dperiod))
-						{
-							wxTimeSpan ts_period(0, 0, floor(dperiod), (dperiod-floor(dperiod))*1000 );
-							
-							wxTimeSpan left = previos_dt + ts_period - wxDateTime::Now();
-							if (left.GetDays() < 10)
-							{
-								attr.SetBold(true);
-								if (left.IsNegative())
-									//attr.SetBackgroundColour(wxColour(255, 150, 150));
-									attr.SetColour(*wxRED);
-								else
-									//attr.SetBackgroundColour(*wxYELLOW);
-									attr.SetColour(wxColour(255, 128, 0));
-							}
-						}//if (period.ToDouble(&dperiod))
-					}//if (obj->GetActPrevios(it->mAid, dt))
-					*/
 				}//if (it->mAcol & 8)
-
 			}//if (idxCol.end() != it)
+		}break;
+		}//switch (col)
 
-		}
 		return false;
 	}
 	virtual bool SetValue(const wxVariant &variant, const wxDataViewItem &item,
@@ -572,7 +538,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	ResetColumns();
 
 
-	//table->SetExpanderColumn(col1);
+	
 
 	table->GetTargetWindow()->SetToolTip("ToolTip");
 	table->GetTargetWindow()->Bind(wxEVT_MOTION, &ViewTableBrowser::OnCmd_MouseMove, this);
@@ -924,10 +890,12 @@ void ViewTableBrowser::AutosizeColumns()
 
 	if (mColAutosize)
 	{
-		for (size_t i = 0; i < mTable->GetColumnCount(); i++)
+		//for (size_t i = 0; i < mTable->GetColumnCount(); i++)
+		for (size_t i = 0; i < 4; i++)
 		{
-			auto col = mTable->GetColumn(i);
-			if(col && "datetime"!=col->GetRenderer()->GetVariantType())
+			auto col_pos = mTable->GetModelColumnIndex(i);
+			auto col = mTable->GetColumn(col_pos);
+			if(col)
 				col->SetWidth(mTable->GetBestColumnWidth(i));
 		}
 			
@@ -951,32 +919,30 @@ void ViewTableBrowser::ResetColumns()
 	dvmodel->mActColumns.clear();
 
 	auto renderer1 = new wxDataViewIconTextRenderer();
-	auto attr = renderer1->GetAttr();
-	attr.SetColour(*wxBLACK);
-	renderer1->SetAttr(attr);
+	//auto attr = renderer1->GetAttr();
+	//attr.SetColour(*wxBLACK);
+	//renderer1->SetAttr(attr);
 
-	auto renderer2 = new wxDataViewTextRenderer();
-
-	//table->AppendTextColumn("#", 0,wxDATAVIEW_CELL_INERT,-1, wxALIGN_LEFT);
+	//table->AppendTextColumn("#", 0,wxDATAVIEW_CELL_INERT,-1, wxALIGN_LEFT
+	//	, wxDATAVIEW_COL_RESIZABLE /*| wxDATAVIEW_COL_HIDDEN*/);
 
 	auto col1 = new wxDataViewColumn("Имя"
-		, renderer1, 1, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+		, renderer1, 0, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 	table->AppendColumn(col1);
 	//col1->SetSortOrder(true);
 
-	auto col3 = table->AppendTextColumn("Тип", 3, wxDATAVIEW_CELL_INERT, -1
+	auto col3 = table->AppendTextColumn("Тип",1, wxDATAVIEW_CELL_INERT, -1
 		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-	col3->GetRenderer()->EnableEllipsize(wxELLIPSIZE_START);
+	//col3->GetRenderer()->EnableEllipsize(wxELLIPSIZE_START);
 
-	auto col2 = new wxDataViewColumn("Количество"
-		, renderer2, 2, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-	table->AppendColumn(col2);
+	auto col2 = table->AppendTextColumn("Количество", 2, wxDATAVIEW_CELL_INERT, 150
+		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 
-	auto col4 = table->AppendTextColumn("Местоположение", 4, wxDATAVIEW_CELL_INERT, -1
+	auto col4 = table->AppendTextColumn("Местоположение", 3, wxDATAVIEW_CELL_INERT, -1
 		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 	col4->GetRenderer()->EnableEllipsize(wxELLIPSIZE_START);
 	
-
+	table->SetExpanderColumn(col1);
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec)
@@ -1009,7 +975,7 @@ void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec
 						{
 							ActInfoColumn acol(aid
 								, (char)(visible & v)
-								, mTable->GetColumnCount() + 1);
+								, mTable->GetColumnCount());
 
 							dvmodel->mActColumns.emplace(acol);
 
@@ -1024,9 +990,12 @@ void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec
 
 							wxString title;
 							title << fa_it->GetTitle() << ":" << str;
-							this->mTable->AppendTextColumn(title, acol.mIndex
+							auto col = this->mTable->AppendTextColumn(title, acol.mIndex
 								, wxDATAVIEW_CELL_INERT, -1, wxALIGN_NOT
-								, /*wxCOL_REORDERABLE | */ wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+								, wxDATAVIEW_COL_REORDERABLE |  wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+							auto col_pos = mTable->GetModelColumnIndex(acol.mIndex);
+							col->SetWidth(mTable->GetBestColumnWidth(col_pos));
+
 						}
 					}
 				}
@@ -1244,22 +1213,13 @@ void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IId
 			wxDataViewItem item_cls((void*)obj->GetCls().get());
 			wxDataViewItem item_obj((void*)item);
 			dvmodel->ItemDeleted(item_cls, item_obj);
-
-
-
-
-			
-
 		}
 		break;
 	case Operation::AfterDelete:	break;
 	default:	break;
 	}
 
-	
-	AutosizeColumns();
-
-	
+	//AutosizeColumns();
 }
 
 
