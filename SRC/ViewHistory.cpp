@@ -67,7 +67,7 @@ public:
 				//wxString format_date = wxLocale::GetOSInfo(wxLOCALE_SHORT_DATE_FMT, wxLOCALE_CAT_DATE);
 				
 				wxDateTime dt;
-				dt.ParseDateTime(mTD->GetDate(row));
+				dt.ParseISOCombined(mTD->GetDate(row),' ');
 
 				switch (mStringPerRow)
 				{

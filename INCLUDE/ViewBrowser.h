@@ -38,7 +38,7 @@ class ViewTableBrowser : public IViewTableBrowser
 	void RestoreSelect();
 	void AutosizeColumns();
 
-	void ClearPropColumns();
+	void ResetColumns();
 	void RebuildClsColumns(const std::vector<const IIdent64*>&);
 protected:
 	void OnCmd_Refresh(wxCommandEvent& evt);

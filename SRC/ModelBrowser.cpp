@@ -47,6 +47,50 @@ void ActCache::LoadDetailById(const std::set<int64_t>& aid_vector)
 	}//if (table)
 
 }
+//-----------------------------------------------------------------------------
+void ActCache::LoadDetailById()
+{
+	if (this->mData.empty())
+		return;
+	//Clear();
+
+	wxString str_aid;
+	for (const auto& it : mData)
+	{
+		str_aid += wxString::Format(" OR id=%s", it->GetIdAsString());
+	}
+	str_aid.Remove(0, 3);
+
+	wxString query = wxString::Format(
+		"SELECT id, title, note, color"
+		" FROM act WHERE %s"
+		, str_aid);
+
+	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+	if (table)
+	{
+		unsigned int rowQty = table->GetRowCount();
+		size_t row = 0;
+		const fnModify fn = [this, &table, &row](const std::shared_ptr<RowType>& iact)
+		{
+			auto act = std::dynamic_pointer_cast<ActRec64>(iact);
+			//act->SetId(table->GetAsString(0, row));
+			act->SetTitle(table->GetAsString(1, row));
+			act->SetColour(table->GetAsString(2, row));
+		};
+
+
+		for (; row < rowQty; row++)
+		{
+			int64_t id;
+			if (!table->GetAsString(0, row).ToLongLong(&id))
+				throw;
+
+			UpdateOrInsert(id, fn);
+		}//for
+	}//if (table)
+
+}
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -140,8 +184,109 @@ const std::shared_ptr<const ICls64::ObjTable> ClsRec64::GetObjTable()const //ove
 	return mTable->GetCache()->mObjTable.GetObjByClsId(GetId());
 }
 
+
+
+
+//-----------------------------------------------------------------------------
+//virtual 
+bool ClsRec64::GetFavActs(std::vector<const IAct64*>& acts)const //override;
+{
+	for (const auto& act : mFavActLog)
+		acts.emplace_back(act.mAct.get());
+	return true;
+}
+//-----------------------------------------------------------------------------
+//virtual 
+bool ClsRec64::GetActVisible(int64_t aid, char& visible)const //override;
+{
+	const auto& idxAid = mFavActLog.get<0>();
+	const auto it = idxAid.find(aid);
+	if (it != idxAid.cend())
+	{
+		visible = it->mVisible;
+		return true;
+	}
+	return false;
+}
+//-----------------------------------------------------------------------------
+//virtual 
+bool ClsRec64::GetActPeriod(int64_t aid, wxString& period)const //override;
+{
+	const auto& idxAid = mFavActLog.get<0>();
+	const auto it = idxAid.find(aid);
+	if (it != idxAid.cend())
+	{
+		period = it->mPeriod;
+		return true;
+	}
+	return false;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void ObjRec64::ParseActInfo(const wxString& act_info_json)
+{
+	if (act_info_json.empty())
+		return;
+
+	std::wstringstream ss(act_info_json.ToStdWstring());
+	mActInfo.clear();
+	boost::property_tree::read_json(ss, mActInfo);
+
+	auto cache = this->mTable->GetCache();
+
+
+	auto begin = GetActInfo().begin();
+	auto end = GetActInfo().end();
+	while (begin != end)
+	{
+		auto act_col_begin = begin->second.begin();
+		auto act_col_end = begin->second.end();
+		int visible = 0;
+		wxString period;
+		std::wstring str_aid = begin->first.data();
+		int64_t aid = std::stoll(str_aid);
+
+		while (act_col_begin != act_col_end)
+		{
+			std::wstring str_ainfo = act_col_begin->first.data();
+			int cur_visible = stoi(str_ainfo);
+			visible |= cur_visible;
+			if (cur_visible == 2)
+			{
+				period = act_col_begin->second.get_value<std::wstring>();
+
+			}//if (str_aid.ToLongLong(&aid))
+			++act_col_begin;
+		}
+		const ClsCache::fnModify upd_cls = [&visible, &period, &cache, &aid](const std::shared_ptr<ClsRec64>& cls)
+		{
+			const ActCache::fnModify fn_act_upsert = [](const std::shared_ptr<IAct64>& act)
+			{};
+
+			ClsRec64::FavAct fa;
+			fa.mAct = cache->mActTable.UpdateOrInsert(aid, fn_act_upsert);
+			fa.mPeriod = period;
+			fa.mVisible = visible;
+			cls->mFavActLog.emplace(fa);
+		};
+		cache->mClsTable.GetById(GetCls()->GetId(), upd_cls);
+
+		++begin;
+	}//while (begin != end)
+}
 //-----------------------------------------------------------------------------
 //virtual 
 SpClsConst ObjRec64::GetCls()const //override 
@@ -154,6 +299,48 @@ std::shared_ptr<const IObj64> ObjRec64::GetParent()const //override
 {
 	return mTable->GetObjById(mId,mParentId);
 }
+//-----------------------------------------------------------------------------
+//virtual 
+bool ObjRec64::GetActPrevios(int64_t aid, wxDateTime& dt)const //override
+{
+	wxLongLong ll(aid);
+	std::wstring ss = ll.ToString() << L"." << (int)1;
+	std::wstring act_val = GetActInfo().get<std::wstring>(ss, L"");
+
+	if (dt.ParseISOCombined(act_val) && dt.IsValid())
+		return true;
+
+	return false;
+}
+//-----------------------------------------------------------------------------
+//virtual 
+bool ObjRec64::GetActNext(int64_t aid, wxDateTime& next)const //override
+{
+	wxLongLong ll(aid);
+	std::wstring ss = ll.ToString() << L"." << (int)4;
+	std::wstring act_val = GetActInfo().get<std::wstring>(ss, L"");
+
+	if (next.ParseISOCombined(act_val) && next.IsValid())
+		return true;
+
+	return false;
+}
+//-----------------------------------------------------------------------------
+//virtual 
+bool ObjRec64::GetActLeft(int64_t aid, double& left)const //override
+{
+	wxLongLong ll(aid);
+	std::wstring ss = ll.ToString() << L"." << (int)8;
+	std::wstring act_val = GetActInfo().get<std::wstring>(ss, L"");
+
+	if(wxString(act_val).ToCDouble(&left))
+		return true;
+
+	return false;
+}
+
+
+
 
 
 
@@ -427,9 +614,11 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 		"			) "
 		"			SELECT jsonb_object_agg(all_fav_bitor.aid  "
 		"				, CASE WHEN((visible & 1)>0) THEN jsonb_build_object('1', previos) ELSE '{}'::jsonb END "
-		"				|| CASE WHEN((visible & 2)>0) THEN jsonb_build_object('2', period) ELSE '{}' END "
-		"				|| CASE WHEN((visible & 4)>0) THEN jsonb_build_object('4', previos + period) ELSE '{}' END "
-		"				|| CASE WHEN((visible & 8)>0) THEN jsonb_build_object('8', ROUND((EXTRACT(EPOCH FROM(previos + period - now())) / 86400)::NUMERIC, 2))  ELSE '{}' END "
+		"				|| CASE WHEN(period IS NOT NULL) THEN "
+		"					CASE WHEN((visible & 2)>0) THEN jsonb_build_object('2', EXTRACT(EPOCH FROM period)) ELSE '{}' END "
+		"					|| CASE WHEN((visible & 4)>0) THEN jsonb_build_object('4', previos + period) ELSE '{}' END "
+		"					|| CASE WHEN((visible & 8)>0) THEN jsonb_build_object('8', ROUND((EXTRACT(EPOCH FROM(previos + period - now())) / 86400)::NUMERIC, 2))  ELSE '{}' END "
+		"				ELSE '{}' END "
 		"				) as last_act "
 		"		FROM(SELECT aid, bit_or(visible) AS visible FROM cls_tree cls "
 		"			INNER JOIN fav_act ON fav_act.cid = cls.id AND fav_act.usr = CURRENT_USER "
@@ -457,9 +646,10 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 	{
 		unsigned int rowQty = table->GetRowCount();
 		
+		auto& cache = this->mCache;
 
 		size_t i = 0;
-		const ObjCache::fnModify fn = [&parent_node, &table, &i,&cls]
+		const ObjCache::fnModify fn = [&parent_node, &table, &i,&cls,&cache]
 		(const std::shared_ptr<ObjRec64>& obj)
 		{
 			//obj->mClsId = parent_node->GetId();
@@ -485,12 +675,10 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 			}
 			str.clear();
 			table->GetAsString(6, i, str);
-			if (!str.empty())
-			{
-				std::wstringstream ss(str.ToStdWstring());
-				obj->mActInfo.clear();
-				boost::property_tree::read_json(ss, obj->mActInfo);
-			}
+
+			obj->ParseActInfo(str);
+
+
 		};
 
 		std::vector<const IIdent64*> toinsert;
@@ -507,6 +695,8 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 			//parent_node->AddObj(obj);
 			toinsert.emplace_back(obj.get());
 		}
+		cache.mActTable.LoadDetailById();
+
 		if (!toinsert.empty())
 		{
 			if (mGroupByType)
@@ -587,9 +777,11 @@ void ModelBrowser::DoRefreshFindInClsTree()
 		"			) "
 		"			SELECT jsonb_object_agg(all_fav_bitor.aid  "
 		"				, CASE WHEN((visible & 1)>0) THEN jsonb_build_object('1', previos) ELSE '{}'::jsonb END "
-		"				|| CASE WHEN((visible & 2)>0) THEN jsonb_build_object('2', period) ELSE '{}' END "
-		"				|| CASE WHEN((visible & 4)>0) THEN jsonb_build_object('4', previos + period) ELSE '{}' END "
-		"				|| CASE WHEN((visible & 8)>0) THEN jsonb_build_object('8', ROUND((EXTRACT(EPOCH FROM(previos + period - now())) / 86400)::NUMERIC, 2))  ELSE '{}' END "
+		"				|| CASE WHEN(period IS NOT NULL) THEN "
+		"					CASE WHEN((visible & 2)>0) THEN jsonb_build_object('2', EXTRACT(EPOCH FROM period)) ELSE '{}' END "
+		"					|| CASE WHEN((visible & 4)>0) THEN jsonb_build_object('4', previos + period) ELSE '{}' END "
+		"					|| CASE WHEN((visible & 8)>0) THEN jsonb_build_object('8', ROUND((EXTRACT(EPOCH FROM(previos + period - now())) / 86400)::NUMERIC, 2))  ELSE '{}' END "
+		"				ELSE '{}' END "
 		"				) as last_act "
 		"		FROM(SELECT aid, bit_or(visible) AS visible FROM cls_tree cls "
 		"			INNER JOIN fav_act ON fav_act.cid = cls.id AND fav_act.usr = CURRENT_USER "
@@ -631,7 +823,9 @@ void ModelBrowser::DoRefreshFindInClsTree()
 			table->GetAsString(5, row, cls->mObjQty);
 			cls->mObjLoaded = true;
 		};
-		const ObjCache::fnModify load_obj = [&table, &row](const std::shared_ptr<ObjRec64>& obj)
+
+		auto& cache = this->mCache;
+		const ObjCache::fnModify load_obj = [&table, &row, &cache](const std::shared_ptr<ObjRec64>& obj)
 		{
 			//obj->SetParentId(table->GetAsString(7, row));
 			obj->SetClsId(table->GetAsString(0, row));
@@ -652,12 +846,7 @@ void ModelBrowser::DoRefreshFindInClsTree()
 			}
 			str.clear();
 			table->GetAsString(12, row, str);
-			if (!str.empty())
-			{
-				std::wstringstream ss(str.ToStdWstring());
-				obj->mActInfo.clear();
-				boost::property_tree::read_json(ss, obj->mActInfo);
-			}
+			obj->ParseActInfo(str);
 			
 		};
 
@@ -689,6 +878,7 @@ void ModelBrowser::DoRefreshFindInClsTree()
 				toinsert.emplace_back(obj.get());
 							
 		}
+		cache.mActTable.LoadDetailById();
 
 	}//if (table)
 	whDataMgr::GetDB().Commit();

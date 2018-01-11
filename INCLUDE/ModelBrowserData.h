@@ -180,6 +180,8 @@ class IPropVal64;
 using SpPropVal = std::shared_ptr<IPropVal64>;
 using SpPropValConst = std::shared_ptr<const IPropVal64>;
 
+class IAct64;
+
 template <class SP>
 class TSpTable : public
 	boost::multi_index_container
@@ -224,6 +226,11 @@ public:
 	virtual const std::shared_ptr<const ObjTable> GetObjTable()const = 0;
 
 	virtual std::shared_ptr<const ICls64> GetParent()const = 0;
+
+	virtual bool GetFavActs(std::vector<const IAct64*>&)const = 0;
+	virtual bool GetActVisible(int64_t aid, char& visible)const = 0;
+	virtual bool GetActPeriod(int64_t aid, wxString& period)const = 0;
+	
 };
 
 //-----------------------------------------------------------------------------
@@ -245,6 +252,14 @@ public:
 
 	virtual std::shared_ptr<const IObj64> GetParent()const = 0;
 	virtual int64_t GetParentId()const = 0;
+
+	virtual bool GetActPrevios(int64_t aid, wxDateTime& dt)const = 0;
+	virtual bool GetActNext(int64_t aid, wxDateTime& dt)const = 0;
+	virtual bool GetActLeft(int64_t aid, double& dt)const = 0;
+	bool GetActPeriod(int64_t aid, wxString& period)const
+	{
+		return GetCls()->GetActPeriod(aid, period);
+	}
 };
 //-----------------------------------------------------------------------------
 class IProp64 : public IIdent64

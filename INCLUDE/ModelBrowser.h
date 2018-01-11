@@ -28,6 +28,47 @@ private:
 public:
 	ClsKind		mKind = ClsKind::Abstract;
 	bool		mObjLoaded = false;
+
+
+	//boost::tuple<wxDateTime, char> FavAct;
+	struct FavAct
+	{
+		std::shared_ptr<const IAct64>	mAct;
+		wxString						mPeriod;
+		char							mVisible;
+	};
+
+	struct extr_aid_FavAct
+	{
+		typedef const int64_t result_type;
+		inline result_type operator()(const FavAct& r)const
+		{
+			return r.mAct->GetId();
+		}
+	};
+	struct extr_ActPtr_FavAct
+	{
+		typedef const IAct64* result_type;
+		inline result_type operator()(const FavAct& r)const
+		{
+			return r.mAct.get();
+		}
+	};
+
+
+
+	using FavActLog = boost::multi_index_container
+	<
+		FavAct,
+		indexed_by
+		<
+			  ordered_unique< extr_aid_FavAct >
+			//, ordered_unique< extr_ActPtr_FavAct >
+		>
+	>;
+
+	FavActLog mFavActLog;
+
 protected:
 	//struct MakeSharedEnabler;
 public:
@@ -65,6 +106,9 @@ public:
 
 	virtual std::shared_ptr<const ICls64> GetParent()const override;// {return mParent.lock();}
 
+	virtual bool GetFavActs(std::vector<const IAct64*>&)const override;
+	virtual bool GetActVisible(int64_t aid, char& visible)const override;
+	virtual bool GetActPeriod(int64_t aid, wxString& period)const override;
 
 };
 //-----------------------------------------------------------------------------
@@ -96,6 +140,8 @@ private:
 	int64_t		mParentId;
 	int64_t		mClsId;
 	ObjCache*	mTable = nullptr;
+
+	
 public:
 	//ObjRec64() {}
 	ObjRec64(const int64_t id
@@ -105,6 +151,7 @@ public:
 		:mId(id), mParentId(parentId), mClsId(clsId), mTable(table)
 	{
 	}
+	void ParseActInfo(const wxString& act_info_json);
 
 	bool SetId(const wxString& str) { return str.ToLongLong(&mId); }
 	void SetId(const int64_t& val) { mId = val; }
@@ -138,6 +185,10 @@ public:
 	{
 		return str.ToLongLong(&mParentId);
 	}
+
+	virtual bool GetActPrevios(int64_t aid, wxDateTime& dt)const override;
+	virtual bool GetActNext(int64_t aid, wxDateTime& dt)const override;
+	virtual bool GetActLeft(int64_t aid, double& dt)const override;
 
 };
 //-----------------------------------------------------------------------------
@@ -506,6 +557,7 @@ public:
 
 
 	void LoadDetailById(const std::set<int64_t>& aid_vector);
+	void LoadDetailById();
 };
 
 

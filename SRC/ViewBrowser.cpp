@@ -48,9 +48,11 @@ class wxDVTableBrowser
 	const IIdent64* mCurrentRoot = nullptr;
 	const	std::vector<const IIdent64*>* mClsList = nullptr;
 	bool	mGroupByType = true;
-	wxRegEx mStartNum = "(^[0-9]+)";
+	//wxRegEx mStartNum = "(^[0-9]+)";
+	wxRegEx mStartNum = "^(-?)(0|([1-9][0-9]*))((\\.|\\,)[0-9]+)?$";
 
-	
+	const wxString format_d = wxLocale::GetInfo(wxLOCALE_SHORT_DATE_FMT, wxLOCALE_CAT_DATE);
+	const wxString format_t = wxLocale::GetInfo(wxLOCALE_TIME_FMT);
 public:
 	Columns			mActColumns;
 
@@ -105,7 +107,7 @@ public:
 
 		if (mCurrentRoot == &cls)
 		{
-			if(col)
+			if(1==col)
 				variant << wxDataViewIconText("..", mgr->m_ico_back24); 
 			return;
 		}
@@ -177,8 +179,53 @@ public:
 			{
 				wxLongLong ll(it->mAid);
 				std::wstring ss = ll.ToString() << L"." << (int)it->mAcol;
-				std::wstring act_val = obj.GetActInfo().get<std::wstring>(ss,L"");
-				variant = (0==act_val.compare(L"null"))? wxString("..") : wxString(act_val);
+				std::wstring act_val = obj.GetActInfo().get<std::wstring>(ss, L"");
+				if (!act_val.empty())
+				{
+					if (0 == act_val.compare(L"null"))
+						variant = wxString("--");
+					else
+					{
+						switch (it->mAcol)
+						{
+						case 1: case 4: {
+							wxDateTime dt;
+							dt.ParseISOCombined(act_val);
+							if (dt.IsValid())
+							{
+								wxString str = wxString::Format("%s %s", dt.Format(format_d), dt.Format(format_t));
+								variant = wxString::Format("%s %s", dt.Format(format_d), dt.Format(format_t));
+							}
+						} break;
+						case 2: {
+							if (2 == it->mAcol)
+							{
+								wxString period;
+								if (obj.GetActPeriod(it->mAid, period))
+								{
+									double dperiod;
+									if (period.ToCDouble(&dperiod))
+									{
+										variant = wxString::Format("%g", dperiod / 86400);
+										//variant = dperiod / 86400;
+									}
+								}
+							}
+							else
+								variant = wxString(act_val);
+						} break;
+						case 8: {
+							wxString str(act_val);
+							variant = str;
+						}break;
+						default:
+							variant = "*error*";
+							break;
+						}//switch (it->mAcol)
+
+							
+					}
+				}//if (!act_val.empty())
 			}
 
 		}break;
@@ -224,6 +271,84 @@ public:
 				attr.SetBold(true);
 				return true;
 			}
+			const auto& idxCol = mActColumns.get<1>();
+			const auto it = idxCol.find(col);
+			if (idxCol.end() != it)
+			{
+				if (it->mAcol & 8)
+				{
+					wxVariant val;
+					GetValue(val,item, col);
+					if (val.IsType("string"))
+					{
+						auto left_str = val.GetString();
+						double left;
+						if (!left_str.empty())
+						{
+							if (left_str.ToCDouble(&left))
+							{
+								if (left< 10)
+								{
+									attr.SetBold(true);
+									if (left<0)
+									{
+										//attr.SetBackgroundColour(wxColour(255, 200, 200));
+										attr.SetColour(*wxRED);
+									}
+									else
+									{
+										//attr.SetBackgroundColour(*wxYELLOW);
+										attr.SetColour(wxColour(230, 130, 30));
+									}//else if (left<0)
+									return true;
+								}//if (left< 10)
+							}
+							else
+								if (left_str == "--")
+								{
+									attr.SetBold(true); 
+									attr.SetBackgroundColour(wxColour(255, 200, 200));
+									attr.SetColour(*wxRED);
+									return true;
+								}
+						}//if (!left_str.empty())
+					}//if (val.IsType("string"))
+					else
+					{
+						//wxVariant val;
+						//GetValue(val, item, col);
+						attr.SetBackgroundColour(*wxLIGHT_GREY);
+						return true;
+					}
+					/*
+					wxDateTime previos_dt;
+					if (obj->GetActPrevios(it->mAid, previos_dt))
+					{
+						wxString period;
+						obj->GetActPeriod(it->mAid, period);
+						double dperiod;
+						if (period.ToDouble(&dperiod))
+						{
+							wxTimeSpan ts_period(0, 0, floor(dperiod), (dperiod-floor(dperiod))*1000 );
+							
+							wxTimeSpan left = previos_dt + ts_period - wxDateTime::Now();
+							if (left.GetDays() < 10)
+							{
+								attr.SetBold(true);
+								if (left.IsNegative())
+									//attr.SetBackgroundColour(wxColour(255, 150, 150));
+									attr.SetColour(*wxRED);
+								else
+									//attr.SetBackgroundColour(*wxYELLOW);
+									attr.SetColour(wxColour(255, 128, 0));
+							}
+						}//if (period.ToDouble(&dperiod))
+					}//if (obj->GetActPrevios(it->mAid, dt))
+					*/
+				}//if (it->mAcol & 8)
+
+			}//if (idxCol.end() != it)
+
 		}
 		return false;
 	}
@@ -251,6 +376,13 @@ public:
 		if (!ascending)
 			std::swap(value1, value2);
 
+		if (value1.IsNull())
+			if (!value2.IsNull())
+				return -1;
+		else
+			if (!value2.IsNull())
+				return 1;
+
 		// all columns sorted by TRY FIRST numberic value
 		if (value1.GetType() == "string" || value1.GetType() == "wxDataViewIconText")
 		{
@@ -276,17 +408,17 @@ public:
 			{
 				size_t start1;
 				size_t len1;
-				long num1;
+				double num1;
 				bool match = mStartNum.GetMatch(&start1, &len1);
-				if (match && str1.substr(start1, len1).ToLong(&num1))
+				if (match && str1.substr(start1, len1).ToCDouble(&num1))
 				{
 					if (mStartNum.Matches(str2))
 					{
 						size_t start2;
 						size_t len2;
-						long num2;
+						double num2;
 						match = mStartNum.GetMatch(&start2, &len2);
-						if (match && str2.substr(start2, len2).ToLong(&num2))
+						if (match && str2.substr(start2, len2).ToCDouble(&num2))
 						{
 							
 							if (num1 < num2)
@@ -424,6 +556,8 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 		 //| wxDV_HORIZ_RULES
 		 | wxDV_MULTIPLE
 		);
+	mTable = table;
+
 	auto dv_model = new wxDVTableBrowser();
 	table->AssociateModel(dv_model);
 	dv_model->DecRef();
@@ -435,31 +569,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	//int ch = table->GetCharHeight();
 	//table->SetRowHeight(ch * 4 + 2);
 
-	auto renderer1 = new wxDataViewIconTextRenderer();
-	auto attr = renderer1->GetAttr();
-	attr.SetColour(*wxBLACK);
-	renderer1->SetAttr(attr);
-
-	auto renderer2 = new wxDataViewTextRenderer();
-
-	//table->AppendTextColumn("#", 0,wxDATAVIEW_CELL_INERT,-1, wxALIGN_LEFT);
-
-	auto col1 = new wxDataViewColumn("Имя"
-		, renderer1, 1, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE );
-	table->AppendColumn(col1);
-	//col1->SetSortOrder(true);
-	
-	auto col3 = table->AppendTextColumn("Тип", 3, wxDATAVIEW_CELL_INERT, -1
-		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-	col3->GetRenderer()->EnableEllipsize(wxELLIPSIZE_START);
-
-	auto col2 = new wxDataViewColumn("Количество"
-		, renderer2, 2, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-	table->AppendColumn(col2);
-
-	auto col4 = table->AppendTextColumn("Местоположение", 4, wxDATAVIEW_CELL_INERT, -1
-		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-	col4->GetRenderer()->EnableEllipsize(wxELLIPSIZE_START);
+	ResetColumns();
 
 
 	//table->SetExpanderColumn(col1);
@@ -500,7 +610,6 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 
 
 
-	mTable = table;
 
 	wxAcceleratorEntry entries[3];
 	entries[0].Set(wxACCEL_CTRL, (int) 'R', wxID_REFRESH);
@@ -816,26 +925,57 @@ void ViewTableBrowser::AutosizeColumns()
 	if (mColAutosize)
 	{
 		for (size_t i = 0; i < mTable->GetColumnCount(); i++)
-			mTable->GetColumn(i)->SetWidth(mTable->GetBestColumnWidth(i));
+		{
+			auto col = mTable->GetColumn(i);
+			if(col && "datetime"!=col->GetRenderer()->GetVariantType())
+				col->SetWidth(mTable->GetBestColumnWidth(i));
+		}
+			
 	}
 }
 //-----------------------------------------------------------------------------
-void ViewTableBrowser::ClearPropColumns()
+void ViewTableBrowser::ResetColumns()
 {
 	wxWindowUpdateLocker lock(mTable);
 
-	unsigned int pos = mTable->GetColumnCount() - 1;
-	while(pos > 3)
-	{
-		auto col = mTable->GetColumn(pos);
-		mTable->DeleteColumn(col);
-		pos = mTable->GetColumnCount() - 1;
-	}
-
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (dvmodel)
-		dvmodel->mActColumns.clear();
+	if (!dvmodel)
+		return;
 
+	auto table = mTable;
+
+	if (dvmodel->mActColumns.empty() && 4 == table->GetColumnCount() )
+		return;
+
+	table->ClearColumns();
+	dvmodel->mActColumns.clear();
+
+	auto renderer1 = new wxDataViewIconTextRenderer();
+	auto attr = renderer1->GetAttr();
+	attr.SetColour(*wxBLACK);
+	renderer1->SetAttr(attr);
+
+	auto renderer2 = new wxDataViewTextRenderer();
+
+	//table->AppendTextColumn("#", 0,wxDATAVIEW_CELL_INERT,-1, wxALIGN_LEFT);
+
+	auto col1 = new wxDataViewColumn("Имя"
+		, renderer1, 1, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+	table->AppendColumn(col1);
+	//col1->SetSortOrder(true);
+
+	auto col3 = table->AppendTextColumn("Тип", 3, wxDATAVIEW_CELL_INERT, -1
+		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+	col3->GetRenderer()->EnableEllipsize(wxELLIPSIZE_START);
+
+	auto col2 = new wxDataViewColumn("Количество"
+		, renderer2, 2, 150, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+	table->AppendColumn(col2);
+
+	auto col4 = table->AppendTextColumn("Местоположение", 4, wxDATAVIEW_CELL_INERT, -1
+		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+	col4->GetRenderer()->EnableEllipsize(wxELLIPSIZE_START);
+	
 
 }
 //-----------------------------------------------------------------------------
@@ -851,17 +991,63 @@ void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec
 		if (!obj)
 			continue;
 
+		std::vector<const IAct64*> fav_act;
+		obj->GetCls()->GetFavActs(fav_act);
+		for (const auto& fa_it : fav_act)
+		{
+			auto aid = fa_it->GetId();
+			char visible;
+			if (obj->GetCls()->GetActVisible(aid, visible))
+			{
+				for (char v = 1; v <= 8; v<<=1)
+				{
+					if (visible & v)
+					{
+						auto& idx0 = dvmodel->mActColumns.get<0>();
+						auto it = idx0.find(boost::make_tuple(aid, (char)(visible & v)));
+						if (idx0.end() == it)
+						{
+							ActInfoColumn acol(aid
+								, (char)(visible & v)
+								, mTable->GetColumnCount() + 1);
+
+							dvmodel->mActColumns.emplace(acol);
+
+							wxString str;
+							switch (acol.mAcol)
+							{
+							case 2: str="период(сут.)"; break;
+							case 4: str = "след."; break;
+							case 8: str = "осталось(сут.)"; break;
+							default:str = "пред."; break;
+							}
+
+							wxString title;
+							title << fa_it->GetTitle() << ":" << str;
+							this->mTable->AppendTextColumn(title, acol.mIndex
+								, wxDATAVIEW_CELL_INERT, -1, wxALIGN_NOT
+								, /*wxCOL_REORDERABLE | */ wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+						}
+					}
+				}
+				
+
+			}
+		}
+
+
+		/*
 		auto begin = obj->GetActInfo().begin();
 		auto end = obj->GetActInfo().end();
 		while (begin != end)
 		{
 			auto act_col_begin = begin->second.begin();
 			auto act_col_end = begin->second.end();
-			while (act_col_begin != act_col_end)
+			wxString str_aid = begin->first.data();
+			int64_t aid;
+			if (str_aid.ToLongLong(&aid))
 			{
-				wxString str_aid = begin->first.data();
-				int64_t aid;
-				if (str_aid.ToLongLong(&aid))
+				while (act_col_begin != act_col_end)
 				{
 					wxString str_ainfo = act_col_begin->first.data();
 					long ainfo;
@@ -879,15 +1065,18 @@ void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec
 
 							wxString str;
 							str << acol.mAid << ":" << (int)acol.mAcol;
-							this->mTable->AppendTextColumn(str, acol.mIndex);
+							this->mTable->AppendTextColumn(str, acol.mIndex
+								, wxDATAVIEW_CELL_INERT, -1
+								, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 						}
 
 					}//if (str_ainfo.ToLong(&ainfo))
-				}//if (str_aid.ToLongLong(&aid))
-				++act_col_begin;
-			}
+					++act_col_begin;
+				}
+			}//if (str_aid.ToLongLong(&aid))
 			++begin;
 		}//while (begin != end)
+		*/
 	}//for (const auto& obj : *ot)
 	
 }
@@ -917,7 +1106,7 @@ void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>&
 		mClsSelected = parent->GetId();
 	}
 		
-	ClearPropColumns();
+	ResetColumns();
 	mClsList.clear();
 	mParentCid = 0;
 	//mParent = nullptr;
@@ -1379,4 +1568,5 @@ void ViewBrowserPage::SetAfterRefreshCls(const std::vector<const IIdent64*>& vec
 	, const wxString& ss) //override;
 {
 	mCtrlFind->SetValue(ss);
+	sigUpdateTitle();
 }

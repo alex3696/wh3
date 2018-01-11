@@ -104,9 +104,12 @@ SELECT
          jsonb_build_object('fav_act',
                               jsonb_object_agg( all_fav_bitor.aid  --ref_cls_act.act_id
                                                , CASE WHEN((visible & 1)>0) THEN jsonb_build_object('previos',previos ) ELSE '{}'::jsonb END 
-                                              || CASE WHEN((visible & 2)>0) THEN jsonb_build_object('period',period ) ELSE '{}' END 
-                                              || CASE WHEN((visible & 4)>0) THEN jsonb_build_object('next',previos+period ) ELSE '{}' END 
-                                              || CASE WHEN((visible & 8)>0) THEN jsonb_build_object('left',ROUND( (EXTRACT(EPOCH FROM (previos+period-now()) )/86400)::NUMERIC,2 ) )  ELSE '{}' END 
+                                               ||CASE WHEN(period IS NOT NULL) THEN 
+                                                      CASE WHEN((visible & 2)>0) THEN jsonb_build_object('period',EXTRACT(EPOCH FROM period) ) ELSE '{}' END 
+                                                   || CASE WHEN((visible & 4)>0) THEN jsonb_build_object('next',previos+period ) ELSE '{}' END 
+                                                   || CASE WHEN((visible & 8)>0) THEN jsonb_build_object('left',ROUND( (EXTRACT(EPOCH FROM (previos+period-now()) )/86400)::NUMERIC,2 ) )  ELSE '{}' END 
+                                                 ELSE '{}' END 
+                                               
                                               )
                            ) as last_act
         FROM (SELECT aid, bit_or(visible) AS visible FROM cls_tree cls
@@ -130,8 +133,8 @@ SELECT
      FROM obj oo
   LEFT JOIN acls ON acls.id=oo.cls_id
   
-WHERE oo.pid=108 
---WHERE oo.cls_id=105
+--WHERE oo.pid=108 
+WHERE oo.cls_id=159
 --WHERE oo.cls_id=358;
 --WHERE oo.cls_id=350;
 
