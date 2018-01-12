@@ -19,7 +19,7 @@ whDB::~whDB()
 //------------------------------------------------------------------------------
 void whDB::BeginTransaction()	
 { 
-	auto p0 = GetTickCount();
+	TEST_FUNC_TIME;
 	try
 	{
 		m_Connection.BeginTransaction();
@@ -27,8 +27,8 @@ void whDB::BeginTransaction()
 	catch (DatabaseLayerException & e)
 	{
 		wxString str = wxString::Format("%d\t %s (%d)%s"
-			, GetTickCount() - p0
-			, __FUNCTION__
+			, GetTickCount() - ftester.GetStartTickCount()
+			, ftester.GetFuncName()
 			, e.GetErrorCode()
 			, e.GetErrorMessage().GetData());
 		wxLogError(str);
@@ -37,18 +37,16 @@ void whDB::BeginTransaction()
 	catch (...)
 	{
 		wxString str = wxString::Format("%d\t %s (-1)unknown error"
-			, GetTickCount() - p0
-			, __FUNCTION__);
-		wxLogError(str);
+			, GetTickCount() - ftester.GetStartTickCount()
+			, ftester.GetFuncName());
+			wxLogError(str);
 		throw;
 	}
-	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
 }
 //------------------------------------------------------------------------------
 void whDB::Commit()
 { 
-	auto p0 = GetTickCount();
-
+	TEST_FUNC_TIME;
 	try
 	{
 		m_Connection.Commit();
@@ -56,8 +54,8 @@ void whDB::Commit()
 	catch (DatabaseLayerException & e)
 	{
 		wxString str = wxString::Format("%d\t %s (%d)%s"
-			, GetTickCount() - p0
-			, __FUNCTION__
+			, GetTickCount() - ftester.GetStartTickCount()
+			, ftester.GetFuncName()
 			, e.GetErrorCode()
 			, e.GetErrorMessage().GetData());
 		wxLogError(str);
@@ -66,27 +64,25 @@ void whDB::Commit()
 	catch (...)
 	{
 		wxString str = wxString::Format("%d\t %s (-1)unknown error"
-			, GetTickCount() - p0
-			, __FUNCTION__);
-		wxLogError(str);
+			, GetTickCount() - ftester.GetStartTickCount()
+			, ftester.GetFuncName());
+			wxLogError(str);
 		throw;
 	}
-	wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
 }
 //------------------------------------------------------------------------------
 void whDB::RollBack()
 { 
-	auto p0 = GetTickCount();
+	TEST_FUNC_TIME;
 	try
 	{
 		m_Connection.RollBack();
-		wxLogMessage(wxString::Format("%d\t %s ", GetTickCount() - p0, __FUNCTION__));
 	}
 	catch (DatabaseLayerException & e)
 	{
 		wxString str = wxString::Format("%d\t %s (%d)%s"
-			, GetTickCount() - p0
-			, __FUNCTION__
+			, GetTickCount() - ftester.GetStartTickCount()
+			, ftester.GetFuncName()
 			, e.GetErrorCode()
 			, e.GetErrorMessage().GetData());
 		wxLogError(str);
@@ -95,8 +91,8 @@ void whDB::RollBack()
 	catch (...)
 	{
 		wxString str = wxString::Format("%d\t %s (-1)unknown error"
-			, GetTickCount() - p0
-			, __FUNCTION__);
+			, GetTickCount() - ftester.GetStartTickCount()
+			, ftester.GetFuncName());
 		wxLogError(str);
 		throw;
 	}
@@ -106,7 +102,6 @@ void whDB::RollBack()
 bool whDB::Open(const wxString& strServer, int nPort, const wxString& strDatabase, 
 				const wxString& strUser, const wxString& strPassword)
 {
-	wxLogMessage("whDB::Open");
 	bool result = false;
 	try
 	{
@@ -129,7 +124,6 @@ bool whDB::Open(const wxString& strServer, int nPort, const wxString& strDatabas
 //------------------------------------------------------------------------------
 bool whDB::Close()
 { 
-	wxLogMessage("whDB::Close");
 	bool successfull = false;
 	try
 	{
@@ -241,7 +235,7 @@ void whTable::Close()
 //------------------------------------------------------------------------------
 int whTable::Exec(const wxString& query,bool with_result)
 {
-	auto p0 = GetTickCount();
+	TEST_FUNC_TIME;
 
 	int result=0;
 	try
@@ -262,8 +256,8 @@ int whTable::Exec(const wxString& query,bool with_result)
 			wxString str = query;
 			str.Replace("%", "?");
 			str = wxString::Format("%d\t %s (%d)%s %s"
-				, GetTickCount() - p0
-				, __FUNCTION__
+				, GetTickCount() - ftester.GetStartTickCount()
+				, ftester.GetFuncName()
 				, result
 				, estr
 				, str);
@@ -278,18 +272,13 @@ int whTable::Exec(const wxString& query,bool with_result)
 	catch (...)
 	{
 		wxString str = wxString::Format("%d\t %s (-1)unknown error"
-			, GetTickCount() - p0
-			, __FUNCTION__);
+			, GetTickCount() - ftester.GetStartTickCount()
+			, ftester.GetFuncName() );
 		wxLogError(str);
 		throw;
 	}
 	
-	wxString str = wxString::Format("%d\t %s %s"
-		, GetTickCount() - p0
-		, __FUNCTION__
-		, query);
-	str.Replace("%", "?");
-	wxLogMessage(str);
+	ftester.SetInfo("%s", query);
 
 	return result;	
 }
@@ -388,7 +377,7 @@ unsigned int whTable::GetColumnCount()const
 		catch(DatabaseLayerException & e)
 		{
 			wxString str = wxString::Format(("%d %s"), e.GetErrorCode(), e.GetErrorMessage().GetData() ); 
-			wxMessageBox(str );
+			wxLogError(str);
 			count=0;
 		}
 		
@@ -412,7 +401,7 @@ wxString whTable::GetColumnName(unsigned int col)
 		catch(DatabaseLayerException & e)
 		{
 			wxString str = wxString::Format(("%d %s"), e.GetErrorCode(), e.GetErrorMessage().GetData() ); 
-			wxMessageBox(str );
+			wxLogError(str);
 			colname=wxEmptyString;
 		}
 		
@@ -436,7 +425,7 @@ int whTable::GetColumnType(int col)
 		catch (DatabaseLayerException & e)
 		{
 			wxString str = wxString::Format(("%d %s"), e.GetErrorCode(), e.GetErrorMessage().GetData());
-			wxMessageBox(str);
+			wxLogError(str);
 			coltype = -1;
 		}
 

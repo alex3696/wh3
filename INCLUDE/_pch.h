@@ -122,6 +122,41 @@ typedef boost::error_info<struct tag_strmsg,std::string>	strmsg;
 #ifdef __WX__
 typedef boost::error_info<struct tag_wxstr,wxString>		wxstr;
 #endif // #ifdef __WXMSW__ || __WX__
+//---------------------------------------------------------------------------
+class wxFuncTester
+{
+	ULONG		mStart;
+	wxString	mFname;
+	wxString	mInfo;
+public:
+	wxFuncTester(const char* fname)
+		:mFname(fname), mStart(GetTickCount())
+	{}
+
+	~wxFuncTester()
+	{
+		wxLogMessage("%d\t %s \t%s"
+			, GetTickCount() - mStart
+			, mFname
+			, mInfo);
+	}
+	ULONG GetStartTickCount()const
+	{
+		return mStart;
+	}
+	const wxString& GetFuncName()const
+	{
+		return mFname;
+	}
+	template<class... Args>
+	void SetInfo(const wxString& format, Args&&... args) {
+		mInfo = wxString::Format(format, std::forward<Args>(args)...);
+	};
+
+};
+
+#define TEST_FUNC_TIME wxFuncTester ftester(__FUNCTION__);
+//---------------------------------------------------------------------------
 
 
 
