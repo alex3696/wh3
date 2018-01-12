@@ -673,15 +673,14 @@ public:
 	void DoUpdateSelected();
 	void DoGroupByType(bool enable_group_by_type);
 		
-	sig::signal<void(bool)>	 sigGroupByType;
-	
 	sig::signal<void(const ICls64&)> sigBeforePathChange;
 	sig::signal<void(const ICls64&)> sigAfterPathChange;
 	
 	using SigRefreshCls = 
-		sig::signal	<void	(	const std::vector<const IIdent64*>&, 
-								const IIdent64*,
-								const wxString&
+		sig::signal	<void	(	const std::vector<const IIdent64*>&
+								, const IIdent64*
+								, const wxString&
+								, bool
 							)
 					>;
 	

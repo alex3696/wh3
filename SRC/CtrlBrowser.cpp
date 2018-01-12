@@ -1,5 +1,6 @@
 #include "_pch.h"
 #include "CtrlBrowser.h"
+#include "CtrlNotebook.h"
 
 using namespace wh;
 //---------------------------------------------------------------------------
@@ -20,16 +21,13 @@ CtrlTableBrowser::CtrlTableBrowser(
 		.connect(std::bind(&CtrlTableBrowser::Activate, this, ph::_1));
 	connViewCmd_RefreshClsObjects = mView->sigRefreshClsObjects
 		.connect(std::bind(&CtrlTableBrowser::RefreshClsObjects, this, ph::_1));
-
-
-
-	connModel_GroupByType = mModel->GetModelBrowser()->sigGroupByType.connect
-		(std::bind(&IViewTableBrowser::SetGroupByType, mView.get(), ph::_1));
+	connViewCmd_ShowObjDetail = mView->sigShowObjectDetail
+		.connect(std::bind(&CtrlTableBrowser::ShowObjDetail, this, ph::_1, ph::_2));
 
 	connModel_BeforeRefreshCls = mModel->GetModelBrowser()->sigBeforeRefreshCls
-		.connect(std::bind(&IViewTableBrowser::SetBeforeRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3));
+		.connect(std::bind(&IViewTableBrowser::SetBeforeRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4));
 	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
-		.connect(std::bind(&IViewTableBrowser::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3));
+		.connect(std::bind(&IViewTableBrowser::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4));
 
 
 
@@ -61,20 +59,44 @@ void CtrlTableBrowser::RefreshClsObjects(int64_t cid)
 {
 	mModel->GetModelBrowser()->DoRefreshObjects (cid);
 }
+//---------------------------------------------------------------------------
+void CtrlTableBrowser::ShowSelectedObjDetail()
+{
+	mView->SetShowDetail();
+}
+//---------------------------------------------------------------------------
+void CtrlTableBrowser::ShowObjDetail(int64_t oid, int64_t parent_oid)
+{
+	auto container = whDataMgr::GetInstance()->mContainer;
+
+	auto detail_obj = container->GetObject<wh::rec::ObjInfo>("DefaultDetailObjInfo");
+	if (!detail_obj)
+		return;
+
+	detail_obj->mObj.mId = oid;
+	detail_obj->mObj.mParent.mId = parent_oid;
+
+	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
+	if (nb2)
+	{
+		//nb2->MkWindow("CtrlPageDetailObj");
+		nb2->MkWindow("CtrlPageDetail");
+	}
+}
+
+
 
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 CtrlToolbarBrowser::CtrlToolbarBrowser(
 	const std::shared_ptr<IViewToolbarBrowser>& view
-	, const std::shared_ptr<ModelPageBrowser>& model)
+	, const std::shared_ptr<ModelPageBrowser>& model
+	, CtrlPageBrowser* mCtrlParent)
 	: CtrlWindowBase(view, model)
+	, mCtrlParent(mCtrlParent)
 {
 	namespace ph = std::placeholders;
-
-	connModel_GroupByType = mModel->GetModelBrowser()->sigGroupByType.connect
-		(std::bind(&IViewToolbarBrowser::SetGroupByType, mView.get(), ph::_1));
-
 
 	connViewCmd_Refresh = mView->sigRefresh
 		.connect(std::bind(&CtrlToolbarBrowser::Refresh, this));
@@ -85,7 +107,9 @@ CtrlToolbarBrowser::CtrlToolbarBrowser(
 		.connect(std::bind(&CtrlToolbarBrowser::Act, this));
 	connViewCmd_Move = mView->sigMove
 		.connect(std::bind(&CtrlToolbarBrowser::Move, this));
-	
+	connViewCmd_ShowDetail = mView->sigShowDetail
+		.connect(std::bind(&CtrlToolbarBrowser::ShowDetail, this));
+
 	connViewCmd_AddType = mView->sigAddType
 		.connect(std::bind(&CtrlToolbarBrowser::AddType, this));
 	connViewCmd_AddObject = mView->sigAddObject
@@ -98,6 +122,9 @@ CtrlToolbarBrowser::CtrlToolbarBrowser(
 	connViewCmd_GroupByType = mView->sigGroupByType
 		.connect(std::bind(&CtrlToolbarBrowser::GroupByType, this, ph::_1));
 
+
+	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
+		.connect(std::bind(&IViewToolbarBrowser::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4));
 
 
 }
@@ -121,6 +148,11 @@ void CtrlToolbarBrowser::Act()
 void CtrlToolbarBrowser::Move()
 {
 	mModel->GetModelBrowser()->DoMove();
+}
+//---------------------------------------------------------------------------
+void CtrlToolbarBrowser::ShowDetail()
+{
+	mCtrlParent->ShowDetail();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::AddType()
@@ -172,7 +204,7 @@ CtrlPageBrowser::CtrlPageBrowser(
 	, const std::shared_ptr<ModelPageBrowser>& model)
 	: CtrlWindowBase(view, model)
 	, mCtrlTableBrowser(std::make_shared<CtrlTableBrowser>(view->GetViewTableBrowser(), model))
-	, mCtrlToolbarBrowser(std::make_shared<CtrlToolbarBrowser>(view->GetViewToolbarBrowser(), model))
+	, mCtrlToolbarBrowser(std::make_shared<CtrlToolbarBrowser>(view->GetViewToolbarBrowser(), model, this))
 	, mCtrlPathBrowser(std::make_shared<CtrlPathBrowser>(view->GetViewPathBrowser(), model))
 {
 
@@ -182,11 +214,16 @@ CtrlPageBrowser::CtrlPageBrowser(
 		.connect(std::bind(&CtrlPageBrowser::Find, this, ph::_1));
 
 	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
-		.connect(std::bind(&IViewBrowserPage::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3));
+		.connect(std::bind(&IViewBrowserPage::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4));
 
 }
 //---------------------------------------------------------------------------
 void CtrlPageBrowser::Find(const wxString& str)
 {
 	mModel->GetModelBrowser()->DoFind(str);
+}
+//---------------------------------------------------------------------------
+void CtrlPageBrowser::ShowDetail()
+{
+	mCtrlTableBrowser->ShowSelectedObjDetail();
 }

@@ -3,6 +3,7 @@
 #include "globaldata.h"
 #include "wxDataViewIconMLTextRenderer.h"
 #include "wxComboBtn.h"
+#include "config.h"
 
 using namespace wh;
 
@@ -566,22 +567,28 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	table->Bind(wxEVT_DATAVIEW_ITEM_COLLAPSED
 		, &ViewTableBrowser::OnCmd_Collapseded, this);
 
+	table->GetTargetWindow()->Bind(wxEVT_MIDDLE_UP, 
+		[this](wxMouseEvent&) {SetShowDetail(); });
+
+
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED
 		,&ViewTableBrowser::OnCmd_Refresh, this, wxID_REFRESH);
 
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED
 		, &ViewTableBrowser::OnCmd_Up, this, wxID_UP);
 
+	table->Bind(wxEVT_COMMAND_MENU_SELECTED
+		, [this](wxCommandEvent&) {SetShowDetail(); }, wxID_INFO);
 
 
 
 
-
-	wxAcceleratorEntry entries[3];
+	wxAcceleratorEntry entries[4];
 	entries[0].Set(wxACCEL_CTRL, (int) 'R', wxID_REFRESH);
 	entries[1].Set(wxACCEL_NORMAL, WXK_F5,   wxID_REFRESH);
 	entries[2].Set(wxACCEL_NORMAL, WXK_BACK, wxID_UP);
-	wxAcceleratorTable accel(3, entries);
+	entries[3].Set(wxACCEL_CTRL, WXK_RETURN, wxID_INFO);
+	wxAcceleratorTable accel(4, entries);
 	table->SetAcceleratorTable(accel);
 
 }
@@ -1055,6 +1062,7 @@ void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec
 void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>& 
 											, const IIdent64* parent
 											, const wxString&
+											, bool group_by_type
 											) //override;
 {
 	TEST_FUNC_TIME;
@@ -1082,6 +1090,7 @@ void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>&
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 	if (dvmodel)
 	{
+		dvmodel->SetGroupByType(group_by_type);
 		dvmodel->SetClsList(nullptr, nullptr);
 	}
 	
@@ -1095,7 +1104,9 @@ void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>&
 //virtual 
 void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& vec
 											, const IIdent64* root
-											, const wxString& ss) //override;
+											, const wxString& ss
+											, bool group_by_type
+											) //override;
 {
 	TEST_FUNC_TIME;
 	wxBusyCursor busyCursor;
@@ -1120,6 +1131,7 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& ve
 		auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 		if (dvmodel)
 		{
+			dvmodel->SetGroupByType(group_by_type);
 			dvmodel->SetClsList(&mClsList, (root && 1 != root->GetId()) ? root : nullptr);
 
 		}
@@ -1150,26 +1162,6 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& ve
 
 }
 
-//-----------------------------------------------------------------------------
-//virtual
-void ViewTableBrowser::SetGroupByType(bool enable)// override;
-{
-	TEST_FUNC_TIME;
-	wxBusyCursor busyCursor;
-
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (!dvmodel)
-		return;
-
-	{
-		wxWindowUpdateLocker lock(mTable);
-		dvmodel->SetGroupByType(enable);
-	}
-		
-	AutosizeColumns();
-	RestoreSelect();
-
-}
 //-----------------------------------------------------------------------------
 //virtual
 void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IIdent64*>& obj_list)// override;
@@ -1221,8 +1213,20 @@ void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IId
 
 	//AutosizeColumns();
 }
-
-
+//-----------------------------------------------------------------------------
+//virtual 
+void ViewTableBrowser::SetShowDetail()//override;
+{
+	const IIdent64* ident = static_cast<const IIdent64*> (mTable->GetCurrentItem().GetID());
+	if (ident)
+	{
+		const auto& obj = dynamic_cast<const IObj64*>(ident);
+		if (obj)
+		{
+			sigShowObjectDetail(obj->GetId(), obj->GetParentId());
+		}
+	}//if (ident)
+}
 
 
 
@@ -1242,6 +1246,8 @@ ViewToolbarBrowser::ViewToolbarBrowser(const std::shared_ptr<IViewWindow>& paren
 //-----------------------------------------------------------------------------
 ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 {
+	const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
+
 	auto mgr = ResMgr::GetInstance();
 
 	long style = wxAUI_TB_DEFAULT_STYLE 
@@ -1255,13 +1261,21 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 	tool_bar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh24, "Обновить(CTRL+R)");
 	//tool_bar->AddTool(wxID_UP,"Вверх", mgr->m_ico_back24, "Вверх(BACKSPACE)");
 
-	tool_bar->AddTool(wxID_EXECUTE, "Выполнить", mgr->m_ico_act24, "Выполнить(F9)");
-	tool_bar->AddTool(wxID_REPLACE, "Переместить", mgr->m_ico_move24, "Переместить(F6)");
+	//tool_bar->AddTool(wxID_EXECUTE, "Выполнить", mgr->m_ico_act24, "Выполнить(F9)");
+	//tool_bar->AddTool(wxID_REPLACE, "Переместить", mgr->m_ico_move24, "Переместить(F6)");
+	tool_bar->AddTool(wxID_INFO, "Выбрать свойства", mgr->m_ico_favprop_select24, "Выбрать свойства(CTRL+P)");
+	tool_bar->AddTool(wxID_INFO, "Подробно", mgr->m_ico_views24, "Подробно(F8)");
 
-	tool_bar->AddTool(wxID_NEW_TYPE, "Создать тип", mgr->m_ico_add_type24, "Создать тип(CTRL+T)");
-	tool_bar->AddTool(wxID_NEW_OBJECT, "Создать объект", mgr->m_ico_add_obj_tab24, "Создать объект(CTRL+O)");
-	tool_bar->AddTool(wxID_DELETE, "Удалить", mgr->m_ico_delete24, "Удалить(DELETE)");
-	tool_bar->AddTool(wxID_EDIT, "Редактировать", mgr->m_ico_edit24, "Редактировать(CTRL+E)");
+	if ((int)currBaseGroup >= (int)bgTypeDesigner)
+	{
+		tool_bar->AddTool(wxID_NEW_TYPE, "Создать тип", mgr->m_ico_add_type24, "Создать тип(CTRL+T)");
+	}
+	if ((int)currBaseGroup >= (int)bgObjDesigner)
+	{
+		tool_bar->AddTool(wxID_NEW_OBJECT, "Создать объект", mgr->m_ico_add_obj_tab24, "Создать объект(CTRL+O)");
+		tool_bar->AddTool(wxID_DELETE, "Удалить", mgr->m_ico_delete24, "Удалить(DELETE)");
+		tool_bar->AddTool(wxID_EDIT, "Редактировать", mgr->m_ico_edit24, "Редактировать(CTRL+E)");
+	}
 
 	tool_bar->AddTool(wxID_VIEW_LIST , "Группировать по типу", wxArtProvider::GetBitmap(wxART_LIST_VIEW, wxART_TOOLBAR), "Группировать по типу(CTRL+G)");
 	tool_bar->FindTool(wxID_VIEW_LIST)->SetState(wxAUI_BUTTON_STATE_CHECKED);
@@ -1281,16 +1295,16 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_Refresh, this, wxID_REFRESH);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_Up, this, wxID_UP);
-
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_Act, this, wxID_EXECUTE);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_Move, this, wxID_REPLACE);
+	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_ShowDetail, this, wxID_INFO);
 	
 	
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_AddType, this, wxID_NEW_TYPE);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_AddObject, this, wxID_NEW_OBJECT);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_DeleteSelected, this, wxID_DELETE);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_UpdateSelected, this, wxID_EDIT);
-	
+
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_GroupByType, this, wxID_VIEW_LIST);
 
 	mToolbar = tool_bar;
@@ -1304,12 +1318,16 @@ void ViewToolbarBrowser::SetVisibleFilters(bool enable)// override;
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewToolbarBrowser::SetGroupByType(bool enable)// override;
+void ViewToolbarBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& vec
+											, const IIdent64* root
+											, const wxString& ss
+											, bool group_by_type
+										) //override;
 {
 	int show;
-	show = enable ? wxAUI_BUTTON_STATE_CHECKED : wxAUI_BUTTON_STATE_NORMAL;
+	show = group_by_type ? wxAUI_BUTTON_STATE_CHECKED : wxAUI_BUTTON_STATE_NORMAL;
 	mToolbar->FindTool(wxID_VIEW_LIST)->SetState(show);
-
+	mToolbar->Refresh();
 }
 //-----------------------------------------------------------------------------
 //virtual 
@@ -1331,6 +1349,12 @@ void ViewToolbarBrowser::OnCmd_Act(wxCommandEvent& evt)
 //virtual 
 void ViewToolbarBrowser::OnCmd_Move(wxCommandEvent& evt)
 {}
+//-----------------------------------------------------------------------------
+//virtual 
+void ViewToolbarBrowser::OnCmd_ShowDetail(wxCommandEvent& evt)
+{
+	sigShowDetail();
+}
 //-----------------------------------------------------------------------------
 //virtual 
 void ViewToolbarBrowser::OnCmd_AddType(wxCommandEvent& evt )
@@ -1525,7 +1549,9 @@ void ViewBrowserPage::SetPathString(const ICls64& path_string) //override;
 //virtual 
 void ViewBrowserPage::SetAfterRefreshCls(const std::vector<const IIdent64*>& vec
 	, const IIdent64* root
-	, const wxString& ss) //override;
+	, const wxString& ss
+	, bool
+	) //override;
 {
 	mCtrlFind->SetValue(ss);
 	sigUpdateTitle();

@@ -24,6 +24,7 @@ class whDB//: public Base
 {
 protected:
 	mutable PostgresDatabaseLayer	m_Connection;
+	bool mTransactionOpened;
 
 	//void ShowError(const DatabaseLayerException& err)const;
 public:
@@ -41,6 +42,7 @@ public:
 	void BeginTransaction();
 	void Commit();
 	void RollBack();
+	bool IsTransactionOpen()const;
 
 	whTable*			ExecWithResults(const wxString& query);
 	whTable_shared_ptr	ExecWithResultsSPtr(const wxString& query);

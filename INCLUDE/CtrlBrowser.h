@@ -7,6 +7,8 @@
 #include "IViewBrowser.h"
 
 namespace wh{
+
+class CtrlPageBrowser;
 //-----------------------------------------------------------------------------
 class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPageBrowser>
 {
@@ -14,6 +16,7 @@ class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPag
 	sig::scoped_connection connViewCmd_Up;
 	sig::scoped_connection connViewCmd_Activate;
 	sig::scoped_connection connViewCmd_RefreshClsObjects;
+	sig::scoped_connection connViewCmd_ShowObjDetail;
 	
 
 	sig::scoped_connection connModel_BeforeRefreshCls;
@@ -21,9 +24,6 @@ class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPag
 	
 	sig::scoped_connection connModel_ObjOperation;
 	
-	sig::scoped_connection connModel_GroupByType;
-	
-
 
 
 public:
@@ -35,18 +35,18 @@ public:
 	void Activate(int64_t cid);
 	void RefreshClsObjects(int64_t cid);
 
-
+	void ShowSelectedObjDetail();
+	void ShowObjDetail(int64_t oid, int64_t parent_oid);
 };
 //-----------------------------------------------------------------------------
 class CtrlToolbarBrowser final : public CtrlWindowBase<IViewToolbarBrowser, ModelPageBrowser>
 {
-	sig::scoped_connection connModel_GroupByType;
-
 	sig::scoped_connection connViewCmd_Refresh;
 	sig::scoped_connection connViewCmd_Up;
 
 	sig::scoped_connection connViewCmd_Act;
 	sig::scoped_connection connViewCmd_Move;
+	sig::scoped_connection connViewCmd_ShowDetail;
 
 	sig::scoped_connection connViewCmd_AddType;
 	sig::scoped_connection connViewCmd_AddObject;
@@ -54,21 +54,26 @@ class CtrlToolbarBrowser final : public CtrlWindowBase<IViewToolbarBrowser, Mode
 	sig::scoped_connection connViewCmd_UpdateSelected;
 
 	sig::scoped_connection connViewCmd_GroupByType;
-	sig::scoped_connection connViewCmd_CollapseGroupByType;
 
 	//sig::scoped_connection connViewCmd_ShowDetail;
 	//sig::scoped_connection connViewCmd_ShowFilters;
 	//sig::scoped_connection connViewCmd_ShowHistory;
 	//sig::scoped_connection connViewCmd_ShowProperties;
+
+	sig::scoped_connection connModel_AfterRefreshCls;
+
+	CtrlPageBrowser* mCtrlParent;
 public:
 	CtrlToolbarBrowser(const std::shared_ptr<IViewToolbarBrowser>& view
-		, const  std::shared_ptr<ModelPageBrowser>& model);
+		, const  std::shared_ptr<ModelPageBrowser>& model
+		, CtrlPageBrowser* mCtrlParent);
 
 	void Refresh();
 	void Up();
 
 	void Act();
 	void Move();
+	void ShowDetail();
 	
 	void AddType();
 	void AddObject();
@@ -106,6 +111,7 @@ public:
 
 
 	void Find(const wxString&);
+	void ShowDetail();
 };
 
 

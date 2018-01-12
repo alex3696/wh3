@@ -8,6 +8,7 @@
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 whDB::whDB()
+	:mTransactionOpened(false)
 {
 
 }
@@ -23,6 +24,7 @@ void whDB::BeginTransaction()
 	try
 	{
 		m_Connection.BeginTransaction();
+		mTransactionOpened = true;
 	}
 	catch (DatabaseLayerException & e)
 	{
@@ -50,6 +52,7 @@ void whDB::Commit()
 	try
 	{
 		m_Connection.Commit();
+		mTransactionOpened = false;
 	}
 	catch (DatabaseLayerException & e)
 	{
@@ -77,6 +80,7 @@ void whDB::RollBack()
 	try
 	{
 		m_Connection.RollBack();
+		mTransactionOpened = false;
 	}
 	catch (DatabaseLayerException & e)
 	{
@@ -96,6 +100,11 @@ void whDB::RollBack()
 		wxLogError(str);
 		throw;
 	}
+}
+//------------------------------------------------------------------------------
+bool whDB::IsTransactionOpen()const
+{
+	return mTransactionOpened;
 }
 
 //------------------------------------------------------------------------------
@@ -148,6 +157,8 @@ bool whDB::Close()
 //------------------------------------------------------------------------------
 whTable*	whDB::ExecWithResults(const wxString& query)
 {
+	if (!mTransactionOpened)
+		wxLogMessage("Transaction was not opened!");
 	whTable* table = nullptr;
 	try
 	{
@@ -172,12 +183,16 @@ whTable*	whDB::ExecWithResults(const wxString& query)
 //------------------------------------------------------------------------------
 whTable_shared_ptr	whDB::ExecWithResultsSPtr(const wxString& query)
 {
+	if (!mTransactionOpened)
+		wxLogMessage("Transaction was not opened!");
 	return whTable::shared_ptr(ExecWithResults(query));
 }
 
 //------------------------------------------------------------------------------
 int	whDB::Exec(const wxString& query, bool with_result)
 {
+	if (!mTransactionOpened)
+		wxLogMessage("Transaction was not opened!");
 	whTable* table=new whTable(this);
 	int result = table->Exec(query, with_result);
 	delete table;
@@ -187,6 +202,8 @@ int	whDB::Exec(const wxString& query, bool with_result)
 //------------------------------------------------------------------------------
 int	whDB::Exec(const wxString& query,whTable* table)
 {
+	if (!mTransactionOpened)
+		wxLogMessage("Transaction was not opened!");
 	if(table)
 	{
 		table->Close();
@@ -201,6 +218,8 @@ int	whDB::Exec(const wxString& query,whTable* table)
 //------------------------------------------------------------------------------
 whTable* whDB::Exec(const wxString& query,std::deque<wxString>& pathes)
 {
+	if (!mTransactionOpened)
+		wxLogMessage("Transaction was not opened!");
 	whTable* table=new whTable(this);
 	if(table->Exec(query,pathes))
 	{

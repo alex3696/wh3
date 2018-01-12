@@ -576,7 +576,7 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 		if (mGroupByType)
 			sigObjOperation(Operation::BeforeDelete, todelete);
 		else
-			sigBeforeRefreshCls(todelete, cls.get(), mSearchString);
+			sigBeforeRefreshCls(todelete, cls.get(), mSearchString, mGroupByType);
 	}
 	std::shared_ptr<ClsRec64> parent_node = std::dynamic_pointer_cast<ClsRec64>(cls);
 
@@ -586,14 +586,14 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 		if (mGroupByType)
 			sigObjOperation(Operation::BeforeInsert, toinsert); 
 		else
-			sigBeforeRefreshCls(toinsert, cls.get(), mSearchString);
+			sigBeforeRefreshCls(toinsert, cls.get(), mSearchString, mGroupByType);
 		
 		mCache.mObjTable.GetObjByClsId(cls->GetId(), toinsert);
 		
 		if (mGroupByType)
 			sigObjOperation(Operation::AfterDelete, toinsert);
 		else
-			sigAfterRefreshCls(toinsert, cls.get(), mSearchString);
+			sigAfterRefreshCls(toinsert, cls.get(), mSearchString, mGroupByType);
 		
 		return;
 	}
@@ -702,7 +702,7 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 			if (mGroupByType)
 				sigObjOperation(Operation::AfterInsert, toinsert);
 			else
-				sigAfterRefreshCls(toinsert, cls.get(), mSearchString);
+				sigAfterRefreshCls(toinsert, cls.get(), mSearchString, mGroupByType);
 		}
 			
 
@@ -738,17 +738,18 @@ void ModelBrowser::DoRefreshFindInClsTree()
 			start = next;
 		}
 	}
+	
+	std::shared_ptr<const ICls64> parent_node = mClsPath->GetCurrent();
+	std::vector<const IIdent64*> toinsert;
+	sigBeforeRefreshCls(toinsert, parent_node.get(), mSearchString, mGroupByType);
+	mCache.Clear();
 
+	whDataMgr::GetDB().BeginTransaction();
 	if( mRootId!= mClsPath->GetCurrent()->GetId() )
 		mClsPath->SetId(mRootId);
 
-	std::shared_ptr<const ICls64> parent_node = mClsPath->GetCurrent();
+	parent_node = mClsPath->GetCurrent();
 	auto parent_id = parent_node->GetIdAsString();
-
-	std::vector<const IIdent64*> toinsert;
-	sigBeforeRefreshCls(toinsert, parent_node.get(), mSearchString);
-	mCache.Clear();
-
 
 	wxString search;
 	if (1 == search_words.size())
@@ -806,7 +807,7 @@ void ModelBrowser::DoRefreshFindInClsTree()
 		" ,(substring(obj.title, '^[0-9]+')::INT, obj.title ) ASC "
 		, parent_id, search);
 
-	whDataMgr::GetDB().BeginTransaction();
+	
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
 
 	if (table)
@@ -884,7 +885,7 @@ void ModelBrowser::DoRefreshFindInClsTree()
 	whDataMgr::GetDB().Commit();
 
 	if (!toinsert.empty())
-		sigAfterRefreshCls(toinsert, nullptr, mSearchString);
+		sigAfterRefreshCls(toinsert, nullptr, mSearchString, mGroupByType);
 		//sigAfterRefreshCls(toinsert, parent_node.get(), mSearchString);
 
 
@@ -893,8 +894,6 @@ void ModelBrowser::DoRefreshFindInClsTree()
 void ModelBrowser::DoRefresh()
 {
 	TEST_FUNC_TIME;
-	sigGroupByType(mGroupByType);
-
 
 	if (!mSearchString.empty())
 	{
@@ -931,7 +930,7 @@ void ModelBrowser::DoRefresh()
 
 	
 	std::vector<const IIdent64*> toinsert;
-	sigBeforeRefreshCls(toinsert, parent_node.get(), mSearchString);
+	sigBeforeRefreshCls(toinsert, parent_node.get(), mSearchString, mGroupByType);
 	
 	
 	//parent_node->ClearChilds();
@@ -983,7 +982,7 @@ void ModelBrowser::DoRefresh()
 	whDataMgr::GetDB().Commit();
 	
 	if (!toinsert.empty())
-		sigAfterRefreshCls(toinsert, parent_node.get(), mSearchString);
+		sigAfterRefreshCls(toinsert, parent_node.get(), mSearchString, mGroupByType);
 }
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoActivate(int64_t id)
@@ -991,22 +990,6 @@ void ModelBrowser::DoActivate(int64_t id)
 	SetRootId(id);
 	DoRefresh();
 }
-//void ModelBrowser::DoActivate(const ICls64* cls)
-//{
-//	if (!cls)
-//		return;
-//	auto id = cls->GetId();
-//	if (ClsKind::Abstract == cls->GetKind())
-//		mClsPath->SetId(id);
-//	else
-//	{
-//		if (!mGroupByType)
-//			mClsPath->SetId(id);
-//
-//		const std::shared_ptr<ClsRec64>& node = mCache.mClsTable.GetById(id);
-//		DoRefreshObjects(node);
-//	}
-//}
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoUp()
 {
@@ -1089,7 +1072,7 @@ ModelPageBrowser::ModelPageBrowser()
 //-----------------------------------------------------------------------------
 void ModelPageBrowser::DoEnableGroupByType(bool group_by_type)
 {
-	mModelBrowser.sigGroupByType(group_by_type);
+	mModelBrowser.DoGroupByType(group_by_type);
 }
 //---------------------------------------------------------------------------
 //virtual 
@@ -1133,7 +1116,7 @@ void ModelPageBrowser::Load(const boost::property_tree::wptree& page_val)//overr
 	mModelBrowser.SetSearchString(search_string);
 	mModelBrowser.SetRootId(root_id);
 	mModelBrowser.SetGroupedByType(group_type);
-
+	
 	mModelBrowser.DoRefresh();
 
 }

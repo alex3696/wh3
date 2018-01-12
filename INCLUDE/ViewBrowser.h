@@ -58,13 +58,11 @@ public:
 		return mTable;
 	}
 
-	virtual void SetBeforeRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&) override;
-	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&) override;
-
-
-	virtual void SetGroupByType(bool enable) override;
+	virtual void SetBeforeRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool) override;
+	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool) override;
 
 	virtual void SetObjOperation(Operation, const std::vector<const IIdent64*>&) override;
+	virtual void SetShowDetail()override;
 };
 //-----------------------------------------------------------------------------
 class ViewToolbarBrowser : public IViewToolbarBrowser
@@ -79,7 +77,8 @@ public:
 	}
 
 	virtual void SetVisibleFilters(bool enable) override;
-	virtual void SetGroupByType(bool enable) override;
+	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool) override;
+
 
 
 	void OnCmd_Refresh(wxCommandEvent& evt = wxCommandEvent());
@@ -87,6 +86,8 @@ public:
 
 	void OnCmd_Act(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_Move(wxCommandEvent& evt = wxCommandEvent());
+	void OnCmd_ShowDetail(wxCommandEvent& evt = wxCommandEvent());
+	
 
 	void OnCmd_AddType(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_AddObject(wxCommandEvent& evt = wxCommandEvent());
@@ -151,7 +152,7 @@ public:
 
 	virtual void SetPathMode(const int mode) override;
 	virtual void SetPathString(const ICls64& node) override;
-	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&) override;
+	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool) override;
 };
 
 
