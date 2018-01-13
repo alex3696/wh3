@@ -555,8 +555,6 @@ public:
 		return *it;
 	}
 
-
-	void LoadDetailById(const std::set<int64_t>& aid_vector);
 	void LoadDetailById();
 };
 
@@ -660,17 +658,8 @@ public:
 	void DoRefresh();
 	void DoActivate(int64_t cid);
 	void DoRefreshObjects(int64_t cid);
-
 	void DoUp();
-
-
-	void DoAct();
-	void DoMove();
 	void DoFind(const wxString&);
-	void DoAddType();
-	void DoAddObject();
-	void DoDeleteSelected();
-	void DoUpdateSelected();
 	void DoGroupByType(bool enable_group_by_type);
 		
 	sig::signal<void(const ICls64&)> sigBeforePathChange;

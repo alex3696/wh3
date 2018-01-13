@@ -60,9 +60,33 @@ void CtrlTableBrowser::RefreshClsObjects(int64_t cid)
 	mModel->GetModelBrowser()->DoRefreshObjects (cid);
 }
 //---------------------------------------------------------------------------
+void wh::CtrlTableBrowser::Act()
+{
+}
+//---------------------------------------------------------------------------
+void wh::CtrlTableBrowser::Move()
+{
+}
+//---------------------------------------------------------------------------
 void CtrlTableBrowser::ShowSelectedObjDetail()
 {
 	mView->SetShowDetail();
+}
+//---------------------------------------------------------------------------
+void wh::CtrlTableBrowser::AddType()
+{
+}
+//---------------------------------------------------------------------------
+void wh::CtrlTableBrowser::AddObject()
+{
+}
+//---------------------------------------------------------------------------
+void wh::CtrlTableBrowser::DeleteSelected()
+{
+}
+//---------------------------------------------------------------------------
+void wh::CtrlTableBrowser::UpdateSelected()
+{
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::ShowObjDetail(int64_t oid, int64_t parent_oid)
@@ -85,16 +109,15 @@ void CtrlTableBrowser::ShowObjDetail(int64_t oid, int64_t parent_oid)
 }
 
 
-
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 CtrlToolbarBrowser::CtrlToolbarBrowser(
 	const std::shared_ptr<IViewToolbarBrowser>& view
 	, const std::shared_ptr<ModelPageBrowser>& model
-	, CtrlPageBrowser* mCtrlParent)
+	, CtrlTableBrowser* table_ctrl)
 	: CtrlWindowBase(view, model)
-	, mCtrlParent(mCtrlParent)
+	, mTableCtrl(table_ctrl)
 {
 	namespace ph = std::placeholders;
 
@@ -142,37 +165,37 @@ void CtrlToolbarBrowser::Up()
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::Act()
 {
-	mModel->GetModelBrowser()->DoAct();
+	mTableCtrl->Act();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::Move()
 {
-	mModel->GetModelBrowser()->DoMove();
+	mTableCtrl->Move();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::ShowDetail()
 {
-	mCtrlParent->ShowDetail();
+	mTableCtrl->ShowSelectedObjDetail();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::AddType()
 {
-	mModel->GetModelBrowser()->DoAddType();
+	mTableCtrl->AddType();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::AddObject()
 {
-	mModel->GetModelBrowser()->DoAddObject();
+	mTableCtrl->AddObject();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::DeleteSelected()
 {
-	mModel->GetModelBrowser()->DoDeleteSelected();
+	mTableCtrl->DeleteSelected();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::UpdateSelected()
 {
-	mModel->GetModelBrowser()->DoUpdateSelected();
+	mTableCtrl->UpdateSelected();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::GroupByType(bool enable_group_by_type)
@@ -203,10 +226,11 @@ CtrlPageBrowser::CtrlPageBrowser(
 	const std::shared_ptr<IViewBrowserPage>& view
 	, const std::shared_ptr<ModelPageBrowser>& model)
 	: CtrlWindowBase(view, model)
-	, mCtrlTableBrowser(std::make_shared<CtrlTableBrowser>(view->GetViewTableBrowser(), model))
-	, mCtrlToolbarBrowser(std::make_shared<CtrlToolbarBrowser>(view->GetViewToolbarBrowser(), model, this))
-	, mCtrlPathBrowser(std::make_shared<CtrlPathBrowser>(view->GetViewPathBrowser(), model))
 {
+	mCtrlTableBrowser = std::make_shared<CtrlTableBrowser>(view->GetViewTableBrowser(), model);
+	mCtrlToolbarBrowser = std::make_shared<CtrlToolbarBrowser>(view->GetViewToolbarBrowser(), model, mCtrlTableBrowser.get());
+	mCtrlPathBrowser = std::make_shared<CtrlPathBrowser>(view->GetViewPathBrowser(), model);
+
 
 	namespace ph = std::placeholders;
 
@@ -221,9 +245,4 @@ CtrlPageBrowser::CtrlPageBrowser(
 void CtrlPageBrowser::Find(const wxString& str)
 {
 	mModel->GetModelBrowser()->DoFind(str);
-}
-//---------------------------------------------------------------------------
-void CtrlPageBrowser::ShowDetail()
-{
-	mCtrlTableBrowser->ShowSelectedObjDetail();
 }

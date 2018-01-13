@@ -80,29 +80,6 @@ public:
 	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool) override;
 
 
-
-	void OnCmd_Refresh(wxCommandEvent& evt = wxCommandEvent());
-	void OnCmd_Up(wxCommandEvent& evt = wxCommandEvent());
-
-	void OnCmd_Act(wxCommandEvent& evt = wxCommandEvent());
-	void OnCmd_Move(wxCommandEvent& evt = wxCommandEvent());
-	void OnCmd_ShowDetail(wxCommandEvent& evt = wxCommandEvent());
-	
-
-	void OnCmd_AddType(wxCommandEvent& evt = wxCommandEvent());
-	void OnCmd_AddObject(wxCommandEvent& evt = wxCommandEvent());
-	void OnCmd_DeleteSelected(wxCommandEvent& evt = wxCommandEvent());
-	void OnCmd_UpdateSelected(wxCommandEvent& evt = wxCommandEvent());
-
-	void OnCmd_GroupByType(wxCommandEvent& evt = wxCommandEvent());
-	void OnCmd_CollapseGroupByType(wxCommandEvent& evt = wxCommandEvent());
-
-	//void OnCmd_ShowDetail(wxCommandEvent& evt = wxCommandEvent());
-	//void OnCmd_ShowFilters(wxCommandEvent& evt = wxCommandEvent());
-	//void OnCmd_ShowHistory(wxCommandEvent& evt = wxCommandEvent());
-	//void OnCmd_ShowProperties(wxCommandEvent& evt = wxCommandEvent());
-
-
 };
 //-----------------------------------------------------------------------------
 class ViewPathBrowser : public IViewPathBrowser

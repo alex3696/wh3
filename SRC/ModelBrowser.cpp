@@ -2,51 +2,7 @@
 #include "ModelBrowser.h"
 
 using namespace wh;
-//-----------------------------------------------------------------------------
-void ActCache::LoadDetailById(const std::set<int64_t>& aid_vector)
-{
-	if (aid_vector.empty())
-		return;
-	//Clear();
 
-	wxString str_aid;
-	for (const int64_t& aid : aid_vector)
-	{
-		wxLongLong ll(aid);
-		str_aid += wxString::Format(" OR id=%s", ll.ToString() );
-	}
-	str_aid.Remove(0, 3);
-
-	wxString query = wxString::Format(
-		"SELECT id, title, note, color"
-		" FROM act WHERE %s"
-		, str_aid);
-
-	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
-	if (table)
-	{
-		unsigned int rowQty = table->GetRowCount();
-		size_t row = 0;
-		const fnModify fn = [this, &table, &row](const std::shared_ptr<RowType>& iact)
-		{
-			auto act = std::dynamic_pointer_cast<ActRec64>(iact);
-			//act->SetId(table->GetAsString(0, row));
-			act->SetTitle(table->GetAsString(1, row));
-			act->SetColour(table->GetAsString(2, row));
-		};
-
-
-		for (; row < rowQty; row++)
-		{
-			int64_t id;
-			if (!table->GetAsString(0, row).ToLongLong(&id))
-				throw;
-
-			UpdateOrInsert(id, fn);
-		}//for
-	}//if (table)
-
-}
 //-----------------------------------------------------------------------------
 void ActCache::LoadDetailById()
 {
@@ -57,8 +13,12 @@ void ActCache::LoadDetailById()
 	wxString str_aid;
 	for (const auto& it : mData)
 	{
-		str_aid += wxString::Format(" OR id=%s", it->GetIdAsString());
+		if(it->GetTitle().empty())// do not load if title already exists
+			str_aid += wxString::Format(" OR id=%s", it->GetIdAsString());
 	}
+	if (str_aid.empty())
+		return;
+
 	str_aid.Remove(0, 3);
 
 	wxString query = wxString::Format(
@@ -1019,34 +979,10 @@ void ModelBrowser::DoUp()
 	}
 }
 //-----------------------------------------------------------------------------
-void ModelBrowser::DoAct()
-{
-}
-//-----------------------------------------------------------------------------
-void ModelBrowser::DoMove()
-{
-}
-//-----------------------------------------------------------------------------
 void ModelBrowser::DoFind(const wxString& str)
 {
 	SetSearchString(str);
 	DoRefresh();
-}
-//-----------------------------------------------------------------------------
-void ModelBrowser::DoAddType()
-{
-}
-//-----------------------------------------------------------------------------
-void ModelBrowser::DoAddObject()
-{
-}
-//-----------------------------------------------------------------------------
-void ModelBrowser::DoDeleteSelected()
-{
-}
-//-----------------------------------------------------------------------------
-void ModelBrowser::DoUpdateSelected()
-{
 }
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoGroupByType(bool enable_group_by_type)

@@ -142,7 +142,23 @@ public:
 			}
 		}break;
 		//case 3: variant = wxString("qwe3");  break;
-		default: break;
+		default: {
+			const auto& idxCol = mActColumns.get<1>();
+			const auto it = idxCol.find(col);
+			if (idxCol.end() != it)
+			{
+				if (it->mAcol & 2)
+				{
+					wxString period;
+					if (cls.GetActPeriod(it->mAid, period))
+					{
+						double dperiod;
+						if (period.ToCDouble(&dperiod))
+							variant = wxString::Format("%g", dperiod / 86400);
+					}
+				}
+			}//if (idxCol.end() != it)
+		}break;
 		}//switch (col)
 	}
 
@@ -466,28 +482,23 @@ public:
 		return 0;
 	}
 
-	void SetGroupByType(bool group)
+	const IIdent64* GetCurrentRoot()const
 	{
-		mGroupByType = group;
-		Cleared();
+		return mCurrentRoot;
 	}
-
 	virtual bool  IsListModel() const override
 	{
 		return !mGroupByType;
 	}
 
-	void SetClsList(const std::vector<const IIdent64*>* current, const IIdent64* curr = nullptr)
+	void SetClsList(const std::vector<const IIdent64*>* current, const IIdent64* curr, bool group_by_type)
 	{
+		mGroupByType = group_by_type;
 		mCurrentRoot = curr;
 		mClsList = current;
 		Cleared();
 	}
 
-	const IIdent64* GetCurrentRoot()const
-	{
-		return mCurrentRoot;
-	}
 
 
 };
@@ -578,7 +589,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 		, &ViewTableBrowser::OnCmd_Up, this, wxID_UP);
 
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED
-		, [this](wxCommandEvent&) {SetShowDetail(); }, wxID_INFO);
+		, [this](wxCommandEvent&) {SetShowDetail(); }, wxID_VIEW_DETAILS);
 
 
 
@@ -587,7 +598,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	entries[0].Set(wxACCEL_CTRL, (int) 'R', wxID_REFRESH);
 	entries[1].Set(wxACCEL_NORMAL, WXK_F5,   wxID_REFRESH);
 	entries[2].Set(wxACCEL_NORMAL, WXK_BACK, wxID_UP);
-	entries[3].Set(wxACCEL_CTRL, WXK_RETURN, wxID_INFO);
+	entries[3].Set(wxACCEL_CTRL, WXK_RETURN, wxID_VIEW_DETAILS);
 	wxAcceleratorTable accel(4, entries);
 	table->SetAcceleratorTable(accel);
 
@@ -892,21 +903,20 @@ void ViewTableBrowser::RestoreSelect()
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::AutosizeColumns()
 {
+	if (!mColAutosize)
+		return;
+
 	TEST_FUNC_TIME;
 	wxBusyCursor busyCursor;
-
-	if (mColAutosize)
+	//for (size_t i = 0; i < mTable->GetColumnCount(); i++)
+	for (size_t i = 0; i < 4; i++)
 	{
-		//for (size_t i = 0; i < mTable->GetColumnCount(); i++)
-		for (size_t i = 0; i < 4; i++)
-		{
-			auto col_pos = mTable->GetModelColumnIndex(i);
-			auto col = mTable->GetColumn(col_pos);
-			if(col)
-				col->SetWidth(mTable->GetBestColumnWidth(i));
-		}
-			
+		auto col_pos = mTable->GetModelColumnIndex(i);
+		auto col = mTable->GetColumn(col_pos);
+		if(col)
+			col->SetWidth(mTable->GetBestColumnWidth(i));
 	}
+			
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::ResetColumns()
@@ -1090,8 +1100,7 @@ void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>&
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 	if (dvmodel)
 	{
-		dvmodel->SetGroupByType(group_by_type);
-		dvmodel->SetClsList(nullptr, nullptr);
+		dvmodel->SetClsList(nullptr, nullptr, group_by_type);
 	}
 	
 	
@@ -1110,52 +1119,49 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& ve
 {
 	TEST_FUNC_TIME;
 	wxBusyCursor busyCursor;
-	{
-		wxWindowUpdateLocker lock(mTable);
+	wxWindowUpdateLocker lock(mTable);
+	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+	if (!dvmodel)
+		return;
 
-		auto col3 = mTable->GetColumn(1);
-		if (root)
-		{
-			// and CLASS catalog 
-			col3->SetHidden(true);
-		}
-		else
-		{
-			col3->SetHidden(!mTable->GetModel()->IsListModel());
-		}
+	auto col3 = mTable->GetColumn(1);
+	if (root)
+	{
+		// and CLASS catalog 
+		col3->SetHidden(true);
+	}
+	else
+	{
+		col3->SetHidden(!mTable->GetModel()->IsListModel());
+	}
 			
 		
-		mParentCid = root ? root->GetId() : 0;
-		//mParent = root;
-		mClsList = vec;
-		auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-		if (dvmodel)
-		{
-			dvmodel->SetGroupByType(group_by_type);
-			dvmodel->SetClsList(&mClsList, (root && 1 != root->GetId()) ? root : nullptr);
+	mParentCid = root ? root->GetId() : 0;
+	mClsList = vec;
+	dvmodel->SetClsList(&mClsList, (root && 1 != root->GetId()) ? root : nullptr, group_by_type);
 
-		}
-
-		if (!dvmodel->IsListModel())
+	if (!dvmodel->IsListModel())
+	{
+		bool tmp_autosize = mColAutosize;
+		mColAutosize = false;
+		for (const auto& cid : mExpandedCls)
 		{
-			for (const auto& cid : mExpandedCls)
+			auto ident = FindChildCls(cid);
+			if (ident)
 			{
-				auto ident = FindChildCls(cid);
-				if (ident)
-				{
-					wxDataViewItem item((void*)ident);
-					mTable->Expand(item);
-				}
-			}//for (const auto& cid : mExpandedCls)
-		}
-		else
-		{
-			RebuildClsColumns(vec);
-		}
-
-
-
+				wxDataViewItem item((void*)ident);
+				mTable->Expand(item);
+			}
+		}//for (const auto& cid : mExpandedCls)
+		mColAutosize = tmp_autosize;
 	}
+	else
+	{
+		RebuildClsColumns(vec);
+	}
+
+
+
 	
 	RestoreSelect();
 	AutosizeColumns();
@@ -1263,8 +1269,8 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 
 	//tool_bar->AddTool(wxID_EXECUTE, "Выполнить", mgr->m_ico_act24, "Выполнить(F9)");
 	//tool_bar->AddTool(wxID_REPLACE, "Переместить", mgr->m_ico_move24, "Переместить(F6)");
-	tool_bar->AddTool(wxID_INFO, "Выбрать свойства", mgr->m_ico_favprop_select24, "Выбрать свойства(CTRL+P)");
-	tool_bar->AddTool(wxID_INFO, "Подробно", mgr->m_ico_views24, "Подробно(F8)");
+	tool_bar->AddTool(wxID_PROPERTIES, "Выбрать свойства", mgr->m_ico_favprop_select24, "Выбрать свойства(CTRL+P)");
+	tool_bar->AddTool(wxID_VIEW_DETAILS, "Подробно", mgr->m_ico_views24, "Подробно(F8)");
 
 	if ((int)currBaseGroup >= (int)bgTypeDesigner)
 	{
@@ -1293,19 +1299,23 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 
 	tool_bar->Realize();
 
-	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_Refresh, this, wxID_REFRESH);
-	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_Up, this, wxID_UP);
-	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_Act, this, wxID_EXECUTE);
-	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_Move, this, wxID_REPLACE);
-	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_ShowDetail, this, wxID_INFO);
-	
-	
-	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_AddType, this, wxID_NEW_TYPE);
-	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_AddObject, this, wxID_NEW_OBJECT);
-	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_DeleteSelected, this, wxID_DELETE);
-	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_UpdateSelected, this, wxID_EDIT);
+	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigRefresh();}, wxID_REFRESH);
+	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigUp();}, wxID_UP);
+	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigAct();}, wxID_EXECUTE);
+	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigMove();}, wxID_REPLACE);
+	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigShowDetail();}, wxID_VIEW_DETAILS);
+	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigAddType(); }, wxID_NEW_TYPE);
+	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigAddObject(); }, wxID_NEW_OBJECT);
+	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigDeleteSelected(); }, wxID_DELETE);
+	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigUpdateSelected(); }, wxID_EDIT);
 
-	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewToolbarBrowser::OnCmd_GroupByType, this, wxID_VIEW_LIST);
+	auto fnOnCmd_GroupByType = [this](wxCommandEvent&) 
+	{
+		int state = mToolbar->FindTool(wxID_VIEW_LIST)->GetState();
+		int enable = state & wxAUI_BUTTON_STATE_CHECKED;
+		sigGroupByType(enable ? false : true);
+	};
+	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, fnOnCmd_GroupByType, wxID_VIEW_LIST);
 
 	mToolbar = tool_bar;
 
@@ -1329,60 +1339,6 @@ void ViewToolbarBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& 
 	mToolbar->FindTool(wxID_VIEW_LIST)->SetState(show);
 	mToolbar->Refresh();
 }
-//-----------------------------------------------------------------------------
-//virtual 
-void ViewToolbarBrowser::OnCmd_Refresh(wxCommandEvent& evt)
-{
-	sigRefresh();
-}
-//-----------------------------------------------------------------------------
-//virtual 
-void ViewToolbarBrowser::OnCmd_Up(wxCommandEvent& evt)
-{
-	sigUp();
-}
-//-----------------------------------------------------------------------------
-//virtual 
-void ViewToolbarBrowser::OnCmd_Act(wxCommandEvent& evt)
-{}
-//-----------------------------------------------------------------------------
-//virtual 
-void ViewToolbarBrowser::OnCmd_Move(wxCommandEvent& evt)
-{}
-//-----------------------------------------------------------------------------
-//virtual 
-void ViewToolbarBrowser::OnCmd_ShowDetail(wxCommandEvent& evt)
-{
-	sigShowDetail();
-}
-//-----------------------------------------------------------------------------
-//virtual 
-void ViewToolbarBrowser::OnCmd_AddType(wxCommandEvent& evt )
-{}
-//-----------------------------------------------------------------------------
-//virtual 
-void ViewToolbarBrowser::OnCmd_AddObject(wxCommandEvent& evt )
-{}
-//-----------------------------------------------------------------------------
-//virtual 
-void ViewToolbarBrowser::OnCmd_DeleteSelected(wxCommandEvent& evt )
-{}
-//-----------------------------------------------------------------------------
-//virtual 
-void ViewToolbarBrowser::OnCmd_UpdateSelected(wxCommandEvent& evt )
-{}
-//-----------------------------------------------------------------------------
-//virtual 
-void ViewToolbarBrowser::OnCmd_GroupByType(wxCommandEvent& evt)
-{
-	int state = mToolbar->FindTool(wxID_VIEW_LIST)->GetState();
-	int enable = state & wxAUI_BUTTON_STATE_CHECKED;
-	sigGroupByType(enable ? false : true);
-}
-//-----------------------------------------------------------------------------
-//virtual 
-void ViewToolbarBrowser::OnCmd_CollapseGroupByType(wxCommandEvent& evt )
-{}
 
 
 //-----------------------------------------------------------------------------

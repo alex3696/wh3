@@ -35,7 +35,14 @@ public:
 	void Activate(int64_t cid);
 	void RefreshClsObjects(int64_t cid);
 
+	void Act();
+	void Move();
 	void ShowSelectedObjDetail();
+	void AddType();
+	void AddObject();
+	void DeleteSelected();
+	void UpdateSelected();
+
 	void ShowObjDetail(int64_t oid, int64_t parent_oid);
 };
 //-----------------------------------------------------------------------------
@@ -55,18 +62,14 @@ class CtrlToolbarBrowser final : public CtrlWindowBase<IViewToolbarBrowser, Mode
 
 	sig::scoped_connection connViewCmd_GroupByType;
 
-	//sig::scoped_connection connViewCmd_ShowDetail;
-	//sig::scoped_connection connViewCmd_ShowFilters;
-	//sig::scoped_connection connViewCmd_ShowHistory;
-	//sig::scoped_connection connViewCmd_ShowProperties;
 
 	sig::scoped_connection connModel_AfterRefreshCls;
 
-	CtrlPageBrowser* mCtrlParent;
+	CtrlTableBrowser* mTableCtrl;
 public:
 	CtrlToolbarBrowser(const std::shared_ptr<IViewToolbarBrowser>& view
 		, const  std::shared_ptr<ModelPageBrowser>& model
-		, CtrlPageBrowser* mCtrlParent);
+		, CtrlTableBrowser* table_ctrl);
 
 	void Refresh();
 	void Up();
@@ -111,7 +114,6 @@ public:
 
 
 	void Find(const wxString&);
-	void ShowDetail();
 };
 
 
