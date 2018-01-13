@@ -986,7 +986,7 @@ ALTER TABLE acls
 -------------------------------------------------------------------------------
 ------ избранные свойства для действий ----------------------------------------
 -------------------------------------------------------------------------------
-DROP TABLE IF EXISTS fav_act;
+DROP TABLE IF EXISTS fav_act CASCADE;
 DROP SEQUENCE IF EXISTS fav_act_id_seq CASCADE;
 CREATE SEQUENCE fav_act_id_seq  INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
 CREATE TABLE fav_act
@@ -1021,8 +1021,7 @@ GRANT SELECT, INSERT, DELETE, UPDATE ON TABLE fav_act TO "Guest";
 -------------------------------------------------------------------------------
 ------ избранные свойства для ОБЬЕКТОВ ----------------------------------------
 -------------------------------------------------------------------------------
-
-DROP TABLE IF EXISTS fav_oprop;
+DROP TABLE IF EXISTS fav_oprop CASCADE;
 DROP SEQUENCE IF EXISTS fav_oprop_id_seq CASCADE;
 CREATE SEQUENCE fav_oprop_id_seq  INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
 CREATE TABLE fav_oprop
@@ -1034,7 +1033,7 @@ CREATE TABLE fav_oprop
 
   ,CONSTRAINT pk_fav_oprop__id PRIMARY KEY (id)
   ,CONSTRAINT uk_fav_oprop__usr_cid_pid UNIQUE (usr, cid, pid)
-  ,CONSTRAINT fk_fav_oprop__aid FOREIGN KEY (pid)
+  ,CONSTRAINT fk_fav_oprop__pid FOREIGN KEY (pid)
       REFERENCES prop (id) MATCH FULL
       ON UPDATE CASCADE ON DELETE CASCADE
   ,CONSTRAINT fk_fav_oprop_usr FOREIGN KEY (usr)
@@ -1053,7 +1052,7 @@ GRANT SELECT, INSERT, DELETE, UPDATE ON TABLE fav_oprop TO "Guest";
 -------------------------------------------------------------------------------
 ------ избранные свойства для КЛАССОВ  ----------------------------------------
 -------------------------------------------------------------------------------
-DROP TABLE IF EXISTS fav_cprop;
+DROP TABLE IF EXISTS fav_cprop CASCADE;
 DROP SEQUENCE IF EXISTS fav_cprop_id_seq CASCADE;
 CREATE SEQUENCE fav_cprop_id_seq  INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
 CREATE TABLE fav_cprop
@@ -1065,7 +1064,7 @@ CREATE TABLE fav_cprop
 
   ,CONSTRAINT pk_fav_cprop__id PRIMARY KEY (id)
   ,CONSTRAINT uk_fav_cprop__usr_cid_pid UNIQUE (usr, cid, pid)
-  ,CONSTRAINT fk_fav_cprop__aid FOREIGN KEY (pid)
+  ,CONSTRAINT fk_fav_cprop__pid FOREIGN KEY (pid)
       REFERENCES prop (id) MATCH FULL
       ON UPDATE CASCADE ON DELETE CASCADE
   ,CONSTRAINT fk_fav_cprop_usr FOREIGN KEY (usr)
