@@ -152,6 +152,7 @@ public:
 	{
 	}
 	void ParseActInfo(const wxString& act_info_json);
+	void ParseActInfo();
 
 	bool SetId(const wxString& str) { return str.ToLongLong(&mId); }
 	void SetId(const int64_t& val) { mId = val; }
@@ -186,9 +187,9 @@ public:
 		return str.ToLongLong(&mParentId);
 	}
 
-	virtual bool GetActPrevios(int64_t aid, wxDateTime& dt)const override;
-	virtual bool GetActNext(int64_t aid, wxDateTime& dt)const override;
-	virtual bool GetActLeft(int64_t aid, double& dt)const override;
+	virtual int GetActPrevios(int64_t aid, wxDateTime& dt)const override;
+	virtual int GetActNext(int64_t aid, wxDateTime& dt)const override;
+	virtual int GetActLeft(int64_t aid, double& dt)const override;
 
 };
 //-----------------------------------------------------------------------------

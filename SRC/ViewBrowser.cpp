@@ -183,61 +183,76 @@ public:
 			const auto it = idxCol.find(col);
 			if (idxCol.end() != it)
 			{
-				wxLongLong ll(it->mAid);
-				std::wstring ss = ll.ToString() << L"." << (int)it->mAcol;
-				std::wstring act_val = obj.GetActInfo().get<std::wstring>(ss, L"");
-				if (!act_val.empty())
+				
+				switch (it->mAcol)
 				{
-					if (0 == act_val.compare(L"null"))
-						variant = wxString("не выполнялась");
-					else
+				case 1: {
+					wxDateTime dt;
+					int ret = obj.GetActPrevios(it->mAid, dt);
+					switch (ret)
 					{
-						switch (it->mAcol)
-						{
-						case 1: case 4: {
-							wxDateTime dt;
-							dt.ParseISOCombined(act_val);
-							if (dt.IsValid())
-							{
-								wxString str = wxString::Format("%s %s", dt.Format(format_d), dt.Format(format_t));
-								variant = wxString::Format("%s %s", dt.Format(format_d), dt.Format(format_t));
-							}
-						} break;
-						case 2: {
-							if (2 == it->mAcol)
-							{
-								wxString period;
-								if (obj.GetActPeriod(it->mAid, period))
-								{
-									double dperiod;
-									if (period.ToCDouble(&dperiod))
-									{
-										variant = wxString::Format("%g", dperiod / 86400);
-										//variant = dperiod / 86400;
-									}
-								}
-							}
-							else
-								variant = wxString(act_val);
-						} break;
-						case 8: {
-							wxString str(act_val);
-							variant = str;
-						}break;
-						default:
-							variant = "*error*";
-							break;
-						}//switch (it->mAcol)
-
-							
+					case 1: {
+						if (dt.GetDateOnly() == dt)
+							variant = wxString::Format("%s", dt.Format(format_d));
+						else
+							variant = wxString::Format("%s %s", dt.Format(format_d), dt.Format(format_t));
+					}break;
+					case -1: {
+						variant = wxString("не выполнялось");
 					}
-				}//if (!act_val.empty())
+					default: break;
+					}
+				}break;
+				case 2: if (!mGroupByType) {
+					wxString period;
+					if (obj.GetActPeriod(it->mAid, period))
+					{
+						double dperiod;
+						if (period.ToCDouble(&dperiod))
+						{
+							variant = wxString::Format("%g", dperiod / 86400);
+							//variant = dperiod / 86400;
+						}
+					}
+				} break;
+				case 4: {
+					wxDateTime dt;
+					int ret = obj.GetActNext(it->mAid, dt);
+					switch (ret)
+					{
+					case 1: {
+						if (dt.GetDateOnly() == dt)
+							variant = wxString::Format("%s", dt.Format(format_d));
+						else
+							variant = wxString::Format("%s %s", dt.Format(format_d), dt.Format(format_t));
+					}break;
+					case -1: {
+						variant = wxString("не выполнялось");
+					}
+					default: break;
+					}//switch (ret)
+				}break;
+				case 8: {
+					double left;
+					int ret = obj.GetActLeft(it->mAid, left);
+					switch (ret)
+					{
+					case 1: {
+						variant = wxString::Format("%g", left);
+					}break;
+					case -1: {
+						variant = wxString("не выполнялось");
+					}break;
+					default: break;
+					}//switch (ret)
+				}break;
+				default: {
+					variant = "*error*";
+				}break;
+				}//switch (it->mAcol)
 			}
-
 		}break;
-			
-			
-		}
+		}//switch (col)
 	}
 
 	virtual void GetValue(wxVariant &variant,
@@ -271,13 +286,18 @@ public:
 		
 		if (!item.IsOk())
 			return false;
-		
+
+		const auto node = static_cast<const IIdent64*> (item.GetID());
+		const auto obj = dynamic_cast<const IObj64*>(node);
+		if(!obj)
+			return false;
+
+
+
 		switch (col)
 		{
 		case 0:/*case 1:*/case 2:/*case 3:*/{
-			const auto node = static_cast<const IIdent64*> (item.GetID());
-			const auto obj = dynamic_cast<const IObj64*>(node);
-			if (obj && (0 == col || (2 == col && ClsKind::Single != obj->GetCls()->GetKind())))
+			if (0 == col || (2 == col && ClsKind::Single != obj->GetCls()->GetKind()))
 			{
 				attr.SetBold(true);
 				return true;
@@ -288,47 +308,64 @@ public:
 			const auto it = idxCol.find(col);
 			if (idxCol.end() != it)
 			{
-				if (it->mAcol & 8)
-				{
-					wxVariant val;
-					GetValue(val, item, col);
-					if (val.IsType("string"))
+				switch (it->mAcol){
+				default: break;
+				case 4: { //next
+					wxDateTime next;
+					int ret = obj->GetActNext(it->mAid, next);
+					switch (ret)
 					{
-						auto left_str = val.GetString();
-						double left;
-						if (!left_str.empty())
+					case 1: {
+						if (next.IsEarlierThan(wxDateTime::Now() + wxTimeSpan(240, 0, 0, 0)))
 						{
-							if (left_str.ToCDouble(&left))
+							attr.SetBold(true);
+							if (next.IsEarlierThan(wxDateTime::Now()))
+								attr.SetColour(*wxRED);
+							else
+								attr.SetColour(wxColour(230, 130, 30));
+							return true;
+						}
+					}break;
+					case -1: {
+						attr.SetBold(true);
+						attr.SetColour(*wxRED);
+						return true;
+					}break;
+					default: break;
+					}//switch (ret)
+				}break;
+				case 8: { 
+					double left;
+					int ret = obj->GetActLeft(it->mAid, left);
+					switch (ret)
+					{
+					case 1: {
+						if (left < 10)
+						{
+							attr.SetBold(true);
+							if (left<0)
 							{
-								if (left< 10)
-								{
-									attr.SetBold(true);
-									if (left<0)
-									{
-										//attr.SetBackgroundColour(wxColour(255, 200, 200));
-										attr.SetColour(*wxRED);
-									}
-									else
-									{
-										//attr.SetBackgroundColour(*wxYELLOW);
-										attr.SetColour(wxColour(230, 130, 30));
-									}//else if (left<0)
-									return true;
-								}//if (left< 10)
+								//attr.SetBackgroundColour(wxColour(255, 200, 200));
+								attr.SetColour(*wxRED);
 							}
 							else
 							{
-								//if (left_str == "--")
-								{
-									attr.SetBold(true);
-									//attr.SetBackgroundColour(wxColour(255, 200, 200));
-									attr.SetColour(*wxRED);
-									return true;
-								}
-							}
-						}//if (!left_str.empty())
-					}//if (val.IsType("string"))
-				}//if (it->mAcol & 8)
+								//attr.SetBackgroundColour(*wxYELLOW);
+								attr.SetColour(wxColour(230, 130, 30));
+							}//else if (left<0)
+							return true;
+						}
+					}break;
+					case -1: {
+						attr.SetBold(true);
+						attr.SetColour(*wxRED);
+						return true;
+					}break;
+					default: break;
+					}//switch (ret)
+
+				}break;
+				}//switch (it->mAcol)
 			}//if (idxCol.end() != it)
 		}break;
 		}//switch (col)
@@ -393,7 +430,7 @@ public:
 				size_t len1;
 				double num1;
 				bool match = mStartNum.GetMatch(&start1, &len1);
-				if (match && str1.substr(start1, len1).ToCDouble(&num1))
+				if (match && str1.substr(start1, len1).ToDouble(&num1))
 				{
 					if (mStartNum.Matches(str2))
 					{
@@ -401,7 +438,7 @@ public:
 						size_t len2;
 						double num2;
 						match = mStartNum.GetMatch(&start2, &len2);
-						if (match && str2.substr(start2, len2).ToCDouble(&num2))
+						if (match && str2.substr(start2, len2).ToDouble(&num2))
 						{
 							
 							if (num1 < num2)
@@ -999,14 +1036,14 @@ void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec
 							wxString str;
 							switch (acol.mAcol)
 							{
-							case 2: str="период(сут.)"; break;
-							case 4: str = "след."; break;
-							case 8: str = "осталось(сут.)"; break;
-							default:str = "пред."; break;
+							case 2: str=" период(сут.)"; break;
+							case 4: str = " след."; break;
+							case 8: str = " осталось(сут.)"; break;
+							default:str = " пред."; break;
 							}
 
 							wxString title;
-							title << fa_it->GetTitle() << ":" << str;
+							title << fa_it->GetTitle() << str;
 							auto col = this->mTable->AppendTextColumn(title, acol.mIndex
 								, wxDATAVIEW_CELL_INERT, -1, wxALIGN_NOT
 								, wxDATAVIEW_COL_REORDERABLE |  wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
@@ -1014,10 +1051,8 @@ void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec
 							col->SetWidth(mTable->GetBestColumnWidth(col_pos));
 
 						}
-					}
-				}
-				
-
+					}//if (visible & v)
+				}//for (char v = 1; v <= 8; v<<=1)
 			}
 		}
 

@@ -49,7 +49,7 @@ void Moveable::Load()
 		" LEFT JOIN acls ON acls.id = _dst_cls_id "
 		" ORDER BY "
 		"   acls.title ASC "
-		"   ,(substring(_dst_obj_label, '^[0-9]+')::INT, _dst_obj_label ) ASC "
+		"   ,(substring(_dst_obj_label, '^[0-9]{1,9}')::INT, _dst_obj_label ) ASC "
 		, mMoveble->mObj.mId.SqlVal()
 		, mMoveble->mObj.mParent.mId.SqlVal()
 		);

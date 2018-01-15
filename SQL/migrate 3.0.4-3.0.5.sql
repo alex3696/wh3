@@ -136,10 +136,10 @@ CREATE OR REPLACE VIEW  obj_current_info AS
                                   'fav_act',
                                   jsonb_object_agg( 
                                                     all_fav_bitor.aid  --ref_cls_act.act_id
-                                                    ,CASE WHEN((visible & 1)>0) THEN jsonb_build_object('1',previos ) ELSE '{}'::jsonb END 
+                                                    ,CASE WHEN((visible & 1)>0) THEN jsonb_build_object('1',CASE WHEN((visible & 16)>0) THEN previos::TEXT ELSE previos::DATE::TEXT END  ) ELSE '{}'::jsonb END 
                                                     ||CASE WHEN(period IS NOT NULL) THEN 
                                                            CASE WHEN((visible & 2)>0) THEN jsonb_build_object('2',EXTRACT(EPOCH FROM period) ) ELSE '{}' END 
-                                                        || CASE WHEN((visible & 4)>0) THEN jsonb_build_object('4',previos+period ) ELSE '{}' END 
+                                                        || CASE WHEN((visible & 4)>0) THEN jsonb_build_object('4',CASE WHEN((visible & 16)>0) THEN (previos+period)::TEXT ELSE (previos+period)::DATE::TEXT END  ) ELSE '{}'::jsonb END 
                                                         || CASE WHEN((visible & 8)>0) THEN jsonb_build_object('8',ROUND( (EXTRACT(EPOCH FROM (previos+period-now()) )/86400)::NUMERIC,2 ) )  ELSE '{}' END 
                                                     ELSE '{}' END 
                                   )

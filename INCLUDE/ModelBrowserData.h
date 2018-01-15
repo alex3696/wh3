@@ -235,9 +235,9 @@ public:
 	virtual std::shared_ptr<const IObj64> GetParent()const = 0;
 	virtual int64_t GetParentId()const = 0;
 
-	virtual bool GetActPrevios(int64_t aid, wxDateTime& dt)const = 0;
-	virtual bool GetActNext(int64_t aid, wxDateTime& dt)const = 0;
-	virtual bool GetActLeft(int64_t aid, double& dt)const = 0;
+	virtual int GetActPrevios(int64_t aid, wxDateTime& dt)const = 0;
+	virtual int GetActNext(int64_t aid, wxDateTime& dt)const = 0;
+	virtual int GetActLeft(int64_t aid, double& dt)const = 0;
 	bool GetActPeriod(int64_t aid, wxString& period)const
 	{
 		return GetCls()->GetActPeriod(aid, period);

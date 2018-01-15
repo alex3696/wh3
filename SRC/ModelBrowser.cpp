@@ -204,7 +204,13 @@ void ObjRec64::ParseActInfo(const wxString& act_info_json)
 	std::wstringstream ss(act_info_json.ToStdWstring());
 	mActInfo.clear();
 	boost::property_tree::read_json(ss, mActInfo);
-
+	ParseActInfo();
+}
+//-----------------------------------------------------------------------------
+void ObjRec64::ParseActInfo()
+{
+	if (mActInfo.empty())
+		return;
 	auto cache = this->mTable->GetCache();
 
 
@@ -261,37 +267,50 @@ std::shared_ptr<const IObj64> ObjRec64::GetParent()const //override
 }
 //-----------------------------------------------------------------------------
 //virtual 
-bool ObjRec64::GetActPrevios(int64_t aid, wxDateTime& dt)const //override
+int ObjRec64::GetActPrevios(int64_t aid, wxDateTime& dt)const //override
 {
 	wxLongLong ll(aid);
 	std::wstring ss = ll.ToString() << L"." << (int)1;
 	std::wstring act_val = GetActInfo().get<std::wstring>(ss, L"");
+	
+	if (act_val == "null")
+		return -1;
 
-	if (dt.ParseISOCombined(act_val) && dt.IsValid())
-		return true;
+	if (!dt.ParseISOCombined(act_val, ' '))
+		if (!dt.ParseISOCombined(act_val, 'T'))
+			if (!dt.ParseDate(act_val))
+				return 0;
 
-	return false;
+	return dt.IsValid()? 1 : 0;
 }
 //-----------------------------------------------------------------------------
 //virtual 
-bool ObjRec64::GetActNext(int64_t aid, wxDateTime& next)const //override
+int ObjRec64::GetActNext(int64_t aid, wxDateTime& next)const //override
 {
 	wxLongLong ll(aid);
 	std::wstring ss = ll.ToString() << L"." << (int)4;
 	std::wstring act_val = GetActInfo().get<std::wstring>(ss, L"");
 
-	if (next.ParseISOCombined(act_val) && next.IsValid())
-		return true;
+	if (act_val == "null")
+		return -1;
 
-	return false;
+	if (!next.ParseISOCombined(act_val, ' '))
+		if (!next.ParseISOCombined(act_val, 'T'))
+			if (!next.ParseDate(act_val))
+				return 0;
+
+	return next.IsValid() ? 1 : 0;
 }
 //-----------------------------------------------------------------------------
 //virtual 
-bool ObjRec64::GetActLeft(int64_t aid, double& left)const //override
+int ObjRec64::GetActLeft(int64_t aid, double& left)const //override
 {
 	wxLongLong ll(aid);
 	std::wstring ss = ll.ToString() << L"." << (int)8;
 	std::wstring act_val = GetActInfo().get<std::wstring>(ss, L"");
+
+	if (act_val == "null")
+		return -1;
 
 	if(wxString(act_val).ToCDouble(&left))
 		return true;
@@ -566,38 +585,12 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 	
 
 	wxString query = wxString::Format(
-		"SELECT o.id, o.title, o.qty, o.pid "
-		"       ,get_path_objnum(o.pid,1)  AS path"
-		"       ,prop"
-		"		,(WITH  cls_tree(id) AS( "
-		"			SELECT id FROM get_path_cls_info(o.cls_id, 1) "
-		"			) "
-		"			SELECT jsonb_object_agg(all_fav_bitor.aid  "
-		"				, CASE WHEN((visible & 1)>0) THEN jsonb_build_object('1', previos) ELSE '{}'::jsonb END "
-		"				|| CASE WHEN(period IS NOT NULL) THEN "
-		"					CASE WHEN((visible & 2)>0) THEN jsonb_build_object('2', EXTRACT(EPOCH FROM period)) ELSE '{}' END "
-		"					|| CASE WHEN((visible & 4)>0) THEN jsonb_build_object('4', previos + period) ELSE '{}' END "
-		"					|| CASE WHEN((visible & 8)>0) THEN jsonb_build_object('8', ROUND((EXTRACT(EPOCH FROM(previos + period - now())) / 86400)::NUMERIC, 2))  ELSE '{}' END "
-		"				ELSE '{}' END "
-		"				) as last_act "
-		"		FROM(SELECT aid, bit_or(visible) AS visible FROM cls_tree cls "
-		"			INNER JOIN fav_act ON fav_act.cid = cls.id AND fav_act.usr = CURRENT_USER "
-		"			GROUP BY aid)all_fav_bitor "
-		"		LEFT JOIN  LATERAL(SELECT ref_cls_act.period "
-		"			FROM cls_tree ct "
-		"			INNER JOIN ref_cls_act ON ref_cls_act.period IS NOT NULL "
-		"			AND ref_cls_act.cls_id = ct.id "
-		"			AND ref_cls_act.act_id = all_fav_bitor.aid "
-		"		)ref_ca ON TRUE "
-		"		LEFT JOIN(SELECT MAX(timemark) AS previos, act_id AS aid, obj_id AS oid "
-		"			FROM log_main GROUP BY obj_id, act_id) "
-		"		last_log             ON  last_log.oid = o.id "
-		"		AND last_log.aid = all_fav_bitor.aid "
-		"		AND last_log.aid<>0 "
-		"	) AS ainfo "
-		" FROM obj o "
-		" WHERE o.id>0 AND o.cls_id = %s "
-		" ORDER BY (substring(o.title, '^[0-9]+')::INT, o.title ) ASC "
+		"SELECT o.oid, o.title, o.qty, o.parent_oid "
+		"       ,get_path_objnum(o.parent_oid,1)  AS path"
+		"       ,fav_prop_info"
+		" FROM obj_current_info o "
+		" WHERE o.oid>0 AND o.cid = %s "
+		" ORDER BY (substring(o.title, '^[0-9]{1,9}')::INT, o.title ) ASC "
 		, cls->GetIdAsString()
 	);
 	whDataMgr::GetDB().BeginTransaction();
@@ -632,11 +625,14 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 				std::wstringstream ss(str.ToStdWstring());
 				obj->mProp.clear();
 				boost::property_tree::read_json(ss, obj->mProp);
-			}
-			str.clear();
-			table->GetAsString(6, i, str);
 
-			obj->ParseActInfo(str);
+				auto find_it = obj->mProp.find(L"fav_act");
+				if (obj->mProp.not_found() != find_it)
+				{
+					obj->mActInfo = find_it->second;
+					obj->ParseActInfo();
+				}
+			}
 
 
 		};
@@ -737,10 +733,10 @@ void ModelBrowser::DoRefreshFindInClsTree()
 		"			SELECT id FROM get_path_cls_info(obj.cls_id, 1) "
 		"			) "
 		"			SELECT jsonb_object_agg(all_fav_bitor.aid  "
-		"				, CASE WHEN((visible & 1)>0) THEN jsonb_build_object('1', previos) ELSE '{}'::jsonb END "
+		"				, CASE WHEN((visible & 1)>0) THEN jsonb_build_object('1', CASE WHEN((visible & 16)>0) THEN previos::TEXT ELSE previos::DATE::TEXT END) ELSE '{}'::jsonb END "
 		"				|| CASE WHEN(period IS NOT NULL) THEN "
 		"					CASE WHEN((visible & 2)>0) THEN jsonb_build_object('2', EXTRACT(EPOCH FROM period)) ELSE '{}' END "
-		"					|| CASE WHEN((visible & 4)>0) THEN jsonb_build_object('4', previos + period) ELSE '{}' END "
+		"					|| CASE WHEN((visible & 4)>0) THEN jsonb_build_object('4', CASE WHEN((visible & 16)>0) THEN(previos + period)::TEXT ELSE(previos + period)::DATE::TEXT END) ELSE '{}'::jsonb END "
 		"					|| CASE WHEN((visible & 8)>0) THEN jsonb_build_object('8', ROUND((EXTRACT(EPOCH FROM(previos + period - now())) / 86400)::NUMERIC, 2))  ELSE '{}' END "
 		"				ELSE '{}' END "
 		"				) as last_act "
@@ -763,8 +759,8 @@ void ModelBrowser::DoRefreshFindInClsTree()
 		" INNER JOIN obj obj ON obj.cls_id = cls._id "
 		" WHERE %s"
 		" ORDER BY " //cls._title ASC "
-		" (substring(cls._title, '^[0-9]+')::INT, cls._title ) ASC "
-		" ,(substring(obj.title, '^[0-9]+')::INT, obj.title ) ASC "
+		" (substring(cls._title, '^[0-9]{1,9}')::INT, cls._title ) ASC "
+		" ,(substring(obj.title, '^[0-9]{1,9}')::INT, obj.title ) ASC "
 		, parent_id, search);
 
 	
@@ -904,7 +900,7 @@ void ModelBrowser::DoRefresh()
 		" FROM acls"
 		" WHERE acls.id > 99 "
 		" AND pid = %s"
-		" ORDER BY acls.title ASC"
+		" ORDER BY (substring(acls.title, '^[0-9]{1,9}')::INT, acls.title ) ASC "
 		, parent_id
 		);
 	whDataMgr::GetDB().BeginTransaction();
