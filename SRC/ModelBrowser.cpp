@@ -246,7 +246,12 @@ void ObjRec64::ParseActInfo()
 			fa.mAct = cache->mActTable.UpdateOrInsert(aid, fn_act_upsert);
 			fa.mPeriod = period;
 			fa.mVisible = visible;
-			cls->mFavActLog.emplace(fa);
+			auto& idxAct = cls->mFavActLog.get<0>();
+			auto it = idxAct.find(aid);
+			if (idxAct.end() == it)
+				cls->mFavActLog.emplace(fa);
+			else
+				cls->mFavActLog.replace(it,fa);
 		};
 		cache->mClsTable.GetById(GetCls()->GetId(), upd_cls);
 
@@ -585,12 +590,12 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 	
 
 	wxString query = wxString::Format(
-		"SELECT o.oid, o.title, o.qty, o.parent_oid "
-		"       ,get_path_objnum(o.parent_oid,1)  AS path"
+		"SELECT obj.id, obj.title, obj.qty, obj.pid "
+		"       ,get_path_objnum(obj.pid,1)  AS path"
 		"       ,fav_prop_info"
-		" FROM obj_current_info o "
-		" WHERE o.oid>0 AND o.cid = %s "
-		" ORDER BY (substring(o.title, '^[0-9]{1,9}')::INT, o.title ) ASC "
+		" FROM obj_current_info obj "
+		" WHERE obj.id>0 AND obj.cls_id = %s "
+		" ORDER BY (substring(obj.title, '^[0-9]{1,9}')::INT, obj.title ) ASC "
 		, cls->GetIdAsString()
 	);
 	whDataMgr::GetDB().BeginTransaction();
@@ -724,39 +729,13 @@ void ModelBrowser::DoRefreshFindInClsTree()
 	}
 
 	wxString query = wxString::Format(
-		"SELECT cls._id, cls._pid, cls._title, cls._kind, cls._measure" //, cls._note, cls._dobj "
-		"      ,sum(qty) OVER(PARTITION BY cls._id ORDER BY cls._id DESC)  AS allqty "
-		"      ,obj.id, obj.pid, obj.title, obj.qty "
-		"      ,get_path_objnum(obj.pid,1)  AS path"
-		"      ,obj.prop "
-		"		,(WITH  cls_tree(id) AS( "
-		"			SELECT id FROM get_path_cls_info(obj.cls_id, 1) "
-		"			) "
-		"			SELECT jsonb_object_agg(all_fav_bitor.aid  "
-		"				, CASE WHEN((visible & 1)>0) THEN jsonb_build_object('1', CASE WHEN((visible & 16)>0) THEN previos::TEXT ELSE previos::DATE::TEXT END) ELSE '{}'::jsonb END "
-		"				|| CASE WHEN(period IS NOT NULL) THEN "
-		"					CASE WHEN((visible & 2)>0) THEN jsonb_build_object('2', EXTRACT(EPOCH FROM period)) ELSE '{}' END "
-		"					|| CASE WHEN((visible & 4)>0) THEN jsonb_build_object('4', CASE WHEN((visible & 16)>0) THEN(previos + period)::TEXT ELSE(previos + period)::DATE::TEXT END) ELSE '{}'::jsonb END "
-		"					|| CASE WHEN((visible & 8)>0) THEN jsonb_build_object('8', ROUND((EXTRACT(EPOCH FROM(previos + period - now())) / 86400)::NUMERIC, 2))  ELSE '{}' END "
-		"				ELSE '{}' END "
-		"				) as last_act "
-		"		FROM(SELECT aid, bit_or(visible) AS visible FROM cls_tree cls "
-		"			INNER JOIN fav_act ON fav_act.cid = cls.id AND fav_act.usr = CURRENT_USER "
-		"			GROUP BY aid)all_fav_bitor "
-		"		LEFT JOIN  LATERAL(SELECT ref_cls_act.period "
-		"			FROM cls_tree ct "
-		"			INNER JOIN ref_cls_act ON ref_cls_act.period IS NOT NULL "
-		"			AND ref_cls_act.cls_id = ct.id "
-		"			AND ref_cls_act.act_id = all_fav_bitor.aid "
-		"		)ref_ca ON TRUE "
-		"		LEFT JOIN(SELECT MAX(timemark) AS previos, act_id AS aid, obj_id AS oid "
-		"			FROM log_main GROUP BY obj_id, act_id) "
-		"		last_log             ON  last_log.oid = obj.id "
-		"		AND last_log.aid = all_fav_bitor.aid "
-		"		AND last_log.aid<>0 "
-		"	) AS ainfo "
+		"SELECT	cls._id, cls._pid, cls._title, cls._kind, cls._measure" //, cls._note, cls._dobj "
+		"		,sum(qty) OVER(PARTITION BY cls._id ORDER BY cls._id DESC)  AS allqty "
+		"		,obj.id, obj.pid, obj.title, obj.qty "
+		"		,get_path_objnum(obj.pid,1)  AS path"
+		"		,fav_prop_info"
 		" FROM get_childs_cls(%s) cls "
-		" INNER JOIN obj obj ON obj.cls_id = cls._id "
+		" INNER JOIN obj_current_info obj ON obj.cls_id = cls._id "
 		" WHERE %s"
 		" ORDER BY " //cls._title ASC "
 		" (substring(cls._title, '^[0-9]{1,9}')::INT, cls._title ) ASC "
@@ -800,10 +779,14 @@ void ModelBrowser::DoRefreshFindInClsTree()
 				std::wstringstream ss(str.ToStdWstring());
 				obj->mProp.clear();
 				boost::property_tree::read_json(ss, obj->mProp);
+
+				auto find_it = obj->mProp.find(L"fav_act");
+				if (obj->mProp.not_found() != find_it)
+				{
+					obj->mActInfo = find_it->second;
+					obj->ParseActInfo();
+				}
 			}
-			str.clear();
-			table->GetAsString(12, row, str);
-			obj->ParseActInfo(str);
 			
 		};
 

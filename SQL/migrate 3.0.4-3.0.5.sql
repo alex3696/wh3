@@ -101,12 +101,12 @@ GRANT SELECT, INSERT, DELETE, UPDATE ON TABLE fav_cprop TO "Guest";
 DROP VIEW IF EXISTS obj_current_info;
 CREATE OR REPLACE VIEW  obj_current_info AS 
   SELECT 
-    obj.id          AS oid
-    ,obj.pid         AS parent_oid
-    ,obj.title       AS title
-    ,obj.cls_id      AS cid
-    ,obj.cls_kind    AS ckind
-    ,obj.qty         as qty
+     obj.id
+    ,obj.pid
+    ,obj.title
+    ,obj.cls_id
+    ,obj.cls_kind
+    ,obj.qty
     ,obj.move_logid
     ,obj.act_logid
 
@@ -159,19 +159,22 @@ CREATE OR REPLACE VIEW  obj_current_info AS
                                               AND ref_cls_act.cls_id = ct.id
                                               AND ref_cls_act.act_id = all_fav_bitor.aid
                      )ref_ca ON TRUE
-        LEFT JOIN(SELECT MAX(timemark) AS previos, act_id AS aid, obj_id AS oid
-                    FROM log_main GROUP BY obj_id, act_id) 	
-                    last_log             ON  last_log.oid = obj.id 
-                                         AND last_log.aid = all_fav_bitor.aid 
-                                         AND last_log.aid<>0 
-       ) AS fav_prop_info
+        LEFT JOIN LATERAL
+              (SELECT MAX(timemark) AS previos, act_id AS aid, obj_id AS oid
+                 FROM log_main 
+                 WHERE act_id<>0
+                   AND log_main.obj_id = obj.id 
+                   AND log_main.act_id = all_fav_bitor.aid 
+                 GROUP BY obj_id, act_id
+              ) last_log             
+              ON TRUE       
+ ) AS fav_prop_info
 
 FROM obj;
 
 
 
---SELECT * FROM obj_current_info
---WHERE cid=159;
+--SELECT * FROM obj_current_info WHERE cls_id=159;
 
 
 

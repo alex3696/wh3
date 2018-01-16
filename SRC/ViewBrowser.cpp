@@ -49,11 +49,13 @@ class wxDVTableBrowser
 	const IIdent64* mCurrentRoot = nullptr;
 	const	std::vector<const IIdent64*>* mClsList = nullptr;
 	bool	mGroupByType = true;
-	//wxRegEx mStartNum = "(^[0-9]+)";
-	wxRegEx mStartNum = "^(-?)(0|([1-9][0-9]*))((\\.|\\,)[0-9]+)?$";
+	//wxRegEx mStartNum = "(^[0-9]{1,9})";
+	//wxRegEx mStartNum = "^(-?)(0|([1-9][0-9]*))((\\.|\\,)[0-9]+)?$";
+	wxRegEx mStartNum = "^(-?)([0-9]*)((\\.|\\,)[0-9]+)?";
 
 	const wxString format_d = wxLocale::GetInfo(wxLOCALE_SHORT_DATE_FMT, wxLOCALE_CAT_DATE);
 	const wxString format_t = wxLocale::GetInfo(wxLOCALE_TIME_FMT);
+	const wxString mActNotExecuted="не выполнялось";
 public:
 	Columns			mActColumns;
 
@@ -198,7 +200,7 @@ public:
 							variant = wxString::Format("%s %s", dt.Format(format_d), dt.Format(format_t));
 					}break;
 					case -1: {
-						variant = wxString("не выполнялось");
+						variant = mActNotExecuted;
 					}
 					default: break;
 					}
@@ -227,7 +229,7 @@ public:
 							variant = wxString::Format("%s %s", dt.Format(format_d), dt.Format(format_t));
 					}break;
 					case -1: {
-						variant = wxString("не выполнялось");
+						variant = mActNotExecuted;
 					}
 					default: break;
 					}//switch (ret)
@@ -241,7 +243,7 @@ public:
 						variant = wxString::Format("%g", left);
 					}break;
 					case -1: {
-						variant = wxString("не выполнялось");
+						variant = mActNotExecuted;
 					}break;
 					default: break;
 					}//switch (ret)
@@ -460,7 +462,7 @@ public:
 			wxUIntPtr id1 = wxPtrToUInt(item1.GetID()),
 				id2 = wxPtrToUInt(item2.GetID());
 			return ascending ? id1 - id2 : id2 - id1;
-		}
+		}//if (value1.GetType() == "string" || value1.GetType() == "wxDataViewIconText")
 		
 		return wxDataViewModel::Compare(item1, item2, column, ascending);
 	}
@@ -879,34 +881,64 @@ void ViewTableBrowser::StoreSelect()
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::RestoreSelect()
 {
+	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+	if (!dvmodel)
+		return;
+	
 	wxDataViewItem dvitem;
-	if(mClsSelected)
+
+	if (dvmodel->IsListModel())
 	{
-		const auto finded = FindChildCls(mClsSelected);
-		if (finded)
+		const IIdent64* ident = static_cast<const IIdent64*> (dvmodel->GetCurrentRoot());
+		const auto& cls = dynamic_cast<const ICls64*>(ident);
+		if (cls && ClsKind::Abstract == cls->GetKind())
 		{
-			//auto id = finded->GetIdAsString();
-			//auto title = finded->GetTitle();
-			dvitem = wxDataViewItem((void*)finded);
-
-			if (!mTable->GetModel()->IsListModel() && mObjSelected)
+			if (mClsSelected)
 			{
-				//sigActivate(finded);
-				mTable->Expand(dvitem);// finded cls
-				const auto& cls = dynamic_cast<const ICls64*>(finded);
-				const auto objTable = cls->GetObjTable();
-				auto it = std::find_if(objTable->cbegin(), objTable->cend()
-					, [this](const std::shared_ptr<const IObj64>& it)
-				{
-					return it->GetId() == mObjSelected;
-				});
-
-				if (objTable->cend() != it)
-					dvitem = wxDataViewItem((void*)(it->get()));
+				const auto finded = FindChildCls(mClsSelected);
+				if (finded)
+					dvitem = wxDataViewItem((void*)finded);
 			}
-		}//if (finded)
+		}
+		else
+		{
+			if (mObjSelected)
+			{
+				const auto finded = FindChildCls(mObjSelected);
+				if (finded)
+					dvitem = wxDataViewItem((void*)finded);
+			}
 
+		}
+	}
+	else
+	{
+		if (mClsSelected)
+		{
+			const auto finded = FindChildCls(mClsSelected);
+			if (finded)
+			{
+				//auto id = finded->GetIdAsString();
+				//auto title = finded->GetTitle();
+				dvitem = wxDataViewItem((void*)finded);
 
+				if (!mTable->GetModel()->IsListModel() && mObjSelected)
+				{
+					//sigActivate(finded);
+					mTable->Expand(dvitem);// finded cls
+					const auto& cls = dynamic_cast<const ICls64*>(finded);
+					const auto objTable = cls->GetObjTable();
+					auto it = std::find_if(objTable->cbegin(), objTable->cend()
+						, [this](const std::shared_ptr<const IObj64>& it)
+					{
+						return it->GetId() == mObjSelected;
+					});
+
+					if (objTable->cend() != it)
+						dvitem = wxDataViewItem((void*)(it->get()));
+				}
+			}//if (finded)
+		}
 	}
 
 	if (!dvitem.IsOk())
