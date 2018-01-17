@@ -2,10 +2,12 @@
 #define __CTRLMAIN_H
 
 #include "ICtrlWindow.h"
+#include "CtrlNotebook.h"
 #include "ViewMain.h"
 #include "ModelMain.h"
-
 #include "globaldata.h"
+
+
 
 namespace wh{
 //---------------------------------------------------------------------------
@@ -49,13 +51,8 @@ public:
 	std::shared_ptr<CtrlNotebook> GetNotebook();
 
 	virtual void RmView()override;
-	virtual void Load(const boost::property_tree::wptree& app_cfg) override;
-	virtual void Save(boost::property_tree::wptree& app_cfg) override;
-
 	void Load();
 	void Save();
-
-
 	
 };
 

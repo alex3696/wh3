@@ -42,10 +42,10 @@ void RecentDstOidModel::Insert(const wxString& item)
 	DoSigUpdate();
 }
 //-----------------------------------------------------------------------------
-void RecentDstOidModel::GetFromConfig()
+void RecentDstOidModel::Load(const boost::property_tree::wptree& app_cfg)
 {
+	TEST_FUNC_TIME;
 	using ptree = boost::property_tree::wptree;
-	const ptree& app_cfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->GetData();
 	Clear();
 	ptree::const_assoc_iterator it = app_cfg.find(L"RecentDstOid");
 
@@ -64,10 +64,10 @@ void RecentDstOidModel::GetFromConfig()
 	DoSigUpdate();
 }
 //-----------------------------------------------------------------------------
-void RecentDstOidModel::SetToConfig()const
+void RecentDstOidModel::Save(boost::property_tree::wptree& app_cfg)const
 {
+	TEST_FUNC_TIME;
 	using ptree = boost::property_tree::wptree;
-	ptree app_cfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->GetData();
 
 	ptree recent;
 	recent.put(L"MaxQty", mMaxItems);
@@ -91,5 +91,4 @@ void RecentDstOidModel::SetToConfig()const
 	recent.add_child(L"Oid", recent_dst_oid);
 	app_cfg.add_child(L"RecentDstOid", recent);
 
-	whDataMgr::GetInstance()->mDbCfg->mGuiCfg->SetData(app_cfg);
 }

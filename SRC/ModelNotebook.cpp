@@ -102,10 +102,17 @@ void ModelNotebook::ShowWindowByPos(size_t pos)
 }
 //-----------------------------------------------------------------------------
 
-void ModelNotebook::Load(const boost::property_tree::wptree& notebook)
+void ModelNotebook::Load(const boost::property_tree::wptree& app_cfg)
 {
+	TEST_FUNC_TIME;
 try{
 	using ptree = boost::property_tree::wptree;
+
+	auto it = app_cfg.find(L"CtrlNotebook");
+	if (app_cfg.not_found() == it)
+		return;
+		
+	auto notebook= it->second;
 
 	if (notebook.not_found() != notebook.find(L"Pages"))
 	{
@@ -139,11 +146,13 @@ catch (...)
 	
 }
 //-----------------------------------------------------------------------------
-void ModelNotebook::Save(boost::property_tree::wptree& notebook)
+void ModelNotebook::Save(boost::property_tree::wptree& app_cfg)
 {
+	TEST_FUNC_TIME;
 try{
 	using ptree = boost::property_tree::wptree;
 	
+	ptree notebook;
 	ptree pages;
 
 	for (const auto& item : mWindowList)
@@ -156,7 +165,8 @@ try{
 
 	notebook.put_child(L"Pages", pages);
 	notebook.put(L"ActivePage", L"0");
-	
+	app_cfg.add_child(L"CtrlNotebook", notebook);
+
 	
 
 }//try

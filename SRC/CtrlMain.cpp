@@ -69,8 +69,6 @@ void CtrlMain::DisconnectDB()
 void CtrlMain::OnConnectDb(const whDB& db)
 {
 	mCtrlNotebook->CloseAllPages();
-	whDataMgr::GetInstance()->mDbCfg->Load();
-	whDataMgr::GetInstance()->mRecentDstOidPresenter->GetFromConfig();
 	Load();
 
 	const auto& dbcfg = whDataMgr::GetInstance()->mConnectCfg->GetData();
@@ -83,9 +81,6 @@ void CtrlMain::OnConnectDb(const whDB& db)
 void CtrlMain::OnDicsonnectDb(const whDB& db)
 {
 	Save();
-	whDataMgr::GetInstance()->mRecentDstOidPresenter->SetToConfig();
-	whDataMgr::GetInstance()->mDbCfg->Save();
-	whDataMgr::GetInstance()->mConnectCfg->Save();
 	mCtrlNotebook->CloseAllPages();
 
 	const auto& dbcfg = whDataMgr::GetInstance()->mConnectCfg->GetData();
@@ -150,52 +145,30 @@ std::shared_ptr<CtrlNotebook> CtrlMain::GetNotebook()
 //---------------------------------------------------------------------------
 void CtrlMain::Load()
 {
+	TEST_FUNC_TIME;
 	using ptree = boost::property_tree::wptree;
+
+	whDataMgr::GetInstance()->mDbCfg->Load();
 	const ptree& app_cfg = whDataMgr::GetInstance()->mDbCfg->mGuiCfg->GetData();
-	Load(app_cfg);
+
+	mModel->Load(app_cfg);
+	mCtrlNotebook->Load(app_cfg);
 }
 //---------------------------------------------------------------------------
 void CtrlMain::Save()
 {
+	TEST_FUNC_TIME;
 	using ptree = boost::property_tree::wptree;
+	
 	ptree app_cfg;
-	Save(app_cfg);
+	mModel->Save(app_cfg);
+	mCtrlNotebook->Save(app_cfg);
 	whDataMgr::GetInstance()->mDbCfg->mGuiCfg->SetData(app_cfg);
+	whDataMgr::GetInstance()->mDbCfg->Save();
 }
 //---------------------------------------------------------------------------
 void CtrlMain::RmView()//override
 {
 	whDataMgr::GetInstance()->GetDB().Close();
-	//Save();
 	mCtrlNotebook->RmView();
-	//CtrlWindowBase::RmView();
 }
-//---------------------------------------------------------------------------
-void CtrlMain::Load(const boost::property_tree::wptree& app_cfg) //override
-{
-	mModel->Load(app_cfg);
-
-	auto it = app_cfg.find(L"CtrlNotebook");
-	if (app_cfg.not_found() != it)
-		mCtrlNotebook->Load(it->second);
-
-	it = app_cfg.find(L"Default");
-	if (app_cfg.not_found() != it)
-		whDataMgr::GetInstance()->mDbCfg->mGuiCfg->LoadDefaults(it->second);
-
-}
-//---------------------------------------------------------------------------
-void CtrlMain::Save(boost::property_tree::wptree& app_cfg) //override
-{
-	mModel->Save(app_cfg);
-
-	using ptree = boost::property_tree::wptree;
-	ptree notebook;
-	mCtrlNotebook->Save(notebook);
-	app_cfg.add_child(L"CtrlNotebook", notebook);
-
-	ptree defaults;
-	whDataMgr::GetInstance()->mDbCfg->mGuiCfg->SaveDefaults(defaults);
-	app_cfg.add_child(L"Default", defaults);
-}
-

@@ -335,6 +335,8 @@ void whDataMgr::InitContainer()
 	//mContainer->RegInstanceDeferredNI<CtrlNotebook, IViewNotebook, ModelNotebook>
 	//	("CtrlNotebook", "ViewNotebook", "ModelNotebook");
 	
+	mContainer->RegInstanceDeferredNI<wxDateTime>("ClientInfoLastLogin");
+
 	
 	/////////////////
 	// page user  //

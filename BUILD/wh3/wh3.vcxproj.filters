@@ -543,6 +543,9 @@
     <ClCompile Include="..\..\SRC\ViewBrowser.cpp">
       <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\SRC\ModelMain.cpp">
+      <Filter>MainFrame\MVP2\MainFrame</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\INCLUDE\_pch.h">

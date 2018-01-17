@@ -9,8 +9,15 @@ MGuiCfg::MGuiCfg(const char option)
 {
 }
 //-----------------------------------------------------------------------------
-void MGuiCfg::LoadDefaults(const boost::property_tree::wptree& default_cfg)
+void MGuiCfg::LoadDefaults(const boost::property_tree::wptree& app_cfg)
 {
+	TEST_FUNC_TIME;
+	auto dit = app_cfg.find(L"Default");
+	if (app_cfg.not_found() == dit)
+		return;
+
+	auto default_cfg = dit->second;
+
 	auto it = default_cfg.find(L"LogListCfg");
 	if (default_cfg.not_found() != it)
 	{
@@ -31,12 +38,15 @@ void MGuiCfg::LoadDefaults(const boost::property_tree::wptree& default_cfg)
 	}
 }
 //-----------------------------------------------------------------------------
-void MGuiCfg::SaveDefaults(boost::property_tree::wptree& default_cfg)
+void MGuiCfg::SaveDefaults(boost::property_tree::wptree& app_cfg)
 {
+	TEST_FUNC_TIME;
+	using ptree = boost::property_tree::wptree;
+	ptree default_cfg;
+
 	auto cnt = whDataMgr::GetInstance()->mContainer;
 	auto default_loglist_cfg = cnt->GetObject<rec::PageHistory>(L"DefaultLogListInfo");
 	
-	using ptree = boost::property_tree::wptree;
 	ptree content;
 
 	content.put(L"RowsLimit", default_loglist_cfg->mRowsLimit);
@@ -50,12 +60,45 @@ void MGuiCfg::SaveDefaults(boost::property_tree::wptree& default_cfg)
 	//content.put("VisibleColumnClsObj", default_loglist_cfg->mVisibleColumnClsObj);
 
 	default_cfg.push_back(std::make_pair(L"LogListCfg", content));
+	app_cfg.add_child(L"Default", default_cfg);
 
+}
+//-----------------------------------------------------------------------------
+void  MGuiCfg::LoadClientInfo(const boost::property_tree::wptree& cfg)
+{
+	TEST_FUNC_TIME;
+	auto cnt = whDataMgr::GetInstance()->mContainer;
+	auto last_login = cnt->GetObject<wxDateTime>(L"ClientInfoLastLogin");
+
+	auto it = cfg.find(L"ClientInfo");
+	if (cfg.not_found() != it)
+	{
+		auto dt_str = wxString(it->second.get<std::wstring>(L"LastLogin", L""));
+		wxString::const_iterator end = dt_str.end();
+
+
+		if (!last_login->ParseDateTime(dt_str, &end))
+			if (!last_login->ParseISOCombined(dt_str, ' '))
+				if (!last_login->ParseISOCombined(dt_str, 'T'))
+					if (!last_login->ParseDate(dt_str))
+						return;
+	}
+}
+//-----------------------------------------------------------------------------
+void  MGuiCfg::SaveClientInfo(boost::property_tree::wptree& cfg)
+{
+	TEST_FUNC_TIME;
+	using ptree = boost::property_tree::wptree;
+	ptree content;
+	//content.put(L"LastLogin", (wxDateTime::Now()- wxTimeSpan(720, 0, 0, 0)).Format().wc_str() );
+	content.put(L"LastLogin", wxDateTime::Now().Format().wc_str() );
+	cfg.push_back(std::make_pair(L"ClientInfo", content));
 }
 //-----------------------------------------------------------------------------
 
 void MGuiCfg::LoadData()
 {
+	TEST_FUNC_TIME;
 	try{
 		using ptree = boost::property_tree::wptree;
 		ptree	app_cfg;
@@ -85,6 +128,7 @@ void MGuiCfg::LoadData()
 
 void MGuiCfg::SaveData()
 {
+	TEST_FUNC_TIME;
 	try{
 		std::wostringstream  ss;
 		boost::property_tree::write_json(ss, this->GetData() );
@@ -136,6 +180,7 @@ MConnectCfg::MConnectCfg(const char option)
 
 void MConnectCfg::LoadData()
 {
+	TEST_FUNC_TIME;
 	T_Data data = this->GetData();
 
 	wxFileName		local_cfg_file = wxFileConfig::GetLocalFile("wh3.ini");;
@@ -169,6 +214,8 @@ void MConnectCfg::LoadData()
 
 void MConnectCfg::SaveData()
 {
+	TEST_FUNC_TIME;
+
 	const T_Data& data = this->GetData();
 
 	wxFileConfig cfg("wh3", "alex3696@ya.ru", wxEmptyString, wxEmptyString, wxCONFIG_USE_LOCAL_FILE);
@@ -311,6 +358,7 @@ MDbCfg::MDbCfg(const char option)
 
 void MDbCfg::LoadChilds()
 {
+	TEST_FUNC_TIME;
 	mBaseGroup->Load();
 	mGuiCfg->Load();
 	mFtpCfg->Load();
@@ -319,6 +367,7 @@ void MDbCfg::LoadChilds()
 
 void MDbCfg::SaveChilds()
 {
+	TEST_FUNC_TIME;
 	mBaseGroup->Save();
 	mGuiCfg->Save();
 	mFtpCfg->Save();

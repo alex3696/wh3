@@ -32,8 +32,8 @@ public:
 	bool Check(const wxString& item)const;
 	void Insert(const wxString& item);
 
-	void GetFromConfig();
-	void SetToConfig()const;
+	void Load(const boost::property_tree::wptree& app_cfg);
+	void Save(boost::property_tree::wptree& app_cfg)const;
 
 	inline void DoSigUpdate(){ sigAfterUpdate(mMruList); }
 

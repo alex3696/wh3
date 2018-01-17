@@ -20,9 +20,8 @@ public:
 	bool Check(const wxString& item)const	{ return mModel->Check(item); }
 	void Insert(const wxString& item)		{ mModel->Insert(item); }
 
-	void GetFromConfig()		{ mModel->GetFromConfig(); }
-	void SetToConfig()const		{ mModel->SetToConfig(); }
-
+	void Load(const boost::property_tree::wptree& app_cfg) { mModel->Load(app_cfg); }
+	void Save(boost::property_tree::wptree& app_cfg)const { mModel->Save(app_cfg); }
 
 	char GetRecentEnable()const	{ return mModel->GetRecentEnable(); }
 	char GetFilterEnable()const	{ return mModel->GetFilterEnable(); }

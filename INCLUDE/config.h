@@ -44,6 +44,8 @@ public:
 
 	void LoadDefaults(const boost::property_tree::wptree& app_cfg);
 	void SaveDefaults(boost::property_tree::wptree& app_cfg);
+	void LoadClientInfo(const boost::property_tree::wptree& app_cfg);
+	void SaveClientInfo(boost::property_tree::wptree& app_cfg);
 protected:
 	virtual void LoadData() override;
 	virtual void SaveData() override;
