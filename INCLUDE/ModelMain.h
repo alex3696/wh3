@@ -18,7 +18,8 @@ public:
 	virtual void Load(const boost::property_tree::wptree& app_cfg)override;
 	virtual void Save(boost::property_tree::wptree& app_cfg)override;
 	
-	sig::signal<void()> sigShowWhatIsNew;
+	void ShowDoc()const;
+	void ShowWhatIsNew()const;
 
 };
 //---------------------------------------------------------------------------

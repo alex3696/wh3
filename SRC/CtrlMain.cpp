@@ -52,7 +52,11 @@ CtrlMain::CtrlMain(const std::shared_ptr<ViewMain>& view, const std::shared_ptr<
 		.connect(std::bind(&CtrlMain::ConnectDB, this));
 	connViewCmd_DoDisconnectDB = mView->sigDoDisconnectDB
 		.connect(std::bind(&CtrlMain::DisconnectDB, this));
-	
+
+	connViewCmd_ShowDoc = mView->sigShowDoc
+		.connect(std::bind(&CtrlMain::ShowDoc, this));
+	connViewCmd_ShowWhatIsNew = mView->sigShowWhatIsNew
+		.connect(std::bind(&CtrlMain::ShowWhatIsNew, this));
 }
 //---------------------------------------------------------------------------
 void CtrlMain::ConnectDB()
@@ -165,6 +169,15 @@ void CtrlMain::Save()
 	mCtrlNotebook->Save(app_cfg);
 	whDataMgr::GetInstance()->mDbCfg->mGuiCfg->SetData(app_cfg);
 	whDataMgr::GetInstance()->mDbCfg->Save();
+}
+void wh::CtrlMain::ShowDoc() const
+{
+	mModel->ShowDoc();
+}
+//---------------------------------------------------------------------------
+void wh::CtrlMain::ShowWhatIsNew() const
+{
+	mModel->ShowWhatIsNew();
 }
 //---------------------------------------------------------------------------
 void CtrlMain::RmView()//override

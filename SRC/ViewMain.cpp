@@ -75,7 +75,10 @@ ViewMain::ViewMain()
 		, [this](wxCommandEvent){ sigMkPageReportList(); }, CMD_MKPAGE_REPORT);
 	mMainFrame->Bind(wxEVT_COMMAND_MENU_SELECTED
 		, [this](wxCommandEvent){ sigMkPageBrowser(); }, CMD_MKPAGE_BROWSER);
-
+	mMainFrame->Bind(wxEVT_COMMAND_MENU_SELECTED
+		, [this](wxCommandEvent) { sigShowDoc(); }, wxID_HELP_INDEX);
+	mMainFrame->Bind(wxEVT_COMMAND_MENU_SELECTED
+		, [this](wxCommandEvent) { sigShowWhatIsNew(); }, wxID_HELP_PROCEDURES);
 
 	mMainFrame->Bind(wxEVT_CLOSE_WINDOW
 		, [this](wxCloseEvent& evt)
@@ -174,6 +177,13 @@ void ViewMain::BuildMenu()
 	dir->Append(item);
 	menu_bar->Append(dir, "Каталоги");
 
+	wxMenu* hlp = new wxMenu();
+	item = new wxMenuItem(dbmenu, wxID_HELP_INDEX, "Инструкция");
+	hlp->Append(item);
+	item = new wxMenuItem(dbmenu, wxID_HELP_PROCEDURES, "Что нового?");
+	hlp->Append(item);
+	menu_bar->Append(hlp, "Справка");
+	
 	mMainFrame->SetMenuBar(menu_bar);
 
 }

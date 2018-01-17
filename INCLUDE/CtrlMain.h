@@ -30,6 +30,9 @@ class CtrlMain : public CtrlWindowBase<ViewMain, ModelMain>
 
 	sig::scoped_connection connViewCmd_DoConnectDB;
 	sig::scoped_connection connViewCmd_DoDisconnectDB;
+
+	sig::scoped_connection connViewCmd_ShowDoc;
+	sig::scoped_connection connViewCmd_ShowWhatIsNew;
 	
 	void OnConnectDb(const whDB& db);
 	void OnDicsonnectDb(const whDB& db);
@@ -53,6 +56,10 @@ public:
 	virtual void RmView()override;
 	void Load();
 	void Save();
+
+	void ShowDoc()const;
+	void ShowWhatIsNew()const;
+
 	
 };
 

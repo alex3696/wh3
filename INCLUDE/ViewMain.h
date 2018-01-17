@@ -44,6 +44,9 @@ public:
 	sig::signal<void()>		sigDoConnectDB;
 	sig::signal<void()>		sigDoDisconnectDB;
 
+	sig::signal<void()>		sigShowDoc;
+	sig::signal<void()>		sigShowWhatIsNew;
+
 	//sig::signal<void()>	sigUpdateTitle;
 	//sig::signal<void()>	sigClose;
 	//sig::signal<void()>	sigShow;
