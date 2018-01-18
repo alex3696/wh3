@@ -1353,6 +1353,8 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 	tool_bar->AddTool(wxID_VIEW_LIST , "Группировать по типу", wxArtProvider::GetBitmap(wxART_LIST_VIEW, wxART_TOOLBAR), "Группировать по типу(CTRL+G)");
 	tool_bar->FindTool(wxID_VIEW_LIST)->SetState(wxAUI_BUTTON_STATE_CHECKED);
 
+	tool_bar->AddTool(wxID_HELP_INDEX, "Справка", wxArtProvider::GetBitmap(wxART_HELP, wxART_TOOLBAR), "Справка(F1)");
+
 	tool_bar->AddSeparator();
 
 
@@ -1375,6 +1377,7 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigAddObject(); }, wxID_NEW_OBJECT);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigDeleteSelected(); }, wxID_DELETE);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigUpdateSelected(); }, wxID_EDIT);
+	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigHelpIndex("ViewBrowserPage"); }, wxID_HELP_INDEX);
 
 	auto fnOnCmd_GroupByType = [this](wxCommandEvent&) 
 	{

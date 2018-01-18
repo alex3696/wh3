@@ -38,7 +38,8 @@ void ModelMain::Save(boost::property_tree::wptree& app_cfg)//override
 //---------------------------------------------------------------------------
 void ModelMain::ShowDoc()const
 {
-	_TCHAR* path = L"index.mht";
+	
+	_TCHAR* path = L"..\\..\\DOC\\Help\\index.htm";
 	_TCHAR* parametrs = L"";
 
 	SHELLEXECUTEINFOW ShExecInfo = { 0 };
@@ -56,7 +57,7 @@ void ModelMain::ShowDoc()const
 //---------------------------------------------------------------------------
 void ModelMain::ShowWhatIsNew()const
 {
-	_TCHAR* path = L"whatsnew.mht";
+	_TCHAR* path = L"..\\..\\DOC\\Help\\whatsnew.htm";
 	_TCHAR* parametrs = L"";
 
 	SHELLEXECUTEINFOW ShExecInfo = { 0 };

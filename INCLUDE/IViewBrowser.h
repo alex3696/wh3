@@ -47,6 +47,7 @@ public:
 	sig::signal<void()> sigUpdateSelected;
 
 	sig::signal<void(bool)>	 sigGroupByType;
+	sig::signal<void(const wxString&)>	 sigHelpIndex;
 
 	sig::signal<void(bool)>	 sigShowFilters;
 	sig::signal<void(bool)>	 sigShowHistory;
