@@ -63,6 +63,11 @@ public:
 
 	virtual void SetObjOperation(Operation, const std::vector<const IIdent64*>&) override;
 	virtual void SetShowDetail()override;
+	virtual void SetInsertType()const override;
+	virtual void SetInsertObj()const override;
+	virtual void SetDeleteObj()const override;
+	virtual void SetUpdateObj()const override;
+
 };
 //-----------------------------------------------------------------------------
 class ViewToolbarBrowser : public IViewToolbarBrowser

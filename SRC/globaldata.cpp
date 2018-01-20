@@ -38,7 +38,7 @@
 #include "ViewBrowser.h"
 #include "CtrlBrowser.h"
 
-
+#include "CtrlClsEditor.h"
 
 using namespace wh;
 
@@ -475,4 +475,16 @@ void whDataMgr::InitContainer()
 		("ViewBrowserPage", "ViewNotebook");
 	mContainer->RegFactory<ICtrlWindow, CtrlPageBrowser, ViewBrowserPage, ModelPageBrowser >
 		("CtrlPageBrowser", "ViewBrowserPage", "ModelPageBrowser");
+
+	////////////////////
+	// ClsEditor      //
+	///////////////////
+	mContainer->RegFactoryNI<ModelClsEditor>
+		("ModelClsEditor");
+	mContainer->RegFactoryNI<IViewClsEditor, IViewWindow >
+		("ViewClsEditor", "ViewMain");
+	mContainer->RegFactoryNI<CtrlClsEditor, IViewClsEditor, ModelClsEditor >
+		("CtrlClsEditor", "ViewClsEditor", "ModelClsEditor");
+
+
 }

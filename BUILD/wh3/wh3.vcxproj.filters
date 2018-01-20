@@ -190,6 +190,15 @@
     <Filter Include="MainFrame\MVP2\ContentWindows\Каталог объектов v2">
       <UniqueIdentifier>{91b311cd-ed63-41cb-a444-40abbed76634}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Каталог объектов v2\ObjEditor">
+      <UniqueIdentifier>{59568ac1-4d84-4261-96d3-f6b9ff339edd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Каталог объектов v2\ClsEditor">
+      <UniqueIdentifier>{1e7ec362-95dd-4bce-bab7-0f432abd10df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Каталог объектов v2\FavEditor">
+      <UniqueIdentifier>{7f2c9a4b-4424-4a03-91b0-47ada2a9d190}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -545,6 +554,9 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\ModelMain.cpp">
       <Filter>MainFrame\MVP2\MainFrame</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\CtrlClsEditor.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2\ClsEditor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1048,6 +1060,9 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ModelBrowserData.h">
       <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\CtrlClsEditor.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2\ClsEditor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

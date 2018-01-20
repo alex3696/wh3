@@ -143,6 +143,7 @@
     <ClCompile Include="..\..\SRC\config.cpp" />
     <ClCompile Include="..\..\SRC\ConnectionCfgDlg.cpp" />
     <ClCompile Include="..\..\SRC\CtrlBrowser.cpp" />
+    <ClCompile Include="..\..\SRC\CtrlClsEditor.cpp" />
     <ClCompile Include="..\..\SRC\CtrlDetail.cpp" />
     <ClCompile Include="..\..\SRC\CtrlFilterList.cpp" />
     <ClCompile Include="..\..\SRC\CtrlHistory.cpp" />
@@ -278,6 +279,7 @@
     <ClInclude Include="..\..\INCLUDE\config.h" />
     <ClInclude Include="..\..\INCLUDE\ConnectionCfgDlg.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlBrowser.h" />
+    <ClInclude Include="..\..\INCLUDE\CtrlClsEditor.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlDetail.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlFilterList.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlHistory.h" />

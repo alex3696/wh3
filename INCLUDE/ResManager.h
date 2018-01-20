@@ -107,7 +107,7 @@ public:
 	DEF_INIT_ICO24(report);
 	DEF_INIT_ICO24(report_list);
 	DEF_INIT_ICO24(export_excel);
-	
+	DEF_INIT_ICO24(group_by_type);
 
 	DEF_INIT_ICO16(connect);
 	DEF_INIT_ICO16(disconnect);

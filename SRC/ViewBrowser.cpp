@@ -594,17 +594,8 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	table->GetTargetWindow()->SetToolTip("ToolTip");
 	table->GetTargetWindow()->Bind(wxEVT_MOTION, &ViewTableBrowser::OnCmd_MouseMove, this);
 
-	table->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED
-		, [this](wxDataViewEvent& evt) 
-		{ 
-			if (evt.GetItem().IsOk())
-				StoreSelect();
-			else
-				RestoreSelect();
-		});
 	table->Bind(wxEVT_DATAVIEW_COLUMN_SORTED
 		, [this](wxDataViewEvent& evt) { RestoreSelect(); });
-
 
 	table->Bind(wxEVT_DATAVIEW_ITEM_ACTIVATED
 		, &ViewTableBrowser::OnCmd_Activate, this);
@@ -1143,7 +1134,9 @@ void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>&
 											) //override;
 {
 	TEST_FUNC_TIME;
+	StoreSelect();
 
+	/*
 	mClsSelected = 0;
 	mObjSelected = 0;
 	if (parent && mParentCid)
@@ -1159,6 +1152,7 @@ void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>&
 	{
 		mClsSelected = parent->GetId();
 	}
+	*/
 		
 	ResetColumns();
 	mClsList.clear();
@@ -1185,53 +1179,53 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& ve
 											) //override;
 {
 	TEST_FUNC_TIME;
-	wxBusyCursor busyCursor;
-	wxWindowUpdateLocker lock(mTable);
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (!dvmodel)
-		return;
+	{
+		wxBusyCursor busyCursor;
+		wxWindowUpdateLocker lock(mTable);
 
-	auto col3 = mTable->GetColumn(1);
-	if (root)
-	{
-		// and CLASS catalog 
-		col3->SetHidden(true);
-	}
-	else
-	{
-		col3->SetHidden(!mTable->GetModel()->IsListModel());
-	}
-			
-		
-	mParentCid = root ? root->GetId() : 0;
-	mClsList = vec;
-	dvmodel->SetClsList(&mClsList, (root && 1 != root->GetId()) ? root : nullptr, group_by_type);
+		auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+		if (!dvmodel)
+			return;
 
-	if (!dvmodel->IsListModel())
-	{
-		bool tmp_autosize = mColAutosize;
-		mColAutosize = false;
-		for (const auto& cid : mExpandedCls)
+		auto col3 = mTable->GetColumn(1);
+		if (root)
 		{
-			auto ident = FindChildCls(cid);
-			if (ident)
+			// and CLASS catalog 
+			col3->SetHidden(true);
+		}
+		else
+		{
+			col3->SetHidden(!mTable->GetModel()->IsListModel());
+		}
+
+
+		mParentCid = root ? root->GetId() : 0;
+		mClsList = vec;
+		dvmodel->SetClsList(&mClsList, (root && 1 != root->GetId()) ? root : nullptr, group_by_type);
+
+		if (!dvmodel->IsListModel())
+		{
+			bool tmp_autosize = mColAutosize;
+			mColAutosize = false;
+			for (const auto& cid : mExpandedCls)
 			{
-				wxDataViewItem item((void*)ident);
-				mTable->Expand(item);
-			}
-		}//for (const auto& cid : mExpandedCls)
-		mColAutosize = tmp_autosize;
+				auto ident = FindChildCls(cid);
+				if (ident)
+				{
+					wxDataViewItem item((void*)ident);
+					mTable->Expand(item);
+				}
+			}//for (const auto& cid : mExpandedCls)
+			mColAutosize = tmp_autosize;
+		}
+		else
+		{
+			RebuildClsColumns(vec);
+		}
+		AutosizeColumns();
 	}
-	else
-	{
-		RebuildClsColumns(vec);
-	}
-
-
-
-	
 	RestoreSelect();
-	AutosizeColumns();
+	
 
 }
 
@@ -1300,6 +1294,57 @@ void ViewTableBrowser::SetShowDetail()//override;
 		}
 	}//if (ident)
 }
+//-----------------------------------------------------------------------------
+//virtual 
+void wh::ViewTableBrowser::SetInsertType() const //override;
+{
+	int64_t parent_cid = 1;
+	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+	if (dvmodel)
+	{
+		auto rootIdent = dvmodel->GetCurrentRoot();
+		if (rootIdent)
+		{
+			const auto* cls = dynamic_cast<const ICls64*>(rootIdent);
+			if(cls)
+				parent_cid = cls->GetId();
+		}
+	}
+	sigClsInsert(parent_cid);
+}
+//-----------------------------------------------------------------------------
+//virtual 
+void wh::ViewTableBrowser::SetInsertObj() const //override;
+{
+}
+//-----------------------------------------------------------------------------
+//virtual 
+void wh::ViewTableBrowser::SetDeleteObj() const //override;
+{
+	const IIdent64* ident = static_cast<const IIdent64*> (mTable->GetCurrentItem().GetID());
+	if (!ident)
+		return;
+	const auto& cls = dynamic_cast<const ICls64*>(ident);
+	if (!cls)
+		return;
+
+	int64_t cid = cls->GetId();
+	sigClsDelete(cid);
+}
+//-----------------------------------------------------------------------------
+//virtual 
+void wh::ViewTableBrowser::SetUpdateObj() const //override;
+{
+	const IIdent64* ident = static_cast<const IIdent64*> (mTable->GetCurrentItem().GetID());
+	if (!ident)
+		return;
+	const auto& cls = dynamic_cast<const ICls64*>(ident);
+	if (!cls)
+		return;
+
+	int64_t cid = cls->GetId();
+	sigClsUpdate(cid);
+}
 
 
 
@@ -1336,7 +1381,9 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 
 	//tool_bar->AddTool(wxID_EXECUTE, "Выполнить", mgr->m_ico_act24, "Выполнить(F9)");
 	//tool_bar->AddTool(wxID_REPLACE, "Переместить", mgr->m_ico_move24, "Переместить(F6)");
-	tool_bar->AddTool(wxID_PROPERTIES, "Выбрать свойства", mgr->m_ico_favprop_select24, "Выбрать свойства(CTRL+P)");
+	tool_bar->AddTool(wxID_VIEW_LIST, "Группировать", mgr->m_ico_group_by_type24, "Группировать по типу(CTRL+G)");
+	//tool_bar->FindTool(wxID_VIEW_LIST)->SetState(wxAUI_BUTTON_STATE_CHECKED);
+	tool_bar->AddTool(wxID_PROPERTIES, "Свойства", mgr->m_ico_favprop_select24, "Выбрать свойства(CTRL+P)");
 	tool_bar->AddTool(wxID_VIEW_DETAILS, "Подробно", mgr->m_ico_views24, "Подробно(F8)");
 
 	if ((int)currBaseGroup >= (int)bgTypeDesigner)
@@ -1350,12 +1397,12 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 		tool_bar->AddTool(wxID_EDIT, "Редактировать", mgr->m_ico_edit24, "Редактировать(CTRL+E)");
 	}
 
-	tool_bar->AddTool(wxID_VIEW_LIST , "Группировать по типу", wxArtProvider::GetBitmap(wxART_LIST_VIEW, wxART_TOOLBAR), "Группировать по типу(CTRL+G)");
-	tool_bar->FindTool(wxID_VIEW_LIST)->SetState(wxAUI_BUTTON_STATE_CHECKED);
+	
+	
 
 	tool_bar->AddTool(wxID_HELP_INDEX, "Справка", wxArtProvider::GetBitmap(wxART_HELP, wxART_TOOLBAR), "Справка(F1)");
 
-	tool_bar->AddSeparator();
+	//tool_bar->AddSeparator();
 
 
 	//auto mFindCtrl = new wxComboBtn(tool_bar, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);

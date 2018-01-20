@@ -229,7 +229,7 @@ const wxString& name, const wh_rec_Cls& value)
 	AddPrivateChild(pgp_defobj);
 
 	//pgp_title->SetValidator(wxRegExpValidator(titleValidator));
-	pgp_measure->SetValidator(wxRegExpValidator(titleValidator));
+	//pgp_measure->SetValidator(wxRegExpValidator(titleValidator));
 
 	pgp_id->ChangeFlag(wxPG_PROP_READONLY, true);
 
@@ -273,7 +273,9 @@ void wxClsProperty::RefreshChildren()
 	const wxColour light_red(255, 200, 200);
 	
 	Item(0)->SetBackgroundColour(cls.mLabel.IsNull() ? light_red : *wxWHITE);
-	Item(1)->SetBackgroundColour(cls.mMeasure.IsNull() ? light_red : *wxWHITE);
+
+	if(!cls.mType.IsNull() && !cls.IsAbstract())
+		Item(1)->SetBackgroundColour(cls.mMeasure.IsNull() ? light_red : *wxWHITE);
 	//Item(5)->SetBackgroundColour(cls.mParent.mId.IsNull() ? light_red : *wxWHITE);
 	//Item(6)->SetBackgroundColour(cls.mDefaultObj.mId.IsNull() ? light_red : *wxWHITE);
 

@@ -15,7 +15,10 @@ public:
 	virtual void SetBeforeRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool)=0;
 	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool) = 0;
 	virtual void SetShowDetail() = 0;
-
+	virtual void SetInsertType()const = 0;
+	virtual void SetInsertObj()const = 0;
+	virtual void SetDeleteObj()const = 0;
+	virtual void SetUpdateObj()const = 0;
 
 	virtual void SetObjOperation(Operation, const std::vector<const IIdent64*>&) = 0;
 
@@ -26,6 +29,10 @@ public:
 	sig::signal<void(int64_t)> sigRefreshClsObjects;
 	
 	sig::signal<void(int64_t, int64_t)> sigShowObjectDetail;
+
+	sig::signal<void(int64_t)> sigClsInsert;
+	sig::signal<void(int64_t)> sigClsDelete;
+	sig::signal<void(int64_t)> sigClsUpdate;
 };
 //-----------------------------------------------------------------------------
 class IViewToolbarBrowser : public IViewWindow
