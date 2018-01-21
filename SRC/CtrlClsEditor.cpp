@@ -122,6 +122,15 @@ void wh::CtrlClsEditor::Update(int64_t cid)
 
 	whDataMgr::GetDB().BeginTransaction();
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+	if (!table || !table->GetRowCount())
+	{
+		wxLogError("%d\t %s \t%s"
+			, GetTickCount() - ftester.GetStartTickCount()
+			, ftester.GetFuncName()
+			, " type not found");
+		whDataMgr::GetDB().RollBack();
+		return;
+	}
 	unsigned int row = 0;
 
 	auto& data = cls_data;

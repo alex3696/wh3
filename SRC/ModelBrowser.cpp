@@ -735,7 +735,7 @@ void ModelBrowser::DoRefreshFindInClsTree()
 		"		,get_path_objnum(obj.pid,1)  AS path"
 		"		,fav_prop_info"
 		" FROM get_childs_cls(%s) cls "
-		" INNER JOIN obj_current_info obj ON obj.cls_id = cls._id "
+		" LEFT JOIN obj_current_info obj ON obj.cls_id = cls._id "
 		" WHERE %s"
 		" ORDER BY " //cls._title ASC "
 		" (substring(cls._title, '^[0-9]{1,9}')::INT, cls._title ) ASC "
@@ -806,16 +806,15 @@ void ModelBrowser::DoRefreshFindInClsTree()
 			}
 
 			int64_t oid, parent_oid;
-			if (!table->GetAsString(6, row).ToLongLong(&oid))
-				throw;
-			if (!table->GetAsString(7, row).ToLongLong(&parent_oid))
-				throw;
-			const std::shared_ptr<ObjRec64>& obj = mCache.mObjTable.GetObjById(oid, parent_oid, load_obj);
-			if (!obj)
-				throw;
-
-			if (!mGroupByType)
-				toinsert.emplace_back(obj.get());
+			if (table->GetAsString(6, row).ToLongLong(&oid)
+				|| table->GetAsString(7, row).ToLongLong(&parent_oid))
+			{
+				const std::shared_ptr<ObjRec64>& obj = mCache.mObjTable.GetObjById(oid, parent_oid, load_obj);
+				if (!obj)
+					throw;
+				if (!mGroupByType)
+					toinsert.emplace_back(obj.get());
+			}
 							
 		}
 		cache.mActTable.LoadDetailById();

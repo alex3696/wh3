@@ -39,6 +39,7 @@
 #include "CtrlBrowser.h"
 
 #include "CtrlClsEditor.h"
+#include "CtrlObjEditor.h"
 
 using namespace wh;
 
@@ -486,5 +487,14 @@ void whDataMgr::InitContainer()
 	mContainer->RegFactoryNI<CtrlClsEditor, IViewClsEditor, ModelClsEditor >
 		("CtrlClsEditor", "ViewClsEditor", "ModelClsEditor");
 
+	////////////////////
+	// ObjEditor      //
+	///////////////////
+	mContainer->RegFactoryNI<ModelObjEditor>
+		("ModelObjEditor");
+	mContainer->RegFactoryNI<IViewObjEditor, IViewWindow >
+		("ViewObjEditor", "ViewMain");
+	mContainer->RegFactoryNI<CtrlObjEditor, IViewObjEditor, ModelObjEditor >
+		("CtrlObjEditor", "ViewObjEditor", "ModelObjEditor");
 
 }

@@ -65,8 +65,8 @@ public:
 	virtual void SetShowDetail()override;
 	virtual void SetInsertType()const override;
 	virtual void SetInsertObj()const override;
-	virtual void SetDeleteObj()const override;
-	virtual void SetUpdateObj()const override;
+	virtual void SetDeleteSelected()const override;
+	virtual void SetUpdateSelected()const override;
 
 };
 //-----------------------------------------------------------------------------

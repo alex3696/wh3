@@ -17,8 +17,8 @@ public:
 	virtual void SetShowDetail() = 0;
 	virtual void SetInsertType()const = 0;
 	virtual void SetInsertObj()const = 0;
-	virtual void SetDeleteObj()const = 0;
-	virtual void SetUpdateObj()const = 0;
+	virtual void SetDeleteSelected()const = 0;
+	virtual void SetUpdateSelected()const = 0;
 
 	virtual void SetObjOperation(Operation, const std::vector<const IIdent64*>&) = 0;
 
@@ -33,6 +33,11 @@ public:
 	sig::signal<void(int64_t)> sigClsInsert;
 	sig::signal<void(int64_t)> sigClsDelete;
 	sig::signal<void(int64_t)> sigClsUpdate;
+
+	sig::signal<void(int64_t)> sigObjInsert;
+	sig::signal<void(int64_t, int64_t)> sigObjDelete;
+	sig::signal<void(int64_t, int64_t)> sigObjUpdate;
+
 };
 //-----------------------------------------------------------------------------
 class IViewToolbarBrowser : public IViewWindow

@@ -558,6 +558,9 @@
     <ClCompile Include="..\..\SRC\CtrlClsEditor.cpp">
       <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2\ClsEditor</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\SRC\CtrlObjEditor.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2\ObjEditor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\INCLUDE\_pch.h">
@@ -1063,6 +1066,9 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\CtrlClsEditor.h">
       <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2\ClsEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\CtrlObjEditor.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2\ObjEditor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

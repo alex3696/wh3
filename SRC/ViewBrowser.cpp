@@ -1316,34 +1316,65 @@ void wh::ViewTableBrowser::SetInsertType() const //override;
 //virtual 
 void wh::ViewTableBrowser::SetInsertObj() const //override;
 {
+	const IIdent64* ident = static_cast<const IIdent64*> (mTable->GetCurrentItem().GetID());
+	if (!ident)
+		return;
+	const auto& cls = dynamic_cast<const ICls64*>(ident);
+	if (cls)
+	{
+		int64_t cid = cls->GetId();
+		sigObjInsert(cid);
+	}
+	const auto& obj = dynamic_cast<const IObj64*>(ident);
+	if (obj)
+	{
+		int64_t cid = obj->GetCls()->GetId();
+		sigObjInsert(cid);
+	}
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void wh::ViewTableBrowser::SetDeleteObj() const //override;
+void wh::ViewTableBrowser::SetDeleteSelected() const //override;
 {
 	const IIdent64* ident = static_cast<const IIdent64*> (mTable->GetCurrentItem().GetID());
 	if (!ident)
 		return;
 	const auto& cls = dynamic_cast<const ICls64*>(ident);
-	if (!cls)
-		return;
+	if (cls)
+	{
+		int64_t cid = cls->GetId();
+		sigClsDelete(cid);
+	}
+	const auto& obj = dynamic_cast<const IObj64*>(ident);
+	if (obj)
+	{
+		int64_t oid = obj->GetId();
+		int64_t parent_oid = obj->GetParentId();
+		sigObjDelete(oid, parent_oid);
+	}
 
-	int64_t cid = cls->GetId();
-	sigClsDelete(cid);
+
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void wh::ViewTableBrowser::SetUpdateObj() const //override;
+void wh::ViewTableBrowser::SetUpdateSelected() const //override;
 {
 	const IIdent64* ident = static_cast<const IIdent64*> (mTable->GetCurrentItem().GetID());
 	if (!ident)
 		return;
 	const auto& cls = dynamic_cast<const ICls64*>(ident);
-	if (!cls)
-		return;
-
-	int64_t cid = cls->GetId();
-	sigClsUpdate(cid);
+	if (cls)
+	{
+		int64_t cid = cls->GetId();
+		sigClsUpdate(cid);
+	}
+	const auto& obj = dynamic_cast<const IObj64*>(ident);
+	if (obj)
+	{
+		int64_t oid = obj->GetId();
+		int64_t parent_oid = obj->GetParentId();
+		sigObjUpdate(oid, parent_oid);
+	}
 }
 
 

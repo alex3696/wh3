@@ -22,6 +22,12 @@ class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPag
 	sig::scoped_connection connViewCmd_ClsDelete;
 	sig::scoped_connection connViewCmd_ClsUpdate;
 	
+	sig::scoped_connection connViewCmd_ObjInsert;
+	sig::scoped_connection connViewCmd_ObjDelete;
+	sig::scoped_connection connViewCmd_ObjUpdate;
+
+
+
 
 	sig::scoped_connection connModel_BeforeRefreshCls;
 	sig::scoped_connection connModel_AfterRefreshCls;
@@ -52,6 +58,11 @@ public:
 	void ClsInsert(int64_t parent_cid);
 	void ClsDelete(int64_t cid);
 	void ClsUpdate(int64_t cid);
+
+	void ObjInsert(int64_t cid);
+	void ObjDelete(int64_t oid, int64_t parent_oid);
+	void ObjUpdate(int64_t oid, int64_t parent_oid);
+
 };
 //-----------------------------------------------------------------------------
 class CtrlToolbarBrowser final : public CtrlWindowBase<IViewToolbarBrowser, ModelPageBrowser>

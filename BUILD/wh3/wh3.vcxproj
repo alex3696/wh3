@@ -149,6 +149,7 @@
     <ClCompile Include="..\..\SRC\CtrlHistory.cpp" />
     <ClCompile Include="..\..\SRC\CtrlHistorySetup.cpp" />
     <ClCompile Include="..\..\SRC\CtrlMain.cpp" />
+    <ClCompile Include="..\..\SRC\CtrlObjEditor.cpp" />
     <ClCompile Include="..\..\SRC\CtrlObjPropList.cpp" />
     <ClCompile Include="..\..\SRC\CtrlUndo.cpp" />
     <ClCompile Include="..\..\SRC\DActEditor.cpp" />
@@ -285,6 +286,7 @@
     <ClInclude Include="..\..\INCLUDE\CtrlHistory.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlHistorySetup.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlMain.h" />
+    <ClInclude Include="..\..\INCLUDE\CtrlObjEditor.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlObjPropList.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlUndo.h" />
     <ClInclude Include="..\..\INCLUDE\DActEditor.h" />
