@@ -716,30 +716,41 @@ void ModelBrowser::DoRefreshFindInClsTree()
 	if (1 == search_words.size())
 	{
 		search += wxString::Format(
-			"(obj.title~~*'%%%s%%' OR cls._title~~*'%%%s%%')"
+			"(obj_name.title~~*'%%%s%%' OR cls._title~~*'%%%s%%')"
 			, search_words[0], search_words[0]);
 	}
 	else
 	{
 		search += wxString::Format(
-		"(cls._title~~*'%%%s%%' AND obj.title~~*'%%%s%%') "
-		" OR(cls._title~~*'%%%s%%' AND obj.title~~*'%%%s%%') "
+		"   (cls._title~~*'%%%s%%' AND obj_name.title~~*'%%%s%%') "
+		" OR(cls._title~~*'%%%s%%' AND obj_name.title~~*'%%%s%%') "
 			, search_words[0], search_words[1]
 			, search_words[1], search_words[0] );
 	}
+	wxString query = wxString::Format ( 
+		"SELECT cid, parent_cid, ctitle, kind, measure "
+		" , sum(qty) OVER(PARTITION BY cid ORDER BY cid DESC)  AS allqty "
+		" , oid, parent_oid, otitle, qty "
+		" , get_path_objnum(parent_oid, 1) AS path "
+		" , (SELECT fav_prop_info FROM obj_current_info "
+		"	  WHERE obj_current_info.cls_id = co.cid AND obj_current_info.id = co.oid) AS fp "
+		" FROM "
+		" ( "
+		" SELECT cls._id AS cid, cls._title AS ctitle, cls._pid AS parent_cid, cls._kind AS kind, cls._measure AS measure "
+		"     , obj_name.id  AS oid, obj_name.title  AS otitle "
+		"     , (CASE obj_name.cls_kind WHEN 1 THEN obj_num.pid WHEN 2 THEN obj_qtyi.pid ELSE obj_qtyf.pid END) AS parent_oid "
+		"     , (CASE obj_name.cls_kind WHEN 1 THEN 1 WHEN 2 THEN obj_qtyi.qty ELSE obj_qtyf.qty END) AS qty "
+		"   FROM obj_name "
+		"   LEFT JOIN obj_num  USING(id) "
+		"   LEFT JOIN obj_qtyi USING(id) "
+		"   LEFT JOIN obj_qtyf USING(id) "
+		"   RIGHT JOIN get_childs_cls(%s)cls ON cls._id = obj_name.cls_id "
+		"   WHERE (%s) "
+		" )co "
+		" ORDER BY "
+		"  (substring(co.ctitle, '^[0-9]{1,9}')::INT, co.ctitle) ASC "
+		" ,(substring(co.otitle, '^[0-9]{1,9}')::INT, co.otitle) ASC "
 
-	wxString query = wxString::Format(
-		"SELECT	cls._id, cls._pid, cls._title, cls._kind, cls._measure" //, cls._note, cls._dobj "
-		"		,sum(qty) OVER(PARTITION BY cls._id ORDER BY cls._id DESC)  AS allqty "
-		"		,obj.id, obj.pid, obj.title, obj.qty "
-		"		,get_path_objnum(obj.pid,1)  AS path"
-		"		,fav_prop_info"
-		" FROM get_childs_cls(%s) cls "
-		" LEFT JOIN obj_current_info obj ON obj.cls_id = cls._id "
-		" WHERE %s"
-		" ORDER BY " //cls._title ASC "
-		" (substring(cls._title, '^[0-9]{1,9}')::INT, cls._title ) ASC "
-		" ,(substring(obj.title, '^[0-9]{1,9}')::INT, obj.title ) ASC "
 		, parent_id, search);
 
 	
@@ -791,13 +802,13 @@ void ModelBrowser::DoRefreshFindInClsTree()
 		};
 
 
-		std::set<int64_t> loaded_id;
+		std::set<int64_t> loaded_cid;
 		for (; row < rowQty; row++)
 		{
 			int64_t cid;
 			if (!table->GetAsString(0, row).ToLongLong(&cid))
 				throw;
-			auto ins_it = loaded_id.emplace(cid);
+			auto ins_it = loaded_cid.emplace(cid);
 			if (ins_it.second)
 			{
 				const std::shared_ptr<ClsRec64>& curr = mCache.mClsTable.GetById(cid, load_cls);
@@ -805,9 +816,10 @@ void ModelBrowser::DoRefreshFindInClsTree()
 					toinsert.emplace_back(curr.get());
 			}
 
+			auto parent_oid_str = table->GetAsString(7, row);
 			int64_t oid, parent_oid;
-			if (table->GetAsString(6, row).ToLongLong(&oid)
-				|| table->GetAsString(7, row).ToLongLong(&parent_oid))
+			if (   table->GetAsString(6, row).ToLongLong(&oid) 
+				&& table->GetAsString(7, row).ToLongLong(&parent_oid))
 			{
 				const std::shared_ptr<ObjRec64>& obj = mCache.mObjTable.GetObjById(oid, parent_oid, load_obj);
 				if (!obj)
