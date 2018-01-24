@@ -695,6 +695,8 @@ void ModelBrowser::DoRefreshFindInClsTree()
 			else
 				word = mSearchString.substr(start, mSearchString.size() - start);
 
+			word.Replace("'", "''");
+
 			search_words.emplace_back(word);
 			start = next;
 		}
@@ -733,7 +735,10 @@ void ModelBrowser::DoRefreshFindInClsTree()
 		" , oid, parent_oid, otitle, qty "
 		" , get_path_objnum(parent_oid, 1) AS path "
 		" , (SELECT fav_prop_info FROM obj_current_info "
-		"	  WHERE obj_current_info.cls_id = co.cid AND obj_current_info.id = co.oid) AS fp "
+		"	  WHERE obj_current_info.cls_id = co.cid "
+		"       AND obj_current_info.id = co.oid "
+		" 		LIMIT 1 " //--obj_current_info.pid = co.parent_oid
+	    "    ) AS fp "
 		" FROM "
 		" ( "
 		" SELECT cls._id AS cid, cls._title AS ctitle, cls._pid AS parent_cid, cls._kind AS kind, cls._measure AS measure "
