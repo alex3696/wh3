@@ -33,7 +33,7 @@ MObjCatalog::MObjCatalog(const char option)
 		fd.mConn = fcAND;
 		fd.mFieldName = "acls.kind";
 		fd.mOp = foEq;
-		fd.mVal = wxString::Format("%d", (int)ctAbstract);
+		fd.mVal = wxString::Format("%d", (int)ClsKind::Abstract);
 		fd.mFieldType = ftLong;
 		fd.mIsEnabled = false;
 		auto item = mFilter->CreateItem(fd,true);
@@ -190,7 +190,7 @@ void MObjCatalog::DoUp()
 }
 
 //-------------------------------------------------------------------------
-void MObjCatalog::SetFilterClsKind(ClsType ct, FilterOp fo, bool enable)
+void MObjCatalog::SetFilterClsKind(ClsKind ct, FilterOp fo, bool enable)
 {
 	FilterData fd(wxString::Format("%d", (int)ct)
 		, "acls.kind", ftLong, fo, fcAND, enable);
@@ -225,7 +225,7 @@ bool MObjCatalog::IsAbstractTree()const
 		unsigned long val;
 		if (
 			filter.mVal.ToCULong(&val))
-			return ctAbstract == (ClsType)val;
+			return ClsKind::Abstract == (ClsKind)val;
 	}
 	return false;
 }

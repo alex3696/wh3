@@ -178,7 +178,7 @@ void DClsEditor::OnChangeModel(const IModel* model,
 			return;
 		switch (cls.GetClsType() )
 		{
-		case ctSingle:
+		case ClsKind::Single:
 			mClsPropPanel->Show(true);
 			mClsActPanel->Show(true);
 			mClsMovePanel->Show(true);
@@ -187,13 +187,13 @@ void DClsEditor::OnChangeModel(const IModel* model,
 			mNotebook->AddPage(mClsActPanel, "Действия", false, 3);
 			mNotebook->AddPage(mClsMovePanel, "Перемещения", false, 5);
 			break;
-		case ctQtyByFloat: case ctQtyByOne:
+		case ClsKind::QtyByFloat: case ClsKind::QtyByOne:
 			mClsActPanel->Show(true);
 			mClsActPanel->Show(true);
 			mNotebook->AddPage(mClsPropPanel, "Свойства", false, 1);
 			mNotebook->AddPage(mClsActPanel, "Действия", false, 3);
 			break;
-		case ctAbstract:
+		case ClsKind::Abstract:
 			mClsActPanel->Show(true);
 			mClsMovePanel->Show(true);
 			mNotebook->AddPage(mClsActPanel, "Действия", false, 3);

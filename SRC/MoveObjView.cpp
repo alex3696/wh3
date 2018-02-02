@@ -642,11 +642,11 @@ void XMoveObjView::UpdateMoveable(const rec::PathItem& moveable)//override
 		return;
 	switch (moveable.mCls.GetClsType())
 	{
-	case wh::ctQtyByOne:
+	case wh::ClsKind::QtyByOne:
 		mqtySpin->Show();
 		mqtyCtrl->Hide();
 		break;
-	case wh::ctQtyByFloat:
+	case wh::ClsKind::QtyByFloat:
 		mqtySpin->Hide();
 		mqtyCtrl->Show();
 		break;

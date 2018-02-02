@@ -52,7 +52,7 @@ Frame::Frame(wxWindow* parent,
 
 	auto parent_obj_cat = std::make_shared<MCat>();
 	parent_obj_cat->SetCfg(rec::CatCfg(rec::catObj, false, true));
-	parent_obj_cat->SetFilterClsKind(ctQtyByOne, foLess, true);
+	parent_obj_cat->SetFilterClsKind(ClsKind::QtyByOne, foLess, true);
 
 	mPGParent->SetCatalog(parent_obj_cat,true);
 	mPropGrid->Append(mPGParent);
@@ -106,12 +106,12 @@ void Frame::OnChangeModel(const IModel* model, const object_catalog::MObjItem::T
 	if (!cls_data.mType.IsNull())
 		switch (cls_data.GetClsType())
 		{
-		case ctSingle: 
+		case ClsKind::Single: 
 			mPGQty->SetValueFromString("1"); 
 			mPGQty->Enable(false);
 			break;
-		case ctQtyByOne:
-		case ctQtyByFloat:
+		case ClsKind::QtyByOne:
+		case ClsKind::QtyByFloat:
 			mPGQty->SetValueFromString(obj_data.mQty);
 			mPGQty->Enable(true);
 		default:break;

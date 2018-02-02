@@ -130,10 +130,10 @@ void ModelPageDetail::UpdateTitle() //override;
 		default:
 			ico = &ResMgr::GetInstance()->m_ico_type_abstract24;
 			break;
-		case wh::ctQtyByFloat:	case wh::ctQtyByOne:
+		case wh::ClsKind::QtyByFloat:	case wh::ClsKind::QtyByOne:
 			ico = &ResMgr::GetInstance()->m_ico_obj_qty24;
 			break;
-		case wh::ctSingle:
+		case wh::ClsKind::Single:
 			ico = &ResMgr::GetInstance()->m_ico_obj_num24;
 			break;
 	}//switch

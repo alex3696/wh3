@@ -82,20 +82,20 @@ void VObjCatalogDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 			switch (cls.GetClsType() )
 			{
 			
-			default: //ctAbstract
+			default: //ClsKind::Abstract
 				if (1 == col)
 				{
 					ico = &mgr->m_ico_type_abstract24;
 					val = wxString::Format("%s", cls.mLabel.toStr());
 				}
 				break;
-			case ctQtyByFloat:
-			case ctQtyByOne:ico = &mgr->m_ico_type_qty24;
+			case ClsKind::QtyByFloat:
+			case ClsKind::QtyByOne:ico = &mgr->m_ico_type_qty24;
 							val = wxString::Format("%s - %s (%s)",
 							//cls.mClsLabel, cls.mQty, cls.mMeasure);
 							cls.mLabel.toStr(), typeItem->GetQty(), cls.mMeasure.toStr());
 							break;
-			case ctSingle:	ico = &mgr->m_ico_type_num24;
+			case ClsKind::Single:	ico = &mgr->m_ico_type_num24;
 							val = wxString::Format("%s - %s (%s)",
 							//cls.mLabel, cls.mQty, cls.mMeasure);
 							cls.mLabel.toStr(), typeItem->GetQty(), cls.mMeasure.toStr());
@@ -166,7 +166,7 @@ bool VObjCatalogDataViewModel::GetAttr(const wxDataViewItem &dataViewItem, unsig
 			auto catalog = dynamic_cast<object_catalog::MObjCatalog*> (typeArray->GetParent());
 			
 			if (!typeItem->GetData().mType.IsNull() 
-				&& ctSingle != typeItem->GetData().GetClsType()
+				&& ClsKind::Single != typeItem->GetData().GetClsType()
 				&& col > 6)
 				//attr.SetBackgroundColour(wxColour(240, 240, 240));
 				has_bg = false;
@@ -201,13 +201,13 @@ bool VObjCatalogDataViewModel::GetAttr(const wxDataViewItem &dataViewItem, unsig
 				{
 				default://0 
 						attr.SetColour(wxColour(100, 100, 100)); break;
-				case ctQtyByFloat:
-				case ctQtyByOne: 
+				case ClsKind::QtyByFloat:
+				case ClsKind::QtyByOne: 
 						attr.SetColour(wxColour(0, 80, 150));
 						if (has_bg)
 							attr.SetBackgroundColour(wxColour(210, 240, 250));
 						break;
-				case ctSingle: 
+				case ClsKind::Single: 
 						attr.SetColour(wxColour(100, 30, 0));
 						if (has_bg)
 							attr.SetBackgroundColour(wxColour(250, 240, 210));

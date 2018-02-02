@@ -72,14 +72,7 @@ void CtrlObjEditor::Insert(int64_t cid)
 	cls->mObjArray->Insert(newObj);
 	//auto newObj = std::make_shared<object_catalog::MObjItem>();
 	//newObj->SetData(obj_data,true);
-
-
-	bool hideSysRoot = true;
-	const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
-	if ((int)bgUser < (int)currBaseGroup)
-		hideSysRoot = false;
-	//auto newObj = std::make_shared<object_catalog::MObjItem>();
-
+	
 	object_catalog::view::Frame editor;
 	editor.SetModel(newObj);
 
@@ -208,15 +201,6 @@ void CtrlObjEditor::Update(int64_t oid, int64_t parent_oid)
 	cls->mObjArray->Insert(newObj);
 	//auto newObj = std::make_shared<object_catalog::MObjItem>();
 	//newObj->SetData(obj_data,true);
-
-
-	bool hideSysRoot = true;
-	const auto& currBaseGroup = whDataMgr::GetInstance()->mDbCfg->mBaseGroup->GetData();
-	if ((int)bgUser < (int)currBaseGroup)
-		hideSysRoot = false;
-	//auto newObj = std::make_shared<object_catalog::MObjItem>();
-
-
 
 	object_catalog::view::Frame editor;
 	editor.SetModel(newObj);

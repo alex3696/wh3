@@ -35,7 +35,7 @@ public:
 	wxString GetFilterCat()const;
 
 
-	void SetFilterClsKind(ClsType ct, FilterOp fo = foEq, bool enable=true);
+	void SetFilterClsKind(ClsKind ct, FilterOp fo = foEq, bool enable=true);
 	const FilterData& GetFilterClsKind()const;
 	void SetFilterClsId(long id, FilterOp fo = foEq, bool enable = true);
 	const FilterData& GetFilterClsId()const;

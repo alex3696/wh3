@@ -258,14 +258,14 @@ void VObjCatalogCtrl::UpdateToolsStates()
 			const auto& cls_data = typeItem->GetData();
 			switch (cls_data.GetClsType())
 			{
-			case ctSingle:
+			case ClsKind::Single:
 				mToolDisable[wxID_REPLACE] += 1;
 				mToolDisable[wxID_EXECUTE] += 1;
 				break;
-			case ctQtyByOne:
-			case ctQtyByFloat:
+			case ClsKind::QtyByOne:
+			case ClsKind::QtyByFloat:
 				mToolDisable[wxID_EXECUTE] += 1;
-			default://ctAbstract
+			default://ClsKind::Abstract
 				mToolDisable[wxID_REPLACE] += 1;
 				mToolDisable[wxID_EXECUTE] += 1;
 				//mToolDisable[wxID_PROPERTIES] += 1;
@@ -282,12 +282,12 @@ void VObjCatalogCtrl::UpdateToolsStates()
 				const auto& cls_data = typeItem->GetData();
 				switch (cls_data.GetClsType())
 				{
-				case ctSingle:
+				case ClsKind::Single:
 					break;
-				case ctQtyByOne:
-				case ctQtyByFloat:
+				case ClsKind::QtyByOne:
+				case ClsKind::QtyByFloat:
 					break;
-				default://ctAbstract
+				default://ClsKind::Abstract
 					mToolDisable[wxID_EXECUTE] += 1;
 					mToolDisable[wxID_PROPERTIES] += 1;
 					mToolDisable[wxID_REPLACE] += 1;

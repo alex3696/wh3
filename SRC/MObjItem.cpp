@@ -204,7 +204,7 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 		const auto& catalogData = catalog->GetRoot();
 
 		wxString fields, leftJoin;
-		if (catalog->IsPropEnabled()) //ctSingle == typeItemData.GetClsType()
+		if (catalog->IsPropEnabled()) //ClsKind::Single == typeItemData.GetClsType()
 		{
 			wxString qq;
 			for (const auto& it : catalog->GetFavProps())

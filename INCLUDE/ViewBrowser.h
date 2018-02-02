@@ -1,15 +1,8 @@
 #ifndef __VIEW_BROWSER_H
 #define __VIEW_BROWSER_H
-//-----------------------------------------------------------------------------
 
 #include "IViewBrowser.h"
-#include "ModelHistoryData.h"
-
-
-
 namespace wh{
-
-
 //-----------------------------------------------------------------------------
 class ViewTableBrowser : public IViewTableBrowser
 {

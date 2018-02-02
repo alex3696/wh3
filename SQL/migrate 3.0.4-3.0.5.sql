@@ -171,7 +171,7 @@ CREATE OR REPLACE VIEW  obj_current_info AS
  ) AS fav_prop_info
 
 FROM obj;
-
+GRANT SELECT ON TABLE obj_current_info TO "Guest";
 
 
 --SELECT * FROM obj_current_info WHERE cls_id=159;

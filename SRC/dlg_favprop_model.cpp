@@ -44,7 +44,7 @@ bool FavPropItem::GetInsertQuery(wxString& query)const
 	const rec::Cls& cls = parentCls->GetStored();
 	const auto& newObj = this->GetData();
 	ClsType ct;
-	if (!cls.GetClsType(ct) && ct != ctSingle)
+	if (!cls.GetClsType(ct) && ct != ClsKind::Single)
 		return false;
 
 	query = wxString::Format(
@@ -121,7 +121,7 @@ bool FavPropItem::GetDeleteQuery(wxString& query)const
 	const rec::Cls& cls = parentCls->GetStored();
 	const auto& newObj = this->GetData();
 	ClsType ct;
-	if (!cls.GetClsType(ct) && ct != ctSingle)
+	if (!cls.GetClsType(ct) && ct != ClsKind::Single)
 		return false;
 
 	const auto& prop_data = this->GetData();

@@ -5,16 +5,48 @@
 
 namespace wh{
 //-----------------------------------------------------------------------------
-enum ClsType
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+enum class ClsKind
 {
-	ctAbstract = 0,
-	ctSingle = 1,
-	ctQtyByOne = 2,
-	ctQtyByFloat = 3
+	Abstract = 0,
+	Single = 1,
+	QtyByOne = 2,
+	QtyByFloat = 3
 };
 //-----------------------------------------------------------------------------
-
-
+static wxString ToString(ClsKind kind)
+{
+	switch (kind)
+	{
+	case ClsKind::Abstract: return "0";
+	case ClsKind::Single:	return "1";
+	case ClsKind::QtyByOne:	return "2";
+	case ClsKind::QtyByFloat:return "3";
+	default:break;
+	}
+	return wxEmptyString;
+}
+//-----------------------------------------------------------------------------
+static bool ToClsKind(const wxString& str, ClsKind& kind)
+{
+	unsigned long ul;
+	if (str.ToULong(&ul))
+	{
+		switch (ul)
+		{
+		case 0: kind = ClsKind::Abstract; return true;
+		case 1: kind = ClsKind::Single; return true;
+		case 2: kind = ClsKind::QtyByOne; return true;
+		case 3: kind = ClsKind::QtyByFloat; return true;
+		default:break;
+		}
+	}
+	return false;
+}
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 
 
@@ -77,21 +109,21 @@ struct Cls: public Base
 	{
 	}
 
-	ClsType GetClsType()const
+	ClsKind GetClsType()const
 	{
-		return  ClsType(long(mType));
+		return  ClsKind(long(mType));
 	}
 	bool IsAbstract()const
 	{
-		return ctAbstract == GetClsType();
+		return ClsKind::Abstract == GetClsType();
 	}
 	bool IsNumberic()const
 	{
-		return ctSingle == GetClsType();
+		return ClsKind::Single == GetClsType();
 	}
 	bool IsQuantity()const
 	{
-		return ctQtyByOne == GetClsType() || ctQtyByFloat == GetClsType();
+		return ClsKind::QtyByOne == GetClsType() || ClsKind::QtyByFloat == GetClsType();
 	}
 
 };
