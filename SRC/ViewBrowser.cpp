@@ -1034,51 +1034,46 @@ void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec
 		if (!obj)
 			continue;
 
-		std::vector<const IAct64*> fav_act;
-		obj->GetCls()->GetFavActs(fav_act);
+		const auto& fav_act = obj->GetCls()->GetFavActInfo();
 		for (const auto& fa_it : fav_act)
 		{
-			auto aid = fa_it->GetId();
-			char visible;
-			if (obj->GetCls()->GetActVisible(aid, visible))
+			auto aid = fa_it.mAct->GetId();
+			char visible = fa_it.mVisible;
+			for (char v = 1; v <= 8; v <<= 1)
 			{
-				for (char v = 1; v <= 8; v<<=1)
+				if (visible & v)
 				{
-					if (visible & v)
+					auto& idx0 = dvmodel->mActColumns.get<0>();
+					auto it = idx0.find(boost::make_tuple(aid, (char)(visible & v)));
+					if (idx0.end() == it)
 					{
-						auto& idx0 = dvmodel->mActColumns.get<0>();
-						auto it = idx0.find(boost::make_tuple(aid, (char)(visible & v)));
-						if (idx0.end() == it)
+						ActInfoColumn acol(aid
+							, (char)(visible & v)
+							, mTable->GetColumnCount());
+
+						dvmodel->mActColumns.emplace(acol);
+
+						wxString str;
+						switch (acol.mAcol)
 						{
-							ActInfoColumn acol(aid
-								, (char)(visible & v)
-								, mTable->GetColumnCount());
-
-							dvmodel->mActColumns.emplace(acol);
-
-							wxString str;
-							switch (acol.mAcol)
-							{
-							case 2: str=" период(сут.)"; break;
-							case 4: str = " след."; break;
-							case 8: str = " осталось(сут.)"; break;
-							default:str = " пред."; break;
-							}
-
-							wxString title;
-							title << fa_it->GetTitle() << str;
-							auto col = this->mTable->AppendTextColumn(title, acol.mIndex
-								, wxDATAVIEW_CELL_INERT, -1, wxALIGN_NOT
-								, wxDATAVIEW_COL_REORDERABLE |  wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-							auto col_pos = mTable->GetModelColumnIndex(acol.mIndex);
-							col->SetWidth(mTable->GetBestColumnWidth(col_pos));
-
+						case 2: str = " период(сут.)"; break;
+						case 4: str = " след."; break;
+						case 8: str = " осталось(сут.)"; break;
+						default:str = " пред."; break;
 						}
-					}//if (visible & v)
-				}//for (char v = 1; v <= 8; v<<=1)
-			}
-		}
 
+						wxString title;
+						title << fa_it.mAct->GetTitle() << str;
+						auto col = this->mTable->AppendTextColumn(title, acol.mIndex
+							, wxDATAVIEW_CELL_INERT, -1, wxALIGN_NOT
+							, wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+						auto col_pos = mTable->GetModelColumnIndex(acol.mIndex);
+						col->SetWidth(mTable->GetBestColumnWidth(col_pos));
+
+					}
+				}//if (visible & v)
+			}//for (char v = 1; v <= 8; v<<=1)
+		}
 
 		/*
 		auto begin = obj->GetActInfo().begin();

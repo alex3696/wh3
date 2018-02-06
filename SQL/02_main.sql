@@ -219,7 +219,7 @@ CREATE INDEX idx_acls__title_tgm ON acls USING gin (title gin_trgm_ops);
 --CREATE INDEX idx_acls__qtyf_id     ON acls(id) WHERE (kind=3);
 GRANT SELECT        ON TABLE acls  TO "Guest";
 GRANT INSERT        ON TABLE acls  TO "TypeDesigner";
-GRANT DELETE        ON TABLE acls  TO "Admin";
+GRANT DELETE        ON TABLE acls  TO "TypeDesigner";
 GRANT UPDATE(pid,title,note,dobj,measure) ON TABLE acls  TO "TypeDesigner";
 GRANT UPDATE(dt_insert) ON acls TO "Admin";
 GRANT UPDATE(usr_insert)ON acls TO "Admin";

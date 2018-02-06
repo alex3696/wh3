@@ -55,71 +55,6 @@ void ActCache::LoadDetailById()
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-void ViewCidAidPeriod::LoadByParentCid(const wxString& parent_id)
-{
-	Clear();
-
-	wxString query = wxString::Format(
-		"WITH "
-		"curr AS(SELECT %s::BIGINT AS pid) "
-		", parent_tree(id) AS( "
-		"	SELECT id FROM get_path_cls_info((SELECT pid FROM curr), 1) "
-		") "
-		", parent_fav(aid, visible) AS( "
-		"	SELECT aid, visible FROM parent_tree cls "
-		"	INNER JOIN fav_act ON fav_act.cid = cls.id AND fav_act.usr = CURRENT_USER "
-		") "
-		", current_list(cid) AS( "
-		"	SELECT id FROM acls WHERE acls.pid = (SELECT pid FROM curr) "
-		") "
-		", all_fav(cid, aid, visible) AS( "
-		"	SELECT  current_list.cid, parent_fav.aid, parent_fav.visible "
-		"	FROM current_list "
-		"	RIGHT JOIN parent_fav ON TRUE "
-		"	UNION ALL "
-		"	SELECT  current_list.cid, fav_act.aid, fav_act.visible "
-		"	FROM current_list "
-		"	INNER JOIN  fav_act ON fav_act.cid = current_list.cid AND fav_act.usr = CURRENT_USER "
-		") "
-		", all_fav_bitor(cid, aid, visible) AS( "
-		"	SELECT cid, aid, bit_or(visible) "
-		"	FROM all_fav "
-		"	GROUP BY cid, aid "
-		") "
-		"SELECT * FROM all_fav_bitor "
-		"LEFT JOIN  LATERAL(SELECT ref_cls_act.period "
-		"	FROM(SELECT * FROM parent_tree UNION SELECT all_fav_bitor.cid) ct "
-		"	INNER JOIN ref_cls_act ON ref_cls_act.period IS NOT NULL "
-		"	AND ref_cls_act.cls_id = ct.id "
-		"	AND ref_cls_act.act_id = all_fav_bitor.aid "
-		")ref_ca ON TRUE "
-		,parent_id);
-	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
-	if (table)
-	{
-		unsigned int rowQty = table->GetRowCount();
-		size_t n = 0;
-		for (; n < rowQty; n++)
-		{
-			RowType row;
-			table->GetAsString(3, n, row.mPeriod);
-			if (!table->GetAsString(2, n).ToLong(&row.mVisible))
-				row.mVisible = 0;
-			if (!table->GetAsString(1, n).ToLongLong(&row.mAid))
-				row.mAid = 0;
-			if (!table->GetAsString(0, n).ToLongLong(&row.mCid))
-				throw;
-			mData.emplace(row);
-		}//for
-	}//if (table)
-
-}
-
-
-
-
-
-
 
 
 const std::shared_ptr<ClsRec64>  ClsCache::NullValue = std::shared_ptr<ClsRec64>(nullptr);
@@ -143,43 +78,22 @@ const std::shared_ptr<const ICls64::ObjTable> ClsRec64::GetObjTable()const //ove
 	//return mObjTable;
 	return mTable->GetCache()->mObjTable.GetObjByClsId(GetId());
 }
-
-
-
-
 //-----------------------------------------------------------------------------
-//virtual 
-bool ClsRec64::GetFavActs(std::vector<const IAct64*>& acts)const //override;
+const FavActTable& ClsRec64::GetFavActInfo() const
 {
-	for (const auto& act : mFavActLog)
-		acts.emplace_back(act.mAct.get());
-	return true;
+	return mFavActLog;
 }
 //-----------------------------------------------------------------------------
-//virtual 
-bool ClsRec64::GetActVisible(int64_t aid, char& visible)const //override;
+const SpPropConstTable& ClsRec64::GetFavObjProp() const
 {
-	const auto& idxAid = mFavActLog.get<0>();
-	const auto it = idxAid.find(aid);
-	if (it != idxAid.cend())
-	{
-		visible = it->mVisible;
-		return true;
-	}
-	return false;
+	// TODO: insert return statement here
+	return SpPropConstTable();
 }
 //-----------------------------------------------------------------------------
-//virtual 
-bool ClsRec64::GetActPeriod(int64_t aid, wxString& period)const //override;
+const SpPropConstTable& ClsRec64::GetFavClsProp() const
 {
-	const auto& idxAid = mFavActLog.get<0>();
-	const auto it = idxAid.find(aid);
-	if (it != idxAid.cend())
-	{
-		period = it->mPeriod;
-		return true;
-	}
-	return false;
+	// TODO: insert return statement here
+	return SpPropConstTable();
 }
 
 
@@ -242,7 +156,7 @@ void ObjRec64::ParseActInfo()
 			const ActCache::fnModify fn_act_upsert = [](const std::shared_ptr<IAct64>& act)
 			{};
 
-			ClsRec64::FavAct fa;
+			FavActInfo fa;
 			fa.mAct = cache->mActTable.UpdateOrInsert(aid, fn_act_upsert);
 			fa.mPeriod = period;
 			fa.mVisible = visible;

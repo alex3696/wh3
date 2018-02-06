@@ -152,6 +152,43 @@ using SpPropConstTable = TSpTable<SpPropConst>;
 using SpPropValTable = TSpTable<SpPropVal>;
 using SpPropValConstTable = TSpTable<SpPropValConst>;
 
+//-----------------------------------------------------------------------------
+class IAct64 : public IIdent64
+{
+public:
+	virtual const wxString& GetColour()const = 0;
+
+};
+//-----------------------------------------------------------------------------
+// FavActInfo
+struct FavActInfo
+{
+	std::shared_ptr<const IAct64>	mAct;
+	wxString						mPeriod;
+	char							mVisible;
+};
+
+struct extr_aid_FavAct
+{
+	typedef const int64_t result_type;
+	inline result_type operator()(const FavActInfo& r)const
+	{
+		return r.mAct->GetId();
+	}
+};
+using FavActTable = boost::multi_index_container
+<
+	FavActInfo,
+	indexed_by
+	<
+		ordered_unique< extr_aid_FavAct >
+	>
+>;
+
+//-----------------------------------------------------------------------------
+
+
+
 
 
 class ICls64 : public IIdent64
@@ -172,9 +209,19 @@ public:
 
 	virtual std::shared_ptr<const ICls64> GetParent()const = 0;
 
-	virtual bool GetFavActs(std::vector<const IAct64*>&)const = 0;
-	virtual bool GetActVisible(int64_t aid, char& visible)const = 0;
-	virtual bool GetActPeriod(int64_t aid, wxString& period)const = 0;
+	virtual const FavActTable& GetFavActInfo()const = 0;
+	virtual const SpPropConstTable& GetFavObjProp()const  = 0;
+	virtual const SpPropConstTable& GetFavClsProp()const = 0;
+		
+	bool GetActPeriod(int64_t aid, wxString& period)const
+	{
+		const auto& idxFavAct = GetFavActInfo().get<0>();
+		auto it = idxFavAct.find(aid);
+		if (idxFavAct.end() == it)
+			return false;
+		period = it->mPeriod;
+		return true;
+	}
 	
 };
 
@@ -221,13 +268,7 @@ public:
 	virtual const IProp64&	GetProp()const = 0;
 	virtual const wxString& GetValue()const = 0;
 };
-//-----------------------------------------------------------------------------
-class IAct64 : public IIdent64
-{
-public:
-	virtual const wxString& GetColour()const = 0;
-	
-};
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

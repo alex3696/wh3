@@ -176,7 +176,8 @@ GRANT SELECT ON TABLE obj_current_info TO "Guest";
 
 --SELECT * FROM obj_current_info WHERE cls_id=159;
 
-
+REVOKE DELETE ON TABLE acls FROM  "Admin";
+GRANT DELETE  ON acls TO "TypeDesigner";
 
 
 

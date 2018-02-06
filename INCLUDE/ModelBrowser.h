@@ -29,45 +29,7 @@ public:
 	ClsKind		mKind = ClsKind::Abstract;
 	bool		mObjLoaded = false;
 
-
-	//boost::tuple<wxDateTime, char> FavAct;
-	struct FavAct
-	{
-		std::shared_ptr<const IAct64>	mAct;
-		wxString						mPeriod;
-		char							mVisible;
-	};
-
-	struct extr_aid_FavAct
-	{
-		typedef const int64_t result_type;
-		inline result_type operator()(const FavAct& r)const
-		{
-			return r.mAct->GetId();
-		}
-	};
-	struct extr_ActPtr_FavAct
-	{
-		typedef const IAct64* result_type;
-		inline result_type operator()(const FavAct& r)const
-		{
-			return r.mAct.get();
-		}
-	};
-
-
-
-	using FavActLog = boost::multi_index_container
-	<
-		FavAct,
-		indexed_by
-		<
-			  ordered_unique< extr_aid_FavAct >
-			//, ordered_unique< extr_ActPtr_FavAct >
-		>
-	>;
-
-	FavActLog mFavActLog;
+	FavActTable mFavActLog;
 
 protected:
 	//struct MakeSharedEnabler;
@@ -106,9 +68,9 @@ public:
 
 	virtual std::shared_ptr<const ICls64> GetParent()const override;// {return mParent.lock();}
 
-	virtual bool GetFavActs(std::vector<const IAct64*>&)const override;
-	virtual bool GetActVisible(int64_t aid, char& visible)const override;
-	virtual bool GetActPeriod(int64_t aid, wxString& period)const override;
+	virtual const FavActTable& GetFavActInfo()const override;
+	virtual const SpPropConstTable& GetFavObjProp()const override;
+	virtual const SpPropConstTable& GetFavClsProp()const override;
 
 };
 //-----------------------------------------------------------------------------
@@ -418,80 +380,6 @@ public:
 
 
 };
-
-//-----------------------------------------------------------------------------
-// cid-aid-period VIEW
-//-----------------------------------------------------------------------------
-class ViewCidAidPeriod
-{
-public:
-	struct RowType 
-	{
-		int64_t mCid;
-		int64_t mAid;
-		long	 mVisible;
-		wxString mPeriod;
-	};
-
-	using ModifyFunction = std::function<void(RowType& row)>;
-protected:
-	using Storage = boost::multi_index_container
-	<
-		RowType,
-		indexed_by
-		<
-			 ordered_unique < 
-		                      composite_key
-		                      <
-								 RowType
-		                       , member<RowType, int64_t, &RowType::mCid>
-							   , member<RowType, int64_t, &RowType::mAid>
-							  > 
-			                 >
-			, ordered_non_unique< member<RowType, int64_t, &RowType::mCid> >
-		    , ordered_non_unique< member<RowType, int64_t, &RowType::mAid> >
-			//, random_access<> //SQL order	
-			//, ordered_unique< extr_void_ptr_IIdent64 >
-		>
-	>;
-
-	Storage		mData;
-	DbCache*	mDbCache;
-public:
-	ViewCidAidPeriod(DbCache* dbCache)
-		:mDbCache(dbCache)
-	{}
-	DbCache* GetCache()const { return mDbCache; }
-
-	void Clear()
-	{
-		mData.clear();
-	}
-
-
-	void LoadByParentOid()	{}
-
-	void LoadByParentCid(const wxString& parent_id);
-
-	void GetVisibeActInfo(std::map<int64_t, long>& aid_map)const
-	{
-		aid_map.clear();
-		const auto& idxAid = mData.get<2>();
-
-		auto first = idxAid.cbegin();
-		auto last = idxAid.cend();
-		auto aid = 0;
-
-		while (first != last)
-		{
-			aid_map.emplace(first->mAid, first->mVisible);
-			++first;
-		}
-	}
-
-	
-};//class ViewCidAidPeriod
-
 //-----------------------------------------------------------------------------
 // ACT TABLE
 //-----------------------------------------------------------------------------
@@ -570,7 +458,6 @@ public:
 	DbCache()
 		:mClsTable(this)
 		, mObjTable(this)
-		, mViewCidAidPeriod(this)
 		, mActTable(this)
 	{
 	
@@ -580,13 +467,11 @@ public:
 	{
 		mObjTable.Clear();
 		mClsTable.Clear();
-		mViewCidAidPeriod.Clear();
 		mActTable.Clear();
 	}
 
 	ClsCache mClsTable;
 	ObjCache mObjTable;
-	ViewCidAidPeriod mViewCidAidPeriod;
 	ActCache mActTable;
 };
 
