@@ -8,8 +8,6 @@ namespace wh {
 class ViewFav : public IViewFav
 {
 	wxDialog*		mPanel;
-	wxAuiManager*   mAuiMgr;
-
 protected:
 
 public:

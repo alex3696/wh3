@@ -399,11 +399,13 @@ public:
 			std::swap(value1, value2);
 
 		if (value1.IsNull())
-			if (!value2.IsNull())
-				return -1;
-		else
+		{
 			if (!value2.IsNull())
 				return 1;
+		}
+		else
+			if (value2.IsNull())
+				return -1;
 
 		// all columns sorted by TRY FIRST numberic value
 		if (value1.GetType() == "string" || value1.GetType() == "wxDataViewIconText")
@@ -442,7 +444,6 @@ public:
 						match = mStartNum.GetMatch(&start2, &len2);
 						if (match && str2.substr(start2, len2).ToDouble(&num2))
 						{
-							
 							if (num1 < num2)
 								return -1;
 							else if (num1 > num2)
@@ -450,8 +451,22 @@ public:
 							str1.erase(start1, start1 + len1);
 							str2.erase(start2, start2 + len2);
 						}
-					}//if (mStartNum.Matches(str1))
+						else
+							return 1;
+					}//if (mStartNum.Matches(str2))
 				}//if (match && str1.substr(start, len).ToLong(&num1))
+				else
+				{
+					if (mStartNum.Matches(str2))
+					{
+						size_t start2;
+						size_t len2;
+						double num2;
+						match = mStartNum.GetMatch(&start2, &len2);
+						if (match && str2.substr(start2, len2).ToDouble(&num2))
+							return -1;
+					}//if (mStartNum.Matches(str2))
+				}//else if (match && str1.substr(start, len).ToLong(&num1))
 			}//if (mStartNum.Matches(str1))
 
 			int res = str1.CmpNoCase(str2);
@@ -588,8 +603,10 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	table->GetTargetWindow()->SetToolTip("ToolTip");
 	table->GetTargetWindow()->Bind(wxEVT_MOTION, &ViewTableBrowser::OnCmd_MouseMove, this);
 
-	table->Bind(wxEVT_DATAVIEW_COLUMN_SORTED
-		, [this](wxDataViewEvent& evt) { RestoreSelect(); });
+	table->Bind(wxEVT_DATAVIEW_COLUMN_HEADER_CLICK, [this](wxDataViewEvent& evt)
+		{ StoreSelect(); evt.Skip(); });
+	table->Bind(wxEVT_DATAVIEW_COLUMN_SORTED, [this](wxDataViewEvent& evt) 
+		{ RestoreSelect(); } );
 
 	table->Bind(wxEVT_DATAVIEW_ITEM_ACTIVATED
 		, &ViewTableBrowser::OnCmd_Activate, this);
@@ -1381,13 +1398,17 @@ void wh::ViewTableBrowser::SetUpdateSelected() const //override;
 		int64_t cid = cls->GetId();
 		sigClsUpdate(cid);
 	}
-	const auto& obj = dynamic_cast<const IObj64*>(ident);
-	if (obj)
+	else
 	{
-		int64_t oid = obj->GetId();
-		int64_t parent_oid = obj->GetParentId();
-		sigObjUpdate(oid, parent_oid);
+		const auto& obj = dynamic_cast<const IObj64*>(ident);
+		if (obj)
+		{
+			int64_t oid = obj->GetId();
+			int64_t parent_oid = obj->GetParentId();
+			sigObjUpdate(oid, parent_oid);
+		}
 	}
+	
 }
 
 

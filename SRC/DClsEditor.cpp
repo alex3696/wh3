@@ -88,6 +88,7 @@ DClsEditor::DClsEditor(wxWindow*		parent,
 DClsEditor::~DClsEditor()
 {
 	mChangeConnection.disconnect();
+	mNotebook->DeleteAllPages();
 	mAuiMgr.UnInit();
 }
 //-----------------------------------------------------------------------------
