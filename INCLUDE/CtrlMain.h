@@ -15,6 +15,8 @@ class CtrlMain : public CtrlWindowBase<ViewMain, ModelMain>
 {
 	std::shared_ptr<CtrlNotebook> mCtrlNotebook;
 
+	sig::scoped_connection conn_ShowHelp;
+
 	sig::scoped_connection connAfterDbConnected;
 	sig::scoped_connection connBeforeDbDisconnected;
 
@@ -57,6 +59,7 @@ public:
 	void Load();
 	void Save();
 
+	void ShowHelp(const wxString& index)const;
 	void ShowDoc()const;
 	void ShowWhatIsNew()const;
 

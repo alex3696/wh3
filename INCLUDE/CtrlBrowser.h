@@ -12,12 +12,19 @@ class CtrlPageBrowser;
 //-----------------------------------------------------------------------------
 class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPageBrowser>
 {
-	sig::scoped_connection connViewCmd_Refresh;
-	sig::scoped_connection connViewCmd_Up;
+	sig::scoped_connection connModel_BeforeRefreshCls;
+	sig::scoped_connection connModel_AfterRefreshCls;
+	sig::scoped_connection connModel_ObjOperation;
+
 	sig::scoped_connection connViewCmd_Activate;
 	sig::scoped_connection connViewCmd_RefreshClsObjects;
+
+	sig::scoped_connection connViewCmd_Refresh;
+	sig::scoped_connection connViewCmd_Up;
+
 	sig::scoped_connection connViewCmd_ShowObjDetail;
-	sig::scoped_connection connViewCmd_ShowFav;
+	//sig::scoped_connection connViewCmd_Act;
+	//sig::scoped_connection connViewCmd_Move;
 
 	sig::scoped_connection connViewCmd_ClsInsert;
 	sig::scoped_connection connViewCmd_ClsDelete;
@@ -27,15 +34,10 @@ class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPag
 	sig::scoped_connection connViewCmd_ObjDelete;
 	sig::scoped_connection connViewCmd_ObjUpdate;
 
-
-
-
-	sig::scoped_connection connModel_BeforeRefreshCls;
-	sig::scoped_connection connModel_AfterRefreshCls;
-	
-	sig::scoped_connection connModel_ObjOperation;
-	
-
+	sig::scoped_connection connViewCmd_ToggleGroupByType;
+	sig::scoped_connection connViewCmd_ShowFav;
+	sig::scoped_connection connViewCmd_ShowSettings;
+	sig::scoped_connection connViewCmd_ShowHelp;
 
 public:
 	CtrlTableBrowser(const std::shared_ptr<IViewTableBrowser>& view
@@ -49,13 +51,10 @@ public:
 	void Act();
 	void Move();
 	
-	// ask view about selected item 
-	void SetShowDetail();
-	void SetShowFav();
-	// do action
-	void ShowDetail(int64_t oid, int64_t parent_oid);
-	void ShowFav(int64_t cid);
-
+	
+	void SetShowDetail();// ask view about selected item 
+	void ShowDetail(int64_t oid, int64_t parent_oid);// do action
+	
 	// ask view about selected item 
 	void SetInsertType();
 	void SetInsertObj();
@@ -70,17 +69,23 @@ public:
 	void ObjDelete(int64_t oid, int64_t parent_oid);
 	void ObjUpdate(int64_t oid, int64_t parent_oid);
 
+	void ToggleGroupByType();
+	void SetShowFav();// ask view about selected item 
+	void ShowFav(int64_t cid);// do action
+	void ShowSettings();
+	void ShowHelp(const wxString& index);
 };
 //-----------------------------------------------------------------------------
 class CtrlToolbarBrowser final : public CtrlWindowBase<IViewToolbarBrowser, ModelPageBrowser>
 {
+	sig::scoped_connection connModel_AfterRefreshCls;
+
 	sig::scoped_connection connViewCmd_Refresh;
 	sig::scoped_connection connViewCmd_Up;
 
 	sig::scoped_connection connViewCmd_Act;
 	sig::scoped_connection connViewCmd_Move;
 	sig::scoped_connection connViewCmd_ShowDetail;
-	sig::scoped_connection connViewCmd_ShowFav;
 
 	sig::scoped_connection connViewCmd_AddType;
 	sig::scoped_connection connViewCmd_AddObject;
@@ -88,9 +93,10 @@ class CtrlToolbarBrowser final : public CtrlWindowBase<IViewToolbarBrowser, Mode
 	sig::scoped_connection connViewCmd_UpdateSelected;
 
 	sig::scoped_connection connViewCmd_GroupByType;
-
-
-	sig::scoped_connection connModel_AfterRefreshCls;
+	sig::scoped_connection connViewCmd_ToggleGroupByType;
+	sig::scoped_connection connViewCmd_ShowFav;
+	sig::scoped_connection connViewCmd_ShowSettings;
+	sig::scoped_connection connViewCmd_ShowHelp;
 
 	CtrlTableBrowser* mTableCtrl;
 public:
@@ -105,13 +111,16 @@ public:
 	void Move();
 	void ShowDetail();
 	
-	void AddType();
-	void AddObject();
-	void DeleteSelected();
-	void UpdateSelected();
-	void ShowFav();
+	void InsertType();
+	void InsertObject();
+	void Delete();
+	void Update();
 	
 	void GroupByType(bool enable_group_by_type);
+	void ToggleGroupByType();
+	void ShowFav();
+	void ShowSettings();
+	void ShowHelp(const wxString& index);
 	
 
 };

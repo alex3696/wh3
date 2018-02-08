@@ -34,8 +34,6 @@ class ViewTableBrowser : public IViewTableBrowser
 	void ResetColumns();
 	void RebuildClsColumns(const std::vector<const IIdent64*>&);
 protected:
-	void OnCmd_Refresh(wxCommandEvent& evt);
-	void OnCmd_Up(wxCommandEvent& evt);
 	void OnCmd_MouseMove(wxMouseEvent& evt);
 	void OnCmd_Activate(wxDataViewEvent& evt);
 	void OnCmd_Expanding(wxDataViewEvent& evt);
@@ -67,6 +65,8 @@ public:
 class ViewToolbarBrowser : public IViewToolbarBrowser
 {
 	wxAuiToolBar*		mToolbar;
+
+	void OnCmd_GroupByType(wxCommandEvent& evt);
 public:
 	ViewToolbarBrowser(wxWindow* parent);
 	ViewToolbarBrowser(const std::shared_ptr<IViewWindow>& parent);

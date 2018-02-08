@@ -547,6 +547,7 @@ public:
 	void DoUp();
 	void DoFind(const wxString&);
 	void DoGroupByType(bool enable_group_by_type);
+	void DoToggleGroupByType();
 		
 	sig::signal<void(const ICls64&)> sigBeforePathChange;
 	sig::signal<void(const ICls64&)> sigAfterPathChange;

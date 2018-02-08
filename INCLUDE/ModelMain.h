@@ -18,9 +18,7 @@ public:
 	virtual void Load(const boost::property_tree::wptree& app_cfg)override;
 	virtual void Save(boost::property_tree::wptree& app_cfg)override;
 	
-	void ShowDoc()const;
-	void ShowWhatIsNew()const;
-
+	sig::signal<void(const wxString&)> sigShowHelp;
 };
 //---------------------------------------------------------------------------
 } //namespace wh

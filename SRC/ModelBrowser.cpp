@@ -900,6 +900,12 @@ void ModelBrowser::DoGroupByType(bool enable_group_by_type)
 	DoRefresh();
 }
 //-----------------------------------------------------------------------------
+void wh::ModelBrowser::DoToggleGroupByType()
+{
+	mGroupByType = !mGroupByType;
+	DoRefresh();
+}
+//-----------------------------------------------------------------------------
 const ICls64& ModelBrowser::GetRootCls() const
 {
 	return *mClsPath->GetCurrent();

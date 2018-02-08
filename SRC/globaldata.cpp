@@ -44,6 +44,8 @@
 #include "CtrlFav.h"
 #include "ViewFav.h"
 
+#include "CtrlHelp.h"
+
 using namespace wh;
 
 //---------------------------------------------------------------------------
@@ -509,5 +511,11 @@ void whDataMgr::InitContainer()
 		("ViewFav", "ViewMain");
 	mContainer->RegInstanceDeferredNI<CtrlFav, IViewFav, ModelFav >
 		("CtrlFav", "ViewFav", "ModelFav");
+
+	////////////////////
+	// Help          //
+	///////////////////
+	mContainer->RegInstanceDeferredNI<CtrlHelp>("CtrlHelp");
+
 
 }

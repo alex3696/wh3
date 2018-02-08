@@ -4,7 +4,7 @@
 #include "globaldata.h"
 #include "RecentDstOidPresenter.h"
 #include "whLogin.h"
-
+#include "CtrlHelp.h"
 
 using namespace wh;
 //---------------------------------------------------------------------------
@@ -13,6 +13,8 @@ using namespace wh;
 CtrlMain::CtrlMain(const std::shared_ptr<ViewMain>& view, const std::shared_ptr<ModelMain>& model)
 	: CtrlWindowBase(view, model)
 {
+	namespace ph = std::placeholders;
+
 	auto view_notebook = mView->GetViewNotebook();
 	auto model_notebook = std::make_shared<ModelNotebook>();
 
@@ -20,6 +22,9 @@ CtrlMain::CtrlMain(const std::shared_ptr<ViewMain>& view, const std::shared_ptr<
 	mCtrlNotebook = std::make_shared<CtrlNotebook>(view_notebook, model_notebook);
 
 	whDataMgr::GetInstance()->mContainer->RegInstance("CtrlNotebook", mCtrlNotebook);
+
+	conn_ShowHelp = mModel->sigShowHelp
+		.connect(std::bind(&CtrlMain::ShowHelp, this, ph::_1 ));
 
 
 	auto& db = whDataMgr::GetInstance()->GetDB();
@@ -170,14 +175,25 @@ void CtrlMain::Save()
 	whDataMgr::GetInstance()->mDbCfg->mGuiCfg->SetData(app_cfg);
 	whDataMgr::GetInstance()->mDbCfg->Save();
 }
-void wh::CtrlMain::ShowDoc() const
+//---------------------------------------------------------------------------
+void CtrlMain::ShowHelp(const wxString& index)const
 {
-	mModel->ShowDoc();
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto ctrl_help = container->GetObject<CtrlHelp>("CtrlHelp");
+	if (!ctrl_help)
+		return;
+
+	ctrl_help->Show(index);
+}
+//---------------------------------------------------------------------------
+void CtrlMain::ShowDoc() const
+{
+	ShowHelp(L"index");
 }
 //---------------------------------------------------------------------------
 void wh::CtrlMain::ShowWhatIsNew() const
 {
-	mModel->ShowWhatIsNew();
+	ShowHelp(L"whatsnew");
 }
 //---------------------------------------------------------------------------
 void CtrlMain::RmView()//override

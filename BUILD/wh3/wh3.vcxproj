@@ -147,6 +147,7 @@
     <ClCompile Include="..\..\SRC\CtrlDetail.cpp" />
     <ClCompile Include="..\..\SRC\CtrlFav.cpp" />
     <ClCompile Include="..\..\SRC\CtrlFilterList.cpp" />
+    <ClCompile Include="..\..\SRC\CtrlHelp.cpp" />
     <ClCompile Include="..\..\SRC\CtrlHistory.cpp" />
     <ClCompile Include="..\..\SRC\CtrlHistorySetup.cpp" />
     <ClCompile Include="..\..\SRC\CtrlMain.cpp" />
@@ -287,6 +288,7 @@
     <ClInclude Include="..\..\INCLUDE\CtrlDetail.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlFav.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlFilterList.h" />
+    <ClInclude Include="..\..\INCLUDE\CtrlHelp.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlHistory.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlHistorySetup.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlMain.h" />

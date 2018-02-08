@@ -23,23 +23,28 @@ public:
 
 	virtual void SetObjOperation(Operation, const std::vector<const IIdent64*>&) = 0;
 
+	sig::signal<void(int64_t)> sigActivate;
+	sig::signal<void(int64_t)> sigRefreshClsObjects;
 
 	sig::signal<void()> sigRefresh;
 	sig::signal<void()> sigUp;
-	sig::signal<void(int64_t)> sigActivate;
-	sig::signal<void(int64_t)> sigRefreshClsObjects;
 	
+	//sig::signal<void(int64_t, int64_t)> sigMove;
+	//sig::signal<void(int64_t)> sigAct;
 	sig::signal<void(int64_t, int64_t)> sigShowDetail;
-	sig::signal<void(int64_t)> sigShowFav;
 
 	sig::signal<void(int64_t)> sigClsInsert;
 	sig::signal<void(int64_t)> sigClsDelete;
 	sig::signal<void(int64_t)> sigClsUpdate;
 
-	sig::signal<void(int64_t)> sigObjInsert;
+	sig::signal<void(int64_t)>			sigObjInsert;
 	sig::signal<void(int64_t, int64_t)> sigObjDelete;
 	sig::signal<void(int64_t, int64_t)> sigObjUpdate;
 
+	sig::signal<void()>					sigToggleGroupByType;
+	sig::signal<void(int64_t)>			sigShowFav;
+	sig::signal<void()>					sigShowSettings;
+	sig::signal<void(const wxString&)>	sigShowHelp;
 };
 //-----------------------------------------------------------------------------
 class IViewToolbarBrowser : public IViewWindow
@@ -55,15 +60,16 @@ public:
 	sig::signal<void()> sigMove;
 	sig::signal<void()> sigShowDetail;
 
-	sig::signal<void()> sigAddType;
-	sig::signal<void()> sigAddObject;
-	sig::signal<void()> sigDeleteSelected;
-	sig::signal<void()> sigUpdateSelected;
-
-	sig::signal<void(bool)>	 sigGroupByType;
-	sig::signal<void(const wxString&)>	 sigHelpIndex;
-
-	sig::signal<void()>	 sigShowFav;
+	sig::signal<void()> sigInsertType;
+	sig::signal<void()> sigInsertObject;
+	sig::signal<void()> sigDelete;
+	sig::signal<void()> sigUpdate;
+	
+	sig::signal<void(bool)>				sigGroupByType;
+	sig::signal<void()>					sigToggleGroupByType;
+	sig::signal<void()>					sigShowFav;
+	sig::signal<void()>					sigShowSettings;
+	sig::signal<void(const wxString&)>	sigShowHelp;
 
 };
 //-----------------------------------------------------------------------------

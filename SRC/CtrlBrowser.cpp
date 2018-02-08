@@ -4,6 +4,7 @@
 #include "CtrlClsEditor.h"
 #include "CtrlObjEditor.h"
 #include "CtrlFav.h"
+#include "CtrlHelp.h"
 
 using namespace wh;
 //---------------------------------------------------------------------------
@@ -15,19 +16,25 @@ CtrlTableBrowser::CtrlTableBrowser(
 {
 	namespace ph = std::placeholders;
 
-	connViewCmd_Refresh = mView->sigRefresh
-		.connect(std::bind(&CtrlTableBrowser::Refresh, this));
-	connViewCmd_Up = mView->sigUp
-		.connect(std::bind(&CtrlTableBrowser::Up, this));
+	connModel_BeforeRefreshCls = mModel->GetModelBrowser()->sigBeforeRefreshCls
+		.connect(std::bind(&IViewTableBrowser::SetBeforeRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4));
+	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
+		.connect(std::bind(&IViewTableBrowser::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4));
+	connModel_ObjOperation = mModel->GetModelBrowser()->sigObjOperation
+		.connect(std::bind(&IViewTableBrowser::SetObjOperation, mView.get(), ph::_1, ph::_2));
 
 	connViewCmd_Activate = mView->sigActivate
 		.connect(std::bind(&CtrlTableBrowser::Activate, this, ph::_1));
 	connViewCmd_RefreshClsObjects = mView->sigRefreshClsObjects
 		.connect(std::bind(&CtrlTableBrowser::RefreshClsObjects, this, ph::_1));
+
+	connViewCmd_Refresh = mView->sigRefresh
+		.connect(std::bind(&CtrlTableBrowser::Refresh, this));
+	connViewCmd_Up = mView->sigUp
+		.connect(std::bind(&CtrlTableBrowser::Up, this));
+
 	connViewCmd_ShowObjDetail = mView->sigShowDetail
 		.connect(std::bind(&CtrlTableBrowser::ShowDetail, this, ph::_1, ph::_2));
-	connViewCmd_ShowFav = mView->sigShowFav
-		.connect(std::bind(&CtrlTableBrowser::ShowFav, this, ph::_1));
 
 	connViewCmd_ClsInsert = mView->sigClsInsert
 		.connect(std::bind(&CtrlTableBrowser::ClsInsert, this, ph::_1));
@@ -43,21 +50,15 @@ CtrlTableBrowser::CtrlTableBrowser(
 	connViewCmd_ObjUpdate = mView->sigObjUpdate
 		.connect(std::bind(&CtrlTableBrowser::ObjUpdate, this, ph::_1, ph::_2));
 
+	connViewCmd_ToggleGroupByType = mView->sigToggleGroupByType
+		.connect(std::bind(&CtrlTableBrowser::ToggleGroupByType, this));
+	connViewCmd_ShowFav = mView->sigShowFav
+		.connect(std::bind(&CtrlTableBrowser::ShowFav, this, ph::_1));
+	connViewCmd_ShowSettings = mView->sigShowSettings
+		.connect(std::bind(&CtrlTableBrowser::ShowSettings, this));
+	connViewCmd_ShowHelp = mView->sigShowHelp
+		.connect(std::bind(&CtrlTableBrowser::ShowHelp, this, ph::_1));
 
-	connModel_BeforeRefreshCls = mModel->GetModelBrowser()->sigBeforeRefreshCls
-		.connect(std::bind(&IViewTableBrowser::SetBeforeRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4));
-	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
-		.connect(std::bind(&IViewTableBrowser::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4));
-
-
-
-	sig::scoped_connection connModel_BeforePathChanged;
-	sig::scoped_connection connModel_AfterPathChanged;
-
-
-	connModel_ObjOperation = mModel->GetModelBrowser()->sigObjOperation.connect
-		(std::bind(&IViewTableBrowser::SetObjOperation, mView.get(), ph::_1, ph::_2));
-	
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::Refresh()
@@ -133,6 +134,11 @@ void CtrlTableBrowser::ShowDetail(int64_t oid, int64_t parent_oid)
 	}
 }
 //---------------------------------------------------------------------------
+void wh::CtrlTableBrowser::ToggleGroupByType()
+{
+	mModel->GetModelBrowser()->DoToggleGroupByType();
+}
+//---------------------------------------------------------------------------
 void CtrlTableBrowser::SetShowFav()
 {
 	mView->SetShowFav();
@@ -150,6 +156,21 @@ void CtrlTableBrowser::ShowFav(int64_t cid)
 
 	ctrlFav->EditFav(cid);
 	mModel->GetModelBrowser()->DoRefresh();
+}
+//---------------------------------------------------------------------------
+void CtrlTableBrowser::ShowSettings()
+{
+
+}
+//---------------------------------------------------------------------------
+void CtrlTableBrowser::ShowHelp(const wxString& index)
+{
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto ctrl_help = container->GetObject<CtrlHelp>("CtrlHelp");
+	if (!ctrl_help)
+		return;
+
+	ctrl_help->Show(index);
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::ClsInsert(int64_t parent_cid)
@@ -237,6 +258,9 @@ CtrlToolbarBrowser::CtrlToolbarBrowser(
 {
 	namespace ph = std::placeholders;
 
+	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
+		.connect(std::bind(&IViewToolbarBrowser::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4));
+
 	connViewCmd_Refresh = mView->sigRefresh
 		.connect(std::bind(&CtrlToolbarBrowser::Refresh, this));
 	connViewCmd_Up = mView->sigUp
@@ -248,24 +272,28 @@ CtrlToolbarBrowser::CtrlToolbarBrowser(
 		.connect(std::bind(&CtrlToolbarBrowser::Move, this));
 	connViewCmd_ShowDetail = mView->sigShowDetail
 		.connect(std::bind(&CtrlToolbarBrowser::ShowDetail, this));
-	connViewCmd_ShowFav = mView->sigShowFav
-		.connect(std::bind(&CtrlToolbarBrowser::ShowFav, this));
 
-	connViewCmd_AddType = mView->sigAddType
-		.connect(std::bind(&CtrlToolbarBrowser::AddType, this));
-	connViewCmd_AddObject = mView->sigAddObject
-		.connect(std::bind(&CtrlToolbarBrowser::AddObject, this));
-	connViewCmd_DeleteSelected = mView->sigDeleteSelected
-		.connect(std::bind(&CtrlToolbarBrowser::DeleteSelected, this));
-	connViewCmd_UpdateSelected = mView->sigUpdateSelected
-		.connect(std::bind(&CtrlToolbarBrowser::UpdateSelected, this));
+	connViewCmd_AddType = mView->sigInsertType
+		.connect(std::bind(&CtrlToolbarBrowser::InsertType, this));
+	connViewCmd_AddObject = mView->sigInsertObject
+		.connect(std::bind(&CtrlToolbarBrowser::InsertObject, this));
+	connViewCmd_DeleteSelected = mView->sigDelete
+		.connect(std::bind(&CtrlToolbarBrowser::Delete, this));
+	connViewCmd_UpdateSelected = mView->sigUpdate
+		.connect(std::bind(&CtrlToolbarBrowser::Update, this));
 
 	connViewCmd_GroupByType = mView->sigGroupByType
 		.connect(std::bind(&CtrlToolbarBrowser::GroupByType, this, ph::_1));
+	connViewCmd_ToggleGroupByType = mView->sigToggleGroupByType
+		.connect(std::bind(&CtrlToolbarBrowser::ToggleGroupByType, this));
+	connViewCmd_ShowFav = mView->sigShowFav
+		.connect(std::bind(&CtrlToolbarBrowser::ShowFav, this));
+	connViewCmd_ShowSettings = mView->sigShowSettings
+		.connect(std::bind(&CtrlToolbarBrowser::ShowSettings, this));
+	connViewCmd_ShowHelp = mView->sigShowHelp
+		.connect(std::bind(&CtrlToolbarBrowser::ShowHelp, this, ph::_1));
 
 
-	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
-		.connect(std::bind(&IViewToolbarBrowser::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4));
 
 
 }
@@ -296,24 +324,34 @@ void CtrlToolbarBrowser::ShowDetail()
 	mTableCtrl->SetShowDetail();
 }
 //---------------------------------------------------------------------------
-void CtrlToolbarBrowser::AddType()
+void CtrlToolbarBrowser::InsertType()
 {
 	mTableCtrl->SetInsertType();
 }
 //---------------------------------------------------------------------------
-void CtrlToolbarBrowser::AddObject()
+void CtrlToolbarBrowser::InsertObject()
 {
 	mTableCtrl->SetInsertObj();
 }
 //---------------------------------------------------------------------------
-void CtrlToolbarBrowser::DeleteSelected()
+void CtrlToolbarBrowser::Delete()
 {
 	mTableCtrl->SetDelete();
 }
 //---------------------------------------------------------------------------
-void CtrlToolbarBrowser::UpdateSelected()
+void CtrlToolbarBrowser::Update()
 {
 	mTableCtrl->SetUpdate();
+}
+//---------------------------------------------------------------------------
+void CtrlToolbarBrowser::GroupByType(bool enable_group_by_type)
+{
+	mModel->GetModelBrowser()->DoGroupByType(enable_group_by_type);
+}
+//---------------------------------------------------------------------------
+void CtrlToolbarBrowser::ToggleGroupByType()
+{
+	mModel->GetModelBrowser()->DoToggleGroupByType();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::ShowFav()
@@ -321,9 +359,19 @@ void CtrlToolbarBrowser::ShowFav()
 	mTableCtrl->SetShowFav();
 }
 //---------------------------------------------------------------------------
-void CtrlToolbarBrowser::GroupByType(bool enable_group_by_type)
+void CtrlToolbarBrowser::ShowSettings()
 {
-	mModel->GetModelBrowser()->DoGroupByType(enable_group_by_type);
+
+}
+//---------------------------------------------------------------------------
+void CtrlToolbarBrowser::ShowHelp(const wxString& index)
+{
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto ctrl_help = container->GetObject<CtrlHelp>("CtrlHelp");
+	if (!ctrl_help)
+		return;
+
+	ctrl_help->Show(index);
 }
 
 
