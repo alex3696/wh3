@@ -1285,7 +1285,24 @@ void ViewTableBrowser::SetShowDetail()//override;
 		const auto& obj = dynamic_cast<const IObj64*>(ident);
 		if (obj)
 		{
-			sigShowObjectDetail(obj->GetId(), obj->GetParentId());
+			sigShowDetail(obj->GetId(), obj->GetParentId());
+		}
+	}//if (ident)
+}
+//-----------------------------------------------------------------------------
+void wh::ViewTableBrowser::SetShowFav()
+{
+	const IIdent64* ident = static_cast<const IIdent64*> (mTable->GetCurrentItem().GetID());
+	if (ident)
+	{
+		const auto& obj = dynamic_cast<const IObj64*>(ident);
+		if (obj)
+			sigShowFav(obj->GetClsId() );
+		else
+		{
+			const auto& cls = dynamic_cast<const ICls64*>(ident);
+			if (cls)
+				sigShowFav(cls->GetId());
 		}
 	}//if (ident)
 }
@@ -1412,19 +1429,38 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 	tool_bar->AddTool(wxID_PROPERTIES, "Свойства", mgr->m_ico_favprop_select24, "Выбрать свойства(CTRL+P)");
 	tool_bar->AddTool(wxID_VIEW_DETAILS, "Подробно", mgr->m_ico_views24, "Подробно(F8)");
 
-	if ((int)currBaseGroup >= (int)bgTypeDesigner)
+	if ((int)currBaseGroup > (int)bgUser)
 	{
-		tool_bar->AddTool(wxID_NEW_TYPE, "Создать тип", mgr->m_ico_add_type24, "Создать тип(CTRL+T)");
-	}
-	if ((int)currBaseGroup >= (int)bgObjDesigner)
-	{
-		tool_bar->AddTool(wxID_NEW_OBJECT, "Создать объект", mgr->m_ico_add_obj_tab24, "Создать объект(CTRL+O)");
+		tool_bar->AddSeparator();
+
+		auto add_tool = tool_bar->AddTool(wxID_ADD, "Создать", mgr->m_ico_plus24, "Создать тип или обьект");
+		add_tool->SetHasDropDown(true);
+
+		tool_bar->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN
+			, [this, mgr, &currBaseGroup](wxCommandEvent& evt)
+			{
+				wxAuiToolBar* tb = static_cast<wxAuiToolBar*>(evt.GetEventObject());
+				tb->SetToolSticky(evt.GetId(), true);
+				wxMenu add_menu;
+				if ((int)currBaseGroup >= (int)bgTypeDesigner)
+					AppendBitmapMenu(&add_menu, wxID_NEW_TYPE, "Создать тип", mgr->m_ico_add_type24);
+				if ((int)currBaseGroup >= (int)bgObjDesigner)
+					AppendBitmapMenu(&add_menu, wxID_NEW_OBJECT, "Создать объект", mgr->m_ico_add_obj24);
+				wxRect rect = tb->GetToolRect(evt.GetId());
+				wxPoint pt = tb->ClientToScreen(rect.GetBottomLeft());
+				pt = tb->ScreenToClient(pt);
+				tb->PopupMenu(&add_menu, pt);
+				tb->SetToolSticky(evt.GetId(), false);
+				tb->Refresh();
+
+			}
+			, wxID_ADD);
+
 		tool_bar->AddTool(wxID_DELETE, "Удалить", mgr->m_ico_delete24, "Удалить(DELETE)");
 		tool_bar->AddTool(wxID_EDIT, "Редактировать", mgr->m_ico_edit24, "Редактировать(CTRL+E)");
+		tool_bar->AddSeparator();
 	}
 
-	
-	
 
 	tool_bar->AddTool(wxID_HELP_INDEX, "Справка", wxArtProvider::GetBitmap(wxART_HELP, wxART_TOOLBAR), "Справка(F1)");
 
@@ -1446,6 +1482,7 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigAct();}, wxID_EXECUTE);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigMove();}, wxID_REPLACE);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigShowDetail();}, wxID_VIEW_DETAILS);
+	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigShowFav(); }, wxID_PROPERTIES);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigAddType(); }, wxID_NEW_TYPE);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigAddObject(); }, wxID_NEW_OBJECT);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigDeleteSelected(); }, wxID_DELETE);

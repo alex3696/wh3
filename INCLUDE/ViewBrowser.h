@@ -56,6 +56,7 @@ public:
 
 	virtual void SetObjOperation(Operation, const std::vector<const IIdent64*>&) override;
 	virtual void SetShowDetail()override;
+	virtual void SetShowFav() override;
 	virtual void SetInsertType()const override;
 	virtual void SetInsertObj()const override;
 	virtual void SetDeleteSelected()const override;

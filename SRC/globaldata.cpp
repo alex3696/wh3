@@ -41,6 +41,9 @@
 #include "CtrlClsEditor.h"
 #include "CtrlObjEditor.h"
 
+#include "CtrlFav.h"
+#include "ViewFav.h"
+
 using namespace wh;
 
 //---------------------------------------------------------------------------
@@ -496,5 +499,15 @@ void whDataMgr::InitContainer()
 		("ViewObjEditor", "ViewMain");
 	mContainer->RegFactoryNI<CtrlObjEditor, IViewObjEditor, ModelObjEditor >
 		("CtrlObjEditor", "ViewObjEditor", "ModelObjEditor");
+
+	////////////////////
+	// FavEditor      //
+	///////////////////
+	mContainer->RegInstanceDeferredNI<ModelFav>
+		("ModelFav");
+	mContainer->RegInstanceDeferred<IViewFav, ViewFav, IViewWindow >
+		("ViewFav", "ViewMain");
+	mContainer->RegInstanceDeferredNI<CtrlFav, IViewFav, ModelFav >
+		("CtrlFav", "ViewFav", "ModelFav");
 
 }

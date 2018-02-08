@@ -145,6 +145,7 @@
     <ClCompile Include="..\..\SRC\CtrlBrowser.cpp" />
     <ClCompile Include="..\..\SRC\CtrlClsEditor.cpp" />
     <ClCompile Include="..\..\SRC\CtrlDetail.cpp" />
+    <ClCompile Include="..\..\SRC\CtrlFav.cpp" />
     <ClCompile Include="..\..\SRC\CtrlFilterList.cpp" />
     <ClCompile Include="..\..\SRC\CtrlHistory.cpp" />
     <ClCompile Include="..\..\SRC\CtrlHistorySetup.cpp" />
@@ -165,6 +166,7 @@
     <ClCompile Include="..\..\SRC\MFavViewPropCls.cpp" />
     <ClCompile Include="..\..\SRC\ModelBrowser.cpp" />
     <ClCompile Include="..\..\SRC\ModelDetail.cpp" />
+    <ClCompile Include="..\..\SRC\ModelFav.cpp" />
     <ClCompile Include="..\..\SRC\ModelFilterList.cpp" />
     <ClCompile Include="..\..\SRC\ModelHistory.cpp" />
     <ClCompile Include="..\..\SRC\ModelMain.cpp" />
@@ -224,6 +226,7 @@
     <ClCompile Include="..\..\SRC\ReportView.cpp" />
     <ClCompile Include="..\..\SRC\ViewBrowser.cpp" />
     <ClCompile Include="..\..\SRC\ViewDetail.cpp" />
+    <ClCompile Include="..\..\SRC\ViewFav.cpp" />
     <ClCompile Include="..\..\SRC\ViewFilterList.cpp" />
     <ClCompile Include="..\..\SRC\ViewHistory.cpp" />
     <ClCompile Include="..\..\SRC\ViewHistorySetup.cpp" />
@@ -282,6 +285,7 @@
     <ClInclude Include="..\..\INCLUDE\CtrlBrowser.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlClsEditor.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlDetail.h" />
+    <ClInclude Include="..\..\INCLUDE\CtrlFav.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlFilterList.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlHistory.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlHistorySetup.h" />
@@ -298,6 +302,7 @@
     <ClInclude Include="..\..\INCLUDE\DClsPropEditor.h" />
     <ClInclude Include="..\..\INCLUDE\IViewBrowser.h" />
     <ClInclude Include="..\..\INCLUDE\IViewDetail.h" />
+    <ClInclude Include="..\..\INCLUDE\IViewFav.h" />
     <ClInclude Include="..\..\INCLUDE\IViewFilterList.h" />
     <ClInclude Include="..\..\INCLUDE\IViewHistorySetup.h" />
     <ClInclude Include="..\..\INCLUDE\IViewObjPropList.h" />
@@ -305,6 +310,7 @@
     <ClInclude Include="..\..\INCLUDE\ModelBrowser.h" />
     <ClInclude Include="..\..\INCLUDE\ModelBrowserData.h" />
     <ClInclude Include="..\..\INCLUDE\ModelDetail.h" />
+    <ClInclude Include="..\..\INCLUDE\ModelFav.h" />
     <ClInclude Include="..\..\INCLUDE\ModelFilterList.h" />
     <ClInclude Include="..\..\INCLUDE\ModelHistory.h" />
     <ClInclude Include="..\..\INCLUDE\ModelHistoryData.h" />
@@ -312,6 +318,7 @@
     <ClInclude Include="..\..\INCLUDE\ModelUndo.h" />
     <ClInclude Include="..\..\INCLUDE\ViewBrowser.h" />
     <ClInclude Include="..\..\INCLUDE\ViewDetail.h" />
+    <ClInclude Include="..\..\INCLUDE\ViewFav.h" />
     <ClInclude Include="..\..\INCLUDE\ViewFilterList.h" />
     <ClInclude Include="..\..\INCLUDE\ViewHistory.h" />
     <ClInclude Include="..\..\INCLUDE\ICtrlWindow.h" />

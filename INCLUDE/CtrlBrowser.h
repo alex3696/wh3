@@ -17,6 +17,7 @@ class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPag
 	sig::scoped_connection connViewCmd_Activate;
 	sig::scoped_connection connViewCmd_RefreshClsObjects;
 	sig::scoped_connection connViewCmd_ShowObjDetail;
+	sig::scoped_connection connViewCmd_ShowFav;
 
 	sig::scoped_connection connViewCmd_ClsInsert;
 	sig::scoped_connection connViewCmd_ClsDelete;
@@ -47,14 +48,20 @@ public:
 
 	void Act();
 	void Move();
-	void ShowSelectedObjDetail();
-	void AddType();
-	void AddObject();
-	void DeleteSelected();
-	void UpdateSelected();
+	
+	// ask view about selected item 
+	void SetShowDetail();
+	void SetShowFav();
+	// do action
+	void ShowDetail(int64_t oid, int64_t parent_oid);
+	void ShowFav(int64_t cid);
 
-	void ShowObjDetail(int64_t oid, int64_t parent_oid);
-
+	// ask view about selected item 
+	void SetInsertType();
+	void SetInsertObj();
+	void SetDelete();
+	void SetUpdate();
+	// do action
 	void ClsInsert(int64_t parent_cid);
 	void ClsDelete(int64_t cid);
 	void ClsUpdate(int64_t cid);
@@ -73,6 +80,7 @@ class CtrlToolbarBrowser final : public CtrlWindowBase<IViewToolbarBrowser, Mode
 	sig::scoped_connection connViewCmd_Act;
 	sig::scoped_connection connViewCmd_Move;
 	sig::scoped_connection connViewCmd_ShowDetail;
+	sig::scoped_connection connViewCmd_ShowFav;
 
 	sig::scoped_connection connViewCmd_AddType;
 	sig::scoped_connection connViewCmd_AddObject;
@@ -101,6 +109,7 @@ public:
 	void AddObject();
 	void DeleteSelected();
 	void UpdateSelected();
+	void ShowFav();
 	
 	void GroupByType(bool enable_group_by_type);
 	

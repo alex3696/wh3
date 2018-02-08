@@ -3,6 +3,7 @@
 #include "CtrlNotebook.h"
 #include "CtrlClsEditor.h"
 #include "CtrlObjEditor.h"
+#include "CtrlFav.h"
 
 using namespace wh;
 //---------------------------------------------------------------------------
@@ -23,8 +24,10 @@ CtrlTableBrowser::CtrlTableBrowser(
 		.connect(std::bind(&CtrlTableBrowser::Activate, this, ph::_1));
 	connViewCmd_RefreshClsObjects = mView->sigRefreshClsObjects
 		.connect(std::bind(&CtrlTableBrowser::RefreshClsObjects, this, ph::_1));
-	connViewCmd_ShowObjDetail = mView->sigShowObjectDetail
-		.connect(std::bind(&CtrlTableBrowser::ShowObjDetail, this, ph::_1, ph::_2));
+	connViewCmd_ShowObjDetail = mView->sigShowDetail
+		.connect(std::bind(&CtrlTableBrowser::ShowDetail, this, ph::_1, ph::_2));
+	connViewCmd_ShowFav = mView->sigShowFav
+		.connect(std::bind(&CtrlTableBrowser::ShowFav, this, ph::_1));
 
 	connViewCmd_ClsInsert = mView->sigClsInsert
 		.connect(std::bind(&CtrlTableBrowser::ClsInsert, this, ph::_1));
@@ -77,52 +80,52 @@ void CtrlTableBrowser::RefreshClsObjects(int64_t cid)
 	mModel->GetModelBrowser()->DoRefreshObjects (cid);
 }
 //---------------------------------------------------------------------------
-void wh::CtrlTableBrowser::Act()
+void CtrlTableBrowser::Act()
 {
 
 }
 //---------------------------------------------------------------------------
-void wh::CtrlTableBrowser::Move()
+void CtrlTableBrowser::Move()
 {
 }
 //---------------------------------------------------------------------------
-void CtrlTableBrowser::ShowSelectedObjDetail()
-{
-	mView->SetShowDetail();
-}
-//---------------------------------------------------------------------------
-void wh::CtrlTableBrowser::AddType()
+void CtrlTableBrowser::SetInsertType()
 {
 	mView->SetInsertType();
 }
 //---------------------------------------------------------------------------
-void wh::CtrlTableBrowser::AddObject()
+void CtrlTableBrowser::SetInsertObj()
 {
 	mView->SetInsertObj();
 }
 //---------------------------------------------------------------------------
-void wh::CtrlTableBrowser::DeleteSelected()
+void CtrlTableBrowser::SetDelete()
 {
 	mView->SetDeleteSelected();
 }
 //---------------------------------------------------------------------------
-void wh::CtrlTableBrowser::UpdateSelected()
+void CtrlTableBrowser::SetUpdate()
 {
 	mView->SetUpdateSelected();
 }
 //---------------------------------------------------------------------------
-void CtrlTableBrowser::ShowObjDetail(int64_t oid, int64_t parent_oid)
+void CtrlTableBrowser::SetShowDetail()
+{
+	mView->SetShowDetail();
+}
+//---------------------------------------------------------------------------
+void CtrlTableBrowser::ShowDetail(int64_t oid, int64_t parent_oid)
 {
 	auto container = whDataMgr::GetInstance()->mContainer;
 
-	auto detail_obj = container->GetObject<wh::rec::ObjInfo>("DefaultDetailObjInfo");
+	auto detail_obj = container->GetObject<rec::ObjInfo>("DefaultDetailObjInfo");
 	if (!detail_obj)
 		return;
 
 	detail_obj->mObj.mId = oid;
 	detail_obj->mObj.mParent.mId = parent_oid;
 
-	auto nb2 = container->GetObject<wh::CtrlNotebook>("CtrlNotebook");
+	auto nb2 = container->GetObject<CtrlNotebook>("CtrlNotebook");
 	if (nb2)
 	{
 		//nb2->MkWindow("CtrlPageDetailObj");
@@ -130,11 +133,30 @@ void CtrlTableBrowser::ShowObjDetail(int64_t oid, int64_t parent_oid)
 	}
 }
 //---------------------------------------------------------------------------
-void wh::CtrlTableBrowser::ClsInsert(int64_t parent_cid)
+void CtrlTableBrowser::SetShowFav()
+{
+	mView->SetShowFav();
+}
+//---------------------------------------------------------------------------
+void CtrlTableBrowser::ShowFav(int64_t cid)
+{
+	auto container = whDataMgr::GetInstance()->mContainer;
+	if (!container)
+		return;
+
+	auto ctrlFav = container->GetObject<CtrlFav>("CtrlFav");
+	if (!ctrlFav)
+		return;
+
+	ctrlFav->EditFav(cid);
+	mModel->GetModelBrowser()->DoRefresh();
+}
+//---------------------------------------------------------------------------
+void CtrlTableBrowser::ClsInsert(int64_t parent_cid)
 {
 	auto container = whDataMgr::GetInstance()->mContainer;
 
-	auto ctrlClsEditor = container->GetObject<wh::CtrlClsEditor>("CtrlClsEditor");
+	auto ctrlClsEditor = container->GetObject<CtrlClsEditor>("CtrlClsEditor");
 	if (!ctrlClsEditor)
 		return;
 
@@ -142,11 +164,11 @@ void wh::CtrlTableBrowser::ClsInsert(int64_t parent_cid)
 	mModel->GetModelBrowser()->DoRefresh();
 }
 //---------------------------------------------------------------------------
-void wh::CtrlTableBrowser::ClsDelete(int64_t cid)
+void CtrlTableBrowser::ClsDelete(int64_t cid)
 {
 	auto container = whDataMgr::GetInstance()->mContainer;
 
-	auto ctrlClsEditor = container->GetObject<wh::CtrlClsEditor>("CtrlClsEditor");
+	auto ctrlClsEditor = container->GetObject<CtrlClsEditor>("CtrlClsEditor");
 	if (!ctrlClsEditor)
 		return;
 
@@ -154,11 +176,11 @@ void wh::CtrlTableBrowser::ClsDelete(int64_t cid)
 	mModel->GetModelBrowser()->DoRefresh();
 }
 //---------------------------------------------------------------------------
-void wh::CtrlTableBrowser::ClsUpdate(int64_t cid)
+void CtrlTableBrowser::ClsUpdate(int64_t cid)
 {
 	auto container = whDataMgr::GetInstance()->mContainer;
 
-	auto ctrlClsEditor = container->GetObject<wh::CtrlClsEditor>("CtrlClsEditor");
+	auto ctrlClsEditor = container->GetObject<CtrlClsEditor>("CtrlClsEditor");
 	if (!ctrlClsEditor)
 		return;
 
@@ -166,11 +188,11 @@ void wh::CtrlTableBrowser::ClsUpdate(int64_t cid)
 	mModel->GetModelBrowser()->DoRefresh();
 }
 //---------------------------------------------------------------------------
-void wh::CtrlTableBrowser::ObjInsert(int64_t cid)
+void CtrlTableBrowser::ObjInsert(int64_t cid)
 {
 	auto container = whDataMgr::GetInstance()->mContainer;
 
-	auto ctrlObjEditor = container->GetObject<wh::CtrlObjEditor>("CtrlObjEditor");
+	auto ctrlObjEditor = container->GetObject<CtrlObjEditor>("CtrlObjEditor");
 	if (!ctrlObjEditor)
 		return;
 
@@ -178,11 +200,11 @@ void wh::CtrlTableBrowser::ObjInsert(int64_t cid)
 	mModel->GetModelBrowser()->DoRefresh();
 }
 //---------------------------------------------------------------------------
-void wh::CtrlTableBrowser::ObjDelete(int64_t oid, int64_t parent_oid)
+void CtrlTableBrowser::ObjDelete(int64_t oid, int64_t parent_oid)
 {
 	auto container = whDataMgr::GetInstance()->mContainer;
 
-	auto ctrlObjEditor = container->GetObject<wh::CtrlObjEditor>("CtrlObjEditor");
+	auto ctrlObjEditor = container->GetObject<CtrlObjEditor>("CtrlObjEditor");
 	if (!ctrlObjEditor)
 		return;
 
@@ -190,11 +212,11 @@ void wh::CtrlTableBrowser::ObjDelete(int64_t oid, int64_t parent_oid)
 	mModel->GetModelBrowser()->DoRefresh();
 }
 //---------------------------------------------------------------------------
-void wh::CtrlTableBrowser::ObjUpdate(int64_t oid, int64_t parent_oid)
+void CtrlTableBrowser::ObjUpdate(int64_t oid, int64_t parent_oid)
 {
 	auto container = whDataMgr::GetInstance()->mContainer;
 
-	auto ctrlObjEditor = container->GetObject<wh::CtrlObjEditor>("CtrlObjEditor");
+	auto ctrlObjEditor = container->GetObject<CtrlObjEditor>("CtrlObjEditor");
 	if (!ctrlObjEditor)
 		return;
 
@@ -226,6 +248,8 @@ CtrlToolbarBrowser::CtrlToolbarBrowser(
 		.connect(std::bind(&CtrlToolbarBrowser::Move, this));
 	connViewCmd_ShowDetail = mView->sigShowDetail
 		.connect(std::bind(&CtrlToolbarBrowser::ShowDetail, this));
+	connViewCmd_ShowFav = mView->sigShowFav
+		.connect(std::bind(&CtrlToolbarBrowser::ShowFav, this));
 
 	connViewCmd_AddType = mView->sigAddType
 		.connect(std::bind(&CtrlToolbarBrowser::AddType, this));
@@ -269,27 +293,32 @@ void CtrlToolbarBrowser::Move()
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::ShowDetail()
 {
-	mTableCtrl->ShowSelectedObjDetail();
+	mTableCtrl->SetShowDetail();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::AddType()
 {
-	mTableCtrl->AddType();
+	mTableCtrl->SetInsertType();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::AddObject()
 {
-	mTableCtrl->AddObject();
+	mTableCtrl->SetInsertObj();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::DeleteSelected()
 {
-	mTableCtrl->DeleteSelected();
+	mTableCtrl->SetDelete();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::UpdateSelected()
 {
-	mTableCtrl->UpdateSelected();
+	mTableCtrl->SetUpdate();
+}
+//---------------------------------------------------------------------------
+void CtrlToolbarBrowser::ShowFav()
+{
+	mTableCtrl->SetShowFav();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::GroupByType(bool enable_group_by_type)
