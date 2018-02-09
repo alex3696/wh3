@@ -619,17 +619,16 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	table->Bind(wxEVT_DATAVIEW_ITEM_COLLAPSED
 		, &ViewTableBrowser::OnCmd_Collapseded, this);
 
-
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigRefresh(); }, wxID_REFRESH);
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigUp(); }, wxID_UP);
 	//table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigAct(); }, wxID_EXECUTE);
 	//table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigMove(); }, wxID_REPLACE);
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {SetShowDetail(); }, wxID_VIEW_DETAILS);
 	table->GetTargetWindow()->Bind(wxEVT_MIDDLE_UP,	[this](wxMouseEvent&) {SetShowDetail(); });
-	//tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigInsertType(); }, wxID_NEW_TYPE);
-	//tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigInsertObject(); }, wxID_NEW_OBJECT);
-	//tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigDelete(); }, wxID_DELETE);
-	//tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigUpdate(); }, wxID_EDIT);
+	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {SetInsertType(); }, wxID_NEW_TYPE);
+	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {SetInsertObj(); }, wxID_NEW_OBJECT);
+	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {SetDeleteSelected(); }, wxID_DELETE);
+	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {SetUpdateSelected(); }, wxID_EDIT);
 
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) 
 		{ sigToggleGroupByType(); }, wxID_VIEW_LIST);
@@ -638,11 +637,12 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
 		{ sigShowSettings(); }, wxID_HELP_INDEX);
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
-		{sigShowHelp("ViewBrowserPage"); }, wxID_HELP_INDEX);
+		{ sigShowHelp("ViewBrowserPage"); }, wxID_HELP_INDEX);
 
-	
+	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
+		{ sigClosePage(); }, wxID_CLOSE);
 
-	wxAcceleratorEntry entries[15];
+	wxAcceleratorEntry entries[16];
 	char i = 0;
 	entries[i++].Set(wxACCEL_CTRL, (int) 'R', wxID_REFRESH);
 	entries[i++].Set(wxACCEL_NORMAL, WXK_F5,   wxID_REFRESH);
@@ -650,20 +650,21 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	
 	entries[i++].Set(wxACCEL_NORMAL, WXK_F6, wxID_REPLACE);
 	entries[i++].Set(wxACCEL_NORMAL, WXK_F7, wxID_EXECUTE);
-	entries[i++].Set(wxACCEL_NORMAL, WXK_F9, wxID_VIEW_DETAILS);
+	entries[i++].Set(wxACCEL_CTRL, WXK_RETURN, wxID_VIEW_DETAILS);
 
-	entries[i++].Set(wxACCEL_CTRL, WXK_INSERT, wxID_ADD);
 	entries[i++].Set(wxACCEL_CTRL, (int) 'T', wxID_NEW_TYPE);
 	entries[i++].Set(wxACCEL_CTRL, (int) 'O', wxID_NEW_OBJECT);
-	entries[i++].Set(wxACCEL_CTRL, WXK_DELETE, wxID_DELETE);
-	entries[i++].Set(wxACCEL_CTRL, WXK_RETURN, wxID_EDIT);
+	entries[i++].Set(wxACCEL_NORMAL, WXK_F8, wxID_DELETE);
+	entries[i++].Set(wxACCEL_NORMAL, WXK_F4, wxID_EDIT);
 
 	entries[i++].Set(wxACCEL_CTRL, (int) 'G', wxID_VIEW_LIST);
 	entries[i++].Set(wxACCEL_CTRL, (int) 'P', wxID_PROPERTIES);
 	entries[i++].Set(wxACCEL_CTRL, (int) 'N', wxID_SETUP);
 	entries[i++].Set(wxACCEL_NORMAL, WXK_F1, wxID_HELP_INDEX);
 
-	wxAcceleratorTable accel(15, entries);
+	entries[i++].Set(wxACCEL_CTRL, (int) 'W', wxID_CLOSE);
+
+	wxAcceleratorTable accel(16, entries);
 	table->SetAcceleratorTable(accel);
 
 }
@@ -1441,11 +1442,11 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 		;
 	auto tool_bar = new wxAuiToolBar(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
 
-	tool_bar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh24, "Обновить(CTRL+R или CTRL+F5)");
+	tool_bar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh24, "Обновить (CTRL+R или CTRL+F5)");
 	//tool_bar->AddTool(wxID_UP,"Вверх", mgr->m_ico_back24, "Вверх(BACKSPACE)");
-	tool_bar->AddTool(wxID_REPLACE, "Переместить", mgr->m_ico_move24, "Переместить(F6)");
-	tool_bar->AddTool(wxID_EXECUTE, "Выполнить", mgr->m_ico_act24, "Выполнить(F7)");
-	tool_bar->AddTool(wxID_VIEW_DETAILS, "Подробно", mgr->m_ico_views24, "Подробно(F9)");
+	tool_bar->AddTool(wxID_REPLACE, "Переместить", mgr->m_ico_move24, "Переместить (F6)");
+	tool_bar->AddTool(wxID_EXECUTE, "Выполнить", mgr->m_ico_act24, "Выполнить (F7)");
+	tool_bar->AddTool(wxID_VIEW_DETAILS, "Подробно", mgr->m_ico_views24, "Подробно (CTRL+ENTER)");
 	
 	if ((int)currBaseGroup > (int)bgUser)
 	{
@@ -1462,9 +1463,9 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 				tb->SetToolSticky(evt.GetId(), true);
 				wxMenu add_menu;
 				if ((int)currBaseGroup >= (int)bgTypeDesigner)
-					AppendBitmapMenu(&add_menu, wxID_NEW_TYPE, "Создать тип", mgr->m_ico_add_type24);
+					AppendBitmapMenu(&add_menu, wxID_NEW_TYPE, "Создать тип (CTRL+T)", mgr->m_ico_add_type24);
 				if ((int)currBaseGroup >= (int)bgObjDesigner)
-					AppendBitmapMenu(&add_menu, wxID_NEW_OBJECT, "Создать объект", mgr->m_ico_add_obj24);
+					AppendBitmapMenu(&add_menu, wxID_NEW_OBJECT, "Создать объект (CTRL+O)", mgr->m_ico_add_obj24);
 				wxRect rect = tb->GetToolRect(evt.GetId());
 				wxPoint pt = tb->ClientToScreen(rect.GetBottomLeft());
 				pt = tb->ScreenToClient(pt);
@@ -1475,16 +1476,16 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 			}
 			, wxID_ADD);
 
-		tool_bar->AddTool(wxID_DELETE, "Удалить", mgr->m_ico_delete24, "Удалить(CTRL+DELETE)");
-		tool_bar->AddTool(wxID_EDIT, "Редактировать", mgr->m_ico_edit24, "Редактировать(CTRL+ENTER)");
+		tool_bar->AddTool(wxID_DELETE, "Удалить", mgr->m_ico_delete24, "Удалить (F8)");
+		tool_bar->AddTool(wxID_EDIT, "Редактировать", mgr->m_ico_edit24, "Редактировать (F4)");
 		tool_bar->AddSeparator();
 	}
 
-	tool_bar->AddTool(wxID_VIEW_LIST, "Группировать", mgr->m_ico_group_by_type24, "Группировать по типу(CTRL+G)");
-	tool_bar->AddTool(wxID_PROPERTIES, "Свойства", mgr->m_ico_favprop_select24, "Выбрать свойства(CTRL+P)");
+	tool_bar->AddTool(wxID_VIEW_LIST, "Группировать", mgr->m_ico_group_by_type24, "Группировать по типу (CTRL+G)");
+	tool_bar->AddTool(wxID_PROPERTIES, "Свойства", mgr->m_ico_favprop_select24, "Выбрать свойства (CTRL+P)");
 	tool_bar->AddTool(wxID_SETUP, "Настройки", mgr->m_ico_options24
-		, "Настройки внешнего вида таблийы истории(CTRL+N)");
-	tool_bar->AddTool(wxID_HELP_INDEX, "Справка", wxArtProvider::GetBitmap(wxART_HELP, wxART_TOOLBAR), "Справка(F1)");
+		, "Настройки внешнего вида таблийы истории (CTRL+N)");
+	tool_bar->AddTool(wxID_HELP_INDEX, "Справка", wxArtProvider::GetBitmap(wxART_HELP, wxART_TOOLBAR), "Справка (F1)");
 
 	//tool_bar->AddSeparator();
 

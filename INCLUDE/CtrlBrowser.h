@@ -39,6 +39,8 @@ class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPag
 	sig::scoped_connection connViewCmd_ShowSettings;
 	sig::scoped_connection connViewCmd_ShowHelp;
 
+	sig::scoped_connection connViewCmd_Close;
+
 public:
 	CtrlTableBrowser(const std::shared_ptr<IViewTableBrowser>& view
 		, const  std::shared_ptr<ModelPageBrowser>& model);
@@ -74,6 +76,8 @@ public:
 	void ShowFav(int64_t cid);// do action
 	void ShowSettings();
 	void ShowHelp(const wxString& index);
+
+	void ClosePage();
 };
 //-----------------------------------------------------------------------------
 class CtrlToolbarBrowser final : public CtrlWindowBase<IViewToolbarBrowser, ModelPageBrowser>

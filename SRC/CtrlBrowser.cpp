@@ -59,6 +59,9 @@ CtrlTableBrowser::CtrlTableBrowser(
 	connViewCmd_ShowHelp = mView->sigShowHelp
 		.connect(std::bind(&CtrlTableBrowser::ShowHelp, this, ph::_1));
 
+	connViewCmd_Close = mView->sigClosePage
+		.connect(std::bind(&CtrlTableBrowser::ClosePage, this));
+
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::Refresh()
@@ -171,6 +174,24 @@ void CtrlTableBrowser::ShowHelp(const wxString& index)
 		return;
 
 	ctrl_help->Show(index);
+}
+//---------------------------------------------------------------------------
+void CtrlTableBrowser::ClosePage()
+{
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto nb = container->GetObject<CtrlNotebook>("CtrlNotebook");
+	if (!nb)
+		return;
+
+	auto table_wnd = mView->GetWnd();
+	if (!table_wnd)
+		return;
+
+	auto page_wnd = table_wnd->GetParent();
+	if (!page_wnd)
+		return;
+
+	nb->RmWindow(page_wnd);
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::ClsInsert(int64_t parent_cid)
