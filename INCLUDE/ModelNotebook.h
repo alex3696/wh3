@@ -60,6 +60,8 @@ class ModelNotebook : public IModelWindow
 
 	void RmCtrl(ICtrlWindow* wnd);
 public:
+	struct error : virtual exception_base {};
+
 	void MkWindow(const wxString& wi);
 	void RmWindow(wxWindow* wnd);
 	void RmAll();

@@ -25,7 +25,11 @@ std::shared_ptr<ICtrlWindow> ModelNotebook::MkCtrl(const wxString& name)
 	
 	auto wnd_model = ctrl->GetModel();
 	if (!wnd_model)
-		return;
+	{
+		wxLogWarning("can`t create, model is empty/");
+		BOOST_THROW_EXCEPTION(error() << wxstr("model is empty"));
+	}
+		
 
 	auto item = std::make_shared<WindowItem>(ctrl);
 	item->connModelChTitle = wnd_model->sigUpdateTitle
