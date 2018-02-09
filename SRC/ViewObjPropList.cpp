@@ -95,7 +95,7 @@ void ViewObjPropList::OnCmd_Update(wxCommandEvent& evt)
 }
 //-----------------------------------------------------------------------------
 //IViewWindow virtual 
-void ViewObjPropList::OnShow()//override 
+void ViewObjPropList::SetShow()//override 
 {
 	//OnCmd_Update(); 
 }

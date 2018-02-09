@@ -557,7 +557,7 @@ void ViewFilterList::OnCmd_Apply(wxCommandEvent& evt)
 }
 //-----------------------------------------------------------------------------
 //IViewWindow virtual 
-void ViewFilterList::OnShow()//override 
+void ViewFilterList::SetShow()//override 
 {
 	//OnCmd_Update(); 
 }

@@ -8,10 +8,7 @@ namespace wh{
 class IModelWindow
 {
 public:
-	virtual ~IModelWindow()
-	{
-		sigClose();
-	}
+	virtual ~IModelWindow(){}
 
 	sig::signal<void(const wxString&, const wxIcon&)>	sigUpdateTitle;
 	sig::signal<void()>	sigClose;
@@ -27,6 +24,10 @@ public:
 	virtual void Show()
 	{
 		sigShow();
+	}
+	virtual void Close()		
+	{ 
+		sigClose();
 	}
 
 	virtual void Init()											{}

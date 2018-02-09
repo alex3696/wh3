@@ -22,7 +22,7 @@ ViewFav::ViewFav(wxWindow* parent)
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewFav::OnShow()
+void ViewFav::SetShow()
 {
 	mPanel->ShowModal();
 }

@@ -16,8 +16,8 @@ public:
 	ViewUndoWindow(wxWindow* parent);
 	ViewUndoWindow(const std::shared_ptr<IViewWindow>& parent);
 	virtual wxWindow* GetWnd()const override {	return mPanel;	}
-	virtual void OnShow()override;
-	virtual void OnUpdateTitle(const wxString&, const wxIcon&)override;
+	virtual void SetShow()override;
+	virtual void SetUpdateTitle(const wxString&, const wxIcon&)override;
 
 	virtual void SetHistoryRecord(const ModelHistoryRecord&) override;
 

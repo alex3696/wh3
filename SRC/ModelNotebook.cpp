@@ -22,13 +22,19 @@ std::shared_ptr<ICtrlWindow> ModelNotebook::MkCtrl(const wxString& name)
 	auto it = ptrIdx.find(ctrl.get());
 	if (ptrIdx.end() != it)
 		return ctrl;
+	
+	auto wnd_model = ctrl->GetModel();
+	if (!wnd_model)
+		return;
 
 	auto item = std::make_shared<WindowItem>(ctrl);
-	item->connModelChTitle = ctrl->sigUpdateTitle.connect(sigAfterChWindow);
-	item->connModelShow = ctrl->sigShow.connect(sigShowWindow);
-	item->connModelClose = ctrl->sigCloseView
-		.connect(std::bind(&ModelNotebook::RmCtrl, this, ph::_1));
-	
+	item->connModelChTitle = wnd_model->sigUpdateTitle
+		.connect(std::bind(std::ref(sigAfterChWindow), ctrl.get(), ph::_1, ph::_2));
+	item->connModelShow = wnd_model->sigShow
+		.connect(std::bind(std::ref(sigShowWindow), ctrl.get()));
+	item->connModelClose = wnd_model->sigClose
+		.connect(std::bind(&ModelNotebook::RmCtrl, this, ctrl.get()));
+
 	ctrl->MkView();
 	mWindowList.emplace_back(item);
 	sigAfterMkWindow(ctrl.get());

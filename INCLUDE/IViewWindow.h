@@ -11,9 +11,9 @@ protected:
 public:
 	virtual ~IViewWindow(){ sigClose; }
 	virtual wxWindow* GetWnd()const = 0;
-	virtual void OnUpdateTitle(const wxString&, const wxIcon&) {};
-	virtual void OnShow()  {};
-	virtual void OnCloseModel() {};
+	virtual void SetUpdateTitle(const wxString&, const wxIcon&) {};
+	virtual void SetShow()  {};
+	virtual void SetClose() {};
 
 	sig::signal<void()>	sigUpdateTitle;
 	sig::signal<void()>	sigClose;

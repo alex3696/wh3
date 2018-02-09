@@ -44,7 +44,7 @@ protected:
 	void OnCmd_SelectHistoryItem(wxDataViewEvent& evt);
 	void OnCmd_DClickTable(wxMouseEvent& evt);
 	
-	virtual void OnShow()override
+	virtual void SetShow()override
 	{
 
 	}
@@ -86,7 +86,7 @@ public:
 	void OnCmd_Convert(wxCommandEvent& evt);
 	void OnCmd_ShowSetup(wxCommandEvent& evt);
 protected:
-	virtual void OnShow()override
+	virtual void SetShow()override
 	{
 
 	}
@@ -124,7 +124,7 @@ public:
 	void ShowObjPropList(bool);
 
 protected:
-	virtual void OnShow()override
+	virtual void SetShow()override
 	{
 
 	}

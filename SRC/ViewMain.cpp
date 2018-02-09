@@ -105,7 +105,7 @@ wxWindow* ViewMain::GetWnd()const //override
 //---------------------------------------------------------------------------
 
 //virtual 
-void ViewMain::OnShow()  //override 
+void ViewMain::SetShow()  //override 
 { 
 	mMainFrame->Show(); 
 }

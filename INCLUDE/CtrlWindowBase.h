@@ -1,8 +1,6 @@
 #ifndef __CTRLWINDOWBASE_H
 #define __CTRLWINDOWBASE_H
 
-#include "IModelWindow.h"
-#include "IViewWindow.h"
 #include "ICtrlWindow.h"
 
 namespace wh{
@@ -23,30 +21,6 @@ protected:
 	sig::scoped_connection connModelClose;
 	sig::scoped_connection connModelShow;
 
-	void OnSig_ModelUpdateTitle(const wxString& title, const wxIcon& ico)
-	{
-		mView->OnUpdateTitle(title, ico);
-		sigUpdateTitle(this, title, ico);
-	}
-	void OnSig_ModelShow()
-	{
-		mView->OnShow();
-		sigShow(this);
-	}
-	void OnSig_ModelClose()
-	{
-		mView->OnCloseModel();
-		sigCloseModel(this);
-		DisconnectModel();
-	}
-
-
-	void OnSig_OnCloseView()
-	{
-		sigCloseView(this);
-		RmView();
-	}
-
 	virtual void ConnectView()
 	{
 		if (!mView)
@@ -55,7 +29,7 @@ protected:
 		connViewUpdateTitle = mView->sigUpdateTitle
 			.connect(std::bind(&IModelWindow::UpdateTitle, mModel.get()));
 		connViewClose = mView->sigClose
-			.connect(std::bind(&CtrlWindowBase::OnSig_OnCloseView, this));
+			.connect(std::bind(&IModelWindow::Close , mModel.get()));
 		connViewShow = mView->sigShow
 			.connect(std::bind(&IModelWindow::Show, mModel.get()));
 	}
@@ -70,17 +44,11 @@ protected:
 	{
 		namespace ph = std::placeholders;
 		connModelUpdateTitle = mModel->sigUpdateTitle
-			.connect(std::bind(&CtrlWindowBase::OnSig_ModelUpdateTitle, this, ph::_1, ph::_2));
+			.connect(std::bind(&IViewWindow::SetUpdateTitle, mView.get(), ph::_1, ph::_2));
 		connModelClose = mModel->sigClose
-			.connect(std::bind(&CtrlWindowBase::OnSig_ModelClose, this));
+			.connect(std::bind(&IViewWindow::SetClose, mView.get()));
 		connModelShow = mModel->sigShow
-			.connect(std::bind(&CtrlWindowBase::OnSig_ModelShow, this));
-	}
-	virtual void DisconnectModel()
-	{
-		connModelUpdateTitle.disconnect();
-		connModelClose.disconnect();
-		connModelShow.disconnect();;
+			.connect(std::bind(&IViewWindow::SetShow, mView.get()));
 	}
 public:
 	CtrlWindowBase(const std::shared_ptr<TVIEW>& view, const std::shared_ptr<TMODEL>& model)
@@ -92,7 +60,7 @@ public:
 
 	}
 
-	//virtual std::shared_ptr<IModelWindow > GetModel()const override	{ return mModel; }
+	virtual std::shared_ptr<IModelWindow > GetModel()const override { return mModel; }
 	virtual std::shared_ptr<IViewWindow> GetView()const override	{ return mView; }
 
 	virtual void UpdateTitle()override	{ mModel->UpdateTitle(); }

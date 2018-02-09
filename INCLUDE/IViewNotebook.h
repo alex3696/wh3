@@ -9,9 +9,9 @@ class IViewNotebook : public IViewWindow
 {
 public:
 	//IViewWindow virtual wxWindow* GetWnd() = 0;
-	//IViewWindow virtual void OnUpdateTitle(const wxString&, const wxIcon&) {};
-	//IViewWindow virtual void OnShow()  {};
-	//IViewWindow virtual void OnClose() {};
+	//IViewWindow virtual void SetUpdateTitle(const wxString&, const wxIcon&) {};
+	//IViewWindow virtual void SetShow()  {};
+	//IViewWindow virtual void SetClose() {};
 
 	virtual void MkPage(wxWindow* wnd) = 0 ;
 	virtual void ChPage(wxWindow* wnd, const wxString& lbl, const wxIcon& icon) = 0;

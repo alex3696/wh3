@@ -18,7 +18,7 @@ public:
 		return mPanel;
 	}
 
-	void OnShow() override;
+	void SetShow() override;
 
 	virtual void SetUpdate(const std::vector<const IIdent64*>&, const IIdent64*, bool) override;
 

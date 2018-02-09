@@ -24,8 +24,8 @@ public:
 	~ViewMain();
 
 	virtual wxWindow* GetWnd()const override;
-	//IViewWindow virtual void OnUpdateTitle(const wxString&, const wxIcon&) {};
-	virtual void OnShow()  override;
+	//IViewWindow virtual void SetUpdateTitle(const wxString&, const wxIcon&) {};
+	virtual void SetShow()  override;
 
 	std::shared_ptr<IViewNotebook> GetViewNotebook()const;
 

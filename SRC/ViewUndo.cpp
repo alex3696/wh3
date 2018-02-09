@@ -66,13 +66,13 @@ ViewUndoWindow::ViewUndoWindow(const std::shared_ptr<IViewWindow>& parent)
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewUndoWindow::OnShow() //override
+void ViewUndoWindow::SetShow() //override
 {
 	mPanel->ShowModal();
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewUndoWindow::OnUpdateTitle(const wxString& str, const wxIcon& ico)//override;
+void ViewUndoWindow::SetUpdateTitle(const wxString& str, const wxIcon& ico)//override;
 {
 	mPanel->SetTitle(str);
 	mPanel->SetIcon(ico);

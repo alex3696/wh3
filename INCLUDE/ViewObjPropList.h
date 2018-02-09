@@ -21,7 +21,7 @@ public:
 protected:
 	void OnCmd_Update(wxCommandEvent& evt = wxCommandEvent());
 	
-	virtual void OnShow()override;
+	virtual void SetShow()override;
 };
 
 

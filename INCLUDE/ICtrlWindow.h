@@ -2,6 +2,7 @@
 #define __ICTRLWINDOW_H
 
 #include "IViewWindow.h"
+#include "IModelWindow.h"
 
 namespace wh{
 //---------------------------------------------------------------------------
@@ -9,7 +10,7 @@ class ICtrlWindow
 {
 public:
 	virtual ~ICtrlWindow(){}
-	//virtual std::shared_ptr<IModelWindow > GetModel()const = 0;
+	virtual std::shared_ptr<IModelWindow> GetModel()const { return nullptr; };
 	virtual std::shared_ptr<IViewWindow> GetView()const = 0;
 
 	virtual void UpdateTitle() = 0;
@@ -20,12 +21,6 @@ public:
 
 	virtual void Load(const boost::property_tree::wptree&) = 0;
 	virtual void Save(boost::property_tree::wptree&) = 0;
-
-	sig::signal<void(ICtrlWindow*, const wxString&, const wxIcon&)>	sigUpdateTitle;
-	sig::signal<void(ICtrlWindow*)>	sigShow;
-	sig::signal<void(ICtrlWindow*)>	sigCloseView;
-	sig::signal<void(ICtrlWindow*)>	sigCloseModel;
-
 
 };
 //---------------------------------------------------------------------------

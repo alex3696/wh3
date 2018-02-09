@@ -69,7 +69,7 @@ protected:
 	void OnCmd_UpdateAll(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_Apply(wxCommandEvent& evt = wxCommandEvent());
 
-	virtual void OnShow()override;
+	virtual void SetShow()override;
 private:
 };
 //-----------------------------------------------------------------------------

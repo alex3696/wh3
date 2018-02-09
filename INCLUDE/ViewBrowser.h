@@ -109,7 +109,7 @@ class ViewBrowserPage : public IViewBrowserPage
 	wxTextCtrl* mCtrlFind;
 	void OnCmd_Find(wxCommandEvent& evt = wxCommandEvent());
 protected:
-	virtual void OnShow()override
+	virtual void SetShow()override
 	{
 
 	}

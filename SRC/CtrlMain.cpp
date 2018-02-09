@@ -77,6 +77,8 @@ void CtrlMain::DisconnectDB()
 //---------------------------------------------------------------------------
 void CtrlMain::OnConnectDb(const whDB& db)
 {
+	wxWindowUpdateLocker lock(mView->GetWnd());
+
 	mCtrlNotebook->CloseAllPages();
 	Load();
 
