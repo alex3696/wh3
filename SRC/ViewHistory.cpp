@@ -307,8 +307,7 @@ void ViewTableHistory::SetHistoryTable(const std::shared_ptr<const ModelHistoryT
 	{
 		mTable->EnsureVisible(item);
 		mTable->Select(item);
-		wxDataViewEvent evt;
-		evt.SetItem(item);
+		wxDataViewEvent evt(wxEVT_DATAVIEW_SELECTION_CHANGED, mTable, item);
 		OnCmd_SelectHistoryItem(evt);
 	}
 

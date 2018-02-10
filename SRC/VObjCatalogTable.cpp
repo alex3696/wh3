@@ -28,19 +28,19 @@ VObjCatalogTable::VObjCatalogTable(wxWindow*		parent,
 	Bind(wxEVT_SIZE, &VObjCatalogTable::OnResize, this);
 
 
-	auto col_name = AppendIconTextColumn("Имя", 1, wxDATAVIEW_CELL_INERT, 300,
+	auto col_name = AppendIconTextColumn("Имя", 0, wxDATAVIEW_CELL_INERT, 300,
 		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 	//col_name->SetSortOrder(1);
-	AppendTextColumn("Количество", 2, wxDATAVIEW_CELL_INERT, 80,
+	AppendTextColumn("Количество", 1, wxDATAVIEW_CELL_INERT, 80,
 		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
-	AppendTextColumn("ID", 3, wxDATAVIEW_CELL_INERT, 50,
+	AppendTextColumn("ID", 2, wxDATAVIEW_CELL_INERT, 50,
 		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
-	AppendTextColumn("PID", 4, wxDATAVIEW_CELL_INERT, 50,
+	AppendTextColumn("PID", 3, wxDATAVIEW_CELL_INERT, 50,
 		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
-	AppendTextColumn("LastLogId", 5, wxDATAVIEW_CELL_INERT, 100,
+	AppendTextColumn("LastLogId", 4, wxDATAVIEW_CELL_INERT, 100,
 		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 
-	auto col = AppendTextColumn("Местоположение", 6, wxDATAVIEW_CELL_INERT, 100,
+	auto col = AppendTextColumn("Местоположение", 5, wxDATAVIEW_CELL_INERT, 100,
 		wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 	col->GetRenderer()->EnableEllipsize(wxELLIPSIZE_START);
 
@@ -124,19 +124,19 @@ void VObjCatalogTable::ResetColumns()
 	if (mCatalogModel)
 	{
 		bool hidden = !mCatalogModel->GetData().mShowDebugColumns;
+		GetColumn(1)->SetHidden(hidden);
 		GetColumn(2)->SetHidden(hidden);
 		GetColumn(3)->SetHidden(hidden);
-		GetColumn(4)->SetHidden(hidden);
 
 		if (mCatalogModel->IsObjTree())
 		{
-			GetColumn(5)->SetHidden(true);
+			GetColumn(4)->SetHidden(true);
 			this->DisableAutosizeColumn(5);
 		}
 		else
 		{
-			GetColumn(5)->SetHidden(false);
-			EnableAutosizeColumn(5);
+			GetColumn(4)->SetHidden(false);
+			EnableAutosizeColumn(4);
 		}
 			
 	}
@@ -148,7 +148,7 @@ void VObjCatalogTable::BuildColumns()
 
 	if (msNull != mCatalogModel->mFavProps->GetState())
 	{
-		int colIndex = 7;
+		int colIndex = 6;
 		for (const auto& prop : mCatalogModel->GetFavProps())
 		{
 			wxString name = prop.mLabel;

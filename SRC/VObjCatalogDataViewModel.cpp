@@ -25,7 +25,7 @@ unsigned int VObjCatalogDataViewModel::GetColumnCount() const
 //---------------------------------------------------------------------------
 wxString VObjCatalogDataViewModel::GetColumnType(unsigned int col) const
 {
-	return !col ? "wxDataViewIconText" : "string";
+	return (col==0) ? "wxDataViewIconText" : "string";
 }
 //---------------------------------------------------------------------------
 bool VObjCatalogDataViewModel::IsContainer(const wxDataViewItem &dataViewItem)const
@@ -36,26 +36,22 @@ bool VObjCatalogDataViewModel::IsContainer(const wxDataViewItem &dataViewItem)co
 	auto modelInterface = static_cast<IModel*> (dataViewItem.GetID());
 	auto typeItem = dynamic_cast<object_catalog::MTypeItem*> (modelInterface);
 
-	if (typeItem)
-	{ 
-		auto typeArray = typeItem->GetParent();
-		if (typeArray)
-		{ 
-			auto catalog = dynamic_cast<object_catalog::MObjCatalog*>(typeArray->GetParent());
-			if (catalog)
-			{
-				if (catalog->IsObjEnabled())
-				{
-					const auto& cls_data = typeItem->GetData();
-					return !cls_data.IsAbstract();
-				}
-				else
-					return false;
-			}
-				
-		}
-	}
-	return typeItem ? true : false;
+	if (!typeItem)
+		return false;
+
+	auto typeArray = typeItem->GetParent();
+	if (!typeArray)
+		throw;
+	auto catalog = dynamic_cast<object_catalog::MObjCatalog*>(typeArray->GetParent());
+	if (!catalog)
+		throw;
+	
+	const auto& cls_data = typeItem->GetData();
+
+	bool is_container = (catalog->IsObjEnabled()) ?
+		!cls_data.IsAbstract()
+		: false;
+	return is_container;
 }
 //---------------------------------------------------------------------------
 
@@ -83,7 +79,7 @@ void VObjCatalogDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 			{
 			
 			default: //ClsKind::Abstract
-				if (1 == col)
+				if (0 == col)
 				{
 					ico = &mgr->m_ico_type_abstract24;
 					val = wxString::Format("%s", cls.mLabel.toStr());
@@ -113,14 +109,14 @@ void VObjCatalogDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 
 		switch (col)
 		{
-		case 1:		val = obj.mLabel;	break;
-		case 2:		val = obj.mQty + " (" + typeItem->GetData().mMeasure.toStr() + ")"; break;
-		case 3:		val = obj.mId;				break;
-		case 4:		val = obj.mParent.mId;		break;
-		case 5:		val = obj.mLastMoveLogId;	break;
-		case 6:		val = objItem->mPath;		break;
-		default:	if (obj.mProp.size() > (col - 7) )
-						val = obj.mProp[col - 7];
+		case 0:		val = obj.mLabel;	break;
+		case 1:		val = obj.mQty + " (" + typeItem->GetData().mMeasure.toStr() + ")"; break;
+		case 2:		val = obj.mId;				break;
+		case 3:		val = obj.mParent.mId;		break;
+		case 4:		val = obj.mLastMoveLogId;	break;
+		case 5:		val = objItem->mPath;		break;
+		default:	if (obj.mProp.size() > (col - 6) )
+						val = obj.mProp[col - 6];
 					break;
 		}
 			
@@ -128,7 +124,7 @@ void VObjCatalogDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 
 	switch (col)
 	{
-	case 1:		variant << wxDataViewIconText(val, *ico);
+	case 0:		variant << wxDataViewIconText(val, *ico);
 		break;
 	default:	
 		if (objItem)
