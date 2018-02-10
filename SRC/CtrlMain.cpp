@@ -62,6 +62,10 @@ CtrlMain::CtrlMain(const std::shared_ptr<ViewMain>& view, const std::shared_ptr<
 		.connect(std::bind(&CtrlMain::ShowDoc, this));
 	connViewCmd_ShowWhatIsNew = mView->sigShowWhatIsNew
 		.connect(std::bind(&CtrlMain::ShowWhatIsNew, this));
+
+	connViewCmd_Close = mView->sigClose
+		.connect(std::bind(&CtrlMain::DisconnectDB, this));
+
 }
 //---------------------------------------------------------------------------
 void CtrlMain::ConnectDB()

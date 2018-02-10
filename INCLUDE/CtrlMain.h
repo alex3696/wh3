@@ -35,6 +35,8 @@ class CtrlMain : public CtrlWindowBase<ViewMain, ModelMain>
 
 	sig::scoped_connection connViewCmd_ShowDoc;
 	sig::scoped_connection connViewCmd_ShowWhatIsNew;
+
+	sig::scoped_connection connViewCmd_Close;
 	
 	void OnConnectDb(const whDB& db);
 	void OnDicsonnectDb(const whDB& db);
