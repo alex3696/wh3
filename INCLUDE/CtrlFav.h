@@ -9,13 +9,52 @@ namespace wh {
 //-----------------------------------------------------------------------------
 class CtrlFav final : public CtrlWindowBase<IViewFav, ModelFav>
 {
-	sig::scoped_connection connViewCmd_Find;
+	sig::scoped_connection connModel_BeforeRefreshCls;
 	sig::scoped_connection connModel_AfterRefreshCls;
+	
+	sig::scoped_connection connViewCmd_Refresh;
+
+	sig::scoped_connection connViewCmd_AddClsProp;
+	sig::scoped_connection connViewCmd_AddObjProp;
+	sig::scoped_connection connViewCmd_AddPrevios;
+	sig::scoped_connection connViewCmd_AddPeriod;
+	sig::scoped_connection connViewCmd_AddNext;
+	sig::scoped_connection connViewCmd_AddLeft;
+	
+	sig::scoped_connection connViewCmd_RemoveClsProp;
+	sig::scoped_connection connViewCmd_RemoveObjProp;
+	sig::scoped_connection connViewCmd_RemovePrevios;
+	sig::scoped_connection connViewCmd_RemovePeriod;
+	sig::scoped_connection connViewCmd_RemoveNext;
+	sig::scoped_connection connViewCmd_RemoveLeft;
+	
+	sig::scoped_connection connViewCmd_ShowHelp;
+
+	
 public:
 	CtrlFav(const std::shared_ptr<IViewFav>& view
 		, const  std::shared_ptr<ModelFav>& model);
 
 	void EditFav(int64_t cid);
+
+	void Refresh();
+	
+	void AddClsProp(int64_t clsId, int64_t propId);
+	void AddObjProp(int64_t clsId, int64_t propId);
+	void AddPrevios(int64_t clsId, int64_t actId);
+	void AddPeriod(int64_t clsId, int64_t actId);
+	void AddNext(int64_t clsId, int64_t actId);
+	void AddLeft(int64_t clsId, int64_t actId);
+
+	void RemoveClsProp(int64_t clsId, int64_t propId);
+	void RemoveObjProp(int64_t clsId, int64_t propId);
+	void RemovePrevios(int64_t clsId, int64_t actId);
+	void RemovePeriod(int64_t clsId, int64_t actId);
+	void RemoveNext(int64_t clsId, int64_t actId);
+	void RemoveLeft(int64_t clsId, int64_t actId);
+
+	void ShowHelp(const wxString& index);
+
 };
 
 

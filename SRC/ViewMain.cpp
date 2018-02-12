@@ -196,7 +196,7 @@ void ViewMain::BuildToolbar()
 	long main_toolbar_style = wxAUI_TB_DEFAULT_STYLE
 		| wxAUI_TB_OVERFLOW
 		//| wxAUI_TB_TEXT
-		//| wxAUI_TB_HORZ_TEXT
+		| wxAUI_TB_HORZ_TEXT
 		| wxAUI_TB_PLAIN_BACKGROUND
 		| wxAUI_TB_GRIPPER;
 

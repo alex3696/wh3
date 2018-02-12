@@ -1516,7 +1516,7 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
 		{sigShowFav(); }, wxID_PROPERTIES);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
-		{ sigShowSettings(); }, wxID_HELP_INDEX);
+		{ sigShowSettings(); }, wxID_SETUP);
 	tool_bar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
 		{sigShowHelp("ViewBrowserPage"); }, wxID_HELP_INDEX);
 
