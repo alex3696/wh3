@@ -53,6 +53,8 @@ public:
 	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool) override;
 
 	virtual void SetObjOperation(Operation, const std::vector<const IIdent64*>&) override;
+	virtual void SetAct() override;
+	virtual void SetMove() override;
 	virtual void SetShowDetail()override;
 	virtual void SetShowFav() override;
 	virtual void SetInsertType()const override;

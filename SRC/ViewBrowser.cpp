@@ -586,7 +586,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 		, wxDV_ROW_LINES 
 		 | wxDV_VERT_RULES 
 		 //| wxDV_HORIZ_RULES
-		 | wxDV_MULTIPLE
+		 //| wxDV_MULTIPLE
 		);
 	mTable = table;
 
@@ -596,8 +596,6 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 
 	int ch = table->GetCharHeight();
 	table->SetRowHeight(ch * 1.6 );
-	//int ch = table->GetCharHeight();
-	//table->SetRowHeight(ch * 4 + 2);
 	ResetColumns();
 
 	table->GetTargetWindow()->SetToolTip("ToolTip");
@@ -672,6 +670,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 {
 	auto pos = evt.GetPosition();
+	pos = mTable->ScreenToClient((mTable->GetMainWindow()->ClientToScreen(pos)));
 
 	wxDataViewItem item(nullptr);
 	wxDataViewColumn* col = nullptr;
@@ -1293,6 +1292,36 @@ void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IId
 	}
 
 	//AutosizeColumns();
+}
+//-----------------------------------------------------------------------------
+//virtual 
+void ViewTableBrowser::SetAct()//override;
+{
+	auto item = mTable->GetCurrentItem();
+	if (!item.IsOk())
+		return;
+	const IIdent64* ident = static_cast<const IIdent64*> (item.GetID());
+	if (!ident)
+		return;
+	const auto& obj = dynamic_cast<const IObj64*>(ident);
+	if (!obj)
+		return;
+	sigAct(obj->GetId(), obj->GetParentId());
+}
+//-----------------------------------------------------------------------------
+//virtual 
+void ViewTableBrowser::SetMove()//override;
+{
+	auto item = mTable->GetCurrentItem();
+	if (!item.IsOk())
+		return;
+	const IIdent64* ident = static_cast<const IIdent64*> (item.GetID());
+	if (!ident)
+		return;
+	const auto& obj = dynamic_cast<const IObj64*>(ident);
+	if (!obj)
+		return;
+	sigMove(obj->GetId(), obj->GetParentId() );
 }
 //-----------------------------------------------------------------------------
 //virtual 

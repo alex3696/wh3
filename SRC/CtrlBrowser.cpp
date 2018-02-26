@@ -6,6 +6,10 @@
 #include "CtrlFav.h"
 #include "CtrlHelp.h"
 
+
+#include "dlg_act_view_Frame.h"
+#include "MoveObjPresenter.h"
+
 using namespace wh;
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -33,6 +37,10 @@ CtrlTableBrowser::CtrlTableBrowser(
 	connViewCmd_Up = mView->sigUp
 		.connect(std::bind(&CtrlTableBrowser::Up, this));
 
+	connViewCmd_Act = mView->sigAct
+		.connect(std::bind(&CtrlTableBrowser::Act, this, ph::_1, ph::_2));
+	connViewCmd_Move = mView->sigMove
+		.connect(std::bind(&CtrlTableBrowser::Move, this, ph::_1, ph::_2));
 	connViewCmd_ShowObjDetail = mView->sigShowDetail
 		.connect(std::bind(&CtrlTableBrowser::ShowDetail, this, ph::_1, ph::_2));
 
@@ -84,13 +92,69 @@ void CtrlTableBrowser::RefreshClsObjects(int64_t cid)
 	mModel->GetModelBrowser()->DoRefreshObjects (cid);
 }
 //---------------------------------------------------------------------------
-void CtrlTableBrowser::Act()
+void CtrlTableBrowser::SetAct()
 {
-
+	mView->SetAct();
 }
 //---------------------------------------------------------------------------
-void CtrlTableBrowser::Move()
+void CtrlTableBrowser::SetMove()
 {
+	mView->SetMove();
+}
+//---------------------------------------------------------------------------
+void CtrlTableBrowser::Act(int64_t oid, int64_t parent_oid)
+{
+	rec::PathItem data;
+	data.mObj.mId = oid;
+	data.mObj.mParent.mId = parent_oid;
+
+	using namespace dlg_act;
+	namespace view = dlg_act::view;
+	try
+	{
+		auto subj = std::make_shared<model::Obj >();
+		subj->SetData(data, true);
+
+		view::Frame dlg;
+		dlg.SetModel(subj);
+		dlg.ShowModal();
+	}
+	catch (...)
+	{
+		// Transaction already rollbacked, dialog was destroyed, so nothinh to do
+		wxLogError("Объект занят другим пользователем (см.подробности)");
+	}
+	mModel->GetModelBrowser()->DoRefresh();
+}
+//---------------------------------------------------------------------------
+void CtrlTableBrowser::Move(int64_t oid, int64_t parent_oid)
+{
+	TEST_FUNC_TIME;
+	try
+	{
+		wxBusyCursor busyCursor;
+
+		rec::PathItem data;
+		data.mObj.mId = oid;
+		data.mObj.mParent.mId = parent_oid;
+		std::shared_ptr<rec::PathItem> mov_obj = std::make_shared<rec::PathItem>(data);
+
+		auto ctrl = whDataMgr::GetInstance()->mContainer;
+		ctrl->RegInstance("MoveableObj", mov_obj);
+
+		auto presenter = ctrl->GetObject<MoveObjPresenter>("MoveObjPresenter");
+		if (!presenter)
+			return;
+
+		presenter->OnViewUpdate();
+		presenter->ShowDialog();
+	}
+	catch (...)
+	{
+		// Transaction already rollbacked, dialog was destroyed, so nothinh to do
+		wxLogError("Объект занят другим пользователем (см.подробности)");
+	}
+	mModel->GetModelBrowser()->DoRefresh();
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::SetInsertType()
@@ -332,12 +396,12 @@ void CtrlToolbarBrowser::Up()
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::Act()
 {
-	mTableCtrl->Act();
+	mTableCtrl->SetAct();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::Move()
 {
-	mTableCtrl->Move();
+	mTableCtrl->SetMove();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::ShowDetail()

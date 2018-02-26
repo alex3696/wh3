@@ -14,6 +14,8 @@ class IViewTableBrowser : public IViewWindow
 public:
 	virtual void SetBeforeRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool)=0;
 	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool) = 0;
+	virtual void SetAct() = 0;
+	virtual void SetMove() = 0;
 	virtual void SetShowDetail() = 0;
 	virtual void SetShowFav() = 0;
 	virtual void SetInsertType()const = 0;
@@ -29,8 +31,8 @@ public:
 	sig::signal<void()> sigRefresh;
 	sig::signal<void()> sigUp;
 	
-	//sig::signal<void(int64_t, int64_t)> sigMove;
-	//sig::signal<void(int64_t)> sigAct;
+	sig::signal<void(int64_t, int64_t)> sigMove;
+	sig::signal<void(int64_t, int64_t)> sigAct;
 	sig::signal<void(int64_t, int64_t)> sigShowDetail;
 
 	sig::signal<void(int64_t)> sigClsInsert;

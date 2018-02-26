@@ -173,14 +173,13 @@ void whLogin::OnOk(wxCommandEvent& evt)
 	conn_cfg.mStorePass = m_chkStorePass->GetValue();
 
 	whDataMgr::GetInstance()->mConnectCfg->SetData(conn_cfg);
+	whDataMgr::GetInstance()->mConnectCfg->Save();
 
 	mgr->mDb.Open(conn_cfg.mServer
 		, conn_cfg.mPort
 		, conn_cfg.mDB
 		, conn_cfg.mUser
 		, conn_cfg.mPass);
-
-
 
 	EndModal(wxID_OK);
 }

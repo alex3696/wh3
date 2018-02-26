@@ -240,6 +240,7 @@ ViewTableHistory::ViewTableHistory(wxWindow* parent)
 		wxDataViewColumn* col = nullptr;
 		wxDataViewItem item(nullptr);
 		auto pos = evt.GetPosition();
+		pos = table->ScreenToClient((table->GetMainWindow()->ClientToScreen(pos)));
 		table->HitTest(pos, item, col);
 
 		wxString str;
@@ -254,7 +255,6 @@ ViewTableHistory::ViewTableHistory(wxWindow* parent)
 		table->GetTargetWindow()->GetToolTip()->SetTip(str);
 	};
 	table->GetTargetWindow()->Bind(wxEVT_MOTION, on_move);
-	table->Bind(wxEVT_MOTION, on_move);
 	
 	table->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED
 		, &ViewTableHistory::OnCmd_SelectHistoryItem, this);

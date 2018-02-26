@@ -22,9 +22,9 @@ class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPag
 	sig::scoped_connection connViewCmd_Refresh;
 	sig::scoped_connection connViewCmd_Up;
 
+	sig::scoped_connection connViewCmd_Act;
+	sig::scoped_connection connViewCmd_Move;
 	sig::scoped_connection connViewCmd_ShowObjDetail;
-	//sig::scoped_connection connViewCmd_Act;
-	//sig::scoped_connection connViewCmd_Move;
 
 	sig::scoped_connection connViewCmd_ClsInsert;
 	sig::scoped_connection connViewCmd_ClsDelete;
@@ -50,9 +50,10 @@ public:
 	void Activate(int64_t cid);
 	void RefreshClsObjects(int64_t cid);
 
-	void Act();
-	void Move();
-	
+	void SetAct();
+	void SetMove();
+	void Act(int64_t oid, int64_t parent_oid);
+	void Move(int64_t oid, int64_t parent_oid);
 	
 	void SetShowDetail();// ask view about selected item 
 	void ShowDetail(int64_t oid, int64_t parent_oid);// do action
