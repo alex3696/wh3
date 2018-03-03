@@ -18,7 +18,7 @@ ReportModel::ReportModel(const std::shared_ptr<wxString>& rep_id)
 	{
 		if (old_rep_id != mRepId)
 			return;
-		sigUpdateTitle(ri->mTitle, mIco);
+		sigUpdateTitle(ri->mTitle, ResMgr::GetInstance()->m_ico_report24);
 		sigSetNote(ri->mNote);
 		DoUpdateView();
 		
@@ -29,7 +29,7 @@ ReportModel::ReportModel(const std::shared_ptr<wxString>& rep_id)
 	{
 		if (ri->mId != mRepId)
 			return;
-		sigUpdateTitle("Îò÷¸ò óäàë¸í", mIco);
+		sigUpdateTitle("Îò÷¸ò óäàë¸í", ResMgr::GetInstance()->m_ico_report24);
 		sigSetNote(wxEmptyString);
 		sigExecuted(rec::ReportTable());
 		sigSetFilterTable(rec::ReportFilterTable());
@@ -306,6 +306,8 @@ void ReportModel::Show()
 //-----------------------------------------------------------------------------
 void ReportModel::UpdateTitle()
 {
+	sigUpdateTitle("Îò÷¸ò ...", ResMgr::GetInstance()->m_ico_report24);
+
 	/*
 	wxString lbl = mTitle;
 	

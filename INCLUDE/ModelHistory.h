@@ -292,9 +292,6 @@ public:
 //---------------------------------------------------------------------------
 class ModelPageHistory : public IModelWindow
 {
-	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_history24;
-	const wxString mTitle = "Общая история";
-
 	sig::scoped_connection connListItemChange;
 
 	rec::PageHistory	mGuiModel;
@@ -315,8 +312,6 @@ public:
 	sig::signal<void(const rec::PageHistory&)>	sigCfgUpdated;
 
 	// IModelWindow
-	virtual const wxIcon& GetIcon()const override { return mIco; }
-	virtual const wxString& GetTitle()const override { return mTitle; }
 	virtual void UpdateTitle()override;
 	virtual void Show()override;
 	virtual void Load(const boost::property_tree::wptree& page_val)override;

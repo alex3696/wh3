@@ -84,7 +84,7 @@ const rec::PageHistory& ModelPageHistory::GetGuiModel()const
 //virtual 
 void ModelPageHistory::UpdateTitle() //override;
 {
-	sigUpdateTitle(mTitle, mIco);
+	sigUpdateTitle("Общая история", ResMgr::GetInstance()->m_ico_history24);
 	Update();
 }
 //---------------------------------------------------------------------------

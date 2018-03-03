@@ -10,9 +10,6 @@ namespace wh{
 //---------------------------------------------------------------------------
 class ModelPageObjByTypeList : public IModelWindow
 {
-	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_folder_type24;
-	const wxString mTitle = "Каталог по типам...";
-
 	std::shared_ptr<object_catalog::MObjCatalog> mWhModel 
 				= std::make_shared<object_catalog::MObjCatalog>();
 
@@ -21,13 +18,13 @@ class ModelPageObjByTypeList : public IModelWindow
 	sig::scoped_connection connPathInsert;
 	void OnSigPathClear(const wh::IModel& model, const std::vector<wh::SptrIModel>&)
 	{
-		sigUpdateTitle("/", mIco);
+		sigUpdateTitle("/", ResMgr::GetInstance()->m_ico_folder_type24);
 	}
 	void OnSigPathInsert(const wh::IModel& model, const std::vector<wh::SptrIModel>& vec
 		, const wh::SptrIModel&)
 	{
 		const auto& path_array = dynamic_cast<const wh::object_catalog::model::MPath&>(model);
-		sigUpdateTitle(path_array.GetLastItemStr(), mIco);
+		sigUpdateTitle(path_array.GetLastItemStr(), ResMgr::GetInstance()->m_ico_folder_type24);
 	}
 
 
@@ -57,9 +54,6 @@ public:
 		connPathClear = mWhModel->mPath->ConnectAfterRemove(onClearPath);
 
 	}
-
-	virtual const wxIcon& GetIcon()const override { return mIco; }
-	virtual const wxString& GetTitle()const override { return mTitle; }
 
 	virtual void UpdateTitle()override
 	{

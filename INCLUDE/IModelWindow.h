@@ -14,12 +14,9 @@ public:
 	sig::signal<void()>	sigClose;
 	sig::signal<void()>	sigShow;
 
-	virtual const wxIcon& GetIcon()const { return wxNullIcon; }
-	virtual const wxString& GetTitle()const { return wxEmptyString2; }
-
 	virtual void UpdateTitle() 
 	{
-		sigUpdateTitle(GetTitle(), GetIcon());
+		sigUpdateTitle(wxEmptyString, wxNullIcon );
 	}
 	virtual void Show()
 	{

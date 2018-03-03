@@ -9,15 +9,13 @@ namespace wh{
 //-----------------------------------------------------------------------------
 class ReportListModel : public IModelWindow
 {
-	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_report_list24;
-	const wxString mTitle = "Îò÷¸òû";
-
-
 	rec::ReportList mRepList;
 public:
 	ReportListModel();
-	virtual const wxIcon& GetIcon()const override { return mIco; }
-	virtual const wxString& GetTitle()const override { return mTitle; }
+	virtual void UpdateTitle()override
+	{
+		sigUpdateTitle("Îò÷¸òû", ResMgr::GetInstance()->m_ico_report_list24);
+	}
 	virtual void Load(const boost::property_tree::wptree& page_val)override
 	{
 	}

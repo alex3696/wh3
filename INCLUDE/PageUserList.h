@@ -10,17 +10,15 @@ namespace wh{
 //---------------------------------------------------------------------------
 class ModelPageUserList : public IModelWindow
 {
-	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_user24;
-	const wxString mTitle = "Пользователи";
 public:
 	ModelPageUserList(const std::shared_ptr<rec::PageUser>& usr)
 	{
 
 	}
-
-	virtual const wxIcon& GetIcon()const override { return mIco; }
-	virtual const wxString& GetTitle()const override { return mTitle; }
-
+	virtual void UpdateTitle()override
+	{
+		sigUpdateTitle("Пользователи", ResMgr::GetInstance()->m_ico_user24);
+	}
 	virtual void Load(const boost::property_tree::wptree& page_val)override
 	{
 		

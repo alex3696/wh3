@@ -10,10 +10,7 @@ namespace wh{
 //---------------------------------------------------------------------------
 class ModelObjPropList : public IModelWindow
 {
-	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_classprop24;
-	const wxString mTitle = "Свойства";
 	//sig::scoped_connection connListItemChange;
-
 public:
 	ModelObjPropList();
 
@@ -21,8 +18,6 @@ public:
 	sig::signal<void(const PropValTable& rt, const IAct*)>	sigUpdatePropList;
 
 	// IModelWindow
-	virtual const wxIcon& GetIcon()const override { return mIco; }
-	virtual const wxString& GetTitle()const override { return mTitle; }
 	virtual void UpdateTitle()override;
 	virtual void Show()override;
 	virtual void Load(const boost::property_tree::wptree& page_val)override;

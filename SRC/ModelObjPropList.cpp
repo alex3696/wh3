@@ -19,7 +19,7 @@ void ModelObjPropList::Update()
 //virtual 
 void ModelObjPropList::UpdateTitle() //override;
 {
-	sigUpdateTitle(mTitle, mIco);
+	sigUpdateTitle("Свойства", ResMgr::GetInstance()->m_ico_classprop24);
 	Update();
 }
 //---------------------------------------------------------------------------

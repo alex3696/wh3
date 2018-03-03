@@ -10,9 +10,6 @@ namespace wh{
 //---------------------------------------------------------------------------
 class ModelPageGroupList : public IModelWindow
 {
-	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_usergroup24;
-	const wxString mTitle = "Группы";
-
 	std::shared_ptr<MGroupArray> mWhModel = std::make_shared<MGroupArray>();
 public:
 	ModelPageGroupList(const std::shared_ptr<rec::PageGroup>& usr)
@@ -20,8 +17,10 @@ public:
 
 	}
 
-	virtual const wxIcon& GetIcon()const override { return mIco; }
-	virtual const wxString& GetTitle()const override { return mTitle; }
+	virtual void UpdateTitle()override
+	{
+		sigUpdateTitle("Группы", ResMgr::GetInstance()->m_ico_usergroup24);
+	}
 	virtual void Load(const boost::property_tree::wptree& page_val)override
 	{
 		//using ptree = boost::property_tree::wptree;
