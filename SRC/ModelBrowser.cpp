@@ -642,10 +642,8 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 	{
 		unsigned int rowQty = table->GetRowCount();
 		
-		auto& cache = this->mCache;
-
 		size_t i = 0;
-		const ObjCache::fnModify fn = [&parent_node, &table, &i,&cls,&cache]
+		const ObjCache::fnModify fn = [/*&parent_node,*/ &table, &i,&cls]
 		(const std::shared_ptr<ObjRec64>& obj)
 		{
 			//obj->mClsId = parent_node->GetId();
@@ -799,8 +797,7 @@ void ModelBrowser::DoRefreshFindInClsTree()
 			cls->mObjLoaded = true;
 		};
 
-		auto& cache = this->mCache;
-		const ObjCache::fnModify load_obj = [&table, &row, &cache](const std::shared_ptr<ObjRec64>& obj)
+		const ObjCache::fnModify load_obj = [&table, &row](const std::shared_ptr<ObjRec64>& obj)
 		{
 			//obj->SetParentId(table->GetAsString(7, row));
 			obj->SetClsId(table->GetAsString(0, row));
@@ -918,7 +915,7 @@ void ModelBrowser::DoRefresh()
 	{
 		unsigned int rowQty = table->GetRowCount();
 		size_t row = 0;
-		const ClsCache::fnModify fn = [&parent_node, &table, &row](const std::shared_ptr<ClsRec64>& cls)
+		const ClsCache::fnModify fn = [&table, &row](const std::shared_ptr<ClsRec64>& cls)
 		{
 			//cls->SetId(table->GetAsString(0, row));
 			table->GetAsString(1, row, cls->mTitle);

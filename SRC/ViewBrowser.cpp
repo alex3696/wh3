@@ -1102,6 +1102,9 @@ void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec
 	if (!dvmodel)
 		return;
 
+	const auto col_qty = mTable->GetColumnCount();
+	auto last_col = mTable->GetColumnAt(col_qty - 1);
+	
 	for (const auto& ident : vec)
 	{
 		const auto cls = dynamic_cast<const ICls64*>(ident);
@@ -1143,6 +1146,9 @@ void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec
 		}
 
 	}//for (const auto& obj : *ot)
+
+	if(col_qty != mTable->GetColumnCount())
+		last_col->SetWidth(GetTitleWidth(last_col->GetTitle()));
 	
 }
 //-----------------------------------------------------------------------------
@@ -1206,9 +1212,6 @@ wxDataViewColumn* ViewTableBrowser::AppendTableColumn(const wxString& title, int
 	
 	col->SetMinWidth(80);
 
-	auto last_col = mTable->GetColumnAt( mTable->GetColumnCount() - 2);
-	last_col->SetWidth(	GetTitleWidth(last_col->GetTitle()));
-
 	return col;
 }
 //-----------------------------------------------------------------------------
@@ -1217,7 +1220,7 @@ int ViewTableBrowser::GetTitleWidth(const wxString& title)const
 	const int spw = mTable->GetTextExtent(" ").GetWidth();
 	int hw = mTable->GetTextExtent(title).GetWidth()+ spw*4 + 20;
 	if (hw < 80)
-		hw = 80;
+		hw = -1; // default width
 	else if (hw > 300)
 		hw = 300;
 

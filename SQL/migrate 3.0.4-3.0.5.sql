@@ -151,6 +151,7 @@ CREATE OR REPLACE VIEW  obj_current_info AS
                                                 SELECT jsonb_object_agg( fav_oprop.pid ,prop->>fav_oprop.pid::TEXT  ) 
                                                   FROM fav_oprop
                                                   INNER JOIN cls_tree tree ON tree.id= fav_oprop.cid  AND usr=CURRENT_USER
+                                                  WHERE prop ? fav_oprop.pid::TEXT 
                                               )
                                 )
               ,'{"fav_oprop": null}'
