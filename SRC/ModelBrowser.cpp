@@ -46,7 +46,7 @@ void ActCache::LoadDetailById()
 			if (!table->GetAsString(0, row).ToLongLong(&id))
 				throw;
 
-			UpdateOrInsert(id, fn);
+			InsertOrUpdate(id, fn);
 		}//for
 	}//if (table)
 
@@ -60,6 +60,105 @@ void ActCache::LoadDetailById()
 const std::shared_ptr<ClsRec64>  ClsCache::NullValue = std::shared_ptr<ClsRec64>(nullptr);
 const std::shared_ptr<ObjRec64>  ObjCache::mNullObj = std::shared_ptr<ObjRec64>(nullptr);
 
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void ClsRec64::ParseFavProp(const wxString& str)
+{
+	mFavProp.clear();
+	mFavAPropValues.clear();
+	mFavActProp.clear();
+	if (str.empty())
+		return;
+
+	std::wstringstream ss(str.ToStdWstring());
+	boost::property_tree::wptree all_fav_prop;
+	boost::property_tree::read_json(ss, all_fav_prop);
+
+	auto find_it = all_fav_prop.find(L"fav_act");
+	if (all_fav_prop.not_found() != find_it)
+	{
+		ParseActInfo(find_it->second);
+	}
+	find_it = all_fav_prop.find(L"fav_cprop");
+	if (all_fav_prop.not_found() != find_it)
+	{
+		ParsePropInfo(find_it->second);
+	}
+}
+//-----------------------------------------------------------------------------
+void ClsRec64::ParseActInfo(const boost::property_tree::wptree& favAPropValues)
+{
+
+	if (favAPropValues.empty())
+		return;
+	auto cache = this->mTable->GetCache();
+
+	auto begin = favAPropValues.begin();
+	auto end = favAPropValues.end();
+	while (begin != end)
+	{
+		auto act_curr = begin->second.begin();
+		auto act_end = begin->second.end();
+		std::wstring str_aid = begin->first.data();
+		int64_t aid = std::stoll(str_aid);
+		while (act_curr != act_end)
+		{
+			std::wstring str_info = act_curr->first.data();
+			FavAPropInfo info = StrInt2FavAPropInfo(str_info);
+			std::wstring info_val = act_curr->second.data();
+
+			if (!info_val.empty())
+			{
+				const ActCache::fnModify fn_act_upsert
+					= [](const std::shared_ptr<IAct64>& act) {};
+				auto act = cache->mActTable.InsertOrUpdate(aid, fn_act_upsert);
+				auto favAProp = std::make_shared<const FavAProp>(act, info);
+				this->mFavActProp.emplace(favAProp);
+
+				auto favAPropVal
+					= std::make_shared<const FavAPropValue>(favAProp, info_val);
+				this->mFavAPropValues.emplace(favAPropVal);
+			}
+			else
+			{
+				auto isd = act_curr;;
+			}
+			++act_curr;
+		}
+
+		++begin;
+	}//while (begin != end)
+}
+//-----------------------------------------------------------------------------
+void ClsRec64::ParsePropInfo(const boost::property_tree::wptree& favOPropValues)
+{
+	if (favOPropValues.empty())
+		return;
+	auto cache = this->mTable->GetCache();
+
+	auto prop_curr = favOPropValues.begin();
+	auto prop_end = favOPropValues.end();
+	while (prop_curr != prop_end)
+	{
+		wxString pid_str = prop_curr->first.data();
+		wxString val_str = prop_curr->second.data();
+		int64_t pid;
+		if (pid_str.ToLongLong(&pid))
+		{
+			PropCache::fnModify fn = [](const std::shared_ptr<IProp64>&) {};
+			const auto& prop = cache->mPropTable.InsertOrUpdate(pid, fn);
+
+			auto pv = std::make_shared<PropVal>(prop, val_str);
+			mFavProp.emplace(pv);
+		}
+		++prop_curr;
+	}//while (prop_curr != prop_end)
+
+}
+//-----------------------------------------------------------------------------
 //virtual 
 std::shared_ptr<const ICls64> ClsRec64::GetParent()const //override
 {
@@ -79,21 +178,32 @@ const std::shared_ptr<const ICls64::ObjTable> ClsRec64::GetObjTable()const //ove
 	return mTable->GetCache()->mObjTable.GetObjByClsId(GetId());
 }
 //-----------------------------------------------------------------------------
-const FavActTable& ClsRec64::GetFavActInfo() const
+//virtual 
+const std::shared_ptr<const ICls64::ClsTable> ClsRec64::GetClsChilds()const //override;
 {
-	return mFavActLog;
+	auto table = std::make_shared<ICls64::ClsTable>();
+	mTable->GetClsChilds(this->mId, *table);
+	return table;
 }
 //-----------------------------------------------------------------------------
-const SpPropConstTable& ClsRec64::GetFavObjProp() const
+const ConstPropValTable& ClsRec64::GetFavCPropValue() const
 {
-	// TODO: insert return statement here
-	return SpPropConstTable();
+	return mFavProp;
 }
 //-----------------------------------------------------------------------------
-const SpPropConstTable& ClsRec64::GetFavClsProp() const
+const ConstClsFavActTable& ClsRec64::GetFavAProp() const
 {
-	// TODO: insert return statement here
-	return SpPropConstTable();
+	return mFavActProp;
+}
+//-----------------------------------------------------------------------------
+const FavAPropValueTable& ClsRec64::GetFavAPropValue() const
+{
+	return mFavAPropValues;
+}
+//-----------------------------------------------------------------------------
+const ConstPropTable& ClsRec64::GetFavOProp() const
+{
+	return mFavObjProp;
 }
 
 
@@ -102,75 +212,98 @@ const SpPropConstTable& ClsRec64::GetFavClsProp() const
 
 
 
-
-
-
-
-
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-void ObjRec64::ParseActInfo(const wxString& act_info_json)
+void ObjRec64::ParseFavProp(const wxString& str)
 {
-	if (act_info_json.empty())
+	mFavAPropValueTable.clear();
+	mFavOPropValueTable.clear();
+	if (str.empty())
 		return;
 
-	std::wstringstream ss(act_info_json.ToStdWstring());
-	mActInfo.clear();
-	boost::property_tree::read_json(ss, mActInfo);
-	ParseActInfo();
+	std::wstringstream ss(str.ToStdWstring());
+	boost::property_tree::wptree all_fav_prop;
+	boost::property_tree::read_json(ss, all_fav_prop);
+
+	auto find_it = all_fav_prop.find(L"fav_act");
+	if (all_fav_prop.not_found() != find_it)
+	{
+		ParseActInfo(find_it->second);
+	}
+	find_it = all_fav_prop.find(L"fav_oprop");
+	if (all_fav_prop.not_found() != find_it)
+	{
+		ParsePropInfo(find_it->second);
+	}
 }
 //-----------------------------------------------------------------------------
-void ObjRec64::ParseActInfo()
+void ObjRec64::ParseActInfo(const boost::property_tree::wptree& favAPropValues)
 {
-	if (mActInfo.empty())
+	
+	if (favAPropValues.empty())
 		return;
 	auto cache = this->mTable->GetCache();
 
-
-	auto begin = GetActInfo().begin();
-	auto end = GetActInfo().end();
+	auto begin = favAPropValues.begin();
+	auto end = favAPropValues.end();
 	while (begin != end)
 	{
-		auto act_col_begin = begin->second.begin();
-		auto act_col_end = begin->second.end();
-		int visible = 0;
-		wxString period;
+		auto act_curr = begin->second.begin();
+		auto act_end = begin->second.end();
 		std::wstring str_aid = begin->first.data();
 		int64_t aid = std::stoll(str_aid);
-
-		while (act_col_begin != act_col_end)
+		while (act_curr != act_end)
 		{
-			std::wstring str_ainfo = act_col_begin->first.data();
-			int cur_visible = stoi(str_ainfo);
-			visible |= cur_visible;
-			if (cur_visible == 2)
+			std::wstring str_info = act_curr->first.data();
+			FavAPropInfo info = StrInt2FavAPropInfo(str_info);
+			std::wstring info_val = act_curr->second.data();
+
+			if (!info_val.empty())
 			{
-				period = act_col_begin->second.get_value<std::wstring>();
+				const ActCache::fnModify fn_act_upsert
+					= [](const std::shared_ptr<IAct64>& act) {};
+				auto act = cache->mActTable.InsertOrUpdate(aid, fn_act_upsert);
+				auto favAProp = std::make_shared<const FavAProp>(act, info);
 
-			}//if (str_aid.ToLongLong(&aid))
-			++act_col_begin;
+
+				const ClsCache::fnModify upd_cls
+					= [&favAProp, &info_val, &cache](const std::shared_ptr<ClsRec64>& cls)
+				{
+					auto ins_it = cls->mFavActProp.emplace(favAProp);
+					switch (favAProp->mInfo)
+					{
+					case FavAPropInfo::PeriodInterval:
+					case FavAPropInfo::PeriodSec:
+					case FavAPropInfo::PeriodDay:{
+						auto favAPropVal = std::make_shared<const FavAPropValue>(favAProp, info_val);
+						cls->mFavAPropValues.emplace(favAPropVal);
+					}break;
+					default:break;
+					}
+
+				};
+				cache->mClsTable.GetById(GetCls()->GetId(), upd_cls);
+
+				auto favAPropVal
+					= std::make_shared<const FavAPropValue>(favAProp, info_val);
+				this->mFavAPropValueTable.emplace(favAPropVal);
+			}
+			else 
+			{
+				auto isd = act_curr;;
+			}
+			++act_curr;
 		}
-		const ClsCache::fnModify upd_cls = [&visible, &period, &cache, &aid](const std::shared_ptr<ClsRec64>& cls)
-		{
-			const ActCache::fnModify fn_act_upsert = [](const std::shared_ptr<IAct64>& act)
-			{};
-
-			FavActInfo fa;
-			fa.mAct = cache->mActTable.UpdateOrInsert(aid, fn_act_upsert);
-			fa.mPeriod = period;
-			fa.mVisible = visible;
-			auto& idxAct = cls->mFavActLog.get<0>();
-			auto it = idxAct.find(aid);
-			if (idxAct.end() == it)
-				cls->mFavActLog.emplace(fa);
-			else
-				cls->mFavActLog.replace(it,fa);
-		};
-		cache->mClsTable.GetById(GetCls()->GetId(), upd_cls);
 
 		++begin;
 	}//while (begin != end)
+}
+//-----------------------------------------------------------------------------
+void ObjRec64::ParsePropInfo(const boost::property_tree::wptree& favOPropValues)
+{
+	
+
 }
 //-----------------------------------------------------------------------------
 //virtual 
@@ -188,16 +321,19 @@ std::shared_ptr<const IObj64> ObjRec64::GetParent()const //override
 //virtual 
 int ObjRec64::GetActPrevios(int64_t aid, wxDateTime& dt)const //override
 {
-	wxLongLong ll(aid);
-	std::wstring ss = ll.ToString() << L"." << (int)1;
-	std::wstring act_val = GetActInfo().get<std::wstring>(ss, L"");
+	const auto& idxFAV = mFavAPropValueTable.get<0>();
+	auto fit = idxFAV.find(boost::make_tuple(aid, FavAPropInfo::PreviosDate));
+	if (idxFAV.end() == fit)
+		return 0;
+
+	const wxString& str_value = (*fit)->mValue;
 	
-	if (act_val == "null")
+	if (str_value == "null")
 		return -1;
 
-	if (!dt.ParseISOCombined(act_val, ' '))
-		if (!dt.ParseISOCombined(act_val, 'T'))
-			if (!dt.ParseDate(act_val))
+	if (!dt.ParseISOCombined(str_value, ' '))
+		if (!dt.ParseISOCombined(str_value, 'T'))
+			if (!dt.ParseDate(str_value))
 				return 0;
 
 	return dt.IsValid()? 1 : 0;
@@ -206,16 +342,19 @@ int ObjRec64::GetActPrevios(int64_t aid, wxDateTime& dt)const //override
 //virtual 
 int ObjRec64::GetActNext(int64_t aid, wxDateTime& next)const //override
 {
-	wxLongLong ll(aid);
-	std::wstring ss = ll.ToString() << L"." << (int)4;
-	std::wstring act_val = GetActInfo().get<std::wstring>(ss, L"");
+	const auto& idxFAV = mFavAPropValueTable.get<0>();
+	auto fit = idxFAV.find(boost::make_tuple(aid, FavAPropInfo::NextDate));
+	if (idxFAV.end() == fit)
+		return 0;
 
-	if (act_val == "null")
+	const wxString& str_value = (*fit)->mValue;
+
+	if (str_value == "null")
 		return -1;
 
-	if (!next.ParseISOCombined(act_val, ' '))
-		if (!next.ParseISOCombined(act_val, 'T'))
-			if (!next.ParseDate(act_val))
+	if (!next.ParseISOCombined(str_value, ' '))
+		if (!next.ParseISOCombined(str_value, 'T'))
+			if (!next.ParseDate(str_value))
 				return 0;
 
 	return next.IsValid() ? 1 : 0;
@@ -224,17 +363,30 @@ int ObjRec64::GetActNext(int64_t aid, wxDateTime& next)const //override
 //virtual 
 int ObjRec64::GetActLeft(int64_t aid, double& left)const //override
 {
-	wxLongLong ll(aid);
-	std::wstring ss = ll.ToString() << L"." << (int)8;
-	std::wstring act_val = GetActInfo().get<std::wstring>(ss, L"");
+	const auto& idxFAV = mFavAPropValueTable.get<0>();
+	auto fit = idxFAV.find(boost::make_tuple(aid, FavAPropInfo::LeftDay));
+	if (idxFAV.end() == fit)
+		return 0;
 
-	if (act_val == "null")
+	const wxString& str_value = (*fit)->mValue;
+
+	if (str_value == "null")
 		return -1;
 
-	if(wxString(act_val).ToCDouble(&left))
+	if(wxString(str_value).ToCDouble(&left))
 		return true;
 
 	return false;
+}
+//-----------------------------------------------------------------------------
+const FavAPropValueTable& ObjRec64::GetFavAPropValue() const
+{
+	return mFavAPropValueTable;
+}
+//-----------------------------------------------------------------------------
+const ConstPropValTable& ObjRec64::GetFavOPropValue() const
+{
+	return mFavOPropValueTable;
 }
 
 
@@ -536,23 +688,7 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 			table->GetAsString(4, i, obj->mPath->mStrPath );
 			
 			obj->SetClsId(cls->GetId());
-
-			wxString str;
-			table->GetAsString(5, i, str);
-			if (!str.empty())
-			{
-				std::wstringstream ss(str.ToStdWstring());
-				obj->mProp.clear();
-				boost::property_tree::read_json(ss, obj->mProp);
-
-				auto find_it = obj->mProp.find(L"fav_act");
-				if (obj->mProp.not_found() != find_it)
-				{
-					obj->mActInfo = find_it->second;
-					obj->ParseActInfo();
-				}
-			}
-
+			obj->ParseFavProp(table->GetAsString(5, i));
 
 		};
 
@@ -702,22 +838,7 @@ void ModelBrowser::DoRefreshFindInClsTree()
 			obj->mPath = std::make_shared<ObjPath64>();
 			table->GetAsString(10, row, obj->mPath->mStrPath);
 
-			wxString str;
-			table->GetAsString(11, row, str);
-			if (!str.empty())
-			{
-				std::wstringstream ss(str.ToStdWstring());
-				obj->mProp.clear();
-				boost::property_tree::read_json(ss, obj->mProp);
-
-				auto find_it = obj->mProp.find(L"fav_act");
-				if (obj->mProp.not_found() != find_it)
-				{
-					obj->mActInfo = find_it->second;
-					obj->ParseActInfo();
-				}
-			}
-			
+			obj->ParseFavProp(table->GetAsString(11, row));
 		};
 
 
@@ -808,12 +929,12 @@ void ModelBrowser::DoRefresh()
 	wxString query = wxString::Format(
 		"SELECT  id, title, kind, measure"
 		", (SELECT COALESCE(SUM(qty), 0)"
-		"   FROM obj WHERE obj.cls_id = acls.id GROUP BY cls_id)  AS qty"
+		"   FROM obj WHERE obj.cls_id = cls.id GROUP BY cls_id)  AS qty"
 		", pid "
-		" FROM acls"
-		" WHERE acls.id > 99 "
-		" AND pid = %s"
-		" ORDER BY (substring(acls.title, '^[0-9]{1,9}')::INT, acls.title ) ASC "
+		", fav_prop_info "
+		" FROM cls"
+		" WHERE pid = %s"
+		" ORDER BY (substring(title, '^[0-9]{1,9}')::INT, title ) ASC "
 		, parent_id
 		);
 	whDataMgr::GetDB().BeginTransaction();
@@ -832,6 +953,12 @@ void ModelBrowser::DoRefresh()
 			table->GetAsString(4, row, cls->mObjQty);
 			cls->SetParentId(table->GetAsString(5, row));
 			cls->mObjLoaded = false;
+
+			cls->mFavObjProp.clear();
+			//cls->mFavActProp.clear();
+			//cls->mFavAPropValues.clear();
+			//cls->mFavProp.clear();
+			cls->ParseFavProp(table->GetAsString(6, row));
 		};
 
 
@@ -929,6 +1056,8 @@ void ModelPageBrowser::DoEnableGroupByType(bool group_by_type)
 //virtual 
 void ModelPageBrowser::UpdateTitle() //override;
 {
+	const wxIcon& ico = ResMgr::GetInstance()->m_ico_folder_type24;
+
 	const ICls64& node = mModelBrowser.GetRootCls();
 	wxString title;
 	if (node.GetParentId() > 0)
@@ -943,7 +1072,7 @@ void ModelPageBrowser::UpdateTitle() //override;
 		title = wxString::Format("поиск:'%s' в %s ", ss, title);
 		
 
-	sigUpdateTitle(title, mIco);
+	sigUpdateTitle(title, ico);
 }
 //---------------------------------------------------------------------------
 //virtual 

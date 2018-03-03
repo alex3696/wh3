@@ -36,15 +36,9 @@ CtrlFav::CtrlFav(
 	connViewCmd_RemoveClsProp = mView->sigRemoveClsProp
 		.connect(std::bind(&CtrlFav::RemoveClsProp, this, ph::_1, ph::_2));
 	connViewCmd_RemoveObjProp = mView->sigRemoveObjProp
-		.connect(std::bind(&CtrlFav::RemoveClsProp, this, ph::_1, ph::_2));
-	connViewCmd_RemovePrevios = mView->sigRemovePrevios
-		.connect(std::bind(&CtrlFav::RemoveClsProp, this, ph::_1, ph::_2));
-	connViewCmd_RemovePeriod = mView->sigRemovePeriod
-		.connect(std::bind(&CtrlFav::RemoveClsProp, this, ph::_1, ph::_2));
-	connViewCmd_RemoveNext = mView->sigRemoveNext
-		.connect(std::bind(&CtrlFav::RemoveClsProp, this, ph::_1, ph::_2));
-	connViewCmd_RemoveLeft = mView->sigRemoveLeft
-		.connect(std::bind(&CtrlFav::RemoveClsProp, this, ph::_1, ph::_2));
+		.connect(std::bind(&CtrlFav::RemoveObjProp, this, ph::_1, ph::_2));
+	connViewCmd_RemoveActProp = mView->sigRemoveActProp
+		.connect(std::bind(&CtrlFav::RemoveActProp, this, ph::_1, ph::_2, ph::_3));
 
 	connViewCmd_ShowHelp = mView->sigShowHelp
 		.connect(std::bind(&CtrlFav::ShowHelp, this, ph::_1));
@@ -102,24 +96,9 @@ void CtrlFav::RemoveObjProp(int64_t clsId, int64_t propId)
 	mModel->DoRemoveObjProp(clsId, propId);
 }
 //---------------------------------------------------------------------------
-void CtrlFav::RemovePrevios(int64_t clsId, int64_t actId)
+void CtrlFav::RemoveActProp(int64_t clsId, int64_t actId, FavAPropInfo info)
 {
-	mModel->DoRemovePrevios(clsId, actId);
-}
-//---------------------------------------------------------------------------
-void CtrlFav::RemovePeriod(int64_t clsId, int64_t actId)
-{
-	mModel->DoRemovePeriod(clsId, actId);
-}
-//---------------------------------------------------------------------------
-void CtrlFav::RemoveNext(int64_t clsId, int64_t actId)
-{
-	mModel->DoRemoveNext(clsId, actId);
-}
-//---------------------------------------------------------------------------
-void CtrlFav::RemoveLeft(int64_t clsId, int64_t actId)
-{
-	mModel->DoRemoveLeft(clsId, actId);
+	mModel->DoRemoveActProp(clsId, actId, info);
 }
 //---------------------------------------------------------------------------
 void CtrlFav::ShowHelp(const wxString& index)

@@ -23,10 +23,7 @@ class CtrlFav final : public CtrlWindowBase<IViewFav, ModelFav>
 	
 	sig::scoped_connection connViewCmd_RemoveClsProp;
 	sig::scoped_connection connViewCmd_RemoveObjProp;
-	sig::scoped_connection connViewCmd_RemovePrevios;
-	sig::scoped_connection connViewCmd_RemovePeriod;
-	sig::scoped_connection connViewCmd_RemoveNext;
-	sig::scoped_connection connViewCmd_RemoveLeft;
+	sig::scoped_connection connViewCmd_RemoveActProp;
 	
 	sig::scoped_connection connViewCmd_ShowHelp;
 
@@ -48,10 +45,7 @@ public:
 
 	void RemoveClsProp(int64_t clsId, int64_t propId);
 	void RemoveObjProp(int64_t clsId, int64_t propId);
-	void RemovePrevios(int64_t clsId, int64_t actId);
-	void RemovePeriod(int64_t clsId, int64_t actId);
-	void RemoveNext(int64_t clsId, int64_t actId);
-	void RemoveLeft(int64_t clsId, int64_t actId);
+	void RemoveActProp(int64_t clsId, int64_t actId, FavAPropInfo);
 
 	void ShowHelp(const wxString& index);
 

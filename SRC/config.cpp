@@ -76,10 +76,9 @@ void  MGuiCfg::LoadClientInfo(const boost::property_tree::wptree& cfg)
 		auto dt_str = wxString(it->second.get<std::wstring>(L"LastLogin", L""));
 		wxString::const_iterator end = dt_str.end();
 
-
-		if (!last_login->ParseDateTime(dt_str, &end))
+		if (!last_login->ParseISOCombined(dt_str, 'T'))
 			if (!last_login->ParseISOCombined(dt_str, ' '))
-				if (!last_login->ParseISOCombined(dt_str, 'T'))
+				if (!last_login->ParseDateTime(dt_str, &end))
 					if (!last_login->ParseDate(dt_str))
 						return;
 	}
@@ -91,7 +90,7 @@ void  MGuiCfg::SaveClientInfo(boost::property_tree::wptree& cfg)
 	using ptree = boost::property_tree::wptree;
 	ptree content;
 	//content.put(L"LastLogin", (wxDateTime::Now()- wxTimeSpan(720, 0, 0, 0)).Format().wc_str() );
-	content.put(L"LastLogin", wxDateTime::Now().Format().wc_str() );
+	content.put(L"LastLogin", wxDateTime::Now().FormatISOCombined().wc_str() );
 	cfg.push_back(std::make_pair(L"ClientInfo", content));
 }
 //-----------------------------------------------------------------------------

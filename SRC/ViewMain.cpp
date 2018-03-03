@@ -161,7 +161,10 @@ void ViewMain::BuildMenu()
 	item = new wxMenuItem(dir, CMD_MKPAGE_OBJBYPATH, "Каталог объектов по местоположению");
 	item->SetBitmap(resmgr->m_ico_folder_obj24);
 	dir->Append(item);
-	item = new wxMenuItem(dir, CMD_MKPAGE_OBJBYTYPE, "Каталог объектов по типу");
+	item = new wxMenuItem(dir, CMD_MKPAGE_OBJBYTYPE, "Каталог объектов по типу(устаревший)");
+	item->SetBitmap(resmgr->m_ico_folder_type24);
+	dir->Append(item);
+	item = new wxMenuItem(dir, CMD_MKPAGE_BROWSER, "Каталог объектов по типу");
 	item->SetBitmap(resmgr->m_ico_folder_type24);
 	dir->Append(item);
 	dir->AppendSeparator();
@@ -172,9 +175,6 @@ void ViewMain::BuildMenu()
 	item->SetBitmap(resmgr->m_ico_report_list24);
 	dir->Append(item);
 	dir->AppendSeparator();
-	item = new wxMenuItem(dir, CMD_MKPAGE_BROWSER, "Browser");
-	item->SetBitmap(resmgr->m_ico_type24);
-	dir->Append(item);
 	menu_bar->Append(dir, "Каталоги");
 
 	wxMenu* hlp = new wxMenu();
@@ -211,7 +211,7 @@ void ViewMain::BuildToolbar()
 		, resmgr->m_ico_folder_obj24, str_mktab_objdir);
 
 	const wxString cat_obj_by_type = "Каталог объектов по типу";
-	mToolBar->AddTool(CMD_MKPAGE_OBJBYTYPE, cat_obj_by_type
+	mToolBar->AddTool(CMD_MKPAGE_BROWSER, cat_obj_by_type
 		, resmgr->m_ico_folder_type24, cat_obj_by_type);
 
 	//mToolBar->AddTool(CMD_MKPAGE_GROUP, "Группы", m_ResMgr->m_ico_usergroup24);

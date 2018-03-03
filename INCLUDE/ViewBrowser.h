@@ -7,8 +7,7 @@ namespace wh{
 class ViewTableBrowser : public IViewTableBrowser
 {
 	int64_t							mParentCid = 0;
-	std::vector<const IIdent64*>	mClsList;
-
+	
 	wxDataViewColumn* mSortCol = nullptr;
 	bool mSortAsc = true;
 	
@@ -33,6 +32,8 @@ class ViewTableBrowser : public IViewTableBrowser
 
 	void ResetColumns();
 	void RebuildClsColumns(const std::vector<const IIdent64*>&);
+	void AppendActColumn(const std::shared_ptr<const FavAProp>& aprop);
+	void AppendPropColumn(const std::shared_ptr<const PropVal>& prop_val);
 protected:
 	void OnCmd_MouseMove(wxMouseEvent& evt);
 	void OnCmd_Activate(wxDataViewEvent& evt);

@@ -11,6 +11,7 @@ class DbCache;
 class ClsCache;
 class ObjCache;
 class ActCache;
+class PropCache;
 
 //-----------------------------------------------------------------------------
 class ClsRec64 : 
@@ -29,15 +30,24 @@ public:
 	ClsKind		mKind = ClsKind::Abstract;
 	bool		mObjLoaded = false;
 
-	FavActTable mFavActLog;
+	// prop headers
+	ConstPropTable		mFavObjProp;
+	ConstClsFavActTable mFavActProp;
+	// prop values
+	FavAPropValueTable	mFavAPropValues;
 
+	// prop header+value
+	ConstPropValTable	mFavProp;
 protected:
 	//struct MakeSharedEnabler;
+	void ParseActInfo(const boost::property_tree::wptree& favAPropValues);
+	void ParsePropInfo(const boost::property_tree::wptree& favOPropValues);
 public:
 	ClsRec64(const int64_t id, ClsCache* table)
 		:mId(id), mTable(table)
 	{
 	}
+	void ParseFavProp(const wxString& favOPropValues);
 	
 	//static std::shared_ptr<ClsRec64> MakeShared()
 	//{
@@ -64,14 +74,14 @@ public:
 	
 	virtual void ClearObjTable() override;
 	virtual const std::shared_ptr<const ObjTable> GetObjTable()const override;
-
+	virtual const std::shared_ptr<const ClsTable> GetClsChilds()const override;
 
 	virtual std::shared_ptr<const ICls64> GetParent()const override;// {return mParent.lock();}
 
-	virtual const FavActTable& GetFavActInfo()const override;
-	virtual const SpPropConstTable& GetFavObjProp()const override;
-	virtual const SpPropConstTable& GetFavClsProp()const override;
-
+	virtual const ConstPropValTable&	GetFavCPropValue()const override;
+	virtual const ConstClsFavActTable&	GetFavAProp()const override;
+	virtual const FavAPropValueTable&	GetFavAPropValue()const override;
+	virtual const ConstPropTable&		GetFavOProp()const override;
 };
 //-----------------------------------------------------------------------------
 class ObjPath64 : public IObjPath64
@@ -95,15 +105,16 @@ public:
 	wxString	mQty;
 	std::shared_ptr<ObjPath64> mPath;
 
-	boost::property_tree::wptree mProp;
-	boost::property_tree::wptree mActInfo;
+	FavAPropValueTable	mFavAPropValueTable;
+	ConstPropValTable	mFavOPropValueTable;
 private:
 	int64_t		mId;
 	int64_t		mParentId;
 	int64_t		mClsId;
 	ObjCache*	mTable = nullptr;
 
-	
+	void ParseActInfo(const boost::property_tree::wptree& favAPropValues);
+	void ParsePropInfo(const boost::property_tree::wptree& favOPropValues);
 public:
 	//ObjRec64() {}
 	ObjRec64(const int64_t id
@@ -113,8 +124,9 @@ public:
 		:mId(id), mParentId(parentId), mClsId(clsId), mTable(table)
 	{
 	}
-	void ParseActInfo(const wxString& act_info_json);
-	void ParseActInfo();
+	void ParseFavProp(const wxString& favOPropValues);
+
+
 
 	bool SetId(const wxString& str) { return str.ToLongLong(&mId); }
 	void SetId(const int64_t& val) { mId = val; }
@@ -123,8 +135,6 @@ public:
 	virtual const wxString& GetTitle()const override { return mTitle; };
 
 	virtual wxString					GetQty()const override { return mQty; };
-	virtual const boost::property_tree::wptree& GetProp()const override { return mProp;	}
-	virtual const boost::property_tree::wptree& GetActInfo()const override { return mActInfo; }
 
 	bool SetClsId(const wxString& str) { return str.ToLongLong(&mClsId); }
 	bool SetClsId(const int64_t& cid) { return mClsId=cid; }
@@ -152,6 +162,9 @@ public:
 	virtual int GetActPrevios(int64_t aid, wxDateTime& dt)const override;
 	virtual int GetActNext(int64_t aid, wxDateTime& dt)const override;
 	virtual int GetActLeft(int64_t aid, double& dt)const override;
+	
+	virtual const FavAPropValueTable&	GetFavAPropValue()const override;
+	virtual const ConstPropValTable&	GetFavOPropValue()const override;
 
 };
 //-----------------------------------------------------------------------------
@@ -180,6 +193,43 @@ public:
 	void SetTitle(const wxString& str) { mTitle = str; };
 	void SetColour(const wxString& str) { mColour = str; };
 };
+//-----------------------------------------------------------------------------
+class PropRec64 : public IProp64
+{
+private:
+	int64_t		mId;
+	wxString	mTitle;
+	FieldType	mFieldType;
+	wxArrayString mVar;
+	bool mVarStrict;
+	
+	PropCache*	mTable = nullptr;
+public:
+	//ObjRec64() {}
+	PropRec64(const int64_t id
+		, PropCache* table)
+		:mId(id), mTable(table)
+	{
+	}
+
+	virtual const int64_t&  GetId()const override { return mId; }
+	virtual const wxString& GetTitle()const override { return mTitle; };
+	virtual FieldType GetKind()const override { return mFieldType; };
+	virtual const wxArrayString& GetVar()const override { return mVar; };
+	virtual bool GetVarStrict()const override { return mVarStrict; };
+
+	bool SetId(const wxString& str) { return str.ToLongLong(&mId); }
+	void SetId(const int64_t& val) { mId = val; }
+	void SetTitle(const wxString& str) { mTitle = str; };
+	void SetKind(const FieldType ft) { mFieldType = ft; };
+	void SetKind(const wxString& str) { mFieldType = ToFieldType(str); };
+
+	void SetVar(const wxArrayString& vec)	{ mVar = vec; };
+	void SetVar(const wxString& str)  		{ mVar = Sql2ArrayString(str);	};
+	void SetVarStrict(bool strict) { mVarStrict = strict; };
+	void SetVarStrict(const wxString& str) { mVarStrict = Sql2Bool(str); };
+
+};
 
 
 //-----------------------------------------------------------------------------
@@ -203,7 +253,7 @@ class ClsCache
 		<
 			ordered_unique<  extr_id_IIdent64 >
 			//, random_access<> //SQL order
-			//, ordered_non_unique< extr_parentId_ICls64 >
+			, ordered_non_unique< extr_parentId_ICls64 >
 			//, ordered_unique< extr_void_ptr_IIdent64 >
 		>
 	>;
@@ -247,7 +297,22 @@ public:
 
 	void Clear() { mCache.clear(); }
 
-	
+	void GetClsChilds(const int64_t& clsId, ICls64::ClsTable& table)const
+	{
+		table.clear();
+
+		const auto& idxClsId = mCache.get<1>();
+
+		Cache::nth_index<1>::type::const_iterator it0, it1;
+
+		boost::tuples::tie(it0, it1) = idxClsId.equal_range(clsId);
+		while (it0 != it1)
+		{
+			std::shared_ptr<const ICls64> cls = *it0;
+			table.emplace_back(cls);
+			++it0;
+		}
+	}
 
 };
 
@@ -428,7 +493,7 @@ public:
 		return *it;
 	}
 
-	const std::shared_ptr<RowType>& UpdateOrInsert(const int64_t& id, const fnModify& fn)
+	const std::shared_ptr<RowType>& InsertOrUpdate(const int64_t& id, const fnModify& fn)
 	{
 		auto& idxId = mData.get<0>();
 		auto it = idxId.find(id);
@@ -447,6 +512,119 @@ public:
 	void LoadDetailById();
 };
 
+//-----------------------------------------------------------------------------
+// PROP TABLE
+//-----------------------------------------------------------------------------
+class PropCache
+{
+public:
+	typedef IProp64 RowType;
+
+	using Storage = boost::multi_index_container
+		<
+		std::shared_ptr<RowType>,
+		indexed_by
+		<
+		ordered_unique <	extr_id_IIdent64 >
+		//, random_access<> //SQL order	
+		//, ordered_unique< extr_void_ptr_IIdent64 >
+		>
+		>;
+private:
+	Storage		mData;
+	DbCache*	mDbCache;
+public:
+	PropCache(DbCache* dbCache)
+		:mDbCache(dbCache)
+	{}
+	DbCache* GetCache()const { return mDbCache; }
+
+	void Clear()
+	{
+		mData.clear();
+	}
+
+	size_t size()const
+	{
+		return mData.size();
+	}
+
+	using fnModify = std::function<void(const std::shared_ptr<RowType>& obj)>;
+
+	std::shared_ptr<const RowType> GetById(const int64_t& id)
+	{
+		auto& idxId = mData.get<0>();
+		auto it = idxId.find(id);
+		if (idxId.end() == it)
+			throw;
+		return *it;
+	}
+
+	const std::shared_ptr<RowType>& InsertOrUpdate(const int64_t& id, const fnModify& fn)
+	{
+		auto& idxId = mData.get<0>();
+		auto it = idxId.find(id);
+		if (idxId.end() == it)
+		{
+			auto prop = std::make_shared<PropRec64>(id, this);
+			fn(prop);
+			auto ins_it = idxId.emplace(prop);
+			return *ins_it.first;
+		}
+
+		idxId.modify(it, fn);
+		return *it;
+	}
+
+	void UpdateExist()
+	{
+		if (this->mData.empty())
+			return;
+		//Clear();
+
+		wxString str_id;
+		for (const auto& it : mData)
+		{
+			if (it->GetTitle().empty())// do not load if title already exists
+				str_id += wxString::Format(" OR id=%s", it->GetIdAsString());
+		}
+		if (str_id.empty())
+			return;
+
+		str_id.Remove(0, 3);
+
+		wxString query = wxString::Format(
+			"SELECT id, title, kind, var, var_strict "
+			" FROM prop WHERE %s"
+			, str_id);
+
+		auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+		if (table)
+		{
+			unsigned int rowQty = table->GetRowCount();
+			size_t row = 0;
+			const fnModify fn = [this, &table, &row](const std::shared_ptr<RowType>& irec)
+			{
+				auto record = std::dynamic_pointer_cast<PropRec64>(irec);
+				//record->SetId(table->GetAsString(0, row));
+				record->SetTitle(table->GetAsString(1, row));
+				record->SetKind(table->GetAsString(2, row));
+				record->SetVar(table->GetAsString(3, row));
+				record->SetVarStrict(table->GetAsString(4, row));
+			};
+
+
+			for (; row < rowQty; row++)
+			{
+				int64_t id;
+				if (!table->GetAsString(0, row).ToLongLong(&id))
+					throw;
+
+				InsertOrUpdate(id, fn);
+			}//for
+		}//if (table)
+	}
+};
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -459,6 +637,7 @@ public:
 		:mClsTable(this)
 		, mObjTable(this)
 		, mActTable(this)
+		, mPropTable(this)
 	{
 	
 	}
@@ -468,11 +647,13 @@ public:
 		mObjTable.Clear();
 		mClsTable.Clear();
 		mActTable.Clear();
+		mPropTable.Clear();
 	}
 
 	ClsCache mClsTable;
 	ObjCache mObjTable;
 	ActCache mActTable;
+	PropCache mPropTable;
 };
 
 
@@ -574,11 +755,8 @@ public:
 //-----------------------------------------------------------------------------
 class ModelPageBrowser : public IModelWindow
 {
-	const wxIcon& mIco = ResMgr::GetInstance()->m_ico_type24;
-	const wxString mTitle = "Object Browser";
 
 	sig::scoped_connection connModelBrowser_AfterPathChange;
-	void DoUpdateTitle(const ICls64& node);
 
 	ModelBrowser mModelBrowser;
 public:
@@ -593,8 +771,6 @@ public:
 
 
 	// IModelWindow
-	virtual const wxIcon& GetIcon()const override { return mIco; }
-	virtual const wxString& GetTitle()const override { return mTitle; }
 	virtual void UpdateTitle()override;
 	virtual void Show()override;
 	virtual void Load(const boost::property_tree::wptree& page_val)override;

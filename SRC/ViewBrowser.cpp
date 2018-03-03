@@ -8,35 +8,58 @@
 using namespace wh;
 
 //-----------------------------------------------------------------------------
-struct ActInfoColumn
+struct ActColumn
 {
-	int64_t		mAid;
-	//wxString	mActTitle;
-	char		mAcol;
-	int			mIndex;
+	int64_t			mAid;
+	FavAPropInfo	mAInfo;
+	int				mColumn;
 	
-	ActInfoColumn() 
-		:mAid(0), mAcol(0), mIndex(0)
+	ActColumn() 
+		:mAid(0), mAInfo(FavAPropInfo::UnnownProp), mColumn(0)
 	{}
-	ActInfoColumn(const int64_t& aid, const char acol,int idx)
-		:mAid(aid), mAcol(acol), mIndex(idx)
+	ActColumn(const int64_t& aid, FavAPropInfo acol,int idx)
+		:mAid(aid), mAInfo(acol), mColumn(idx)
 	{}
 };
 //-----------------------------------------------------------------------------
-using Columns = boost::multi_index_container
+using ActColumns = boost::multi_index_container
 <
-	ActInfoColumn,
+	ActColumn,
 	indexed_by
 	<
 		ordered_unique < 
 							composite_key
 							<
-								ActInfoColumn
-								, member<ActInfoColumn, int64_t, &ActInfoColumn::mAid>
-								, member<ActInfoColumn, char, &ActInfoColumn::mAcol>
+								ActColumn
+								, member<ActColumn, int64_t, &ActColumn::mAid>
+								, member<ActColumn, FavAPropInfo, &ActColumn::mAInfo>
 							> 
 						>
-		, ordered_unique<member<ActInfoColumn, int, &ActInfoColumn::mIndex>>
+		, ordered_unique<member<ActColumn, int, &ActColumn::mColumn>>
+	>
+>;
+//-----------------------------------------------------------------------------
+struct PropColumn
+{
+	int64_t			mPid;
+	int				mColumn;
+
+	PropColumn()
+		:mPid(0), mColumn(0)
+	{}
+	PropColumn(const int64_t& pid,  int idx)
+		:mPid(pid), mColumn(idx)
+	{}
+};
+
+
+using PropColumns = boost::multi_index_container
+<
+	PropColumn,
+	indexed_by
+	<
+		  ordered_unique<member<PropColumn, int64_t, &PropColumn::mPid>>
+		, ordered_unique<member<PropColumn, int, &PropColumn::mColumn>>
 	>
 >;
 
@@ -47,7 +70,9 @@ class wxDVTableBrowser
 	: public wxDataViewModel
 {
 	const IIdent64* mCurrentRoot = nullptr;
-	const	std::vector<const IIdent64*>* mClsList = nullptr;
+	std::vector<const IIdent64*>	mClsList;
+
+
 	bool	mGroupByType = true;
 	//wxRegEx mStartNum = "(^[0-9]{1,9})";
 	//wxRegEx mStartNum = "^(-?)(0|([1-9][0-9]*))((\\.|\\,)[0-9]+)?$";
@@ -57,7 +82,8 @@ class wxDVTableBrowser
 	const wxString format_t = wxLocale::GetInfo(wxLOCALE_TIME_FMT);
 	const wxString mActNotExecuted="не выполнялось";
 public:
-	Columns			mActColumns;
+	ActColumns		mActColumns;
+	PropColumns	mPropColumns;
 
 	wxDVTableBrowser(){};
 	~wxDVTableBrowser(){};
@@ -149,17 +175,37 @@ public:
 			const auto it = idxCol.find(col);
 			if (idxCol.end() != it)
 			{
-				if (it->mAcol & 2)
+				if (FavAPropInfo::PeriodDay == it->mAInfo)
 				{
 					wxString period;
 					if (cls.GetActPeriod(it->mAid, period))
 					{
 						double dperiod;
 						if (period.ToCDouble(&dperiod))
-							variant = wxString::Format("%g", dperiod / 86400);
+							variant = wxString::Format("%g", dperiod );
 					}
 				}
+				else
+				{
+					const auto& aprop_array = cls.GetFavAPropValue();
+					const auto& idxFAV = aprop_array.get<0>();
+					auto fit = idxFAV.find(boost::make_tuple(it->mAid, it->mAInfo));
+					if (idxFAV.end() != fit)
+						variant = (*fit)->mValue;
+				}
+				return;
 			}//if (idxCol.end() != it)
+			const auto& idxPropCol = mPropColumns.get<1>();
+			auto prop_it = idxPropCol.find(col);
+			if (idxPropCol.end() != prop_it)
+			{
+				const auto favCPrpop = cls.GetFavCPropValue();
+				auto val_it = favCPrpop.find(prop_it->mPid );
+				if(favCPrpop.cend()!=val_it)
+					variant = (*val_it)->mValue;
+			}
+
+
 		}break;
 		}//switch (col)
 	}
@@ -185,10 +231,9 @@ public:
 			const auto it = idxCol.find(col);
 			if (idxCol.end() != it)
 			{
-				
-				switch (it->mAcol)
+				switch (it->mAInfo)
 				{
-				case 1: {
+				case FavAPropInfo::PreviosDate: {
 					wxDateTime dt;
 					int ret = obj.GetActPrevios(it->mAid, dt);
 					switch (ret)
@@ -205,19 +250,18 @@ public:
 					default: break;
 					}
 				}break;
-				case 2: if (!mGroupByType) {
+				case FavAPropInfo::PeriodDay: if (!mGroupByType) {
 					wxString period;
 					if (obj.GetActPeriod(it->mAid, period))
 					{
 						double dperiod;
 						if (period.ToCDouble(&dperiod))
 						{
-							variant = wxString::Format("%g", dperiod / 86400);
-							//variant = dperiod / 86400;
+							variant = wxString::Format("%g", dperiod);
 						}
 					}
 				} break;
-				case 4: {
+				case FavAPropInfo::NextDate: {
 					wxDateTime dt;
 					int ret = obj.GetActNext(it->mAid, dt);
 					switch (ret)
@@ -234,7 +278,7 @@ public:
 					default: break;
 					}//switch (ret)
 				}break;
-				case 8: {
+				case FavAPropInfo::LeftDay: {
 					double left;
 					int ret = obj.GetActLeft(it->mAid, left);
 					switch (ret)
@@ -249,9 +293,23 @@ public:
 					}//switch (ret)
 				}break;
 				default: {
-					variant = "*error*";
+					int64_t aid = it->mAid;
+					FavAPropInfo info = it->mAInfo;
+
+					const auto& idxFAV = obj.GetFavAPropValue().get<0>();
+					auto fit = idxFAV.find(boost::make_tuple(aid, info));
+					if (idxFAV.end() != fit)
+					{
+						const auto str_value = (*fit)->mValue;
+						if (str_value == "null")
+							variant = mActNotExecuted;
+						else
+							variant = str_value;
+					}
+					//else
+					//	variant = mActNotExecuted;
 				}break;
-				}//switch (it->mAcol)
+				}//switch (it->mAInfo)
 			}
 		}break;
 		}//switch (col)
@@ -262,11 +320,6 @@ public:
 	{
 		const auto node = static_cast<const IIdent64*> (dvitem.GetID());
 		const auto ident = node;
-		if (!ident)
-		{
-			GetErrorValue(variant, col);
-			return;
-		}
 		
 		const auto cls = dynamic_cast<const ICls64*>(ident);
 		if (cls)
@@ -280,7 +333,7 @@ public:
 			GetObjValue(variant, col, *obj);
 			return;
 		}
-		
+		GetErrorValue(variant, col);
 	}
 	virtual bool GetAttr(const wxDataViewItem &item, unsigned int col,
 		wxDataViewItemAttr &attr) const override
@@ -310,9 +363,9 @@ public:
 			const auto it = idxCol.find(col);
 			if (idxCol.end() != it)
 			{
-				switch (it->mAcol){
+				switch (it->mAInfo){
 				default: break;
-				case 4: { //next
+				case FavAPropInfo::NextDate: { //next
 					wxDateTime next;
 					int ret = obj->GetActNext(it->mAid, next);
 					switch (ret)
@@ -336,7 +389,7 @@ public:
 					default: break;
 					}//switch (ret)
 				}break;
-				case 8: { 
+				case FavAPropInfo::LeftDay: {
 					double left;
 					int ret = obj->GetActLeft(it->mAid, left);
 					switch (ret)
@@ -367,7 +420,7 @@ public:
 					}//switch (ret)
 
 				}break;
-				}//switch (it->mAcol)
+				}//switch (it->mAInfo)
 			}//if (idxCol.end() != it)
 		}break;
 		}//switch (col)
@@ -502,14 +555,14 @@ public:
 	virtual unsigned int GetChildren(const wxDataViewItem &parent
 		, wxDataViewItemArray &arr) const override
 	{
-		if (!parent.IsOk() && mClsList)
+		if (!parent.IsOk() )
 		{
 			if (mCurrentRoot && 1 < mCurrentRoot->GetId())
 			{
 				wxDataViewItem dvitem((void*)mCurrentRoot);
 				arr.push_back(dvitem);
 			}
-			for (const auto& child_cls : *mClsList)
+			for (const auto& child_cls : mClsList)
 			{
 				wxDataViewItem dvitem((void*)child_cls);
 				arr.push_back(dvitem);
@@ -545,7 +598,7 @@ public:
 		return !mGroupByType;
 	}
 
-	void SetClsList(const std::vector<const IIdent64*>* current, const IIdent64* curr, bool group_by_type)
+	void SetClsList(const std::vector<const IIdent64*>& current, const IIdent64* curr, bool group_by_type)
 	{
 		mGroupByType = group_by_type;
 		mCurrentRoot = curr;
@@ -553,6 +606,12 @@ public:
 		Cleared();
 	}
 
+
+
+	const std::vector<const IIdent64*>& GetClsList()const
+	{
+		return mClsList;
+	}
 
 
 };
@@ -680,11 +739,25 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 		return;
 	
 	const IIdent64* ident = static_cast<const IIdent64*> (item.GetID());
-
 	if (!ident)
 		return;
+
+	wxString str;
+	const auto cls = dynamic_cast<const ICls64*>(ident);
+	if (cls)
+	{
+		str= wxString::Format("[%s] \r\n#%s", cls->GetTitle(), cls->GetIdAsString());
+	}
+	const auto obj = dynamic_cast<const IObj64*>(ident);
+	if (obj)
+	{
+		auto cls = obj->GetCls();
+		str=wxString::Format("[%s] %s \r\n#[%s] %s)"
+			, cls->GetTitle(), obj->GetTitle()
+			, cls->GetIdAsString(), obj->GetIdAsString() );
+	}
 	
-	mTable->GetTargetWindow()->GetToolTip()->SetTip(ident->GetIdAsString());
+	mTable->GetTargetWindow()->GetToolTip()->SetTip(str);
 	
 }
 //-----------------------------------------------------------------------------
@@ -823,16 +896,22 @@ const IIdent64* ViewTableBrowser::FindChildCls(const int64_t& id)const
 	//	if (cls && cls->GetId() == id)
 	//		return cls;
 	//}
-
-	if (mClsList.empty())
+	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+	if (!dvmodel)
 		return nullptr;
-	auto it = std::find_if(mClsList.cbegin(), mClsList.cend()
+
+	const auto& cls_list = dvmodel->GetClsList();
+
+
+	if (cls_list.empty())
+		return nullptr;
+	auto it = std::find_if(cls_list.cbegin(), cls_list.cend()
 		, [&id](const IIdent64* it)
 		{ 
 			return it->GetId() == id; 
 		});
 
-	if (mClsList.cend() != it)
+	if (cls_list.cend() != it)
 		return (*it);
 	
 	return nullptr;
@@ -851,15 +930,16 @@ const IIdent64* ViewTableBrowser::GetTopChildCls()const
 	//	return cls;
 	//return nullptr;
 
+	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+	if (!dvmodel)
+		return nullptr;
+
+
 	if (1 < mParentCid)	//(mParent && 1 != mParent->GetId())
-	{
-		auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-		if (dvmodel)
-			return dvmodel->GetCurrentRoot();
-	}
-		
-	if (!mClsList.empty())
-		return mClsList.front();
+		return dvmodel->GetCurrentRoot();
+
+	if (!dvmodel->GetClsList().empty())
+		return dvmodel->GetClsList().front();
 	return nullptr;
 }
 //-----------------------------------------------------------------------------
@@ -1007,11 +1087,12 @@ void ViewTableBrowser::ResetColumns()
 
 	auto table = mTable;
 
-	if (dvmodel->mActColumns.empty() && 4 == table->GetColumnCount() )
+	if (4 == table->GetColumnCount() )
 		return;
 
 	table->ClearColumns();
 	dvmodel->mActColumns.clear();
+	dvmodel->mPropColumns.clear();
 
 	auto renderer1 = new wxDataViewIconTextRenderer();
 	//auto attr = renderer1->GetAttr();
@@ -1048,99 +1129,116 @@ void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec
 
 	for (const auto& ident : vec)
 	{
-		const auto obj = dynamic_cast<const IObj64*>(ident);
-		if (!obj)
-			continue;
-
-		const auto& fav_act = obj->GetCls()->GetFavActInfo();
-		for (const auto& fa_it : fav_act)
+		const auto cls = dynamic_cast<const ICls64*>(ident);
+		if (cls)
 		{
-			auto aid = fa_it.mAct->GetId();
-			char visible = fa_it.mVisible;
-			for (char v = 1; v <= 8; v <<= 1)
+			const auto& fav_cprop = cls->GetFavCPropValue();
+			for (const auto& cprop : fav_cprop)
+				AppendPropColumn(cprop);
+
+			const auto& fav_act = cls->GetFavAProp();
+			for (const auto& aprop : fav_act)
+				AppendActColumn(aprop);
+
+
+		}
+		else
+		{
+			const auto obj = dynamic_cast<const IObj64*>(ident);
+			if (obj)
 			{
-				if (visible & v)
-				{
-					auto& idx0 = dvmodel->mActColumns.get<0>();
-					auto it = idx0.find(boost::make_tuple(aid, (char)(visible & v)));
-					if (idx0.end() == it)
-					{
-						ActInfoColumn acol(aid
-							, (char)(visible & v)
-							, mTable->GetColumnCount());
+				const auto& fav_act = obj->GetCls()->GetFavAProp();
+				for (const auto& aprop : fav_act)
+					AppendActColumn(aprop);
 
-						dvmodel->mActColumns.emplace(acol);
+				const auto& fav_prop = obj->GetFavOPropValue();
+				for (const auto& cprop : fav_prop)
+					AppendPropColumn(cprop);
 
-						wxString str;
-						switch (acol.mAcol)
-						{
-						case 2: str = " период(сут.)"; break;
-						case 4: str = " след."; break;
-						case 8: str = " осталось(сут.)"; break;
-						default:str = " пред."; break;
-						}
 
-						wxString title;
-						title << fa_it.mAct->GetTitle() << str;
-						auto col = this->mTable->AppendTextColumn(title, acol.mIndex
-							, wxDATAVIEW_CELL_INERT, -1, wxALIGN_NOT
-							, wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-						auto col_pos = mTable->GetModelColumnIndex(acol.mIndex);
-						col->SetWidth(mTable->GetBestColumnWidth(col_pos));
 
-					}
-				}//if (visible & v)
-			}//for (char v = 1; v <= 8; v<<=1)
+			}//if (obj)
 		}
 
-		/*
-		auto begin = obj->GetActInfo().begin();
-		auto end = obj->GetActInfo().end();
-		while (begin != end)
-		{
-			auto act_col_begin = begin->second.begin();
-			auto act_col_end = begin->second.end();
-			wxString str_aid = begin->first.data();
-			int64_t aid;
-			if (str_aid.ToLongLong(&aid))
-			{
-				while (act_col_begin != act_col_end)
-				{
-					wxString str_ainfo = act_col_begin->first.data();
-					long ainfo;
-					if (str_ainfo.ToLong(&ainfo))
-					{
-						auto& idx0 = dvmodel->mActColumns.get<0>();
-						auto it = idx0.find(boost::make_tuple(aid, (char)ainfo));
-						if (idx0.end() == it)
-						{
-							ActInfoColumn acol(aid
-								, (char)ainfo
-								, mTable->GetColumnCount() + 1);
-
-							dvmodel->mActColumns.emplace(acol);
-
-							wxString str;
-							str << acol.mAid << ":" << (int)acol.mAcol;
-							this->mTable->AppendTextColumn(str, acol.mIndex
-								, wxDATAVIEW_CELL_INERT, -1
-								, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-						}
-
-					}//if (str_ainfo.ToLong(&ainfo))
-					++act_col_begin;
-				}
-			}//if (str_aid.ToLongLong(&aid))
-			++begin;
-		}//while (begin != end)
-		*/
 	}//for (const auto& obj : *ot)
 	
 }
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::AppendActColumn(const std::shared_ptr<const FavAProp>& aprop)
+{
+	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+	if (!dvmodel)
+		return;
 
+	auto aid = aprop->mAct->GetId();
+	FavAPropInfo info = aprop->mInfo;
+
+
+	auto& idx0 = dvmodel->mActColumns.get<0>();
+	auto it = idx0.find(boost::make_tuple(aid, info));
+	if (idx0.end() == it)
+	{
+		const auto column_idx = mTable->GetColumnCount();
+		const wxString title = wxString::Format("%s %s"
+			, aprop->mAct->GetTitle()
+			, FavAPropInfo2Text(info));
+
+		auto col = mTable->AppendTextColumn(title, column_idx
+			, wxDATAVIEW_CELL_INERT, -1, wxALIGN_NOT
+			, wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+		if (!col) 
+			return;
+
+		col->SetBitmap(GetIcon(info));
+		
+		auto col_pos = mTable->GetModelColumnIndex(column_idx);
+		col->SetWidth(mTable->GetBestColumnWidth(col_pos));
+
+		auto last_col = mTable->GetColumnAt(column_idx - 1);
+		last_col->SetWidth(mTable->GetBestColumnWidth(column_idx - 1));
+
+
+		ActColumn acol(aid, info, column_idx);
+		dvmodel->mActColumns.emplace(acol);
+
+
+	}
+}
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::AppendPropColumn(const std::shared_ptr<const PropVal>& prop_val)
+{
+	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+	if (!dvmodel)
+		return;
+	const int64_t pid = prop_val->mProp->GetId();
+
+	auto& pcolIdx = dvmodel->mPropColumns;
+	auto it = pcolIdx.find(pid);
+	if (pcolIdx.end() == it)
+	{
+		const auto column_idx = mTable->GetColumnCount();
+		const wxString& title = prop_val->mProp->GetTitle().empty() ?
+			prop_val->mProp->GetIdAsString()
+			: prop_val->mProp->GetTitle();
+		auto col = mTable->AppendTextColumn(title, column_idx
+			, wxDATAVIEW_CELL_INERT, -1, wxALIGN_NOT
+			, wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+		if (!col)
+			return;
+		auto col_pos = mTable->GetModelColumnIndex(column_idx);
+		col->SetWidth(mTable->GetBestColumnWidth(col_pos));
+
+		auto last_col = mTable->GetColumnAt(column_idx - 1);
+		last_col->SetWidth(mTable->GetBestColumnWidth(column_idx - 1));
+
+		PropColumn prop_col( pid , column_idx);
+		pcolIdx.emplace(prop_col);
+	}
+
+}
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>& 
+void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>& vec
 											, const IIdent64* parent
 											, const wxString&
 											, bool group_by_type
@@ -1168,13 +1266,11 @@ void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>&
 	*/
 		
 	ResetColumns();
-	mClsList.clear();
 	mParentCid = 0;
-	//mParent = nullptr;
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 	if (dvmodel)
 	{
-		dvmodel->SetClsList(nullptr, nullptr, group_by_type);
+		dvmodel->SetClsList(vec, parent, group_by_type);
 	}
 	
 	
@@ -1213,8 +1309,7 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& ve
 
 
 		mParentCid = root ? root->GetId() : 0;
-		mClsList = vec;
-		dvmodel->SetClsList(&mClsList, (root && 1 != root->GetId()) ? root : nullptr, group_by_type);
+		dvmodel->SetClsList(vec, (root && 1 != root->GetId()) ? root : nullptr, group_by_type);
 
 		if (!dvmodel->IsListModel())
 		{
@@ -1231,7 +1326,7 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& ve
 			}//for (const auto& cid : mExpandedCls)
 			mColAutosize = tmp_autosize;
 		}
-		else
+		//else
 		{
 			RebuildClsColumns(vec);
 		}
@@ -1512,8 +1607,8 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 
 	tool_bar->AddTool(wxID_VIEW_LIST, "Группировать", mgr->m_ico_group_by_type24, "Группировать по типу (CTRL+G)");
 	tool_bar->AddTool(wxID_PROPERTIES, "Свойства", mgr->m_ico_favprop_select24, "Выбрать свойства (CTRL+P)");
-	tool_bar->AddTool(wxID_SETUP, "Настройки", mgr->m_ico_options24
-		, "Настройки внешнего вида таблийы истории (CTRL+N)");
+	//tool_bar->AddTool(wxID_SETUP, "Настройки", mgr->m_ico_options24
+	//		, "Настройки внешнего вида таблийы истории (CTRL+N)");
 	tool_bar->AddTool(wxID_HELP_INDEX, "Справка", wxArtProvider::GetBitmap(wxART_HELP, wxART_TOOLBAR), "Справка (F1)");
 
 	//tool_bar->AddSeparator();

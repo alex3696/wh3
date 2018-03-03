@@ -59,10 +59,6 @@ public:
 	DEF_INIT_ICO24(add_obj_tab);
 	
 	DEF_INIT_ICO24(refresh);
-	DEF_INIT_ICO24(folderup);
-
-	
-	
 	
 	DEF_INIT_ICO24(newfolder);
 
@@ -83,10 +79,8 @@ public:
 	DEF_INIT_ICO24(classprop);
 	DEF_INIT_ICO24(save);
 	DEF_INIT_ICO24(db);
-	DEF_INIT_ICO24(folder_acts);
 	DEF_INIT_ICO24(folder_type);
 	DEF_INIT_ICO24(act);
-	DEF_INIT_ICO24(folder_props);
 	DEF_INIT_ICO24(create);
 	DEF_INIT_ICO24(minus);
 	DEF_INIT_ICO24(accept);
@@ -129,6 +123,11 @@ public:
 	DEF_INIT_ICO16(minus);
 	DEF_INIT_ICO16(edit);
 	DEF_INIT_ICO16(refresh);
+
+	DEF_INIT_ICO16(act_previos);
+	DEF_INIT_ICO16(act_period);
+	DEF_INIT_ICO16(act_next);
+	DEF_INIT_ICO16(act_left);
 protected:
 
 	ResMgr(){	}

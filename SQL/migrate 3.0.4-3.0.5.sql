@@ -2,18 +2,31 @@
 ------ избранные свойства для действий ----------------------------------------
 -------------------------------------------------------------------------------
 DROP TABLE IF EXISTS fav_act CASCADE;
-DROP SEQUENCE IF EXISTS fav_act_id_seq CASCADE;
-CREATE SEQUENCE fav_act_id_seq  INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
 CREATE TABLE fav_act
 (
-  id  bigint NOT NULL DEFAULT nextval('fav_act_id_seq'::regclass)
-  ,usr name   NOT NULL DEFAULT "current_user"()
+  usr name   NOT NULL DEFAULT "current_user"()
   ,cid bigint NOT NULL
   ,aid bigint NOT NULL
-  ,visible SMALLINT NOT NULL DEFAULT 1 CHECK (visible BETWEEN 1 AND 15) -- 0x01=previos, 0x02=period, 0x04=next,0x08=last
+  ,info SMALLINT NOT NULL DEFAULT 1 CHECK 
+    (    info=01
+      OR info=02
+      OR info=03
 
-  ,CONSTRAINT pk_fav_act__id PRIMARY KEY (id)
-  ,CONSTRAINT uk_fav_act__usr_cid_aid UNIQUE (usr, cid, aid)
+      OR info=11
+      OR info=12
+      OR info=13
+
+      OR info=21
+      OR info=22
+      OR info=23
+
+      OR info=31
+      OR info=32
+      OR info=33
+
+    )
+
+  ,CONSTRAINT pk_fav_act__usr_cid_aid PRIMARY KEY (usr, cid, aid, info)
   ,CONSTRAINT fk_fav_act__aid FOREIGN KEY (aid)
       REFERENCES act (id) MATCH FULL
       ON UPDATE CASCADE ON DELETE CASCADE
@@ -33,21 +46,36 @@ GRANT SELECT, INSERT, DELETE, UPDATE ON TABLE fav_act TO "Guest";
 --CREATE POLICY fav_act ON fav_act USING (usr = current_user);
 --SET enable_seqscan = OFF;
 --SET enable_seqscan = ON;
+INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 01);
+INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 02);
+INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 03);
+INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 11);
+INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 12);
+INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 13);
+INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 21);
+INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 22);
+INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 23);
+INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 31);
+INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 32);
+INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 33);
+
+
+INSERT INTO fav_act(usr, cid, aid, info)VALUES('a.savinov', '101', '105', 03);
+INSERT INTO fav_act(usr, cid, aid, info)VALUES('a.savinov', '101', '105', 11);
+INSERT INTO fav_act(usr, cid, aid, info)VALUES('a.savinov', '101', '105', 12);
+
+
 -------------------------------------------------------------------------------
 ------ избранные свойства для ОБЬЕКТОВ ----------------------------------------
 -------------------------------------------------------------------------------
 DROP TABLE IF EXISTS fav_oprop CASCADE;
-DROP SEQUENCE IF EXISTS fav_oprop_id_seq CASCADE;
-CREATE SEQUENCE fav_oprop_id_seq  INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
 CREATE TABLE fav_oprop
 (
-  id  bigint NOT NULL DEFAULT nextval('fav_oprop_id_seq'::regclass)
-  ,usr name   NOT NULL DEFAULT "current_user"()
+  usr name   NOT NULL DEFAULT "current_user"()
   ,cid bigint NOT NULL
   ,pid bigint NOT NULL
 
-  ,CONSTRAINT pk_fav_oprop__id PRIMARY KEY (id)
-  ,CONSTRAINT uk_fav_oprop__usr_cid_pid UNIQUE (usr, cid, pid)
+  ,CONSTRAINT pk_fav_oprop__usr_cid_pid PRIMARY KEY (usr, cid, pid)
   ,CONSTRAINT fk_fav_oprop__pid FOREIGN KEY (pid)
       REFERENCES prop (id) MATCH FULL
       ON UPDATE CASCADE ON DELETE CASCADE
@@ -57,28 +85,26 @@ CREATE TABLE fav_oprop
   ,CONSTRAINT fk_fav_oprop__cid FOREIGN KEY (cid)
       REFERENCES acls (id) MATCH FULL
       ON UPDATE CASCADE ON DELETE CASCADE
-
 )
 WITH (
   OIDS=FALSE
 );
 GRANT SELECT, INSERT, DELETE, UPDATE ON TABLE fav_oprop TO "Guest";
+INSERT INTO fav_oprop(usr, cid, pid)VALUES('postgres', '108', '104');
+INSERT INTO fav_oprop(usr, cid, pid)VALUES('postgres', '108', '108');
+
 
 -------------------------------------------------------------------------------
 ------ избранные свойства для КЛАССОВ  ----------------------------------------
 -------------------------------------------------------------------------------
 DROP TABLE IF EXISTS fav_cprop CASCADE;
-DROP SEQUENCE IF EXISTS fav_cprop_id_seq CASCADE;
-CREATE SEQUENCE fav_cprop_id_seq  INCREMENT 1 MINVALUE 0 NO MAXVALUE START 100;
 CREATE TABLE fav_cprop
 (
-  id  bigint NOT NULL DEFAULT nextval('fav_cprop_id_seq'::regclass)
-  ,usr name   NOT NULL DEFAULT "current_user"()
+  usr name   NOT NULL DEFAULT "current_user"()
   ,cid bigint NOT NULL
   ,pid bigint NOT NULL
 
-  ,CONSTRAINT pk_fav_cprop__id PRIMARY KEY (id)
-  ,CONSTRAINT uk_fav_cprop__usr_cid_pid UNIQUE (usr, cid, pid)
+  ,CONSTRAINT pk_fav_cprop__usr_cid_pid PRIMARY KEY (usr, cid, pid)
   ,CONSTRAINT fk_fav_cprop__pid FOREIGN KEY (pid)
       REFERENCES prop (id) MATCH FULL
       ON UPDATE CASCADE ON DELETE CASCADE
@@ -94,6 +120,10 @@ WITH (
   OIDS=FALSE
 );
 GRANT SELECT, INSERT, DELETE, UPDATE ON TABLE fav_cprop TO "Guest";
+INSERT INTO fav_cprop(usr, cid, pid)VALUES('postgres', '101', '100');
+INSERT INTO fav_cprop(usr, cid, pid)VALUES('postgres', '101', '108');
+
+
 
 -------------------------------------------------------------------------------
 ------ избранные свойства для КЛАССОВ  ----------------------------------------
@@ -129,52 +159,150 @@ CREATE OR REPLACE VIEW  obj_current_info AS
           )
         )
         ||
-        (
+        (--jsonb_pretty(
           COALESCE(
             NULLIF(
-              jsonb_build_object(
-                                  'fav_act',
-                                  jsonb_object_agg( 
-                                                    all_fav_bitor.aid  --ref_cls_act.act_id
-                                                    ,CASE WHEN((visible & 1)>0) THEN jsonb_build_object('1',CASE WHEN((visible & 16)>0) THEN previos::TEXT ELSE previos::DATE::TEXT END  ) ELSE '{}'::jsonb END 
-                                                    ||CASE WHEN(period IS NOT NULL) THEN 
-                                                           CASE WHEN((visible & 2)>0) THEN jsonb_build_object('2',EXTRACT(EPOCH FROM period) ) ELSE '{}' END 
-                                                        || CASE WHEN((visible & 4)>0) THEN jsonb_build_object('4',CASE WHEN((visible & 16)>0) THEN (previos+period)::TEXT ELSE (previos+period)::DATE::TEXT END  ) ELSE '{}'::jsonb END 
-                                                        || CASE WHEN((visible & 8)>0) THEN jsonb_build_object('8',ROUND( (EXTRACT(EPOCH FROM (previos+period-now()) )/86400)::NUMERIC,2 ) )  ELSE '{}' END 
-                                                    ELSE '{}' END 
-                                  )
-              )
+              jsonb_build_object('fav_act', jsonb_object_agg(fav_act_prop.aid,fav_act_prop.val))
               ,'{"fav_act": null}'
             )
             ,'{}'::JSONB 
           )
+         --)
         )         
         as last_act
-        FROM (SELECT aid, bit_or(visible) AS visible FROM cls_tree cls
-                       INNER JOIN fav_act ON fav_act.cid=cls.id AND fav_act.usr = CURRENT_USER 
-                       GROUP BY aid)all_fav_bitor
-        LEFT JOIN  LATERAL (SELECT ref_cls_act.period
-                            FROM cls_tree ct
-                            INNER JOIN ref_cls_act ON ref_cls_act.period IS NOT NULL
-                                              AND ref_cls_act.cls_id = ct.id
-                                              AND ref_cls_act.act_id = all_fav_bitor.aid
-                     )ref_ca ON TRUE
-        LEFT JOIN LATERAL
-              (SELECT MAX(timemark) AS previos, act_id AS aid, obj_id AS oid
-                 FROM log_main 
-                 WHERE act_id<>0
-                   AND log_main.obj_id = obj.id 
-                   AND log_main.act_id = all_fav_bitor.aid 
-                 GROUP BY obj_id, act_id
-              ) last_log             
-              ON TRUE       
+        FROM (  
+                WITH cls_fav(aid) AS (
+                        SELECT aid,info
+                        FROM fav_act 
+                        INNER JOIN cls_tree ON fav_act.cid=cls_tree.id AND usr = CURRENT_USER 
+                    )
+                ,fav_distinct(aid,max_info) AS (
+                SELECT aid,max(info)
+                FROM fav_act 
+                INNER JOIN cls_tree ON fav_act.cid=cls_tree.id AND usr = CURRENT_USER 
+                GROUP BY aid
+               )
+            --SELECT * FROM fav_distinct
+            , fav_period(aid,period) AS (
+                    SELECT ref_cls_act.act_id, ref_cls_act.period
+                    FROM cls_tree ct
+                    INNER JOIN ref_cls_act ON ref_cls_act.period IS NOT NULL
+                                          AND ref_cls_act.cls_id = ct.id
+                    INNER JOIN fav_distinct ON fav_distinct.aid=ref_cls_act.act_id
+                                          AND max_info>10
+                  )
+              --SELECT * FROM fav_period
+            ,  last_log AS (
+               SELECT MAX(timemark) AS previos, act_id AS aid, obj_id AS oid 
+                    FROM fav_distinct
+                    INNER JOIN log_main ON fav_distinct.aid=log_main.act_id AND act_id<>0 AND log_main.obj_id = obj.id
+                    GROUP BY obj_id, act_id
+                    )
+              --  SELECT * FROM last_log
+            , fav_info AS (
+                SELECT cls_fav.*,period,previos
+                FROM cls_fav
+                LEFT JOIN fav_period ON fav_period.aid=cls_fav.aid
+                LEFT JOIN last_log   ON last_log.aid=cls_fav.aid
+                WHERE (period IS NULL AND info<10 ) or (period IS NOT NULL )
+                )
+
+            SELECT fav_info.aid
+                 ,jsonb_object_agg(  info,
+                                        CASE info
+                                        WHEN 01 THEN previos::TIMESTAMPTZ::TEXT
+                                        WHEN 02 THEN previos::DATE::TEXT
+                                        WHEN 03 THEN previos::TIME::TEXT
+                                        WHEN 11 THEN period::INTERVAL::TEXT
+                                        WHEN 12 THEN EXTRACT(EPOCH FROM period)::TEXT
+                                        WHEN 13 THEN ROUND( (EXTRACT(EPOCH FROM period )/86400)::NUMERIC,2 )::TEXT 
+                                        WHEN 21 THEN (previos+period)::TIMESTAMPTZ::TEXT
+                                        WHEN 22 THEN (previos+period)::DATE::TEXT
+                                        WHEN 23 THEN (previos+period)::TIME::TEXT
+                                        WHEN 31 THEN (previos+period-now())::INTERVAL::TEXT
+                                        WHEN 32 THEN EXTRACT( EPOCH FROM (previos+period-now()) )::TEXT 
+                                        WHEN 33 THEN ROUND ((EXTRACT(EPOCH FROM (previos+period-now()) )/86400)::NUMERIC,2 )::TEXT 
+                                        ELSE '' END -- не должно выполняться, не существует
+                                 ) as val
+                    FROM fav_info
+            GROUP BY fav_info.aid
+
+
+        ) fav_act_prop     
  ) AS fav_prop_info
 
 FROM obj;
 GRANT SELECT ON TABLE obj_current_info TO "Guest";
-
-
 --SELECT * FROM obj_current_info WHERE cls_id=159;
+
+
+
+DROP VIEW IF EXISTS cls;
+CREATE OR REPLACE VIEW cls AS 
+
+SELECT  
+    acls.* 
+    ,(WITH  cls_tree(id) AS(SELECT id FROM get_path_cls_info(acls.id, 1))
+    , fav_distinct  AS( 
+        SELECT aid, info 
+		FROM fav_act 
+		INNER JOIN cls_tree ON fav_act.cid = cls_tree.id 
+                           AND usr = CURRENT_USER AND info BETWEEN 10 AND 20 
+        GROUP BY aid, info) 
+	, fav_act_info(val)  AS( 
+        SELECT 
+        jsonb_build_object('fav_act',jsonb_build_object( 
+						  fav_distinct.aid 
+						, jsonb_object_agg( 
+							info 
+							, CASE info 
+								WHEN 11 THEN period::INTERVAL::TEXT 
+								WHEN 12 THEN EXTRACT(EPOCH FROM period)::TEXT 
+								WHEN 13 THEN ROUND((EXTRACT(EPOCH FROM period) / 86400)::NUMERIC, 2)::TEXT 
+							ELSE '' END 
+							)) 
+					)
+		FROM ref_cls_act 
+		INNER JOIN fav_distinct ON ref_cls_act.period IS NOT NULL AND fav_distinct.aid = ref_cls_act.act_id 
+		INNER JOIN cls_tree ct ON  ref_cls_act.cls_id = ct.id 
+		GROUP BY fav_distinct.aid )
+    , fav_prop_info(val) AS(
+        SELECT jsonb_build_object('fav_cprop',jsonb_object_agg( fav_cprop.pid ,prop_cls.val))
+        FROM fav_cprop
+        INNER JOIN cls_tree tree ON tree.id= fav_cprop.cid  AND usr=CURRENT_USER
+        INNER JOIN prop_cls ON prop_cls.cls_id=acls.id AND prop_cls.prop_id=fav_cprop.pid )
+
+    SELECT NULLIF (
+        (SELECT COALESCE( NULLIF(fav_prop_info.val,'{"fav_cprop" : null}'::JSONB),'{}'::JSONB) FROM fav_prop_info)
+        || 
+        ( SELECT COALESCE( (SELECT fav_act_info.val FROM fav_act_info),'{}'::JSONB) )
+        ,'{}'::JSONB
+        )
+    ) AS fav_prop_info
+FROM acls
+WHERE acls.id > 99 ;
+
+--SELECT * FROM cls 
+--WHERE pid = 115
+--ORDER BY (substring(title, '^[0-9]{1,9}')::INT, title ) ASC 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 REVOKE DELETE ON TABLE acls FROM  "Admin";
 GRANT DELETE  ON acls TO "TypeDesigner";

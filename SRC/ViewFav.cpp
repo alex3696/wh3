@@ -1,13 +1,15 @@
 #include "_pch.h"
 #include "ViewFav.h"
 using namespace wh;
-
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 class wxDVModel
 	: public wxDataViewModel
 {
+	const wxDataViewItem  NullDataViewItem = wxDataViewItem(nullptr);
+
+	
 public:
 
 	wxDVModel() {};
@@ -22,6 +24,7 @@ public:
 		switch (col)
 		{
 		case 0: return "wxDataViewIconText";
+		case 1: return "string";
 		default: break;
 		}
 		return "string";
@@ -33,28 +36,232 @@ public:
 
 	virtual bool IsContainer(const wxDataViewItem &item)const override
 	{
-		return false;
+		if (!item.IsOk())
+			return true;
+
+		const auto node = static_cast<const IIdent64*> (item.GetID());
+		const auto cls = dynamic_cast<const ICls64*>(node);
+		return (bool)cls;
+		//if(cls)
+		//	return false;
+		//return (ClsKind::Abstract == cls->GetKind());
+
+	}
+	void GetErrorValue(wxVariant &variant, unsigned int col) const
+	{
+		switch (col)
+		{
+		case 0:variant << wxDataViewIconText("*ERROR*", wxNullIcon); break;
+		default: variant = "*ERROR*"; break;
+		}
+	}
+	void GetValue(wxVariant &variant, unsigned int col
+		, const FavAProp& prop) const
+	{
+		switch (col)
+		{
+		case 0: {
+			auto mgr = ResMgr::GetInstance();
+
+			wxString str = wxString::Format("%s : %s"
+				, prop.mAct->GetTitle()
+				, FavAPropInfo2Text(prop.mInfo));
+			const wxIcon& ico = GetIcon(prop.mInfo);
+			variant << wxDataViewIconText(str, ico);
+		}break;
+		case 1: variant = "Данные последнего действия"; break;
+		default: break;
+		}//switch
+	}
+
+	void GetValue(wxVariant &variant, unsigned int col
+		, const ObjProp& prop) const
+	{
+		switch (col)
+		{
+		case 0: {
+			auto mgr = ResMgr::GetInstance();
+			const wxIcon& ico = mgr->m_ico_classprop24;
+			variant << wxDataViewIconText(prop.GetTitle(), ico);
+		}break;
+		case 1: variant = "Свойство объекта"; break;
+		default: break;
+		}//switch
+	}
+
+	void GetValue(wxVariant &variant, unsigned int col
+		, const IProp64& prop) const
+	{
+		switch (col)
+		{
+		case 0: {
+			auto mgr = ResMgr::GetInstance();
+			const wxIcon& ico = mgr->m_ico_classprop24;
+			variant << wxDataViewIconText(prop.GetTitle(), ico);
+		}break;
+		case 1: variant = "Свойство класса"; break;
+		default: break;
+		}//switch
+	}
+
+	void GetValue(wxVariant &variant, unsigned int col
+		, const ICls64& cls) const
+	{
+		auto mgr = ResMgr::GetInstance();
+		const wxIcon*  ico(&wxNullIcon);
+
+		switch (col)
+		{
+		case 0: {
+			switch (cls.GetKind())
+			{
+			case ClsKind::Abstract: ico = &mgr->m_ico_type_abstract24; break;
+			case ClsKind::Single:	ico = &mgr->m_ico_type_num24; break;
+			case ClsKind::QtyByOne:
+			case ClsKind::QtyByFloat:
+			default: ico = &mgr->m_ico_type_qty24;	break;
+			}//switch
+			variant << wxDataViewIconText(cls.GetTitle(), *ico);
+		}break;
+		default: break;
+		}
+	}
+	virtual void GetValue(wxVariant &variant,
+		const wxDataViewItem &dvitem, unsigned int col) const override
+	{
+		const auto iobj = static_cast<const IObject*> (dvitem.GetID());
+
+		const auto cls = dynamic_cast<const ICls64*>(iobj);
+		if (cls)
+		{
+			GetValue(variant, col, *cls);
+			return;
+		}
+		const auto oprop = dynamic_cast<const ObjProp*>(iobj);
+		if (oprop)
+		{
+			GetValue(variant, col, *oprop);
+			return;
+		}
+		const auto cprop = dynamic_cast<const IProp64*>(iobj);
+		if (cprop)
+		{
+			GetValue(variant, col, *cprop);
+			return;
+		}
+		const auto act_prop = dynamic_cast<const FavAProp*>(iobj);
+		if (act_prop)
+		{
+			GetValue(variant, col, *act_prop);
+			return;
+		}
+
+		GetErrorValue(variant, col);
 	}
 	virtual bool SetValue(const wxVariant &variant, const wxDataViewItem &item,
 		unsigned int col)override
 	{
 		return false;
 	}
-	virtual void GetValue(wxVariant &variant,
-		const wxDataViewItem &dvitem, unsigned int col) const override
-	{
-	}
 	virtual wxDataViewItem GetParent(const wxDataViewItem &item) const override
 	{
-		return wxDataViewItem(nullptr);
+		if (!item.IsOk())
+			return NullDataViewItem;
+		const auto ident = static_cast<const IIdent64*> (item.GetID());
+		const auto cls = dynamic_cast<const ICls64*>(ident);
+		if (cls)
+		{
+			const auto parent = cls->GetParent();
+			if (!parent)
+				return NullDataViewItem;
+			return wxDataViewItem((void*)parent.get());
+		}
+
+		const auto it = mPropParent.find(item);
+		if (mPropParent.cend() != it)
+			return it->second;
+
+		return NullDataViewItem;
 	}
 
 	virtual unsigned int GetChildren(const wxDataViewItem &parent
 		, wxDataViewItemArray &arr) const override
 	{
-		return 0;
+		if (!parent.IsOk())
+		{
+			for (const auto& cls : mClsBranch)
+			{
+				wxDataViewItem item((void*)cls);
+				arr.Add(item);
+			}
+		}
+		else
+		{
+			const auto ident = static_cast<const IIdent64*> (parent.GetID());
+			const auto cls = dynamic_cast<const ICls64*>(ident);
+			if (cls)
+			{
+				const auto fav_prop_table = cls->GetFavCPropValue();
+				for (const auto& fp : fav_prop_table)
+				{
+					wxDataViewItem item((void*)fp->mProp.get());
+					arr.Add(item);
+				}
+				const auto fav_oprop_table = cls->GetFavOProp();
+				for (const auto& fp : fav_oprop_table)
+				{
+					wxDataViewItem item((void*)fp.get());
+					arr.Add(item);
+				}
+				const auto fav_act_table = cls->GetFavAProp();
+				for (const auto& p : fav_act_table)
+				{
+					wxDataViewItem item((void*)p.get());
+					arr.Add(item);
+				}
+			}
+		}
+
+		return arr.size();
 	}
 
+
+	std::vector<const ICls64*> mClsBranch;
+	std::map<wxDataViewItem, wxDataViewItem> mPropParent;
+
+
+	void SetClsBranch(const std::vector<const ICls64*>& cls_branch)
+	{
+		mPropParent.clear();
+		mClsBranch = cls_branch;
+
+		for (const auto& cls : cls_branch)
+		{
+			wxDataViewItem parent((void*)cls);
+
+			const auto fav_prop_table = cls->GetFavCPropValue();
+			for (const auto& fp : fav_prop_table)
+			{
+				wxDataViewItem item((void*)fp->mProp.get());
+				mPropParent.insert(std::make_pair(item, parent));
+			}
+			const auto fav_oprop_table = cls->GetFavOProp();
+			for (const auto& fp : fav_oprop_table)
+			{
+				wxDataViewItem item((void*)fp.get());
+				mPropParent.insert(std::make_pair(item, parent));
+			}
+			const auto fav_act_table = cls->GetFavAProp();
+			for (const auto& p : fav_act_table)
+			{
+				wxDataViewItem item((void*)p.get());
+				mPropParent.insert(std::make_pair(item, parent));
+			}
+		}
+
+
+		Cleared();
+	}
 
 
 };
@@ -132,12 +339,12 @@ ViewFav::ViewFav(wxWindow* parent)
 	, wxID_ADD);
 
 
-	auto mTable = new wxDataViewCtrl(mPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize
+	mTable = new wxDataViewCtrl(mPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize
 		, wxDV_ROW_LINES
 		| wxDV_VERT_RULES
 		//| wxDV_HORIZ_RULES
-		| wxDV_MULTIPLE
-		| wxDV_NO_HEADER
+		//| wxDV_MULTIPLE
+		//| wxDV_NO_HEADER
 	);
 
 	auto dv_model = new wxDVModel();
@@ -147,8 +354,12 @@ ViewFav::ViewFav(wxWindow* parent)
 	int ch = mTable->GetCharHeight();
 	mTable->SetRowHeight(ch * 1.6);
 
-	auto col0 = mTable->AppendTextColumn("Тип", 1, wxDATAVIEW_CELL_INERT, -1
-		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+	auto col0 = mTable->AppendIconTextColumn("Тип", 0, wxDATAVIEW_CELL_INERT, -1
+		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
+
+	auto col1 = mTable->AppendTextColumn("Описание", 1, wxDATAVIEW_CELL_INERT, -1
+		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
+
 
 	szrMain->Add(mTable, 1, wxALL | wxEXPAND, 2);
 	
@@ -161,7 +372,7 @@ ViewFav::ViewFav(wxWindow* parent)
 	szrBtn->Add(btnCancel, 0, wxALL , 2);
 	szrMain->Add(szrBtn, 0, wxEXPAND, 0);
 
-	
+	mPanel->SetSize(mPanel->GetSize()*1.6);
 	mPanel->Layout();
 
 	mToolBar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigRefresh(); }, wxID_REFRESH);
@@ -193,14 +404,36 @@ void ViewFav::SetUpdateTitle(const wxString& str, const wxIcon& ico)
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewFav::SetBeforeUpdate(const std::vector<const IIdent64*>&, const IIdent64 *)
+void ViewFav::SetBeforeUpdate(const std::vector<const ICls64*>& cls_branch, const ICls64&)
 {
+	auto dvmodel = dynamic_cast<wxDVModel*>(mTable->GetModel());
+	if (!dvmodel)
+		return;
+	dvmodel->SetClsBranch(cls_branch);
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewFav::SetAfterUpdate(const std::vector<const IIdent64*>&, const IIdent64*) //override;
+void ViewFav::SetAfterUpdate(const std::vector<const ICls64*>& cls_branch, const ICls64&) //override;
 {
+	auto dvmodel = dynamic_cast<wxDVModel*>(mTable->GetModel());
+	if (!dvmodel)
+		return;
+	dvmodel->SetClsBranch(cls_branch);
 
+	std::for_each(cls_branch.cbegin(), cls_branch.cend(), 
+		[this](const ICls64* cls)
+		{
+			wxDataViewItem item((void*)cls);
+			mTable->Expand(item);
+		});
+
+	for (size_t i = 0; i < mTable->GetColumnCount(); i++)
+	{
+		auto col_pos = mTable->GetModelColumnIndex(i);
+		auto col = mTable->GetColumn(col_pos);
+		if (col)
+			col->SetWidth(mTable->GetBestColumnWidth(i));
+	}
 }
 //-----------------------------------------------------------------------------
 void ViewFav::OnCmd_AddClsProp(wxCommandEvent& evt )
@@ -235,5 +468,47 @@ void ViewFav::OnCmd_AddLeft(wxCommandEvent& evt )
 //-----------------------------------------------------------------------------
 void ViewFav::OnCmd_Remove(wxCommandEvent & evt)
 {
+	wxDataViewItem item = mTable->GetCurrentItem();
+	const IIdent64* ident = static_cast<const IIdent64*> (item.GetID());
+	if (!ident)
+		return;
+
+	auto dvmodel = dynamic_cast<wxDVModel*>(mTable->GetModel());
+	if (!dvmodel)
+		return;
+
+
+	const auto oprop = dynamic_cast<const ObjProp*>(ident);
+	if (oprop)
+	{
+		auto parent = dvmodel->GetParent(item);
+		if (!parent.IsOk())
+			return;
+		const auto cls = static_cast<const ICls64*>(parent.GetID());
+
+		sigRemoveObjProp(cls->GetId(), oprop->GetId());
+		return;
+	}
+	const auto cprop = dynamic_cast<const IProp64*>(ident);
+	if (cprop)
+	{
+		auto parent = dvmodel->GetParent(item);
+		if (!parent.IsOk())
+			return;
+		const auto cls = static_cast<const ICls64*>(parent.GetID());
+
+		sigRemoveClsProp(cls->GetId(), cprop->GetId());
+		return;
+	}
+	const auto act_prop = dynamic_cast<const FavAProp*>(ident);
+	if (act_prop)
+	{
+		auto parent = dvmodel->GetParent(item);
+		if (!parent.IsOk())
+			return;
+		const auto cls = static_cast<const ICls64*>(parent.GetID());
+		sigRemoveActProp(cls->GetId(), act_prop->mAct->GetId(), act_prop->mInfo );
+		return;
+	}
 
 }

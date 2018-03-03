@@ -10,8 +10,8 @@ namespace wh {
 class IViewFav: public IViewWindow
 {
 public:
-	virtual void SetBeforeUpdate(const std::vector<const IIdent64*>&, const IIdent64*) = 0;
-	virtual void SetAfterUpdate(const std::vector<const IIdent64*>&, const IIdent64*) = 0;
+	virtual void SetBeforeUpdate(const std::vector<const ICls64*>&, const ICls64&) = 0;
+	virtual void SetAfterUpdate(const std::vector<const ICls64*>&, const ICls64&) = 0;
 
 	sig::signal<void()> sigRefresh;
 
@@ -24,10 +24,7 @@ public:
 
 	sig::signal<void(int64_t, int64_t)> sigRemoveClsProp;
 	sig::signal<void(int64_t, int64_t)> sigRemoveObjProp;
-	sig::signal<void(int64_t, int64_t)> sigRemovePrevios;
-	sig::signal<void(int64_t, int64_t)> sigRemovePeriod;
-	sig::signal<void(int64_t, int64_t)> sigRemoveNext;
-	sig::signal<void(int64_t, int64_t)> sigRemoveLeft;
+	sig::signal<void(int64_t, int64_t, FavAPropInfo)> sigRemoveActProp;
 
 	sig::signal<void(const wxString&)>	sigShowHelp;
 };

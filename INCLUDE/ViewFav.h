@@ -29,8 +29,8 @@ public:
 	virtual void SetShow() override;
 	virtual void SetUpdateTitle(const wxString&, const wxIcon&)override;
 
-	virtual void SetBeforeUpdate(const std::vector<const IIdent64*>&, const IIdent64*) override;
-	virtual void SetAfterUpdate(const std::vector<const IIdent64*>&, const IIdent64*) override;
+	virtual void SetBeforeUpdate(const std::vector<const ICls64*>&, const ICls64&) override;
+	virtual void SetAfterUpdate(const std::vector<const ICls64*>&, const ICls64&) override;
 
 
 };
