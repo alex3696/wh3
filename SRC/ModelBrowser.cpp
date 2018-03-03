@@ -3,54 +3,6 @@
 
 using namespace wh;
 
-//-----------------------------------------------------------------------------
-void ActCache::LoadDetailById()
-{
-	if (this->mData.empty())
-		return;
-	//Clear();
-
-	wxString str_aid;
-	for (const auto& it : mData)
-	{
-		if(it->GetTitle().empty())// do not load if title already exists
-			str_aid += wxString::Format(" OR id=%s", it->GetIdAsString());
-	}
-	if (str_aid.empty())
-		return;
-
-	str_aid.Remove(0, 3);
-
-	wxString query = wxString::Format(
-		"SELECT id, title, note, color"
-		" FROM act WHERE %s"
-		, str_aid);
-
-	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
-	if (table)
-	{
-		unsigned int rowQty = table->GetRowCount();
-		size_t row = 0;
-		const fnModify fn = [this, &table, &row](const std::shared_ptr<RowType>& iact)
-		{
-			auto act = std::dynamic_pointer_cast<ActRec64>(iact);
-			//act->SetId(table->GetAsString(0, row));
-			act->SetTitle(table->GetAsString(1, row));
-			act->SetColour(table->GetAsString(2, row));
-		};
-
-
-		for (; row < rowQty; row++)
-		{
-			int64_t id;
-			if (!table->GetAsString(0, row).ToLongLong(&id))
-				throw;
-
-			InsertOrUpdate(id, fn);
-		}//for
-	}//if (table)
-
-}
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -302,7 +254,27 @@ void ObjRec64::ParseActInfo(const boost::property_tree::wptree& favAPropValues)
 //-----------------------------------------------------------------------------
 void ObjRec64::ParsePropInfo(const boost::property_tree::wptree& favOPropValues)
 {
-	
+	if (favOPropValues.empty())
+		return;
+	auto cache = this->mTable->GetCache();
+
+	auto prop_curr = favOPropValues.begin();
+	auto prop_end = favOPropValues.end();
+	while (prop_curr != prop_end)
+	{
+		wxString pid_str = prop_curr->first.data();
+		wxString val_str = prop_curr->second.data();
+		int64_t pid;
+		if (pid_str.ToLongLong(&pid))
+		{
+			PropCache::fnModify fn = [](const std::shared_ptr<IProp64>&) {};
+			const auto& prop = cache->mPropTable.InsertOrUpdate(pid, fn);
+
+			auto pv = std::make_shared<PropVal>(prop, val_str);
+			mFavOPropValueTable.emplace(pv);
+		}
+		++prop_curr;
+	}//while (prop_curr != prop_end)	
 
 }
 //-----------------------------------------------------------------------------
@@ -706,7 +678,8 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 			//parent_node->AddObj(obj);
 			toinsert.emplace_back(obj.get());
 		}
-		cache.mActTable.LoadDetailById();
+		UpdateUntitledActs();
+		UpdateUntitledProperties();
 
 		if (!toinsert.empty())
 		{
@@ -869,7 +842,8 @@ void ModelBrowser::DoRefreshFindInClsTree()
 			}
 							
 		}
-		cache.mActTable.LoadDetailById();
+		UpdateUntitledActs();
+		UpdateUntitledProperties();
 
 	}//if (table)
 	whDataMgr::GetDB().Commit();
@@ -973,7 +947,8 @@ void ModelBrowser::DoRefresh()
 		}
 
 	}//if (table)
-
+	UpdateUntitledActs();
+	UpdateUntitledProperties();
 
 	whDataMgr::GetDB().Commit();
 	
@@ -1031,6 +1006,96 @@ void wh::ModelBrowser::DoToggleGroupByType()
 {
 	mGroupByType = !mGroupByType;
 	DoRefresh();
+}
+//-----------------------------------------------------------------------------
+void ModelBrowser::UpdateUntitledProperties()
+{
+	auto& prop_table = mCache.mPropTable;
+	wxString str_id;
+	for (const auto& it : prop_table.GetStorage() )
+	{
+		if (it->GetTitle().empty())// do not load if title already exists
+			str_id += wxString::Format(" OR id=%s", it->GetIdAsString());
+	}
+	if (str_id.empty())
+		return;
+	str_id.Remove(0, 3);
+
+	wxString query = wxString::Format(
+		"SELECT id, title, kind, var, var_strict"
+		" FROM prop WHERE %s"
+		, str_id);
+
+	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+	if (table)
+	{
+		unsigned int rowQty = table->GetRowCount();
+		size_t row = 0;
+		const PropCache::fnModify fn = [this, &table, &row]
+		(const std::shared_ptr<IProp64>& iact)
+		{
+			auto prop = std::dynamic_pointer_cast<PropRec64>(iact);
+			//act->SetId(table->GetAsString(0, row));
+			prop->SetTitle(table->GetAsString(1, row));
+			prop->SetKind(table->GetAsString(2, row));
+			prop->SetVar(table->GetAsString(3, row));
+			prop->SetVarStrict(table->GetAsString(4, row));
+		};
+
+		for (; row < rowQty; row++)
+		{
+			int64_t id;
+			if (!table->GetAsString(0, row).ToLongLong(&id))
+				throw;
+			prop_table.InsertOrUpdate(id, fn);
+		}//for
+	}//if (table)
+}
+//-----------------------------------------------------------------------------
+void ModelBrowser::UpdateUntitledActs()
+{
+	auto& act_table = mCache.mActTable;
+
+	wxString str_id;
+	for (const auto& it : act_table.GetStorage() )
+	{
+		if(it->GetTitle().empty())// do not load if title already exists
+			str_id += wxString::Format(" OR id=%s", it->GetIdAsString());
+	}
+	if (str_id.empty())
+		return;
+	str_id.Remove(0, 3);
+
+	wxString query = wxString::Format(
+		"SELECT id, title, note, color"
+		" FROM act WHERE %s"
+		, str_id);
+
+	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+	if (table)
+	{
+		unsigned int rowQty = table->GetRowCount();
+		size_t row = 0;
+		const ActCache::fnModify fn = [this, &table, &row]
+		(const std::shared_ptr<IAct64>& iact)
+		{
+			auto act = std::dynamic_pointer_cast<ActRec64>(iact);
+			//act->SetId(table->GetAsString(0, row));
+			act->SetTitle(table->GetAsString(1, row));
+			act->SetColour(table->GetAsString(2, row));
+		};
+
+
+		for (; row < rowQty; row++)
+		{
+			int64_t id;
+			if (!table->GetAsString(0, row).ToLongLong(&id))
+				throw;
+
+			act_table.InsertOrUpdate(id, fn);
+		}//for
+	}//if (table)
+
 }
 //-----------------------------------------------------------------------------
 const ICls64& ModelBrowser::GetRootCls() const

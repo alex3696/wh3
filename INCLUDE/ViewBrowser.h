@@ -4,6 +4,61 @@
 #include "IViewBrowser.h"
 namespace wh{
 //-----------------------------------------------------------------------------
+struct ActColumn
+{
+	int64_t			mAid;
+	FavAPropInfo	mAInfo;
+	int				mColumn;
+	
+	ActColumn() 
+		:mAid(0), mAInfo(FavAPropInfo::UnnownProp), mColumn(0)
+	{}
+	ActColumn(const int64_t& aid, FavAPropInfo acol,int idx)
+		:mAid(aid), mAInfo(acol), mColumn(idx)
+	{}
+};
+//-----------------------------------------------------------------------------
+using ActColumns = boost::multi_index_container
+<
+	ActColumn,
+	indexed_by
+	<
+		ordered_unique < 
+							composite_key
+							<
+								ActColumn
+								, member<ActColumn, int64_t, &ActColumn::mAid>
+								, member<ActColumn, FavAPropInfo, &ActColumn::mAInfo>
+							> 
+						>
+		, ordered_unique<member<ActColumn, int, &ActColumn::mColumn>>
+	>
+>;
+//-----------------------------------------------------------------------------
+struct PropColumn
+{
+	int64_t			mPid;
+	int				mColumn;
+
+	PropColumn()
+		:mPid(0), mColumn(0)
+	{}
+	PropColumn(const int64_t& pid,  int idx)
+		:mPid(pid), mColumn(idx)
+	{}
+};
+//-----------------------------------------------------------------------------
+using PropColumns = boost::multi_index_container
+<
+	PropColumn,
+	indexed_by
+	<
+		  ordered_unique<member<PropColumn, int64_t, &PropColumn::mPid>>
+		, ordered_unique<member<PropColumn, int, &PropColumn::mColumn>>
+	>
+>;
+
+//-----------------------------------------------------------------------------
 class ViewTableBrowser : public IViewTableBrowser
 {
 	int64_t							mParentCid = 0;
@@ -33,7 +88,9 @@ class ViewTableBrowser : public IViewTableBrowser
 	void ResetColumns();
 	void RebuildClsColumns(const std::vector<const IIdent64*>&);
 	void AppendActColumn(const std::shared_ptr<const FavAProp>& aprop);
-	void AppendPropColumn(const std::shared_ptr<const PropVal>& prop_val);
+	void AppendPropColumn(PropColumns& prop_column,	const std::shared_ptr<const PropVal>& prop_val);
+	wxDataViewColumn* AppendTableColumn(const wxString& title, int model_id);
+	int GetTitleWidth(const wxString& title)const;
 protected:
 	void OnCmd_MouseMove(wxMouseEvent& evt);
 	void OnCmd_Activate(wxDataViewEvent& evt);

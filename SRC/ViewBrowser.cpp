@@ -7,61 +7,6 @@
 
 using namespace wh;
 
-//-----------------------------------------------------------------------------
-struct ActColumn
-{
-	int64_t			mAid;
-	FavAPropInfo	mAInfo;
-	int				mColumn;
-	
-	ActColumn() 
-		:mAid(0), mAInfo(FavAPropInfo::UnnownProp), mColumn(0)
-	{}
-	ActColumn(const int64_t& aid, FavAPropInfo acol,int idx)
-		:mAid(aid), mAInfo(acol), mColumn(idx)
-	{}
-};
-//-----------------------------------------------------------------------------
-using ActColumns = boost::multi_index_container
-<
-	ActColumn,
-	indexed_by
-	<
-		ordered_unique < 
-							composite_key
-							<
-								ActColumn
-								, member<ActColumn, int64_t, &ActColumn::mAid>
-								, member<ActColumn, FavAPropInfo, &ActColumn::mAInfo>
-							> 
-						>
-		, ordered_unique<member<ActColumn, int, &ActColumn::mColumn>>
-	>
->;
-//-----------------------------------------------------------------------------
-struct PropColumn
-{
-	int64_t			mPid;
-	int				mColumn;
-
-	PropColumn()
-		:mPid(0), mColumn(0)
-	{}
-	PropColumn(const int64_t& pid,  int idx)
-		:mPid(pid), mColumn(idx)
-	{}
-};
-
-
-using PropColumns = boost::multi_index_container
-<
-	PropColumn,
-	indexed_by
-	<
-		  ordered_unique<member<PropColumn, int64_t, &PropColumn::mPid>>
-		, ordered_unique<member<PropColumn, int, &PropColumn::mColumn>>
-	>
->;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -83,7 +28,8 @@ class wxDVTableBrowser
 	const wxString mActNotExecuted="не выполнялось";
 public:
 	ActColumns		mActColumns;
-	PropColumns	mPropColumns;
+	PropColumns		mCPropColumns;
+	PropColumns		mOPropColumns;
 
 	wxDVTableBrowser(){};
 	~wxDVTableBrowser(){};
@@ -195,7 +141,7 @@ public:
 				}
 				return;
 			}//if (idxCol.end() != it)
-			const auto& idxPropCol = mPropColumns.get<1>();
+			const auto& idxPropCol = mCPropColumns.get<1>();
 			auto prop_it = idxPropCol.find(col);
 			if (idxPropCol.end() != prop_it)
 			{
@@ -306,10 +252,19 @@ public:
 						else
 							variant = str_value;
 					}
-					//else
-					//	variant = mActNotExecuted;
 				}break;
 				}//switch (it->mAInfo)
+				return;
+			}//if (idxCol.end() != it)
+
+			const auto& idxOPropCol = mOPropColumns.get<1>();
+			auto prop_it = idxOPropCol.find(col);
+			if (idxOPropCol.end() != prop_it)
+			{
+				const auto favOPrpop = obj.GetFavOPropValue();
+				auto val_it = favOPrpop.find(prop_it->mPid);
+				if (favOPrpop.cend() != val_it)
+					variant = (*val_it)->mValue;
 			}
 		}break;
 		}//switch (col)
@@ -738,6 +693,21 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 	if (!col || !item.IsOk())
 		return;
 	
+	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
+	if (!dvmodel)
+		return;
+	wxString val;
+	wxVariant var;
+	dvmodel->GetValue(var, item, col->GetModelColumn());
+	if (0 == col)
+	{
+		wxDataViewIconText d;
+		d << var;
+		val = d.GetText();
+	}
+	else
+		val = var.GetString();
+
 	const IIdent64* ident = static_cast<const IIdent64*> (item.GetID());
 	if (!ident)
 		return;
@@ -746,13 +716,17 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 	const auto cls = dynamic_cast<const ICls64*>(ident);
 	if (cls)
 	{
-		str= wxString::Format("[%s] \r\n#%s", cls->GetTitle(), cls->GetIdAsString());
+		str= wxString::Format("%s\n\n%s \n#[%s]"
+			, val
+			, cls->GetTitle()
+			, cls->GetIdAsString());
 	}
 	const auto obj = dynamic_cast<const IObj64*>(ident);
 	if (obj)
 	{
 		auto cls = obj->GetCls();
-		str=wxString::Format("[%s] %s \r\n#[%s] %s)"
+		str=wxString::Format("%s\n\n[%s]\t%s \n#[%s]\t%s)"
+			, val
 			, cls->GetTitle(), obj->GetTitle()
 			, cls->GetIdAsString(), obj->GetIdAsString() );
 	}
@@ -1092,7 +1066,8 @@ void ViewTableBrowser::ResetColumns()
 
 	table->ClearColumns();
 	dvmodel->mActColumns.clear();
-	dvmodel->mPropColumns.clear();
+	dvmodel->mCPropColumns.clear();
+	dvmodel->mOPropColumns.clear();
 
 	auto renderer1 = new wxDataViewIconTextRenderer();
 	//auto attr = renderer1->GetAttr();
@@ -1134,7 +1109,7 @@ void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec
 		{
 			const auto& fav_cprop = cls->GetFavCPropValue();
 			for (const auto& cprop : fav_cprop)
-				AppendPropColumn(cprop);
+				AppendPropColumn(dvmodel->mCPropColumns, cprop);
 
 			const auto& fav_act = cls->GetFavAProp();
 			for (const auto& aprop : fav_act)
@@ -1147,14 +1122,21 @@ void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec
 			const auto obj = dynamic_cast<const IObj64*>(ident);
 			if (obj)
 			{
-				const auto& fav_act = obj->GetCls()->GetFavAProp();
+				const auto cls = obj->GetCls();
+
+				const auto& fav_cprop = cls->GetFavCPropValue();
+				for (const auto& cprop : fav_cprop)
+					AppendPropColumn(dvmodel->mCPropColumns, cprop);
+
+				const auto& fav_act = cls->GetFavAProp();
 				for (const auto& aprop : fav_act)
 					AppendActColumn(aprop);
 
 				const auto& fav_prop = obj->GetFavOPropValue();
-				for (const auto& cprop : fav_prop)
-					AppendPropColumn(cprop);
+				for (const auto& oprop : fav_prop)
+					AppendPropColumn(dvmodel->mOPropColumns, oprop);
 
+				
 
 
 			}//if (obj)
@@ -1173,7 +1155,6 @@ void ViewTableBrowser::AppendActColumn(const std::shared_ptr<const FavAProp>& ap
 	auto aid = aprop->mAct->GetId();
 	FavAPropInfo info = aprop->mInfo;
 
-
 	auto& idx0 = dvmodel->mActColumns.get<0>();
 	auto it = idx0.find(boost::make_tuple(aid, info));
 	if (idx0.end() == it)
@@ -1183,36 +1164,22 @@ void ViewTableBrowser::AppendActColumn(const std::shared_ptr<const FavAProp>& ap
 			, aprop->mAct->GetTitle()
 			, FavAPropInfo2Text(info));
 
-		auto col = mTable->AppendTextColumn(title, column_idx
-			, wxDATAVIEW_CELL_INERT, -1, wxALIGN_NOT
-			, wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-		if (!col) 
-			return;
+		auto col = AppendTableColumn(title, column_idx);
 
-		col->SetBitmap(GetIcon(info));
+		const auto& ico = GetIcon(info);
+		col->SetBitmap(ico);
 		
-		auto col_pos = mTable->GetModelColumnIndex(column_idx);
-		col->SetWidth(mTable->GetBestColumnWidth(col_pos));
-
-		auto last_col = mTable->GetColumnAt(column_idx - 1);
-		last_col->SetWidth(mTable->GetBestColumnWidth(column_idx - 1));
-
-
 		ActColumn acol(aid, info, column_idx);
 		dvmodel->mActColumns.emplace(acol);
-
-
 	}
 }
 //-----------------------------------------------------------------------------
-void ViewTableBrowser::AppendPropColumn(const std::shared_ptr<const PropVal>& prop_val)
+void ViewTableBrowser::AppendPropColumn(PropColumns& prop_column
+	,const std::shared_ptr<const PropVal>& prop_val)
 {
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (!dvmodel)
-		return;
 	const int64_t pid = prop_val->mProp->GetId();
 
-	auto& pcolIdx = dvmodel->mPropColumns;
+	auto& pcolIdx = prop_column;
 	auto it = pcolIdx.find(pid);
 	if (pcolIdx.end() == it)
 	{
@@ -1220,21 +1187,41 @@ void ViewTableBrowser::AppendPropColumn(const std::shared_ptr<const PropVal>& pr
 		const wxString& title = prop_val->mProp->GetTitle().empty() ?
 			prop_val->mProp->GetIdAsString()
 			: prop_val->mProp->GetTitle();
-		auto col = mTable->AppendTextColumn(title, column_idx
-			, wxDATAVIEW_CELL_INERT, -1, wxALIGN_NOT
-			, wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-		if (!col)
-			return;
-		auto col_pos = mTable->GetModelColumnIndex(column_idx);
-		col->SetWidth(mTable->GetBestColumnWidth(col_pos));
+		
+		AppendTableColumn(title, column_idx);
 
-		auto last_col = mTable->GetColumnAt(column_idx - 1);
-		last_col->SetWidth(mTable->GetBestColumnWidth(column_idx - 1));
-
-		PropColumn prop_col( pid , column_idx);
+		PropColumn prop_col(pid, column_idx);
 		pcolIdx.emplace(prop_col);
 	}
 
+}
+//-----------------------------------------------------------------------------
+wxDataViewColumn* ViewTableBrowser::AppendTableColumn(const wxString& title, int model_id)
+{
+	auto col = mTable->AppendTextColumn(title, model_id
+		, wxDATAVIEW_CELL_INERT
+		, GetTitleWidth(title)
+		, wxALIGN_NOT
+		, wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+	
+	col->SetMinWidth(80);
+
+	auto last_col = mTable->GetColumnAt( mTable->GetColumnCount() - 2);
+	last_col->SetWidth(	GetTitleWidth(last_col->GetTitle()));
+
+	return col;
+}
+//-----------------------------------------------------------------------------
+int ViewTableBrowser::GetTitleWidth(const wxString& title)const
+{
+	const int spw = mTable->GetTextExtent(" ").GetWidth();
+	int hw = mTable->GetTextExtent(title).GetWidth()+ spw*4 + 20;
+	if (hw < 80)
+		hw = 80;
+	else if (hw > 300)
+		hw = 300;
+
+	return hw;
 }
 //-----------------------------------------------------------------------------
 //virtual 

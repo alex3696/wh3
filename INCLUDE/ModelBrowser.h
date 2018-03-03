@@ -472,10 +472,10 @@ public:
 	{}
 	DbCache* GetCache()const { return mDbCache; }
 
-	void Clear()
-	{
-		mData.clear();
-	}
+
+	inline const Storage& GetStorage()const { return mData; }
+	inline bool empty()const { mData.empty(); }
+	inline void Clear() { mData.clear(); }
 
 	size_t size()const
 	{
@@ -509,7 +509,6 @@ public:
 		return *it;
 	}
 
-	void LoadDetailById();
 };
 
 //-----------------------------------------------------------------------------
@@ -539,10 +538,9 @@ public:
 	{}
 	DbCache* GetCache()const { return mDbCache; }
 
-	void Clear()
-	{
-		mData.clear();
-	}
+	inline const Storage& GetStorage()const { return mData; }
+	inline bool empty()const { mData.empty(); }
+	inline void Clear()	{ mData.clear(); }
 
 	size_t size()const
 	{
@@ -706,7 +704,13 @@ class ModelBrowser
 
 	
 	void DoRefreshFindInClsTree();
+
+	void UpdateUntitledProperties();
+	void UpdateUntitledActs();
 public:
+	ModelBrowser();
+	~ModelBrowser();
+
 	int			GetMode()const;
 	int64_t		GetRootId()const;
 	wxString	GetSearchString()const;
@@ -718,9 +722,6 @@ public:
 	void SetGroupedByType(bool);
 
 	const ICls64& GetRootCls()const;
-public:
-	ModelBrowser();
-	~ModelBrowser();
 
 	void DoRefresh();
 	void DoActivate(int64_t cid);
