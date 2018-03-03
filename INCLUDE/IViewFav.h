@@ -15,12 +15,9 @@ public:
 
 	sig::signal<void()> sigRefresh;
 
-	sig::signal<void(int64_t, int64_t)> sigAddClsProp;
-	sig::signal<void(int64_t, int64_t)> sigAddObjProp;
-	sig::signal<void(int64_t, int64_t)> sigAddPrevios;
-	sig::signal<void(int64_t, int64_t)> sigAddPeriod;
-	sig::signal<void(int64_t, int64_t)> sigAddNext;
-	sig::signal<void(int64_t, int64_t)> sigAddLeft;
+	sig::signal<void(int64_t)> sigAddClsProp;
+	sig::signal<void(int64_t)> sigAddObjProp;
+	sig::signal<void(int64_t, FavAPropInfo)> sigAddActProp;
 
 	sig::signal<void(int64_t, int64_t)> sigRemoveClsProp;
 	sig::signal<void(int64_t, int64_t)> sigRemoveObjProp;

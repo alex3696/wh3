@@ -16,10 +16,7 @@ class CtrlFav final : public CtrlWindowBase<IViewFav, ModelFav>
 
 	sig::scoped_connection connViewCmd_AddClsProp;
 	sig::scoped_connection connViewCmd_AddObjProp;
-	sig::scoped_connection connViewCmd_AddPrevios;
-	sig::scoped_connection connViewCmd_AddPeriod;
-	sig::scoped_connection connViewCmd_AddNext;
-	sig::scoped_connection connViewCmd_AddLeft;
+	sig::scoped_connection connViewCmd_AddActProp;
 	
 	sig::scoped_connection connViewCmd_RemoveClsProp;
 	sig::scoped_connection connViewCmd_RemoveObjProp;
@@ -36,12 +33,9 @@ public:
 
 	void Refresh();
 	
-	void AddClsProp(int64_t clsId, int64_t propId);
-	void AddObjProp(int64_t clsId, int64_t propId);
-	void AddPrevios(int64_t clsId, int64_t actId);
-	void AddPeriod(int64_t clsId, int64_t actId);
-	void AddNext(int64_t clsId, int64_t actId);
-	void AddLeft(int64_t clsId, int64_t actId);
+	void AddClsProp(int64_t clsId);
+	void AddObjProp(int64_t clsId);
+	void AddActProp(int64_t clsId, FavAPropInfo info);
 
 	void RemoveClsProp(int64_t clsId, int64_t propId);
 	void RemoveObjProp(int64_t clsId, int64_t propId);

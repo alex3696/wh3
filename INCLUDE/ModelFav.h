@@ -27,10 +27,7 @@ public:
 
 	void DoAddClsProp(int64_t clsId, int64_t propId);
 	void DoAddObjProp(int64_t clsId, int64_t propId);
-	void DoAddPrevios(int64_t clsId, int64_t actId);
-	void DoAddPeriod(int64_t clsId, int64_t actId);
-	void DoAddNext(int64_t clsId, int64_t actId);
-	void DoAddLeft(int64_t clsId, int64_t actId);
+	void DoAddActProp(int64_t clsId, int64_t actId, FavAPropInfo);
 
 	void DoRemoveClsProp(int64_t clsId, int64_t propId);
 	void DoRemoveObjProp(int64_t clsId, int64_t propId);

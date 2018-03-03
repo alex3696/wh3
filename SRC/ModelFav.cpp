@@ -237,32 +237,72 @@ void ModelFav::DoRefresh()
 //---------------------------------------------------------------------------
 void ModelFav::DoAddClsProp(int64_t clsId, int64_t propId)
 {
-
+	TEST_FUNC_TIME;
+	try
+	{
+		whDataMgr::GetDB().BeginTransaction();
+		wxLongLong cid(clsId);
+		wxLongLong pid(propId);
+		wxString query = wxString::Format(
+			"INSERT INTO fav_cprop(cid, pid) VALUES (%s,%s) "
+			, cid.ToString()
+			, pid.ToString()
+		);
+		auto res = whDataMgr::GetDB().Exec(query, false);
+		whDataMgr::GetDB().Commit();
+		DoRefresh();
+	}
+	catch (...)
+	{
+		whDataMgr::GetDB().RollBack();
+	}
 }
 //---------------------------------------------------------------------------
 void ModelFav::DoAddObjProp(int64_t clsId, int64_t propId)
 {
-
+	TEST_FUNC_TIME;
+	try
+	{
+		whDataMgr::GetDB().BeginTransaction();
+		wxLongLong cid(clsId);
+		wxLongLong pid(propId);
+		wxString query = wxString::Format(
+			"INSERT INTO fav_oprop(cid, pid) VALUES (%s,%s) "
+			, cid.ToString()
+			, pid.ToString()
+		);
+		auto res = whDataMgr::GetDB().Exec(query, false);
+		whDataMgr::GetDB().Commit();
+		DoRefresh();
+	}
+	catch (...)
+	{
+		whDataMgr::GetDB().RollBack();
+	}
 }
 //---------------------------------------------------------------------------
-void ModelFav::DoAddPrevios(int64_t clsId, int64_t actId)
+void ModelFav::DoAddActProp(int64_t clsId, int64_t actId, FavAPropInfo info)
 {
-
-}
-//---------------------------------------------------------------------------
-void ModelFav::DoAddPeriod(int64_t clsId, int64_t actId)
-{
-
-}
-//---------------------------------------------------------------------------
-void ModelFav::DoAddNext(int64_t clsId, int64_t actId)
-{
-
-}
-//---------------------------------------------------------------------------
-void ModelFav::DoAddLeft(int64_t clsId, int64_t actId)
-{
-
+	TEST_FUNC_TIME;
+	try
+	{
+		whDataMgr::GetDB().BeginTransaction();
+		wxLongLong cid(clsId);
+		wxLongLong aid(actId);
+		wxString query = wxString::Format(
+			"INSERT INTO fav_act(cid, aid, info) VALUES (%s,%s,%d) "
+			, cid.ToString()
+			, aid.ToString()
+			, FavAPropInfo2Int(info)
+		);
+		auto res = whDataMgr::GetDB().Exec(query, false);
+		whDataMgr::GetDB().Commit();
+		DoRefresh();
+	}
+	catch (...)
+	{
+		whDataMgr::GetDB().RollBack();
+	}
 }
 //---------------------------------------------------------------------------
 void ModelFav::DoRemoveClsProp(int64_t clsId, int64_t propId)
@@ -319,7 +359,29 @@ void ModelFav::DoRemoveObjProp(int64_t clsId, int64_t propId)
 //---------------------------------------------------------------------------
 void ModelFav::DoRemoveActProp(int64_t clsId, int64_t actId, FavAPropInfo info)
 {
+	TEST_FUNC_TIME;
+	try
+	{
+		whDataMgr::GetDB().BeginTransaction();
+		wxLongLong cid(clsId);
+		wxLongLong aid(actId);
 
+		wxString query = wxString::Format(
+			"DELETE FROM fav_act "
+			" WHERE usr=CURRENT_USER AND cid=%s AND aid=%s AND info=%d"
+			, cid.ToString()
+			, aid.ToString()
+			, FavAPropInfo2Int(info)
+		);
+
+		auto res = whDataMgr::GetDB().Exec(query, false);
+		whDataMgr::GetDB().Commit();
+		DoRefresh();
+	}
+	catch (...)
+	{
+		whDataMgr::GetDB().RollBack();
+	}
 }
 //---------------------------------------------------------------------------
 //virtual 

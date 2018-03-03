@@ -434,42 +434,81 @@ void ViewFav::SetAfterUpdate(const std::vector<const ICls64*>& cls_branch, const
 		if (col)
 			col->SetWidth(mTable->GetBestColumnWidth(i));
 	}
+
+	auto top_item = mTable->GetTopItem();
+	if (top_item.IsOk())
+		mTable->Select(top_item);
+
+}
+//-----------------------------------------------------------------------------
+const ICls64* ViewFav::GetSelectedItemCls()const
+{
+	auto dvmodel = dynamic_cast<wxDVModel*>(mTable->GetModel());
+	if (!dvmodel)
+		return nullptr;
+
+	wxDataViewItem item = mTable->GetCurrentItem();
+	const IObject* ident = static_cast<const IObject *> (item.GetID());
+	if (!ident)
+		return nullptr;
+
+	auto cls = dynamic_cast<const ICls64*>(ident);
+	if (!cls)
+	{
+		auto parent = dvmodel->GetParent(item);
+		if (!parent.IsOk())
+			return nullptr;
+		cls = static_cast<const ICls64*>(parent.GetID());
+	}
+	return cls;
 }
 //-----------------------------------------------------------------------------
 void ViewFav::OnCmd_AddClsProp(wxCommandEvent& evt )
 {
-
+	const auto cls = GetSelectedItemCls();
+	if (cls)
+		sigAddClsProp(cls->GetId() );
 }
 //-----------------------------------------------------------------------------
 void ViewFav::OnCmd_AddObjProp(wxCommandEvent& evt )
 {
-
+	const auto cls = GetSelectedItemCls();
+	if (cls)
+		sigAddObjProp(cls->GetId());
 }
 //-----------------------------------------------------------------------------
 void ViewFav::OnCmd_AddPrevios(wxCommandEvent& evt )
 {
-
+	const auto cls = GetSelectedItemCls();
+	if (cls)
+		sigAddActProp(cls->GetId(), FavAPropInfo::PreviosDate);
 }
 //-----------------------------------------------------------------------------
 void ViewFav::OnCmd_AddPeriod(wxCommandEvent& evt )
 {
-
+	const auto cls = GetSelectedItemCls();
+	if (cls)
+		sigAddActProp(cls->GetId(), FavAPropInfo::PeriodDay);
 }
 //-----------------------------------------------------------------------------
 void ViewFav::OnCmd_AddNext(wxCommandEvent& evt )
 {
-
+	const auto cls = GetSelectedItemCls();
+	if (cls)
+		sigAddActProp(cls->GetId(), FavAPropInfo::NextDate);
 }
 //-----------------------------------------------------------------------------
 void ViewFav::OnCmd_AddLeft(wxCommandEvent& evt )
 {
-
+	const auto cls = GetSelectedItemCls();
+	if (cls)
+		sigAddActProp(cls->GetId(), FavAPropInfo::LeftDay);
 }
 //-----------------------------------------------------------------------------
 void ViewFav::OnCmd_Remove(wxCommandEvent & evt)
 {
 	wxDataViewItem item = mTable->GetCurrentItem();
-	const IIdent64* ident = static_cast<const IIdent64*> (item.GetID());
+	const IObject* ident = static_cast<const IObject *> (item.GetID());
 	if (!ident)
 		return;
 

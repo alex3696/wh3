@@ -1,6 +1,9 @@
 #include "_pch.h"
 #include "CtrlFav.h"
 #include "CtrlHelp.h"
+
+#include "DClsPropEditor.h"
+#include "DClsActEditor.h"
 using namespace wh;
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -21,17 +24,11 @@ CtrlFav::CtrlFav(
 		.connect(std::bind(&CtrlFav::Refresh, this));
 
 	connViewCmd_AddClsProp = mView->sigAddClsProp
-		.connect(std::bind(&CtrlFav::AddClsProp, this, ph::_1, ph::_2));
+		.connect(std::bind(&CtrlFav::AddClsProp, this, ph::_1));
 	connViewCmd_AddObjProp = mView->sigAddObjProp
-		.connect(std::bind(&CtrlFav::AddClsProp, this, ph::_1, ph::_2));
-	connViewCmd_AddPrevios = mView->sigAddPrevios
-		.connect(std::bind(&CtrlFav::AddClsProp, this, ph::_1, ph::_2));
-	connViewCmd_AddPeriod = mView->sigAddPeriod
-		.connect(std::bind(&CtrlFav::AddClsProp, this, ph::_1, ph::_2));
-	connViewCmd_AddNext = mView->sigAddNext
-		.connect(std::bind(&CtrlFav::AddClsProp, this, ph::_1, ph::_2));
-	connViewCmd_AddLeft = mView->sigAddLeft
-		.connect(std::bind(&CtrlFav::AddClsProp, this, ph::_1, ph::_2));
+		.connect(std::bind(&CtrlFav::AddObjProp, this, ph::_1));
+	connViewCmd_AddActProp = mView->sigAddActProp
+		.connect(std::bind(&CtrlFav::AddActProp, this, ph::_1, ph::_2));
 
 	connViewCmd_RemoveClsProp = mView->sigRemoveClsProp
 		.connect(std::bind(&CtrlFav::RemoveClsProp, this, ph::_1, ph::_2));
@@ -56,34 +53,81 @@ void CtrlFav::Refresh()
 	mModel->DoRefresh();
 }
 //---------------------------------------------------------------------------
-void CtrlFav::AddClsProp(int64_t clsId, int64_t propId)
+void CtrlFav::AddClsProp(int64_t clsId)
 {
-	mModel->DoAddClsProp(clsId, propId);
+	std::shared_ptr<MPropArray> mPropArray;
+	mPropArray.reset(new MPropArray);
+	mPropArray->Load();
+
+	view::DPropSelector dlg(nullptr);
+	dlg.SetSrcVec(mPropArray);
+	if (wxID_OK == dlg.ShowModal())
+	{
+		wxDataViewItemArray selected;
+		dlg.GetSelections(selected);
+		if (!selected.empty())
+		{
+			unsigned int row = dlg.GetRow(selected[0]);
+			auto childModel = mPropArray->GetChild(row);
+			auto propModel = std::dynamic_pointer_cast<MPropChild>(childModel);
+			const auto& propData = propModel->GetData();
+
+			int64_t propId = propData.mId;
+			mModel->DoAddClsProp(clsId, propId);
+		}
+	}
 }
 //---------------------------------------------------------------------------
-void CtrlFav::AddObjProp(int64_t clsId, int64_t propId)
+void CtrlFav::AddObjProp(int64_t clsId)
 {
-	mModel->DoAddObjProp(clsId, propId);
+	std::shared_ptr<MPropArray> mPropArray;
+	mPropArray.reset(new MPropArray);
+	mPropArray->Load();
+
+	view::DPropSelector dlg(nullptr);
+	dlg.SetSrcVec(mPropArray);
+	if (wxID_OK == dlg.ShowModal())
+	{
+		wxDataViewItemArray selected;
+		dlg.GetSelections(selected);
+		if (!selected.empty())
+		{
+			unsigned int row = dlg.GetRow(selected[0]);
+			auto childModel = mPropArray->GetChild(row);
+			auto propModel = std::dynamic_pointer_cast<MPropChild>(childModel);
+			const auto& propData = propModel->GetData();
+
+			int64_t propId = propData.mId;
+			mModel->DoAddObjProp(clsId, propId);
+		}
+	}
 }
 //---------------------------------------------------------------------------
-void CtrlFav::AddPrevios(int64_t clsId, int64_t actId)
+void CtrlFav::AddActProp(int64_t clsId, FavAPropInfo info)
 {
-	mModel->DoAddPrevios(clsId, actId);
-}
-//---------------------------------------------------------------------------
-void CtrlFav::AddPeriod(int64_t clsId, int64_t actId)
-{
-	mModel->DoAddPeriod(clsId, actId);
-}
-//---------------------------------------------------------------------------
-void CtrlFav::AddNext(int64_t clsId, int64_t actId)
-{
-	mModel->DoAddNext(clsId, actId);
-}
-//---------------------------------------------------------------------------
-void CtrlFav::AddLeft(int64_t clsId, int64_t actId)
-{
-	mModel->DoAddLeft(clsId, actId);
+	auto mActArray = std::make_shared<MActArray>();
+	mActArray->Load();
+
+	view::DActSelector dlg(nullptr);
+	dlg.SetSrcVec(mActArray);
+	if (wxID_OK == dlg.ShowModal())
+	{
+		wxDataViewItemArray selected;
+		dlg.GetSelections(selected);
+		if (!selected.empty())
+		{
+			unsigned int row = dlg.GetRow(selected[0]);
+			auto childModel = mActArray->GetChild(row);
+			auto actModel = std::dynamic_pointer_cast<MAct>(childModel);
+			const auto& actData = actModel->GetData();
+			long val = 0;
+			if (actData.mID.ToLong(&val))
+			{
+				int64_t actId = val;
+				mModel->DoAddActProp(clsId, actId, info);
+			}
+		}
+	}
 }
 //---------------------------------------------------------------------------
 void CtrlFav::RemoveClsProp(int64_t clsId, int64_t propId)

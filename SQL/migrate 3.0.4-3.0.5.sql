@@ -250,10 +250,8 @@ SELECT
 		INNER JOIN cls_tree ON fav_act.cid = cls_tree.id 
                            AND usr = CURRENT_USER AND info BETWEEN 10 AND 20 
         GROUP BY aid, info) 
-	, fav_act_info(val)  AS( 
-        SELECT 
-        jsonb_build_object('fav_act',jsonb_build_object( 
-						  fav_distinct.aid 
+	, fav_period(aid,val)  AS( 
+        SELECT fav_distinct.aid 
 						, jsonb_object_agg( 
 							info 
 							, CASE info 
@@ -261,12 +259,15 @@ SELECT
 								WHEN 12 THEN EXTRACT(EPOCH FROM period)::TEXT 
 								WHEN 13 THEN ROUND((EXTRACT(EPOCH FROM period) / 86400)::NUMERIC, 2)::TEXT 
 							ELSE '' END 
-							)) 
 					)
 		FROM ref_cls_act 
 		INNER JOIN fav_distinct ON ref_cls_act.period IS NOT NULL AND fav_distinct.aid = ref_cls_act.act_id 
 		INNER JOIN cls_tree ct ON  ref_cls_act.cls_id = ct.id 
 		GROUP BY fav_distinct.aid )
+    , fav_act_info AS(
+    SELECT  jsonb_build_object('fav_act', jsonb_object_agg(aid,val)) AS val
+        FROM fav_period
+    )
     , fav_prop_info(val) AS(
         SELECT jsonb_build_object('fav_cprop',jsonb_object_agg( fav_cprop.pid ,prop_cls.val))
         FROM fav_cprop

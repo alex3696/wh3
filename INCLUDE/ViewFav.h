@@ -10,6 +10,8 @@ class ViewFav : public IViewFav
 	wxDialog*		mPanel;
 	wxAuiToolBar*	mToolBar;
 	wxDataViewCtrl* mTable;
+
+	const ICls64* GetSelectedItemCls()const;
 protected:
 	void OnCmd_AddClsProp(wxCommandEvent& evt = wxCommandEvent());
 	void OnCmd_AddObjProp(wxCommandEvent& evt = wxCommandEvent());
