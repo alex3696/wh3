@@ -132,20 +132,11 @@ void CtrlTableBrowser::Move(int64_t oid, int64_t parent_oid)
 	TEST_FUNC_TIME;
 	try
 	{
-		wxBusyCursor busyCursor;
-
-		rec::PathItem data;
-		data.mObj.mId = oid;
-		data.mObj.mParent.mId = parent_oid;
-		std::shared_ptr<rec::PathItem> mov_obj = std::make_shared<rec::PathItem>(data);
-
 		auto ctrl = whDataMgr::GetInstance()->mContainer;
-		ctrl->RegInstance("MoveableObj", mov_obj);
-
 		auto presenter = ctrl->GetObject<MoveObjPresenter>("MoveObjPresenter");
 		if (!presenter)
 			return;
-
+		presenter->SetMoveable(oid, parent_oid);
 		presenter->OnViewUpdate();
 		presenter->ShowDialog();
 	}

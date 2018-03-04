@@ -34,12 +34,11 @@ const ObjStore::iterator Moveable::FindObj(const wxString& str)const
 //-----------------------------------------------------------------------------
 void Moveable::Load()
 {
-	{
-		auto p0 = GetTickCount();
-		mDst.Clear();
-		mRecent.Clear();
-		wxLogMessage(wxString::Format("MoveObjModel:\t%d\t clear results", GetTickCount() - p0));
-	}
+	TEST_FUNC_TIME;
+	wxBusyCursor busyCursor;
+	mDst.Clear();
+	mRecent.Clear();
+	
 	const auto& global_recent = whDataMgr::GetInstance()->mRecentDstOidPresenter;
 
 	wxString query = wxString::Format(
@@ -55,11 +54,7 @@ void Moveable::Load()
 		);
 
 	whDataMgr::GetDB().BeginTransaction();
-	
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
-
-	auto p0 = GetTickCount();
-	
 	if (table)
 	{
 		wxString cid;
@@ -97,8 +92,6 @@ void Moveable::Load()
 
 	whDataMgr::GetDB().Commit();
 	mLock = true;
-
-	wxLogMessage(wxString::Format("MoveObjModel:\t%d\t download results", GetTickCount() - p0));
 }
 //-----------------------------------------------------------------------------
 void Moveable::Unlock()
@@ -158,4 +151,50 @@ void Moveable::SetRecentEnable(bool enable)
 {
 	char i = enable ? 1 : 0;
 	whDataMgr::GetInstance()->mRecentDstOidPresenter->SetRecentEnable(i);
+}
+//-----------------------------------------------------------------------------
+void Moveable::SetMoveable(int64_t oid, int64_t parent_oid)
+{
+	TEST_FUNC_TIME;
+	wxLongLong oid_ll(oid);
+	wxLongLong parent_oid_ll(parent_oid);
+
+	wxString query = wxString::Format(
+		"SELECT obj.id, obj.title, obj.qty, obj.pid "
+		" , acls.id, acls.title, acls.kind, acls.measure, acls.pid "
+		" FROM obj "
+		" LEFT JOIN acls ON acls.id = cls_id AND acls.kind=cls_kind"
+		" WHERE obj.id = %s AND obj.pid = %s "
+		, oid_ll.ToString()
+		, parent_oid_ll.ToString()
+	);
+	whDataMgr::GetDB().BeginTransaction();
+	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+	if (table)
+	{
+		unsigned int rowQty = table->GetRowCount();
+		if (rowQty)
+		{
+			constexpr unsigned int row = 0;
+			rec::PathItem movable;
+			movable.mObj.mId		= table->GetAsString(0, row);
+			movable.mObj.mLabel		= table->GetAsString(1, row);
+			movable.mObj.mQty		= table->GetAsString(2, row);
+			movable.mObj.mParent.mId= table->GetAsString(3, row);
+
+			movable.mCls.mId		= table->GetAsString(4, row);
+			movable.mCls.mLabel		= table->GetAsString(5, row);
+			movable.mCls.mType		= table->GetAsString(6, row);
+			movable.mCls.mMeasure	= table->GetAsString(7, row);
+			movable.mCls.mParent.mId= table->GetAsString(8, row);
+
+			SetMoveable(movable);
+		}// if (rowQty)
+	}//if (table)
+	whDataMgr::GetDB().Commit();
+}
+//-----------------------------------------------------------------------------
+inline void Moveable::SetMoveable(const rec::PathItem& movable)
+{
+	mMoveble.SetData(movable);
 }

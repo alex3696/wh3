@@ -240,7 +240,6 @@ void ModelFav::DoAddClsProp(int64_t clsId, int64_t propId)
 	TEST_FUNC_TIME;
 	try
 	{
-		whDataMgr::GetDB().BeginTransaction();
 		wxLongLong cid(clsId);
 		wxLongLong pid(propId);
 		wxString query = wxString::Format(
@@ -248,6 +247,7 @@ void ModelFav::DoAddClsProp(int64_t clsId, int64_t propId)
 			, cid.ToString()
 			, pid.ToString()
 		);
+		whDataMgr::GetDB().BeginTransaction();
 		auto res = whDataMgr::GetDB().Exec(query, false);
 		whDataMgr::GetDB().Commit();
 		DoRefresh();
@@ -263,7 +263,6 @@ void ModelFav::DoAddObjProp(int64_t clsId, int64_t propId)
 	TEST_FUNC_TIME;
 	try
 	{
-		whDataMgr::GetDB().BeginTransaction();
 		wxLongLong cid(clsId);
 		wxLongLong pid(propId);
 		wxString query = wxString::Format(
@@ -271,6 +270,7 @@ void ModelFav::DoAddObjProp(int64_t clsId, int64_t propId)
 			, cid.ToString()
 			, pid.ToString()
 		);
+		whDataMgr::GetDB().BeginTransaction();
 		auto res = whDataMgr::GetDB().Exec(query, false);
 		whDataMgr::GetDB().Commit();
 		DoRefresh();
@@ -286,7 +286,6 @@ void ModelFav::DoAddActProp(int64_t clsId, int64_t actId, FavAPropInfo info)
 	TEST_FUNC_TIME;
 	try
 	{
-		whDataMgr::GetDB().BeginTransaction();
 		wxLongLong cid(clsId);
 		wxLongLong aid(actId);
 		wxString query = wxString::Format(
@@ -295,6 +294,7 @@ void ModelFav::DoAddActProp(int64_t clsId, int64_t actId, FavAPropInfo info)
 			, aid.ToString()
 			, FavAPropInfo2Int(info)
 		);
+		whDataMgr::GetDB().BeginTransaction();
 		auto res = whDataMgr::GetDB().Exec(query, false);
 		whDataMgr::GetDB().Commit();
 		DoRefresh();
@@ -310,17 +310,15 @@ void ModelFav::DoRemoveClsProp(int64_t clsId, int64_t propId)
 	TEST_FUNC_TIME;
 	try
 	{
-		whDataMgr::GetDB().BeginTransaction();
 		wxLongLong cid(clsId);
 		wxLongLong pid(propId);
-
 		wxString query = wxString::Format(
 			"DELETE FROM fav_cprop "
 			" WHERE usr=CURRENT_USER AND cid=%s AND pid=%s"
 			, cid.ToString()
 			, pid.ToString()
 		);
-
+		whDataMgr::GetDB().BeginTransaction();
 		auto res = whDataMgr::GetDB().Exec(query, false);
 		whDataMgr::GetDB().Commit();
 		DoRefresh();
@@ -336,17 +334,15 @@ void ModelFav::DoRemoveObjProp(int64_t clsId, int64_t propId)
 	TEST_FUNC_TIME;
 	try
 	{
-		whDataMgr::GetDB().BeginTransaction();
 		wxLongLong cid(clsId);
 		wxLongLong pid(propId);
-
 		wxString query = wxString::Format(
 			"DELETE FROM fav_oprop "
 			" WHERE usr=CURRENT_USER AND cid=%s AND pid=%s"
 			, cid.ToString()
 			, pid.ToString()
 		);
-
+		whDataMgr::GetDB().BeginTransaction();
 		auto res = whDataMgr::GetDB().Exec(query, false);
 		whDataMgr::GetDB().Commit();
 		DoRefresh();
@@ -362,10 +358,8 @@ void ModelFav::DoRemoveActProp(int64_t clsId, int64_t actId, FavAPropInfo info)
 	TEST_FUNC_TIME;
 	try
 	{
-		whDataMgr::GetDB().BeginTransaction();
 		wxLongLong cid(clsId);
 		wxLongLong aid(actId);
-
 		wxString query = wxString::Format(
 			"DELETE FROM fav_act "
 			" WHERE usr=CURRENT_USER AND cid=%s AND aid=%s AND info=%d"
@@ -373,7 +367,7 @@ void ModelFav::DoRemoveActProp(int64_t clsId, int64_t actId, FavAPropInfo info)
 			, aid.ToString()
 			, FavAPropInfo2Int(info)
 		);
-
+		whDataMgr::GetDB().BeginTransaction();
 		auto res = whDataMgr::GetDB().Exec(query, false);
 		whDataMgr::GetDB().Commit();
 		DoRefresh();

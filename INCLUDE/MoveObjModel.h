@@ -136,21 +136,11 @@ public:
 		return mDst;
 	}
 
-	inline void SetMoveable(const rec::PathItem& moveable)
-	{ 
-		mMoveble.SetData(moveable);
-	}
+	void SetMoveable(int64_t oid, int64_t parent_oid);
+	void SetMoveable(const rec::PathItem& moveable);
 	inline const rec::PathItem& GetMoveable()const	{ return mMoveble.GetData(); }
 
-
-	
-	
-
-	
-	
-
 	const ObjStore::iterator FindObj(const wxString& str)const;
-
 	
 	void Load();
 	void Move(const wxString& oid, const wxString& qty);

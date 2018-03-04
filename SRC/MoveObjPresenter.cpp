@@ -57,6 +57,16 @@ void MoveObjPresenter::SetView(IMoveObjView* view)
 	}
 }
 //-----------------------------------------------------------------------------
+void MoveObjPresenter::SetMoveable(const rec::PathItem& moveable)
+{
+	mModel->SetMoveable(moveable); 
+}
+//-----------------------------------------------------------------------------
+void MoveObjPresenter::SetMoveable(int64_t oid, int64_t parent_oid)
+{
+	mModel->SetMoveable(oid, parent_oid);
+}
+//-----------------------------------------------------------------------------
 void MoveObjPresenter::ShowDialog()
 {
 	if (mView)

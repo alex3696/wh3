@@ -21,9 +21,11 @@ public:
 	void OnViewEnableRecent(bool enable);
 	void OnViewFindObj(const wxString& ss);
 	void OnViewClose();
+	void SetMoveable(int64_t oid, int64_t parent_oid);
 private:
 	void SetView(IMoveObjView* view);
-	void SetMoveable(const rec::PathItem& moveable){ mModel->SetMoveable(moveable); }
+	void SetMoveable(const rec::PathItem& moveable);
+
 
 	std::unique_ptr<Moveable>	mModel = std::make_unique<Moveable>();
 	IMoveObjView*				mView = nullptr;
