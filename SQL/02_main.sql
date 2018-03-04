@@ -523,7 +523,7 @@ DROP TABLE IF EXISTS obj_num CASCADE;
 CREATE TABLE obj_num (
   id         BIGINT  NOT NULL  CHECK (  (id=0 AND pid=0) OR( id>0 AND id<>pid ))
  ,cls_id     BIGINT  NOT NULL 
- ,cls_kind   BIGINT  NOT NULL DEFAULT 1 CHECK (cls_kind=1)
+ ,cls_kind   SMALLINT NOT NULL DEFAULT 1 CHECK (cls_kind=1)
  ,pid        BIGINT  NOT NULL DEFAULT 1 
      REFERENCES obj_num( id )       MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
 
@@ -549,7 +549,7 @@ DROP TABLE IF EXISTS obj_qtyi CASCADE;
 CREATE TABLE obj_qtyi (
   id         BIGINT  NOT NULL 
  ,cls_id     BIGINT  NOT NULL
- ,cls_kind   BIGINT  NOT NULL DEFAULT 2 CHECK (cls_kind=2)
+ ,cls_kind   SMALLINT NOT NULL DEFAULT 2 CHECK (cls_kind=2)
  ,pid        BIGINT        NOT NULL CHECK(pid>0) DEFAULT 1 
       REFERENCES obj_num( id )       MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
  ,qty        NUMERIC(20,0) NOT NULL CHECK (qty>=0)
@@ -575,7 +575,7 @@ DROP TABLE IF EXISTS obj_qtyf CASCADE;
 CREATE TABLE obj_qtyf (
   id         BIGINT  NOT NULL 
  ,cls_id     BIGINT  NOT NULL 
- ,cls_kind   BIGINT  NOT NULL DEFAULT 3 CHECK (cls_kind=3)
+ ,cls_kind   SMALLINT NOT NULL DEFAULT 3 CHECK (cls_kind=3)
  ,pid        BIGINT        NOT NULL CHECK(pid>0) DEFAULT 1 
       REFERENCES obj_num( id )       MATCH FULL ON UPDATE CASCADE ON DELETE SET DEFAULT
  ,qty        NUMERIC NOT NULL CHECK (qty>=0)
@@ -733,15 +733,15 @@ GRANT DELETE,INSERT,UPDATE  ON TABLE report TO "TypeDesigner";
 ---------------------------------------------------------------------------------------------------
 DROP VIEW IF EXISTS obj CASCADE;
 CREATE OR REPLACE VIEW obj AS
-SELECT id, pid, title, cdif.cls_id, prop, qty, move_logid, act_logid,cdif.cls_kind::smallint FROM
-(
+SELECT id, pid, title, cdif.cls_id, prop, qty, move_logid, act_logid, cdif.cls_kind 
+FROM obj_name
+LEFT JOIN (
 SELECT id, pid,1::NUMERIC AS qty,cls_id,cls_kind FROM obj_num
 UNION ALL
 SELECT id, pid, qty,cls_id,cls_kind FROM obj_qtyi
 UNION ALL
 SELECT id, pid, qty,cls_id,cls_kind FROM obj_qtyf
-) cdif
-LEFT JOIN obj_name USING (id);
+) cdif USING (id);
 
 GRANT SELECT        ON obj  TO "Guest";
 GRANT INSERT        ON obj  TO "User";
