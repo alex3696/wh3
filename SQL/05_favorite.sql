@@ -1,3 +1,7 @@
+SET default_transaction_isolation =serializable;
+BEGIN TRANSACTION;
+SET client_min_messages = 'warning';
+SHOW client_min_messages;
 -------------------------------------------------------------------------------
 ------ избранные свойства для действий ----------------------------------------
 -------------------------------------------------------------------------------
@@ -80,8 +84,8 @@ GRANT SELECT, INSERT, DELETE, UPDATE ON TABLE fav_cprop TO "Guest";
 -------------------------------------------------------------------------------
 ------ избранные свойства для обьектов  ----------------------------------------
 -------------------------------------------------------------------------------
-DROP VIEW IF EXISTS obj_current_info;
-CREATE OR REPLACE VIEW  obj_current_info AS 
+DROP VIEW IF EXISTS obj_fav_info;
+CREATE OR REPLACE VIEW  obj_fav_info AS 
   SELECT 
      obj.id
     ,obj.pid
@@ -185,13 +189,13 @@ CREATE OR REPLACE VIEW  obj_current_info AS
  ) AS fav_prop_info
 
 FROM obj;
-GRANT SELECT ON TABLE obj_current_info TO "Guest";
+GRANT SELECT ON TABLE obj_fav_info TO "Guest";
 --SELECT * FROM obj_current_info WHERE cls_id=191;
 -------------------------------------------------------------------------------
 ------ избранные свойства для классов  ----------------------------------------
 -------------------------------------------------------------------------------
-DROP VIEW IF EXISTS cls;
-CREATE OR REPLACE VIEW cls AS 
+DROP VIEW IF EXISTS cls_fav_info;
+CREATE OR REPLACE VIEW cls_fav_info AS 
 
 SELECT  
     acls.* 
@@ -235,82 +239,5 @@ SELECT
     ) AS fav_prop_info
 FROM acls
 WHERE acls.id > 99 ;
-
---SELECT * FROM cls 
---WHERE pid = 115
---ORDER BY (substring(title, '^[0-9]{1,9}')::INT, title ) ASC 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-REVOKE DELETE ON TABLE acls FROM  "Admin";
-GRANT DELETE  ON acls TO "TypeDesigner";
-
-ALTER TABLE obj_num ALTER COLUMN cls_kind SET DATA TYPE  SMALLint;
-ALTER TABLE obj_qtyi ALTER COLUMN cls_kind SET DATA TYPE  SMALLint;
-ALTER TABLE obj_qtyf ALTER COLUMN cls_kind SET DATA TYPE  SMALLint;
-
-DROP VIEW IF EXISTS obj CASCADE;
-CREATE OR REPLACE VIEW obj AS
-SELECT id, pid, title, cdif.cls_id, prop, qty, move_logid, act_logid,cdif.cls_kind 
-FROM obj_name
-LEFT JOIN (
-SELECT id, pid,1::NUMERIC AS qty,cls_id,cls_kind FROM obj_num
-UNION ALL
-SELECT id, pid, qty,cls_id,cls_kind FROM obj_qtyi
-UNION ALL
-SELECT id, pid, qty,cls_id,cls_kind FROM obj_qtyf
-) cdif USING (id);
-GRANT SELECT        ON obj  TO "Guest";
-GRANT INSERT        ON obj  TO "User";
-GRANT DELETE        ON obj  TO "User";
-GRANT UPDATE        ON obj  TO "User";
-
-
-
-
---ALTER TABLE fav_act ENABLE ROW LEVEL SECURITY;
---CREATE POLICY fav_act ON fav_act USING (usr = current_user);
---SET enable_seqscan = OFF;
---SET enable_seqscan = ON;
-
-
-INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 01);
-INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 02);
-INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 03);
-INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 11);
-INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 12);
-INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 13);
-INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 21);
-INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 22);
-INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 23);
-INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 31);
-INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 32);
-INSERT INTO fav_act(usr, cid, aid, info)VALUES('postgres', '101', '105', 33);
-
-
-INSERT INTO fav_act(usr, cid, aid, info)VALUES('a.savinov', '101', '105', 03);
-INSERT INTO fav_act(usr, cid, aid, info)VALUES('a.savinov', '101', '105', 11);
-INSERT INTO fav_act(usr, cid, aid, info)VALUES('a.savinov', '101', '105', 12);
-
-
-INSERT INTO fav_oprop(usr, cid, pid)VALUES('postgres', '108', '104');
-INSERT INTO fav_oprop(usr, cid, pid)VALUES('postgres', '108', '108');
-
-INSERT INTO fav_cprop(usr, cid, pid)VALUES('postgres', '101', '100');
-INSERT INTO fav_cprop(usr, cid, pid)VALUES('postgres', '101', '108');
+GRANT SELECT ON TABLE cls_fav_info TO "Guest";
+COMMIT TRANSACTION;

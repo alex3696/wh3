@@ -129,7 +129,7 @@ RETURN QUERY
      SELECT  * FROM parents WHERE NOT parents.CYCLE;
 
 END; 
-$BODY$ LANGUAGE plpgsql STABLE  COST 100 ROWS 1000;
+$BODY$ LANGUAGE plpgsql STABLE  COST 100 ROWS 100;
 GRANT EXECUTE ON FUNCTION get_path_cls_info(BIGINT,BIGINT) TO "Guest";
 SELECT * FROM get_path_cls_info(150);
 SELECT * FROM get_path_cls_info(150,0);

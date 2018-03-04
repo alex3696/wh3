@@ -631,7 +631,7 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 		"SELECT obj.id, obj.title, obj.qty, obj.pid "
 		"       ,get_path_objnum(obj.pid,1)  AS path"
 		"       ,fav_prop_info"
-		" FROM obj_current_info obj "
+		" FROM obj_fav_info obj "
 		" WHERE obj.id>0 AND obj.cls_id = %s "
 		" ORDER BY (substring(obj.title, '^[0-9]{1,9}')::INT, obj.title ) ASC "
 		, cls->GetIdAsString()
@@ -755,10 +755,10 @@ void ModelBrowser::DoRefreshFindInClsTree()
 		" , sum(qty) OVER(PARTITION BY cid ORDER BY cid DESC)  AS allqty "
 		" , oid, parent_oid, otitle, qty "
 		" , get_path_objnum(parent_oid, 1) AS path "
-		" , (SELECT fav_prop_info FROM obj_current_info "
-		"	  WHERE obj_current_info.cls_id = co.cid "
-		"       AND obj_current_info.id = co.oid "
-		" 		LIMIT 1 " //--obj_current_info.pid = co.parent_oid
+		" , (SELECT fav_prop_info FROM obj_fav_info "
+		"	  WHERE obj_fav_info.cls_id = co.cid "
+		"       AND obj_fav_info.id = co.oid "
+		" 		LIMIT 1 " //--obj_fav_info.pid = co.parent_oid
 	    "    ) AS fp "
 		" FROM "
 		" ( "
@@ -903,7 +903,7 @@ void ModelBrowser::DoRefresh()
 		"   FROM obj WHERE obj.cls_id = cls.id GROUP BY cls_id)  AS qty"
 		", pid "
 		", fav_prop_info "
-		" FROM cls"
+		" FROM cls_fav_info cls"
 		" WHERE pid = %s"
 		" ORDER BY (substring(title, '^[0-9]{1,9}')::INT, title ) ASC "
 		, parent_id
