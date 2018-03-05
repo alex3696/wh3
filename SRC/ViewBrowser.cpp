@@ -607,9 +607,12 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	auto dv_model = new wxDVTableBrowser();
 	table->AssociateModel(dv_model);
 	dv_model->DecRef();
-
-	int ch = table->GetCharHeight();
-	table->SetRowHeight(ch * 1.6 );
+	
+	#define ICON_HEIGHT 24+2
+	int row_height = table->GetCharHeight() + 2;// + 1px in bottom and top 
+	if(ICON_HEIGHT > row_height )
+		row_height = ICON_HEIGHT;
+	table->SetRowHeight(row_height);
 	ResetColumns();
 
 	table->GetTargetWindow()->SetToolTip("ToolTip");
@@ -1045,10 +1048,14 @@ void ViewTableBrowser::AutosizeColumns()
 	{
 		auto col_pos = mTable->GetModelColumnIndex(i);
 		auto col = mTable->GetColumn(col_pos);
-		if(col)
-			col->SetWidth(mTable->GetBestColumnWidth(i));
+		if (col)
+		{
+			auto bs = mTable->GetBestColumnWidth(i);
+			if (bs > 300)
+				bs = 300;
+			col->SetWidth(bs);
+		}
 	}
-			
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::ResetColumns()
@@ -1218,7 +1225,7 @@ wxDataViewColumn* ViewTableBrowser::AppendTableColumn(const wxString& title, int
 int ViewTableBrowser::GetTitleWidth(const wxString& title)const
 {
 	const int spw = mTable->GetTextExtent(" ").GetWidth();
-	int hw = mTable->GetTextExtent(title).GetWidth()+ spw*4 + 20;
+	int hw = mTable->GetTextExtent(title).GetWidth()+ spw*4 + 24;
 	if (hw < 80)
 		hw = -1; // default width
 	else if (hw > 300)
@@ -1552,7 +1559,7 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 		| wxAUI_TB_PLAIN_BACKGROUND
 		| wxAUI_TB_TEXT
 		//| wxAUI_TB_HORZ_TEXT
-		//| wxAUI_TB_OVERFLOW
+		| wxAUI_TB_OVERFLOW
 		;
 	auto tool_bar = new wxAuiToolBar(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
 
@@ -1592,9 +1599,8 @@ ViewToolbarBrowser::ViewToolbarBrowser(wxWindow* parent)
 
 		tool_bar->AddTool(wxID_DELETE, "Удалить", mgr->m_ico_delete24, "Удалить (F8)");
 		tool_bar->AddTool(wxID_EDIT, "Редактировать", mgr->m_ico_edit24, "Редактировать (F4)");
-		tool_bar->AddSeparator();
 	}
-
+	tool_bar->AddSeparator();
 	tool_bar->AddTool(wxID_VIEW_LIST, "Группировать", mgr->m_ico_group_by_type24, "Группировать по типу (CTRL+G)");
 	tool_bar->AddTool(wxID_PROPERTIES, "Свойства", mgr->m_ico_favprop_select24, "Выбрать свойства (CTRL+P)");
 	//tool_bar->AddTool(wxID_SETUP, "Настройки", mgr->m_ico_options24
@@ -1722,76 +1728,84 @@ ViewBrowserPage::ViewBrowserPage(wxWindow* parent)
 
 	auto panel = new wxAuiPanel(parent);
 	mAuiMgr = &panel->mAuiMgr;
+	//mAuiMgr->SetFlags(wxAUI_MGR_LIVE_RESIZE);
 	mPanel = panel;
 
 	auto window_colour = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 	auto face_colour = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
 	panel->mAuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, face_colour);
-	panel->mAuiMgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_SASH_SIZE,5);
+	//panel->mAuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_SASH_COLOUR, face_colour);
+	//panel->mAuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_BORDER_COLOUR, face_colour);
+	//panel->mAuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, *wxRED);
+	//panel->mAuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_SASH_COLOUR, *wxGREEN);
+	//panel->mAuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_BORDER_COLOUR, *wxBLUE);
+	//panel->mAuiMgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_SASH_SIZE,2);
 	panel->mAuiMgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
-
-	
-
+	// toolbar
 	mViewToolbarBrowser = std::make_shared<ViewToolbarBrowser>(panel);
 	panel->mAuiMgr.AddPane(mViewToolbarBrowser->GetWnd(), wxAuiPaneInfo().Name(wxT("BrowserToolBar"))
-		.CaptionVisible(false)
-		.Top().Dock().Fixed().Floatable(false).Row(0).Layer(0).ToolbarPane()
-		.Fixed()
-		);
-	
-	long style = wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_PLAIN_BACKGROUND;
-	//auto navigateToolBar = new wxAuiToolBar(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
-	//navigateToolBar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh16, "Обновить(CTRL+R)");
-	//navigateToolBar->AddTool(wxID_UP,"Вверх", mgr->m_ico_sort_asc16, "Вверх(BACKSPACE)");
-	//navigateToolBar->Realize();
-	//panel->mAuiMgr.AddPane(navigateToolBar, wxAuiPaneInfo().Name(wxT("navigateToolBar"))
-	//	.Top().CaptionVisible(false).Dock().Fixed().DockFixed(true)
-	//	.Row(1).Layer(0)
-	//);
-
-	mViewPathBrowser = std::make_shared<ViewPathBrowser>(panel);
-	panel->mAuiMgr.AddPane(mViewPathBrowser->GetWnd(), wxAuiPaneInfo().Name(wxT("PathBrowser"))
-		.Top().CaptionVisible(false).Dock().Resizable()
-		.Row(1).Layer(0)
-	);
-
-	mCtrlFind = new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition,
-									wxDefaultSize, wxTE_PROCESS_ENTER);
-	panel->mAuiMgr.AddPane(mCtrlFind, wxAuiPaneInfo().Name("mCtrlFind")
-		.Top().CaptionVisible(false).Dock().Fixed()
-		.Row(1).Layer(0)
-	);
-
-	auto findToolBar = new wxAuiToolBar(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
-	//auto mCtrlFind = new wxTextCtrl(findToolBar, wxID_ANY);
-	//findToolBar->AddControl(mCtrlFind, "Поиск");
-	findToolBar->AddTool(wxID_FIND, "Поиск", wxArtProvider::GetBitmap(wxART_FIND, wxART_MENU), "Поиск(CTRL+F)");
-	findToolBar->Realize();
-	panel->mAuiMgr.AddPane(findToolBar, wxAuiPaneInfo().Name(wxT("findToolBar"))
-		.Top().CaptionVisible(false).Dock().Fixed().DockFixed(true)
-		.Row(1).Layer(0)
-	);
-
-
+		.CaptionVisible(false).PaneBorder(false)
+		.Top().Dock().Floatable(false).ToolbarPane().Gripper(false) );
+	// path panel
+	auto path_panel = new wxAuiPanel(panel);
+	path_panel->mAuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, face_colour);
+	path_panel->mAuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_SASH_COLOUR, face_colour);
+	// path
+	mViewPathBrowser = std::make_shared<ViewPathBrowser>(path_panel);
+	const auto path_bs = mViewPathBrowser->GetWnd()->GetBestSize();
+	wxAuiPaneInfo path_pi;
+	path_pi.Name(wxT("PathBrowser")).Top().CaptionVisible(false).Dock().PaneBorder(false)
+		.Resizable().MinSize(path_bs).MaxSize(-1,path_bs.GetHeight());
+	path_pi.dock_proportion = 7;
+	path_panel->mAuiMgr.AddPane(mViewPathBrowser->GetWnd(), path_pi);
+	// search
+	mCtrlFind = new wxSearchCtrl(path_panel, wxID_ANY);
+	mCtrlFind->ShowSearchButton(true);
+	mCtrlFind->ShowCancelButton(true);
+	mCtrlFind->SetDescriptiveText("Быстрый поиск");
+	const auto search_bs = mCtrlFind->GetBestSize();
+	wxAuiPaneInfo search_pi;
+	search_pi.Name(wxT("SearchCtrl")).Top().CaptionVisible(false).Dock().PaneBorder(false)
+		.MinSize(search_bs).MaxSize(-1, search_bs.GetHeight());
+	search_pi.dock_proportion = 3;
+	path_panel->mAuiMgr.AddPane(mCtrlFind, search_pi);
+	// path_panel---> panel
+	panel->mAuiMgr.AddPane(path_panel,
+		wxAuiPaneInfo().Name("Splitter").Top().Row(1).CaptionVisible(false).Dock().PaneBorder(false)
+		.Fixed().MinSize(-1, search_bs.GetHeight()).MaxSize(-1, search_bs.GetHeight()));
+	path_panel->mAuiMgr.Update();
+	// table
 	mViewTableBrowser = std::make_shared<ViewTableBrowser>(panel);
 	panel->mAuiMgr.AddPane(mViewTableBrowser->GetWnd(), wxAuiPaneInfo().Name(wxT("TableBrowser"))
-		.CaptionVisible(false)
-		.CenterPane()
-		);
-
-
-
-	mViewTableBrowser->GetWnd()->SetFocus();
+		.Center().CaptionVisible(false).Dock().CentrePane().PaneBorder(false) );
+	//mViewTableBrowser->GetWnd()->SetFocus();
 	panel->mAuiMgr.Update();
 
-
-	mCtrlFind->Bind(wxEVT_COMMAND_TEXT_ENTER, &ViewBrowserPage::OnCmd_Find, this);
-	panel->Bind(wxEVT_COMMAND_MENU_SELECTED, &ViewBrowserPage::OnCmd_Find, this, wxID_FIND);
+	mCtrlFind->Bind(wxEVT_SEARCH, &ViewBrowserPage::OnCmd_Find, this);
+	mCtrlFind->Bind(wxEVT_SEARCH_CANCEL
+		, [this](wxCommandEvent& event) 
+		{
+			sigFind(wxEmptyString);
+		});
 }
 //-----------------------------------------------------------------------------
 void ViewBrowserPage::OnCmd_Find(wxCommandEvent& evt)
 {
-	sigFind(mCtrlFind->GetValue());
+	auto obj = evt.GetEventObject();
+	wxString ss;
+	wxTextCtrl* txtCtrl = wxDynamicCast(obj, wxTextCtrl);
+	if (txtCtrl)
+		ss = txtCtrl->GetValue();
+	else
+	{
+		wxSearchCtrl* txtCtrl = wxDynamicCast(obj, wxSearchCtrl);
+		if (txtCtrl)
+			ss = txtCtrl->GetValue();
+
+	}
+		
+	if(!ss.empty())
+		sigFind(ss);
 }
 //-----------------------------------------------------------------------------
 //virtual 

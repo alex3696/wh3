@@ -166,7 +166,7 @@ class ViewBrowserPage : public IViewBrowserPage
 	std::shared_ptr<IViewTableBrowser>		mViewTableBrowser;
 	
 
-	wxTextCtrl* mCtrlFind;
+	wxSearchCtrl* mCtrlFind;
 	void OnCmd_Find(wxCommandEvent& evt = wxCommandEvent());
 protected:
 	virtual void SetShow()override

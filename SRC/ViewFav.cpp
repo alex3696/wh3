@@ -296,7 +296,7 @@ ViewFav::ViewFav(wxWindow* parent)
 
 	mPanel = new wxDialog(parent, wxID_ANY, "Favorite attribute"
 		, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
-
+	
 	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
 	mPanel->SetSizer(szrMain);
 
@@ -304,7 +304,7 @@ ViewFav::ViewFav(wxWindow* parent)
 		| wxAUI_TB_PLAIN_BACKGROUND
 		| wxAUI_TB_TEXT
 		//| wxAUI_TB_HORZ_TEXT
-		//| wxAUI_TB_OVERFLOW
+		| wxAUI_TB_OVERFLOW
 		;
 	mToolBar = new wxAuiToolBar(mPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
 	mToolBar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh24, "Обновить (CTRL+R или CTRL+F5)");
@@ -321,12 +321,12 @@ ViewFav::ViewFav(wxWindow* parent)
 		wxAuiToolBar* tb = static_cast<wxAuiToolBar*>(evt.GetEventObject());
 		tb->SetToolSticky(evt.GetId(), true);
 		wxMenu add_menu;
-		AppendBitmapMenu(&add_menu, wxID_FILE1, "свойство типа", mgr->m_ico_type24);
+		AppendBitmapMenu(&add_menu, wxID_FILE1, "свойство типа", mgr->m_ico_folder_type24 );
 		AppendBitmapMenu(&add_menu, wxID_FILE2, "свойство объекта", mgr->m_ico_obj24);
-		AppendBitmapMenu(&add_menu, wxID_FILE3, "дату предыдущего действия", mgr->m_ico_acts24);
-		AppendBitmapMenu(&add_menu, wxID_FILE4, "период действия", mgr->m_ico_acts24);
-		AppendBitmapMenu(&add_menu, wxID_FILE5, "дату следующего действия", mgr->m_ico_acts24);
-		AppendBitmapMenu(&add_menu, wxID_FILE6, "остаток дней до след.действия", mgr->m_ico_acts24);
+		AppendBitmapMenu(&add_menu, wxID_FILE3, "дату предыдущего действия", mgr->m_ico_act_previos16);
+		AppendBitmapMenu(&add_menu, wxID_FILE4, "период действия", mgr->m_ico_act_period16);
+		AppendBitmapMenu(&add_menu, wxID_FILE5, "дату следующего действия", mgr->m_ico_act_next16);
+		AppendBitmapMenu(&add_menu, wxID_FILE6, "остаток дней до след.действия", mgr->m_ico_act_left16);
 		
 		wxRect rect = tb->GetToolRect(evt.GetId());
 		wxPoint pt = tb->ClientToScreen(rect.GetBottomLeft());
@@ -351,8 +351,11 @@ ViewFav::ViewFav(wxWindow* parent)
 	mTable->AssociateModel(dv_model);
 	dv_model->DecRef();
 
-	int ch = mTable->GetCharHeight();
-	mTable->SetRowHeight(ch * 1.6);
+	#define ICON_HEIGHT 24+2
+	int row_height = mTable->GetCharHeight() + 2;// + 1px in bottom and top 
+	if (ICON_HEIGHT > row_height)
+		row_height = ICON_HEIGHT;
+	mTable->SetRowHeight(row_height);
 
 	auto col0 = mTable->AppendIconTextColumn("Тип", 0, wxDATAVIEW_CELL_INERT, -1
 		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE);
@@ -372,8 +375,8 @@ ViewFav::ViewFav(wxWindow* parent)
 	szrBtn->Add(btnCancel, 0, wxALL , 2);
 	szrMain->Add(szrBtn, 0, wxEXPAND, 0);
 
-	mPanel->SetSize(mPanel->GetSize()*1.6);
 	mPanel->Layout();
+	mPanel->SetSize(500, 400);
 
 	mToolBar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigRefresh(); }, wxID_REFRESH);
 

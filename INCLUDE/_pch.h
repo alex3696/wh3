@@ -11,15 +11,11 @@
 #include <algorithm> 
 //#include <stack>
 #include <fstream>
-#include <typeinfo>       // operator typeid
+//#include <typeinfo>       // operator typeid
 // STD C++12
-#include <typeindex>		// std::type_index
+//#include <typeindex>		// std::type_index
 #include <functional>		// std::bind
 //#include <unordered_map>
-
-//using namespace std::tr1;
-
-#ifdef __WX__
 
 /* wxWidgets headers */
 #include <wx/wxprec.h>
@@ -48,6 +44,7 @@
 #include <wx/datstrm.h>
 #include <wx/txtstrm.h>
 #include <wx/mstream.h>
+#include <wx/srchctrl.h>
 
 #include <wx/protocol/ftp.h>
 #include <wx/fileconf.h>
@@ -58,26 +55,8 @@
 #include <wx/wupdlock.h>
 #include <wx/regex.h>
 
-static const wxString wxEmptyString2;
-
-//#if wxUSE_DATEPICKCTRL
 #include <wx/datectrl.h>
 #include <wx/timectrl.h>
-//#endif
-
-/* DatabaseLayer headers */
-#include <DatabaseLayer.h>
-#include <PostgresDatabaseLayer.h>
-#include <PostgresResultSet.h>
-#include <DatabaseLayerException.h>
-
-/* SAV headers */
-#include "wxComboBtn.h"
-
-
-wxMenuItem* AppendBitmapMenu(wxMenu* menu,int id,const wxString& label,const wxBitmap &bmp);
-
-#endif // #ifdef __WXMSW__ || __WX__
 
 //---------------------------------------------------------------------------
 /* BOOST headers */
@@ -85,13 +64,11 @@ wxMenuItem* AppendBitmapMenu(wxMenu* menu,int id,const wxString& label,const wxB
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 //#include <boost/property_tree/xml_parser.hpp>
-
 //#include <boost/tuple/tuple.hpp>
 //#include <boost/bind.hpp>
 //#include <boost/function.hpp>
 #include <boost/signals2.hpp>
 namespace sig = boost::signals2;
-
 //---------------------------------------------------------------------------
 // Мультииндексы буста
 #include <boost/multi_index_container.hpp>
@@ -103,25 +80,33 @@ namespace sig = boost::signals2;
 #include <boost/multi_index/global_fun.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/composite_key.hpp>
-
 using namespace boost;
 using namespace multi_index;
 using boost::multi_index_container;
-
 //---------------------------------------------------------------------------
 //#include <boost/ptr_container/ptr_vector.hpp>
 //#include <boost/ptr_container/ptr_deque.hpp>
 //#include <boost/ptr_container/ptr_map.hpp>
-
 //---------------------------------------------------------------------------
 #include <boost/assert.hpp>
-
 #include <boost/exception/all.hpp>
 struct exception_base: virtual std::exception,virtual boost::exception { };
 typedef boost::error_info<struct tag_strmsg,std::string>	strmsg;
 #ifdef __WX__
 typedef boost::error_info<struct tag_wxstr,wxString>		wxstr;
 #endif // #ifdef __WXMSW__ || __WX__
+//---------------------------------------------------------------------------
+/* DatabaseLayer headers */
+#include <DatabaseLayer.h>
+#include <PostgresDatabaseLayer.h>
+#include <PostgresResultSet.h>
+#include <DatabaseLayerException.h>
+//---------------------------------------------------------------------------
+/* SAV headers && defines */
+#include "wxComboBtn.h"
+static const wxString wxEmptyString2;
+wxMenuItem* AppendBitmapMenu(wxMenu* menu, int id, const wxString& label, const wxBitmap &bmp);
+
 //---------------------------------------------------------------------------
 class wxFuncTester
 {
