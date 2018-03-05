@@ -1,9 +1,9 @@
 MIME-Version: 1.0
-Content-Type: multipart/related; boundary="----=_NextPart_01D38FCB.B7EC3500"
+Content-Type: multipart/related; boundary="----=_NextPart_01D3B4B0.A985D340"
 
 Данный документ является веб-страницей в одном файле, также называемой файлом веб-архива. Если вы видите это сообщение, значит, данный браузер или редактор не поддерживает файлы веб-архива. Загрузите браузер, поддерживающий веб-архивы, например Windows® Internet Explorer®.
 
-------=_NextPart_01D38FCB.B7EC3500
+------=_NextPart_01D3B4B0.A985D340
 Content-Location: file:///C:/D0C89D18/index.htm
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/html; charset="windows-1251"
@@ -21,26 +21,28 @@ xmlns=3D"http://www.w3.org/TR/REC-html40">
 <meta name=3DGenerator content=3D"Microsoft Word 14">
 <meta name=3DOriginator content=3D"Microsoft Word 14">
 <link rel=3DFile-List href=3D"index.files/filelist.xml">
+<link rel=3DPreview href=3D"index.files/preview.wmf">
 <!--[if gte mso 9]><xml>
  <o:DocumentProperties>
   <o:Author>snake</o:Author>
   <o:LastAuthor>snake</o:LastAuthor>
-  <o:Revision>7</o:Revision>
-  <o:TotalTime>66</o:TotalTime>
+  <o:Revision>8</o:Revision>
+  <o:TotalTime>68</o:TotalTime>
   <o:LastPrinted>2018-01-15T07:05:00Z</o:LastPrinted>
   <o:Created>2018-01-17T14:29:00Z</o:Created>
-  <o:LastSaved>2018-01-17T14:45:00Z</o:LastSaved>
+  <o:LastSaved>2018-03-05T13:34:00Z</o:LastSaved>
   <o:Pages>1</o:Pages>
-  <o:Words>50</o:Words>
-  <o:Characters>289</o:Characters>
-  <o:Lines>2</o:Lines>
+  <o:Words>100</o:Words>
+  <o:Characters>573</o:Characters>
+  <o:Lines>4</o:Lines>
   <o:Paragraphs>1</o:Paragraphs>
-  <o:CharactersWithSpaces>338</o:CharactersWithSpaces>
+  <o:CharactersWithSpaces>672</o:CharactersWithSpaces>
   <o:Version>14.00</o:Version>
  </o:DocumentProperties>
  <o:OfficeDocumentSettings>
   <o:RelyOnVML/>
   <o:AllowPNG/>
+  <o:PixelsPerInch>120</o:PixelsPerInch>
  </o:OfficeDocumentSettings>
 </xml><![endif]-->
 <link rel=3DthemeData href=3D"index.files/themedata.thmx">
@@ -48,8 +50,6 @@ xmlns=3D"http://www.w3.org/TR/REC-html40">
 <!--[if gte mso 9]><xml>
  <w:WordDocument>
   <w:Zoom>120</w:Zoom>
-  <w:SpellingState>Clean</w:SpellingState>
-  <w:GrammarState>Clean</w:GrammarState>
   <w:TrackMoves>false</w:TrackMoves>
   <w:TrackFormatting/>
   <w:PunctuationKerning/>
@@ -417,7 +417,8 @@ p.MsoCaption, li.MsoCaption, div.MsoCaption
 	mso-bidi-font-family:Tahoma;
 	font-style:italic;}
 a:link, span.MsoHyperlink
-	{mso-style-priority:99;
+	{mso-style-noshow:yes;
+	mso-style-priority:99;
 	color:blue;
 	mso-themecolor:hyperlink;
 	text-decoration:underline;
@@ -564,9 +565,6 @@ span.a
 	mso-hansi-font-family:Tahoma;
 	mso-bidi-font-family:Tahoma;
 	mso-fareast-language:RU;}
-span.SpellE
-	{mso-style-name:"";
-	mso-spl-e:yes;}
 .MsoChpDefault
 	{mso-style-type:export-only;
 	mso-default-props:yes;
@@ -618,7 +616,8 @@ div.WordSection1
 href=3D"file:///C:\_SAV\projects\wh3\DOC\Инструкция\whatsnew.mht">Что новог=
 о?</a></p>
 
-<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
+<p class=3DMsoNormal><span lang=3DEN-US style=3D'mso-ansi-language:EN-US'><=
+o:p>&nbsp;</o:p></span></p>
 
 <p class=3DMsoNormal><span lang=3DEN-US style=3D'mso-ansi-language:EN-US'><a
 href=3D"file:///C:\_SAV\projects\wh3\DOC\Инструкция\Инструкция_диспетчера.m=
@@ -634,17 +633,23 @@ pan></p>
 
 <p class=3DMsoNormal><span lang=3DEN-US style=3D'mso-ansi-language:EN-US'><a
 href=3D"file:///C:\_SAV\projects\wh3\DOC\Инструкция\Инструкция_ремонтника.m=
-ht"><span
-class=3DSpellE>Инструкция</span> <span class=3DSpellE>ремонтника</span></a>=
-<o:p></o:p></span></p>
+ht">Инструкция
+ремонтника</a><o:p></o:p></span></p>
 
-<p class=3DMsoNormal><span lang=3DEN-US style=3D'mso-ansi-language:EN-US'><=
-o:p>&nbsp;</o:p></span></p>
+<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoNormal>Помощь по каталогам (так же можно открыть нажимая кноп=
+ку
+помощи на панели каждого каталога)</p>
 
 <p class=3DMsoNormal><a
 href=3D"file:///C:\_SAV\projects\wh3\DOC\Инструкция\Выполнение_отчётов.mht"=
 >Выполнение
 отчётов</a></p>
+
+<p class=3DMsoNormal>Каталог объектов построенных по типу<o:p></o:p></p>
+
+<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
 
 <p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
 
@@ -656,7 +661,59 @@ href=3D"file:///C:\_SAV\projects\wh3\DOC\Инструкция\Выполнение_отчётов.mht"=
 
 </html>
 
-------=_NextPart_01D38FCB.B7EC3500
+------=_NextPart_01D3B4B0.A985D340
+Content-Location: file:///C:/D0C89D18/index.files/preview.wmf
+Content-Transfer-Encoding: base64
+Content-Type: image/x-wmf
+
+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
+
+------=_NextPart_01D3B4B0.A985D340
 Content-Location: file:///C:/D0C89D18/index.files/themedata.thmx
 Content-Transfer-Encoding: base64
 Content-Type: application/vnd.ms-officetheme
@@ -717,7 +774,7 @@ LQAUAAYACAAAACEApV59LccGAADXGwAAFgAAAAAAAAAAAAAAAADWAgAAdGhlbWUvdGhlbWUvdGhl
 bWUxLnhtbFBLAQItABQABgAIAAAAIQAN0ZCftgAAABsBAAAnAAAAAAAAAAAAAAAAANEJAAB0aGVt
 ZS90aGVtZS9fcmVscy90aGVtZU1hbmFnZXIueG1sLnJlbHNQSwUGAAAAAAUABQBdAQAAzAoAAAAA
 
-------=_NextPart_01D38FCB.B7EC3500
+------=_NextPart_01D3B4B0.A985D340
 Content-Location: file:///C:/D0C89D18/index.files/colorschememapping.xml
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/xml
@@ -727,15 +784,16 @@ Content-Type: text/xml
  bg1=3D"lt1" tx1=3D"dk1" bg2=3D"lt2" tx2=3D"dk2" accent1=3D"accent1" accent=
 2=3D"accent2" accent3=3D"accent3" accent4=3D"accent4" accent5=3D"accent5" a=
 ccent6=3D"accent6" hlink=3D"hlink" folHlink=3D"folHlink"/>
-------=_NextPart_01D38FCB.B7EC3500
+------=_NextPart_01D3B4B0.A985D340
 Content-Location: file:///C:/D0C89D18/index.files/filelist.xml
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/xml; charset="utf-8"
 
 <xml xmlns:o=3D"urn:schemas-microsoft-com:office:office">
  <o:MainFile HRef=3D"../index.htm"/>
+ <o:File HRef=3D"preview.wmf"/>
  <o:File HRef=3D"themedata.thmx"/>
  <o:File HRef=3D"colorschememapping.xml"/>
  <o:File HRef=3D"filelist.xml"/>
 </xml>
-------=_NextPart_01D38FCB.B7EC3500--
+------=_NextPart_01D3B4B0.A985D340--
