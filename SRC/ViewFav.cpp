@@ -389,7 +389,7 @@ ViewFav::ViewFav(wxWindow* parent)
 	mToolBar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {OnCmd_Remove(); }, wxID_DELETE);
 
 	mToolBar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
-		{sigShowHelp("SelectFavorite"); }, wxID_HELP_INDEX);
+		{sigShowHelp("PageBrowserByType_favorite"); }, wxID_HELP_INDEX);
 
 }
 //-----------------------------------------------------------------------------
