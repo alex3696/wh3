@@ -27,7 +27,6 @@ Thumbs.db
 *.dll
 *.rar
 *.ilk
-*.htm
 *.deb
 *.dep
 *.idb
@@ -51,8 +50,9 @@ Thumbs.db
 *.exe
 *.ipdb
 *.iobj
+DOC/Help/~$*
+DOC/Help/*/preview.wmf
 RESOURCES/Thumbs.db
-DOC/html
 BUILD/wh3/Debug
 BUILD/wh3/Release
 BUILD/.vs/wh3/v15/Browse.VC.db
