@@ -152,7 +152,7 @@ CREATE OR REPLACE VIEW  obj_fav_info AS
             ,  last_log AS (
                SELECT MAX(timemark) AS previos, act_id AS aid, obj_id AS oid 
                     FROM fav_distinct
-                    INNER JOIN log_main ON fav_distinct.aid=log_main.act_id AND act_id<>0 AND log_main.obj_id = obj.id
+                    INNER JOIN log_main ON fav_distinct.aid=log_main.act_id AND log_main.obj_id = obj.id
                     GROUP BY obj_id, act_id
                     )
               --  SELECT * FROM last_log
@@ -190,7 +190,7 @@ CREATE OR REPLACE VIEW  obj_fav_info AS
 
 FROM obj;
 GRANT SELECT ON TABLE obj_fav_info TO "Guest";
---SELECT * FROM obj_current_info WHERE cls_id=191;
+--SELECT * FROM obj_fav_info WHERE cls_id=191;
 -------------------------------------------------------------------------------
 ------ избранные свойства для классов  ----------------------------------------
 -------------------------------------------------------------------------------

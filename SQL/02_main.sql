@@ -619,8 +619,7 @@ CREATE INDEX idx_logmain__oid      ON log_main  (obj_id);
 CREATE UNIQUE INDEX idx_log_main__oid_dt ON log_main (obj_id, timemark DESC);
 --DROP INDEX IF EXISTS idx_log_main__last_act ;
 CREATE UNIQUE INDEX idx_log_main__last_act 
-  ON log_main (obj_id, act_id, timemark DESC)
-  WHERE ( act_id <> 0);
+  ON log_main (obj_id, act_id, timemark DESC);
 
 GRANT SELECT        ON TABLE log_main  TO "Guest";
 GRANT INSERT        ON TABLE log_main  TO "User";
