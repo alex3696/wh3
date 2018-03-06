@@ -87,16 +87,6 @@ struct extr_aid
 	}
 };
 
-struct extr_pid_aid_ActPropRec
-{
-	typedef std::pair<const wxString&,const wxString&> result_type;
-	inline result_type operator()(const std::shared_ptr<ActPropRec>& r)const
-	{
-		return std::make_pair(r->mProp->GetId(), r->mAct->GetId());
-	}
-};
-
-
 using ActPropTable =
 boost::multi_index_container
 <
@@ -105,10 +95,13 @@ boost::multi_index_container
 	<
 		 ordered_non_unique< extr_aid >
 		,ordered_non_unique< extr_pid >
-		, ordered_unique<extr_pid_aid_ActPropRec  >
-		//,ordered_unique<composite_key< extr_pid	,extr_aid> >
-		
-	>
+		, ordered_unique<composite_key
+		  < 
+			std::shared_ptr<ActPropRec>
+			,extr_pid	
+			,extr_aid> 
+		   >//ordered_unique
+	>//indexed_by
 >;
 //-----------------------------------------------------------------------------
 class ClsRec : public ICls
@@ -248,8 +241,8 @@ class ModelHistory
 
 	std::shared_ptr<ModelObjPropList> mModelObjPropList = std::make_shared<ModelObjPropList>();
 
-	void LoadPropertyDetails(PropTable& prop_table);
-	void LoadActProp(ActPropTable& act_prop_table);
+	void LoadPropertyDetails();
+	void LoadActProp();
 	void PrepareProperties();
 	
 public:

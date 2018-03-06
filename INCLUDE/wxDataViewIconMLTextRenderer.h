@@ -16,15 +16,11 @@ public:
 
 	}
 
-	/*
-	wxDataViewIconText2(wxString &&text = wxEmptyString
-		,const wxIcon& icon = wxNullIcon)
-		: m_text(text)
-		, m_icon(icon)
+	wxDataViewIconText2(wxString &&text,const wxIcon& icon = wxNullIcon)
+		: m_icon(icon)
 	{ 
-	
+		std::swap(m_text, text);
 	}
-	*/
 
 	wxDataViewIconText2(const wxDataViewIconText2 &other)
 		: wxObject(),

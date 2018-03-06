@@ -360,8 +360,8 @@ void ModelHistory::Load()
 
 	}
 
-	LoadPropertyDetails(mProp);
-	LoadActProp(mActProp);
+	LoadPropertyDetails();
+	LoadActProp();
 
 	whDataMgr::GetDB().Commit();
 	wxLogMessage(wxString::Format("ModelHistory:\t%d\t download results", GetTickCount() - p0));
@@ -372,10 +372,10 @@ void ModelHistory::Load()
 	sigAfterLoad(sigData);
 }
 //---------------------------------------------------------------------------
-void ModelHistory::LoadPropertyDetails(PropTable& prop_table)
+void ModelHistory::LoadPropertyDetails()
 {
 	wxString where_prop_id;
-	for (const auto& prop : prop_table)
+	for (const auto& prop : mProp)
 		where_prop_id += wxString::Format("OR id=%s ", prop->GetId());
 
 	where_prop_id.Replace("OR", "WHERE", false);
@@ -397,11 +397,11 @@ void ModelHistory::LoadPropertyDetails(PropTable& prop_table)
 	{
 		wxString id;
 		table->GetAsString(0, i, id);
-		auto it = prop_table.get<1>().find(id);
-		if (it != prop_table.get<1>().end())
+		auto it = mProp.get<1>().find(id);
+		if (it != mProp.get<1>().end())
 		{
 			// multiitndex Modifier
-			prop_table.get<1>().modify(it,
+			mProp.get<1>().modify(it,
 				[table,i](std::shared_ptr<IProp>& e)
 				{
 					auto prop_rec = std::dynamic_pointer_cast<PropRec>(e);
@@ -416,7 +416,7 @@ void ModelHistory::LoadPropertyDetails(PropTable& prop_table)
 
 }
 //---------------------------------------------------------------------------
-void ModelHistory::LoadActProp(ActPropTable& act_prop_table)
+void ModelHistory::LoadActProp()
 {
 	wxString where_act_id;
 	for (const auto& act : mAct)
@@ -467,7 +467,7 @@ void ModelHistory::PrepareProperties()
 	for (const auto& log_rec : mLog)
 	{
 		const wxString& aid = log_rec->mDetail->GetActRec().mId;
-		if (!aid.IsEmpty())
+		if (!aid.IsEmpty() && "0"!= aid)
 		{
 			log_rec->mDetail->mActProperties = std::make_shared<PropValTable>();
 
