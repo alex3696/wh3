@@ -66,9 +66,10 @@ enum class ClassId
 	IObject=0
 };
 
-class IObject
+class IObject : boost::noncopyable
 {
 public:
+	virtual ~IObject() {}
 	virtual ClassId GetClassId()const { return ClassId::IObject; };
 
 };
@@ -108,6 +109,9 @@ class IPath64 : public IObject
 {
 public:
 	virtual wxString AsString()const = 0;
+	virtual size_t GetQty()const = 0;
+	virtual const IIdent64* GetItem(size_t)const = 0;
+	virtual const wxString GetItemString(size_t)const = 0;
 };
 
 class IClsPath64 : public IPath64
@@ -430,7 +434,7 @@ public:
 	using ObjTable = std::vector<std::shared_ptr<const IObj64>>;
 	using ClsTable = std::vector<std::shared_ptr<const ICls64>>;
 
-	virtual const int64_t& GetParentId()const = 0;
+	virtual int64_t GetParentId()const = 0;
 
 	virtual		  ClsKind   GetKind()const = 0;
 	virtual const wxString& GetMeasure()const = 0;

@@ -81,7 +81,7 @@ class IViewPathBrowser : public IViewWindow
 {
 public:
 	virtual void SetPathMode(const int mode) = 0;
-	virtual void SetPathString(const ICls64& node) = 0;
+	virtual void SetPathString(const wxString&) = 0;
 };
 //-----------------------------------------------------------------------------
 class IViewBrowserPage : public IViewWindow

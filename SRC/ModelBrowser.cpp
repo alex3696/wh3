@@ -114,7 +114,7 @@ void ClsRec64::ParsePropInfo(const boost::property_tree::wptree& favOPropValues)
 //virtual 
 std::shared_ptr<const ICls64> ClsRec64::GetParent()const //override
 {
-	return mTable->GetById(mParentId);
+	return mTable ? mTable->GetById(mParentId) : nullptr;
 }
 //-----------------------------------------------------------------------------
 //virtual 
@@ -281,13 +281,13 @@ void ObjRec64::ParsePropInfo(const boost::property_tree::wptree& favOPropValues)
 //virtual 
 SpClsConst ObjRec64::GetCls()const //override 
 { 
-	return mTable->GetCache()->mClsTable.GetById(mClsId);
+	return mTable ? mTable->GetCache()->mClsTable.GetById(mClsId) : nullptr;
 }
 //-----------------------------------------------------------------------------
 //virtual 
 std::shared_ptr<const IObj64> ObjRec64::GetParent()const //override
 {
-	return mTable->GetObjById(mId,mParentId);
+	return mTable ? mTable->GetObjById(mId, mParentId) : nullptr;
 }
 //-----------------------------------------------------------------------------
 //virtual 
@@ -367,118 +367,6 @@ const ConstPropValTable& ObjRec64::GetFavOPropValue() const
 
 
 
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-ClsTree::ClsTree()
-	:mClsCache(std::make_unique<ClsCache>(nullptr))
-{
-	
-	const ClsCache::fnModify fn = [](const std::shared_ptr<ClsRec64>& cls)
-	{
-		//cls->SetId(1);
-		cls->mTitle = "ClsRoot";
-		cls->mKind = ClsKind::Abstract;
-		cls->mMeasure.Clear();
-		cls->mObjQty.Clear();
-		cls->SetParentId(0);
-	};
-	mRoot = mClsCache->GetById(1, fn);
-	mCurrent = mRoot;
-}
-
-//-----------------------------------------------------------------------------
-void ClsTree::Up()
-{
-	if (mCurrent != mRoot)
-	{
-		auto id = mCurrent->GetParentId();
-		SetId(id);
-	}
-}
-//-----------------------------------------------------------------------------
-void ClsTree::Refresh()
-{
-	TEST_FUNC_TIME;
-
-	auto id = mCurrent->GetIdAsString();
-	//mCurrent->ClearChilds();
-		
-	mCurrent = mRoot;
-	//mRoot->ClearChilds();
-
-	wxString query = wxString::Format(
-		"SELECT id, title,kind,pid, measure"
-		" FROM public.get_path_cls_info(%s, 1)"
-		, id);
-
-	whDataMgr::GetDB().BeginTransaction();
-	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
-	if (table)
-	{
-		size_t row = 0;
-		const ClsCache::fnModify fn = [this, &table, &row](const std::shared_ptr<ClsRec64>& cls)
-		{
-			//cls->SetId(table->GetAsString(0, row));
-			table->GetAsString(1, row, cls->mTitle);
-			ToClsKind(table->GetAsString(2, row), cls->mKind);
-			cls->SetParentId(table->GetAsString(3, row));
-			table->GetAsString(4, row, cls->mMeasure);
-			cls->mObjQty.Clear();
-		};
-
-		unsigned int rowQty = table->GetRowCount();
-		for (size_t i = rowQty; i > 0 ; --i)
-		{
-			row = i - 1;
-			int64_t id;
-			if (!table->GetAsString(0, row).ToLongLong(&id))
-				throw;
-			const std::shared_ptr<ClsRec64>& value = mClsCache->GetById(id, fn);
-			mCurrent = value;
-
-
-		}
-	}//if (table)
-
-	whDataMgr::GetDB().Commit();
-
-	
-
-}
-
-//-----------------------------------------------------------------------------
-
-void ClsTree::SetId(const wxString& str)
-{
-	if (!str.IsEmpty())
-	{
-		int64_t tmp;
-		if (str.ToLongLong(&tmp))
-		{
-			SetId(tmp);
-			return;
-		}
-	}
-	SetId(1);
-}
-//-----------------------------------------------------------------------------
-void ClsTree::SetId(const int64_t& val)
-{
-	const ClsCache::fnModify fn = [&val](const std::shared_ptr<ClsRec64>& cls)
-	{
-		//cls->SetId(val);
-	};
-	const std::shared_ptr<ClsRec64>& new_curr = mClsCache->GetById(val, fn);
-	
-	//auto new_curr = ClsRec64::MakeShared();
-	//new_curr->SetId(val);
-
-	sigBeforePathChange(*mCurrent);
-	mCurrent = new_curr;
-	Refresh();
-	sigAfterPathChange(*mCurrent);
-}
 
 
 //-----------------------------------------------------------------------------
@@ -529,27 +417,8 @@ void ModelBrowser::SetGroupedByType(bool group)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 ModelBrowser::ModelBrowser()
-	:mClsPath (std::make_unique<ClsTree>())
+	:mClsPath (std::make_unique<ModelClsPath>())
 {
-
-	//sigClear();
-	
-	mClsPath->sigBeforePathChange.connect(sigBeforePathChange);
-	mClsPath->sigAfterPathChange.connect(sigAfterPathChange);
-	
-	//mClsPath->sigBeforePathChange.connect([this](const ICls64& parent)
-		//{
-			//std::vector<const IIdent64*> toinsert;
-			//sigBeforeRefreshCls(toinsert, &parent); // internal in DoRefresh
-		//});
-	
-	/*
-	mClsPath->sigAfterPathChange.connect([this](const ICls64&)
-		{
-			DoRefresh();
-			//sigAfterRefreshCls(toinsert, parent_node.get()); // internal in DoRefresh
-		});
-	*/
 }
 //-----------------------------------------------------------------------------
 ModelBrowser::~ModelBrowser()
@@ -597,8 +466,6 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 	{
 		if (mGroupByType)
 			sigObjOperation(Operation::BeforeDelete, todelete);
-		else
-			sigBeforeRefreshCls(todelete, cls.get(), mSearchString, mGroupByType);
 	}
 	std::shared_ptr<ClsRec64> parent_node = std::dynamic_pointer_cast<ClsRec64>(cls);
 
@@ -607,8 +474,6 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 		std::vector<const IIdent64*> toinsert;
 		if (mGroupByType)
 			sigObjOperation(Operation::BeforeInsert, toinsert); 
-		else
-			sigBeforeRefreshCls(toinsert, cls.get(), mSearchString, mGroupByType);
 		
 		mCache.mObjTable.GetObjByClsId(cls->GetId(), toinsert);
 		
@@ -693,39 +558,42 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 	parent_node->mObjLoaded = true;
 }
 //-----------------------------------------------------------------------------
-void ModelBrowser::DoRefreshFindInClsTree()
+void ModelBrowser::ParseSearch(const wxString& ss, std::vector<wxString>& words)
 {
-	TEST_FUNC_TIME;
-
-	std::vector<wxString>	search_words;
-
-	if (!mSearchString.empty())
+	if (!ss.empty())
 	{
 		size_t start = 0;
 		while (wxString::npos != start)
 		{
-			size_t next = mSearchString.find(" ", start);
+			size_t next = ss.find(" ", start);
 
 			wxString word;
 
 			if (wxString::npos != next)
 			{
-				word = mSearchString.substr(start, next - start);
+				word = ss.substr(start, next - start);
 				next++;
 			}
 			else
-				word = mSearchString.substr(start, mSearchString.size() - start);
+				word = ss.substr(start, ss.size() - start);
 
 			word.Replace("'", "''");
 
-			search_words.emplace_back(word);
+			words.emplace_back(word);
 			start = next;
 		}
 	}
-	
+}
+//-----------------------------------------------------------------------------
+void ModelBrowser::LoadSearch()
+{
+	TEST_FUNC_TIME;
+
+	std::vector<wxString>	search_words;
+	ParseSearch(mSearchString, search_words);
+
 	std::shared_ptr<const ICls64> parent_node = mClsPath->GetCurrent();
 	std::vector<const IIdent64*> toinsert;
-	sigBeforeRefreshCls(toinsert, parent_node.get(), mSearchString, mGroupByType);
 	mCache.Clear();
 
 	whDataMgr::GetDB().BeginTransaction();
@@ -739,44 +607,36 @@ void ModelBrowser::DoRefreshFindInClsTree()
 	if (1 == search_words.size())
 	{
 		search += wxString::Format(
-			"(obj_name.title~~*'%%%s%%' OR cls._title~~*'%%%s%%')"
+			"(obj.title~~*'%%%s%%' OR cls.title~~*'%%%s%%')"
 			, search_words[0], search_words[0]);
 	}
 	else
 	{
 		search += wxString::Format(
-		"   (cls._title~~*'%%%s%%' AND obj_name.title~~*'%%%s%%') "
-		" OR(cls._title~~*'%%%s%%' AND obj_name.title~~*'%%%s%%') "
+		"   (cls.title~~*'%%%s%%' AND obj.title~~*'%%%s%%') "
+		" OR(cls.title~~*'%%%s%%' AND obj.title~~*'%%%s%%') "
 			, search_words[0], search_words[1]
 			, search_words[1], search_words[0] );
 	}
-	wxString query = wxString::Format ( 
-		"SELECT cid, parent_cid, ctitle, kind, measure "
-		" , sum(qty) OVER(PARTITION BY cid ORDER BY cid DESC)  AS allqty "
-		" , oid, parent_oid, otitle, qty "
-		" , get_path_objnum(parent_oid, 1) AS path "
-		" , (SELECT fav_prop_info FROM obj_fav_info "
-		"	  WHERE obj_fav_info.cls_id = co.cid "
-		"       AND obj_fav_info.id = co.oid "
-		" 		LIMIT 1 " //--obj_fav_info.pid = co.parent_oid
-	    "    ) AS fp "
-		" FROM "
-		" ( "
-		" SELECT cls._id AS cid, cls._title AS ctitle, cls._pid AS parent_cid, cls._kind AS kind, cls._measure AS measure "
-		"     , obj_name.id  AS oid, obj_name.title  AS otitle "
-		"     , (CASE obj_name.cls_kind WHEN 1 THEN obj_num.pid WHEN 2 THEN obj_qtyi.pid ELSE obj_qtyf.pid END) AS parent_oid "
-		"     , (CASE obj_name.cls_kind WHEN 1 THEN 1 WHEN 2 THEN obj_qtyi.qty ELSE obj_qtyf.qty END) AS qty "
-		"   FROM obj_name "
-		"   LEFT JOIN obj_num  USING(id) "
-		"   LEFT JOIN obj_qtyi USING(id) "
-		"   LEFT JOIN obj_qtyf USING(id) "
-		"   RIGHT JOIN get_childs_cls(%s)cls ON cls._id = obj_name.cls_id "
-		"   WHERE (%s) "
-		" )co "
-		" ORDER BY "
-		"  (substring(co.ctitle, '^[0-9]{1,9}')::INT, co.ctitle) ASC "
-		" ,(substring(co.otitle, '^[0-9]{1,9}')::INT, co.otitle) ASC "
 
+	static const wxString clsTree = " JOIN LATERAL get_path_cls_info(cls.id, 0)ipc ON ipc.id=%s";
+	//"--join LATERAL get_path_objnum_info(obj.pid, 0)ipo ON ipo.opid = 0 AND 1::BIGINT = ANY(ipo.arr_id)"
+	static const wxString objTree = " JOIN LATERAL get_path_objnum_info(obj.pid, 0)ipo ON ipo.id=%s";
+
+	wxString query = wxString::Format(
+		"SELECT  cls.id AS cid, cls.pid AS parent_cid, cls.title AS ctitle, cls.kind, cls.measure"
+		"	, sum(qty) OVER(PARTITION BY cls.id)  AS cqty"
+		"	, obj.id AS oid, obj.pid AS parent_oid, obj.title AS otitle, qty"
+		"	, get_path_objnum(obj.pid, 1)"
+		//"--, get_path_cls(cls.id, 1)"
+		"	, fav_prop_info"
+		" FROM obj_fav_info obj"
+		" INNER join acls cls  ON obj.cls_id = cls.id AND obj.cls_kind = cls.kind"
+		+ (0 == mMode ? clsTree : objTree) +
+		" WHERE (%s)"
+		" ORDER BY"
+		"  (substring(cls.title, '^[0-9]{1,9}')::INT, cls.title) ASC"
+		" ,(substring(obj.title, '^[0-9]{1,9}')::INT, obj.title) ASC"
 		, parent_id, search);
 
 	
@@ -848,66 +708,42 @@ void ModelBrowser::DoRefreshFindInClsTree()
 	if (!toinsert.empty())
 		sigAfterRefreshCls(toinsert, nullptr, mSearchString, mGroupByType);
 		//sigAfterRefreshCls(toinsert, parent_node.get(), mSearchString);
-
-
 }
 //-----------------------------------------------------------------------------
-void ModelBrowser::DoRefresh()
+void ModelBrowser::LoadClsList()
 {
-	TEST_FUNC_TIME;
-
-	if (!mSearchString.empty())
-	{
-		DoRefreshFindInClsTree();
-		return;
-	}
-
-	
-	mClsPath->SetId(mRootId);
-	if (ClsKind::Abstract != mClsPath->GetCurrent()->GetKind())
-	{
-		if (mGroupByType)
-		{
-			auto parent = mClsPath->GetCurrent()->GetParent();
-			SetRootId(parent->GetId());
-			mClsPath->SetId(mRootId);
-			//DoRefresh();
-			//DoRefreshObjects(mClsPath->GetCurrent());
-			//return;
-		}
-		else
-		{
-			std::shared_ptr<const ICls64> parent_node = mClsPath->GetCurrent();
-			DoRefreshObjects(parent_node->GetId());
-			return;
-		}
-	}
-
-	
 	std::shared_ptr<const ICls64> parent_node = mClsPath->GetCurrent();
 	wxString parent_id = parent_node->GetIdAsString();
 
-
-
-	
 	std::vector<const IIdent64*> toinsert;
-	sigBeforeRefreshCls(toinsert, parent_node.get(), mSearchString, mGroupByType);
-	
-	
 	//parent_node->ClearChilds();
 	//insert
 
-	wxString query = wxString::Format(
-		"SELECT  id, title, kind, measure"
-		", (SELECT COALESCE(SUM(qty), 0)"
-		"   FROM obj WHERE obj.cls_id = cls.id GROUP BY cls_id)  AS qty"
-		", pid "
-		", fav_prop_info "
-		" FROM cls_fav_info cls"
-		" WHERE pid = %s"
-		" ORDER BY (substring(title, '^[0-9]{1,9}')::INT, title ) ASC "
-		, parent_id
-		);
+	wxString query = (0 == mMode) ?
+		wxString::Format(
+			"SELECT  id, title, kind, measure"
+			", (SELECT COALESCE(SUM(qty), 0)"
+			"   FROM obj WHERE obj.cls_id = cls.id GROUP BY cls_id)  AS qty"
+			", pid "
+			", fav_prop_info "
+			" FROM cls_fav_info cls"
+			" WHERE pid = %s"
+			" ORDER BY (substring(title, '^[0-9]{1,9}')::INT, title ) ASC "
+			, parent_id)
+		:
+		wxString::Format(
+			"SELECT cls.id, cls.title, cls.kind, cls.measure"
+			"     , sum_qty, cls.pid, fav_prop_info"
+			" FROM ( "
+			"	SELECT cls_id AS cid, cls_kind AS ckind, SUM(qty) AS sum_qty "
+			"	FROM obj_items obj "
+			"	WHERE obj.pid = %s "
+			"	GROUP BY cls_id, cls_kind )obj "
+			" INNER JOIN cls_fav_info cls ON cls.id = cid AND cls.kind = ckind "
+			" ORDER BY(substring(title, '^[0-9]{1,9}')::INT, title) ASC "
+			, parent_id)
+		;
+
 	whDataMgr::GetDB().BeginTransaction();
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
 
@@ -939,7 +775,7 @@ void ModelBrowser::DoRefresh()
 			if (!table->GetAsString(0, row).ToLongLong(&id))
 				throw;
 			const std::shared_ptr<ClsRec64>& curr = mCache.mClsTable.GetById(id, fn);
-			
+
 			toinsert.emplace_back(curr.get());
 		}
 
@@ -948,14 +784,35 @@ void ModelBrowser::DoRefresh()
 	UpdateUntitledProperties();
 
 	whDataMgr::GetDB().Commit();
-	
+
 	if (!toinsert.empty())
 		sigAfterRefreshCls(toinsert, parent_node.get(), mSearchString, mGroupByType);
 }
 //-----------------------------------------------------------------------------
+void ModelBrowser::DoRefresh()
+{
+	TEST_FUNC_TIME;
+	std::vector<const IIdent64*> toinsert;
+	sigBeforeRefreshCls(toinsert, mClsPath->GetCurrent().get(), mSearchString, mGroupByType);
+
+	if (mSearchString.empty())
+	{
+		mClsPath->SetId(mRootId);
+		const auto currRoot = mClsPath->GetCurrent();
+		if (!mGroupByType && ClsKind::Abstract != currRoot->GetKind())
+			DoRefreshObjects(currRoot->GetId());
+		else
+			LoadClsList();
+	}
+	else
+		LoadSearch();
+
+	sigAfterPathChange(mClsPath->AsString());
+}
+//-----------------------------------------------------------------------------
 void ModelBrowser::DoActivate(int64_t id)
 {
-	SetRootId(id);
+	mRootId = id;
 	DoRefresh();
 }
 //-----------------------------------------------------------------------------
@@ -963,32 +820,20 @@ void ModelBrowser::DoUp()
 {
 	if (mSearchString.empty())
 	{
-		auto current = mClsPath->GetCurrent();
-		if (mGroupByType)
-		{
-			int64_t parent_id = mClsPath->GetCurrent()->GetParentId();
-			SetRootId(parent_id);
-		}
-		else
-		{
-			auto parent = current->GetParent();
-			if (parent)
-			{
-				SetRootId(parent->GetId());
-			}
-			else
-			{
-				SetRootId(current->GetId());
-			}
-
-		}
+		mRootId = mClsPath->GetCurrent()->GetParentId();
 		DoRefresh();
-
 	}
 }
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoFind(const wxString& str)
 {
+	if (!mGroupByType && mSearchString!= str)
+	{
+		const auto cid = mClsPath->GetCurrent()->GetId();
+		auto cls = mCache.mClsTable.GetById(cid);
+		if (cls)
+			cls->mObjLoaded = false;
+	}
 	SetSearchString(str);
 	DoRefresh();
 }

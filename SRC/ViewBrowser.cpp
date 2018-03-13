@@ -615,8 +615,8 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	table->SetRowHeight(row_height);
 	ResetColumns();
 
-	table->GetTargetWindow()->SetToolTip("ToolTip");
 	table->GetTargetWindow()->Bind(wxEVT_MOTION, &ViewTableBrowser::OnCmd_MouseMove, this);
+	mToolTipTimer.Bind(wxEVT_TIMER, [this](wxTimerEvent& evt) { ShowToolTip(); });
 
 	table->Bind(wxEVT_DATAVIEW_COLUMN_HEADER_CLICK, [this](wxDataViewEvent& evt)
 		{ StoreSelect(); evt.Skip(); });
@@ -635,7 +635,18 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 		, &ViewTableBrowser::OnCmd_Collapseded, this);
 
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigRefresh(); }, wxID_REFRESH);
-	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigUp(); }, wxID_UP);
+	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) 
+		{
+			const auto finded = GetTopChildCls();
+			if (finded)
+			{
+				auto dvitem = wxDataViewItem((void*)finded);
+				mTable->EnsureVisible(dvitem);
+				mTable->SetCurrentItem(dvitem);
+				mTable->Select(dvitem);
+			}
+			sigUp(); 
+		}, wxID_UP);
 	//table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigAct(); }, wxID_EXECUTE);
 	//table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigMove(); }, wxID_REPLACE);
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {SetShowDetail(); }, wxID_VIEW_DETAILS);
@@ -684,10 +695,13 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 
 }
 //-----------------------------------------------------------------------------
-void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
+void ViewTableBrowser::ShowToolTip()
 {
-	auto pos = evt.GetPosition();
-	pos = mTable->ScreenToClient((mTable->GetMainWindow()->ClientToScreen(pos)));
+	if (!mTable->GetMainWindow()->IsMouseInWindow())
+		return;
+
+	wxPoint pos = wxGetMousePosition();
+	pos = mTable->ScreenToClient(pos);
 
 	wxDataViewItem item(nullptr);
 	wxDataViewColumn* col = nullptr;
@@ -702,7 +716,7 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 	wxString val;
 	wxVariant var;
 	dvmodel->GetValue(var, item, col->GetModelColumn());
-	if (0 == col)
+	if (col->GetModelColumn()==0)
 	{
 		wxDataViewIconText d;
 		d << var;
@@ -715,12 +729,11 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 	if (!ident)
 		return;
 
-	wxString str;
+	wxString item_str;
 	const auto cls = dynamic_cast<const ICls64*>(ident);
 	if (cls)
 	{
-		str= wxString::Format("%s\n\n%s \n#[%s]"
-			, val
+		item_str = wxString::Format("%s #[%s]"
 			, cls->GetTitle()
 			, cls->GetIdAsString());
 	}
@@ -728,14 +741,18 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 	if (obj)
 	{
 		auto cls = obj->GetCls();
-		str=wxString::Format("%s\n\n[%s]\t%s \n#[%s]\t%s)"
-			, val
+		item_str = wxString::Format("[%s]%s \t#[%s]%s)"
 			, cls->GetTitle(), obj->GetTitle()
-			, cls->GetIdAsString(), obj->GetIdAsString() );
+			, cls->GetIdAsString(), obj->GetIdAsString());
+
 	}
-	
-	mTable->GetTargetWindow()->GetToolTip()->SetTip(str);
-	
+	mTable->GetTargetWindow()->SetToolTip(val+"\n\n"+ item_str);
+}
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
+{
+	mTable->GetTargetWindow()->SetToolTip(wxEmptyString);
+	mToolTipTimer.StartOnce(2000);
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_Activate(wxDataViewEvent& evt)
@@ -1267,7 +1284,7 @@ void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>& v
 	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
 	if (dvmodel)
 	{
-		dvmodel->SetClsList(vec, parent, group_by_type);
+		dvmodel->SetClsList(vec, nullptr, group_by_type);
 	}
 	
 	
@@ -1695,23 +1712,9 @@ void ViewPathBrowser::SetPathMode(const int mode)// override;
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewPathBrowser::SetPathString(const ICls64& node)// override;
+void ViewPathBrowser::SetPathString(const wxString& str)// override;
 {
-	wxString ret = "/";
-	const auto* curr = &node;
-	while (curr != nullptr && curr->GetId()!=1)
-	{
-		const auto& title = curr->GetTitle();
-
-		if (wxNOT_FOUND == title.Find('/'))
-			ret = wxString::Format("/%s%s", title, ret);
-		else
-			ret = wxString::Format("/[%s]%s", title, ret);
-
-		curr = curr->GetParent().get();
-	}
-
-	mPathCtrl->SetValue(ret);
+	mPathCtrl->SetValue(str);
 }
 
 //-----------------------------------------------------------------------------

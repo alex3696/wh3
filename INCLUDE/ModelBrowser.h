@@ -4,6 +4,7 @@
 #include "ModelBrowserData.h"
 #include "IModelWindow.h"
 #include "ModelFilterList.h"
+#include "ModelClsPath.h"
 
 namespace wh{
 
@@ -47,6 +48,14 @@ public:
 		:mId(id), mTable(table)
 	{
 	}
+	ClsRec64(const int64_t id, const wxString& title, ClsKind kind
+		, ClsCache* table)
+		:mId(id), mTitle(title), mKind(kind)
+		, mTable(table)
+	{
+	}
+
+
 	void ParseFavProp(const wxString& favOPropValues);
 	
 	//static std::shared_ptr<ClsRec64> MakeShared()
@@ -64,7 +73,7 @@ public:
 	void SetParentId(const int64_t& parentId) { mParentId = parentId; }
 
 	virtual const int64_t&  GetId()const override		{ return mId; }
-	virtual const int64_t& GetParentId()const override	{ return mParentId; }
+	virtual		  int64_t	GetParentId()const override	{ return mParentId; }
 	virtual const wxString& GetTitle()const override	{ return mTitle; };
 	virtual       ClsKind	GetKind()const override		{ return mKind; };
 	virtual const wxString& GetMeasure()const override	{ return mMeasure; };
@@ -92,6 +101,19 @@ public:
 	virtual wxString AsString()const override
 	{
 		return mStrPath;
+	}
+
+	virtual size_t GetQty()const override 
+	{
+		return 0; // parse opath
+	}
+	virtual const IIdent64* GetItem(size_t)const override
+	{
+		return nullptr;
+	}
+	virtual const wxString GetItemString(size_t)const override
+	{
+		return wxEmptyString;
 	}
 
 
@@ -238,7 +260,7 @@ class ClsCache
 {
 	struct extr_parentId_ICls64
 	{
-		typedef const int64_t& result_type;
+		typedef int64_t result_type;
 		inline result_type operator()(const std::shared_ptr<const ICls64>& r)const
 		{
 			return r->GetParentId();
@@ -654,56 +676,26 @@ public:
 	PropCache mPropTable;
 };
 
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
-class ClsTree
-{
-	std::shared_ptr<ICls64> mRoot;
-	std::shared_ptr<ICls64> mCurrent;
-	
-	std::unique_ptr<ClsCache>	mClsCache;
-	void Refresh();
-public:
-	
-	sig::signal<void(const ICls64&)> sigBeforePathChange;
-	sig::signal<void(const ICls64&)> sigAfterPathChange;
-
-	ClsTree();
-
-	void SetId(const wxString& str);
-	void SetId(const int64_t& val);
-	void Up();
-
-
-	std::shared_ptr<const ICls64> GetCurrent() { return mCurrent; }
-
-};
-
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
 class ModelBrowser
 {
+	static void ParseSearch(const wxString& ss, std::vector<wxString>& words);
+	
+	
 	int		mMode = 0;
 	int64_t mRootId = 0;
 	bool mGroupByType = true;
 	wxString mSearchString;
 
-
-	
-
-
-	std::unique_ptr<ClsTree> mClsPath;
+	std::unique_ptr<ModelClsPath> mClsPath;
 	DbCache		mCache;
 	//ClsCache	mClsCache;
 	//ObjCache	mObjCache;
-
-	
-	void DoRefreshFindInClsTree();
+	void LoadClsList();
+	void LoadSearch();
 
 	void UpdateUntitledProperties();
 	void UpdateUntitledActs();
@@ -731,8 +723,8 @@ public:
 	void DoGroupByType(bool enable_group_by_type);
 	void DoToggleGroupByType();
 		
-	sig::signal<void(const ICls64&)> sigBeforePathChange;
-	sig::signal<void(const ICls64&)> sigAfterPathChange;
+	using SigPathChange = sig::signal<void(const wxString&)>;
+	SigPathChange sigAfterPathChange;
 	
 	using SigRefreshCls = 
 		sig::signal	<void	(	const std::vector<const IIdent64*>&

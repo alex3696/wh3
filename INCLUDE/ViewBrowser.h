@@ -61,6 +61,11 @@ using PropColumns = boost::multi_index_container
 //-----------------------------------------------------------------------------
 class ViewTableBrowser : public IViewTableBrowser
 {
+	// tooltip 
+	wxTimer	mToolTipTimer;
+	void ShowToolTip();
+	void OnCmd_MouseMove(wxMouseEvent& evt);
+
 	int64_t							mParentCid = 0;
 	
 	wxDataViewColumn* mSortCol = nullptr;
@@ -92,7 +97,6 @@ class ViewTableBrowser : public IViewTableBrowser
 	wxDataViewColumn* AppendTableColumn(const wxString& title, int model_id);
 	int GetTitleWidth(const wxString& title)const;
 protected:
-	void OnCmd_MouseMove(wxMouseEvent& evt);
 	void OnCmd_Activate(wxDataViewEvent& evt);
 	void OnCmd_Expanding(wxDataViewEvent& evt);
 	void OnCmd_Expanded(wxDataViewEvent& evt);
@@ -153,7 +157,7 @@ public:
 	}
 
 	virtual void SetPathMode(const int mode) override;
-	virtual void SetPathString(const ICls64& node) override;
+	virtual void SetPathString(const wxString& str) override;
 };
 //-----------------------------------------------------------------------------
 class ViewBrowserPage : public IViewBrowserPage

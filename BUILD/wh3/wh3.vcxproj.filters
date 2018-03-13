@@ -202,6 +202,9 @@
     <Filter Include="MainFrame\MVP2\Help">
       <UniqueIdentifier>{7ceb144a-7e93-4305-83a6-85e4be982714}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Каталог объектов v2\ModelPath">
+      <UniqueIdentifier>{a5b84d62-a643-4a98-992a-d1ec5b691432}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -575,6 +578,12 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\CtrlHelp.cpp">
       <Filter>MainFrame\MVP2\Help</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ModelClsPath.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2\ModelPath</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ModelObjPath.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2\ModelPath</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1099,6 +1108,12 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\IViewFav.h">
       <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2\FavEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ModelClsPath.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2\ModelPath</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ModelObjPath.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2\ModelPath</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
