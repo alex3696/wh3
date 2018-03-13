@@ -162,6 +162,13 @@ public:
 		const wxIcon*  ico(&wxNullIcon);
 		auto mgr = ResMgr::GetInstance();
 
+		if (mCurrentRoot == &obj)
+		{
+			if (0 == col)
+				variant << wxDataViewIconText("..", mgr->m_ico_back24);
+			return;
+		}
+
 		switch (col)
 		{
 		case 0: variant << wxDataViewIconText(obj.GetTitle(), *ico); break;

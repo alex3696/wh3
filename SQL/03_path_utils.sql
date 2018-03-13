@@ -209,7 +209,7 @@ RETURN QUERY
           , FALSE AS CYCLE
         FROM obj AS o
         LEFT JOIN acls c ON c.id=o.cls_id
-          WHERE _oid IS NOT NULL AND o.id = _oid AND o.id>0
+          WHERE _oid IS NOT NULL AND o.id = _oid AND o.id>0 AND _oid<>_opid
      UNION ALL
      SELECT o.id, o.pid 
           , onm.title
@@ -322,7 +322,7 @@ RETURN QUERY
         FROM obj_num AS o
         LEFT JOIN acls c ON c.id=o.cls_id
         LEFT JOIN obj_name AS onm ON onm.id = o.id
-          WHERE _oid IS NOT NULL AND o.id = _oid AND o.id>0
+          WHERE _oid IS NOT NULL AND o.id = _oid AND o.id>0 AND _oid<>_opid
      UNION ALL
      SELECT o.id, o.pid 
           , onm.title

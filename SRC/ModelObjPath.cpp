@@ -51,9 +51,12 @@ class PathObjRec : public IObj64
 public:
 	int64_t			mId;
 	wxString		mTitle;
+	int64_t			mParentId;
 	std::shared_ptr<PathClsRec64> mCls;
 	
-	PathObjRec() {};
+	PathObjRec()
+		: mCls(std::make_shared<PathClsRec64>())
+	{};
 
 	PathObjRec(	const int64_t oid,const wxString& otitle
 			  , const int64_t cid, const wxString& ctitle)
@@ -72,7 +75,7 @@ public:
 	bool SetClsId(const wxString& str) { return str.ToLongLong(&mCls->mId); }
 	bool SetClsId(const int64_t& cid) { return mCls->mId = cid; }
 
-	virtual SpClsConst GetCls()const override { return nullptr; }
+	virtual SpClsConst GetCls()const override { return mCls; }
 	virtual int64_t GetClsId()const override { return mCls->mId; }
 
 	virtual std::shared_ptr<const IObjPath64> GetPath()const override { return nullptr; }
@@ -80,7 +83,8 @@ public:
 	virtual const SpPropValConstTable&	GetProperties()const override { throw; }
 
 	virtual std::shared_ptr<const IObj64> GetParent()const override { return nullptr; }
-	virtual int64_t GetParentId()const override	{ return 0;	}
+	virtual int64_t GetParentId()const override	{ return mParentId;	}
+	bool SetParentId(const wxString& str) { return str.ToLongLong(&mParentId); }
 
 	virtual int GetActPrevios(int64_t aid, wxDateTime& dt)const override { return 0; }
 	virtual int GetActNext(int64_t aid, wxDateTime& dt)const override { return 0; }
@@ -115,7 +119,7 @@ void ModelObjPath::Refresh(const int64_t& cid)
 	mData.clear();
 
 	wxString query = wxString::Format(
-		"SELECT oid,otitle, cid,ctitle"
+		"SELECT oid,otitle, opid, cid,ctitle"
 		" FROM get_path_obj_info(%s, 1)"
 		, id);
 
@@ -131,8 +135,9 @@ void ModelObjPath::Refresh(const int64_t& cid)
 			auto obj = std::make_shared<PathObjRec>();
 			obj->SetId(table->GetAsString(0, row));
 			obj->mTitle = table->GetAsString(1, row);
-			obj->mCls->SetId(table->GetAsString(2, row));
-			obj->mCls->mTitle = table->GetAsString(3, row);
+			obj->SetParentId(table->GetAsString(2, row));
+			obj->mCls->SetId(table->GetAsString(3, row));
+			obj->mCls->mTitle = table->GetAsString(4, row);
 			mData.emplace_back(obj);
 		}
 	}//if (table)
@@ -146,9 +151,12 @@ wxString ModelObjPath::AsString() const
 	std::for_each(mData.crbegin(), mData.crend(), [&ret]
 	(const std::shared_ptr<const IObj64>& curr)
 	{
+		wxString ctitle = curr->GetCls()->GetTitle();
+		wxString otitle = curr->GetTitle();
+
 		ret = wxString::Format("/[%s]%s%s"
-			, curr->GetCls()->GetTitle()
-			, curr->GetCls()->GetIdAsString()
+			, ctitle
+			, otitle
 			, ret);
 		
 	});

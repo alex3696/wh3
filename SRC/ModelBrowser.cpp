@@ -417,7 +417,10 @@ void ModelBrowser::SetGroupedByType(bool group)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 ModelBrowser::ModelBrowser()
-	:mClsPath (std::make_unique<ModelClsPath>())
+	: mClsPath (std::make_unique<ModelClsPath>())
+	, mMode(0)
+	, mRootId(1)
+	, mGroupByType(true)
 {
 }
 //-----------------------------------------------------------------------------

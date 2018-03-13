@@ -5,6 +5,7 @@
 #include "IModelWindow.h"
 #include "ModelFilterList.h"
 #include "ModelClsPath.h"
+#include "ModelObjPath.h"
 
 namespace wh{
 
@@ -685,12 +686,14 @@ class ModelBrowser
 	static void ParseSearch(const wxString& ss, std::vector<wxString>& words);
 	
 	
-	int		mMode = 0;
-	int64_t mRootId = 0;
-	bool mGroupByType = true;
-	wxString mSearchString;
+	int			mMode;
+	int64_t		mRootId;
+	bool		mGroupByType;
+	wxString	mSearchString;
 
 	std::unique_ptr<ModelClsPath> mClsPath;
+	std::unique_ptr<ModelObjPath> mObjPath;
+
 	DbCache		mCache;
 	//ClsCache	mClsCache;
 	//ObjCache	mObjCache;
