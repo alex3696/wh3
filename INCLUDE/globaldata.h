@@ -7,21 +7,22 @@
 #include "ioc_strcontainer.h"
 
 //----------------------------------------------------------------------------
-#define whID_MOVE				5300
-#define whID_MOVE_HERE			5301
-#define whID_ACTION				5302
+#define whID_MOVE				6300
+#define whID_MOVE_HERE			6301
+#define whID_ACTION				6302
 //----------------------------------------------------------------------------
-#define wxID_NEW_FOLDER			1000
-#define wxID_NEW_TYPE			1001
-#define wxID_NEW_OBJECT			1002
-#define wxID_ADD_FAVORITES		1003
+#define wxID_NEW_FOLDER			6000
+#define wxID_NEW_TYPE			6001
+#define wxID_NEW_OBJECT			6002
+#define wxID_ADD_FAVORITES		6003
 // ----------------------------------------------------------------------------
-#define wxID_MKOBJ				1004
-#define wxID_MKCLS				1005
+#define wxID_MKOBJ				6004
+#define wxID_MKCLS				6005
 // ----------------------------------------------------------------------------
-#define whID_CATALOG_SELECT		1100
-#define whID_CATALOG_PATH		1101
-#define whID_CATALOG_TYPE		1102
+#define whID_CATALOG_SELECT		6100
+#define whID_CATALOG_PATH		6101
+#define whID_CATALOG_TYPE		6102
+#define whID_CATALOG_FAVORITE	6103
 
 
 //----------------------------------------------------------------------------

@@ -177,7 +177,9 @@ public:
 			, obj.GetQty()
 			, obj.GetCls()->GetMeasure());
 			break;
-		case 3: variant = obj.GetPath()->AsString(); break;
+		case 3: if(obj.GetPath())
+					variant = obj.GetPath()->AsString(); 
+			break;
 
 		default:{
 			const auto& idxCol = mActColumns.get<1>();
@@ -748,7 +750,7 @@ void ViewTableBrowser::ShowToolTip()
 	if (obj)
 	{
 		auto cls = obj->GetCls();
-		item_str = wxString::Format("[%s]%s \t#[%s]%s)"
+		item_str = wxString::Format("[%s] %s \t#[%s] %s"
 			, cls->GetTitle(), obj->GetTitle()
 			, cls->GetIdAsString(), obj->GetIdAsString());
 

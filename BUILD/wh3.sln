@@ -7,18 +7,28 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wh3", "wh3\wh3.vcxproj", "{
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Win32 = Debug|Win32
-		Debug|x64 = Debug|x64
-		Release|Win32 = Release|Win32
-		Release|x64 = Release|x64
+		Dll Debug|Win32 = Dll Debug|Win32
+		Dll Debug|x64 = Dll Debug|x64
+		Dll Release|Win32 = Dll Release|Win32
+		Dll Release|x64 = Dll Release|x64
+		StaticDebug|Win32 = StaticDebug|Win32
+		StaticDebug|x64 = StaticDebug|x64
+		StaticRelease|Win32 = StaticRelease|Win32
+		StaticRelease|x64 = StaticRelease|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.Debug|Win32.ActiveCfg = Debug|Win32
-		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.Debug|Win32.Build.0 = Debug|Win32
-		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.Debug|x64.ActiveCfg = Debug|Win32
-		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.Release|Win32.ActiveCfg = Release|Win32
-		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.Release|Win32.Build.0 = Release|Win32
-		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.Release|x64.ActiveCfg = Release|Win32
+		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.Dll Debug|Win32.ActiveCfg = Debug|Win32
+		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.Dll Debug|Win32.Build.0 = Debug|Win32
+		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.Dll Debug|x64.ActiveCfg = Debug|Win32
+		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.Dll Release|Win32.ActiveCfg = Release|Win32
+		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.Dll Release|Win32.Build.0 = Release|Win32
+		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.Dll Release|x64.ActiveCfg = Release|Win32
+		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.StaticDebug|Win32.ActiveCfg = StaticDebug|Win32
+		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.StaticDebug|Win32.Build.0 = StaticDebug|Win32
+		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.StaticDebug|x64.ActiveCfg = StaticDebug|Win32
+		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.StaticRelease|Win32.ActiveCfg = StaticRelease|Win32
+		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.StaticRelease|Win32.Build.0 = StaticRelease|Win32
+		{AA0B98EE-B2C5-43F6-87BF-639CA6D7E599}.StaticRelease|x64.ActiveCfg = StaticRelease|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

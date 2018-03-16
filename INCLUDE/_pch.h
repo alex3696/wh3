@@ -92,7 +92,7 @@ using boost::multi_index_container;
 #include <boost/exception/all.hpp>
 struct exception_base: virtual std::exception,virtual boost::exception { };
 typedef boost::error_info<struct tag_strmsg,std::string>	strmsg;
-#ifdef __WX__
+#ifdef __WXMSW__
 typedef boost::error_info<struct tag_wxstr,wxString>		wxstr;
 #endif // #ifdef __WXMSW__ || __WX__
 //---------------------------------------------------------------------------
