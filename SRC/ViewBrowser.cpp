@@ -7,578 +7,6 @@
 
 using namespace wh;
 
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-class wxDVTableBrowser
-	: public wxDataViewModel
-{
-	const IIdent64* mCurrentRoot = nullptr;
-	std::vector<const IIdent64*>	mClsList;
-
-
-	bool	mGroupByType = true;
-	//wxRegEx mStartNum = "(^[0-9]{1,9})";
-	//wxRegEx mStartNum = "^(-?)(0|([1-9][0-9]*))((\\.|\\,)[0-9]+)?$";
-	wxRegEx mStartNum = "^(-?)([0-9]*)((\\.|\\,)[0-9]+)?";
-
-	const wxString format_d = wxLocale::GetInfo(wxLOCALE_SHORT_DATE_FMT, wxLOCALE_CAT_DATE);
-	const wxString format_t = wxLocale::GetInfo(wxLOCALE_TIME_FMT);
-	const wxString mActNotExecuted="не выполнялось";
-public:
-	ActColumns		mActColumns;
-	PropColumns		mCPropColumns;
-	PropColumns		mOPropColumns;
-
-	wxDVTableBrowser(){};
-	~wxDVTableBrowser(){};
-
-	// implementation of base class virtuals to define model
-	virtual unsigned int	GetColumnCount() const override
-	{
-		return 4;
-	}
-	virtual wxString		GetColumnType(unsigned int col) const override 
-	{
-		switch (col)
-		{
-		case 0: return "wxDataViewIconText";
-		default: break;
-		}
-		return "string";
-	}
-	virtual bool HasContainerColumns(const wxDataViewItem& WXUNUSED(item)) const override
-	{
-		return true;
-	}
-
-	virtual bool IsContainer(const wxDataViewItem &item)const override
-	{
-		if (!item.IsOk())
-			return true;
-		
-		const auto node = static_cast<const IIdent64*> (item.GetID());
-		const auto cls = dynamic_cast<const ICls64*>(node);
-		if (mGroupByType 
-			&& cls 
-			&& cls != mCurrentRoot
-			&& ClsKind::Abstract != cls->GetKind())
-			return true;
-		
-		return false;
-	}
-
-	void GetErrorValue(wxVariant &variant, unsigned int col) const
-	{
-		if(0==col)
-			variant << wxDataViewIconText("*ERROR*", wxNullIcon);
-		else
-			variant = "*ERROR*";
-		return;
-	}
-
-	void GetClsValue(wxVariant &variant, unsigned int col
-		, const ICls64& cls) const
-	{
-		auto mgr = ResMgr::GetInstance();
-
-		if (mCurrentRoot == &cls)
-		{
-			if(0==col)
-				variant << wxDataViewIconText("..", mgr->m_ico_back24); 
-			return;
-		}
-		
-		switch (col)
-		{
-		case 0: {
-			const wxIcon*  ico(&wxNullIcon);
-			switch (cls.GetKind())
-			{
-			case ClsKind::Abstract: ico = &mgr->m_ico_type_abstract24; break;
-			case ClsKind::Single:	ico = &mgr->m_ico_type_num24; break;
-			case ClsKind::QtyByOne:
-			case ClsKind::QtyByFloat:
-			default: ico = &mgr->m_ico_type_qty24;	break;
-			}//switch
-			variant << wxDataViewIconText(cls.GetTitle(), *ico);
-		}break;
-		//case 1: variant = wxString("qwe2");  break;
-		case 2: {
-			switch (cls.GetKind())
-			{
-			case ClsKind::Single: case ClsKind::QtyByOne: case ClsKind::QtyByFloat:
-				variant = wxString::Format("%s (%s)", cls.GetObjectsQty(), cls.GetMeasure());
-				break;
-			case ClsKind::Abstract:
-			default: break;
-			}
-		}break;
-		//case 3: variant = wxString("qwe3");  break;
-		default: {
-			const auto& idxCol = mActColumns.get<1>();
-			const auto it = idxCol.find(col);
-			if (idxCol.end() != it)
-			{
-				if (FavAPropInfo::PeriodDay == it->mAInfo)
-				{
-					wxString period;
-					if (cls.GetActPeriod(it->mAid, period))
-					{
-						double dperiod;
-						if (period.ToCDouble(&dperiod))
-							variant = wxString::Format("%g", dperiod );
-					}
-				}
-				else
-				{
-					const auto& aprop_array = cls.GetFavAPropValue();
-					const auto& idxFAV = aprop_array.get<0>();
-					auto fit = idxFAV.find(boost::make_tuple(it->mAid, it->mAInfo));
-					if (idxFAV.end() != fit)
-						variant = (*fit)->mValue;
-				}
-				return;
-			}//if (idxCol.end() != it)
-			const auto& idxPropCol = mCPropColumns.get<1>();
-			auto prop_it = idxPropCol.find(col);
-			if (idxPropCol.end() != prop_it)
-			{
-				const auto favCPrpop = cls.GetFavCPropValue();
-				auto val_it = favCPrpop.find(prop_it->mPid );
-				if(favCPrpop.cend()!=val_it)
-					variant = (*val_it)->mValue;
-			}
-
-
-		}break;
-		}//switch (col)
-	}
-
-	void GetObjValue(wxVariant &variant, unsigned int col
-		, const IObj64& obj) const
-	{
-		const wxIcon*  ico(&wxNullIcon);
-		auto mgr = ResMgr::GetInstance();
-
-		if (mCurrentRoot == &obj)
-		{
-			if (0 == col)
-				variant << wxDataViewIconText("..", mgr->m_ico_back24);
-			return;
-		}
-
-		switch (col)
-		{
-		case 0: variant << wxDataViewIconText(obj.GetTitle(), *ico); break;
-		case 1: variant = obj.GetCls()->GetTitle();	break;
-		case 2: variant = wxString::Format("%s (%s)"
-			, obj.GetQty()
-			, obj.GetCls()->GetMeasure());
-			break;
-		case 3: if(obj.GetPath())
-					variant = obj.GetPath()->AsString(); 
-			break;
-
-		default:{
-			const auto& idxCol = mActColumns.get<1>();
-			const auto it = idxCol.find(col);
-			if (idxCol.end() != it)
-			{
-				switch (it->mAInfo)
-				{
-				case FavAPropInfo::PreviosDate: {
-					wxDateTime dt;
-					int ret = obj.GetActPrevios(it->mAid, dt);
-					switch (ret)
-					{
-					case 1: {
-						if (dt.GetDateOnly() == dt)
-							variant = wxString::Format("%s", dt.Format(format_d));
-						else
-							variant = wxString::Format("%s %s", dt.Format(format_d), dt.Format(format_t));
-					}break;
-					case -1: {
-						variant = mActNotExecuted;
-					}
-					default: break;
-					}
-				}break;
-				case FavAPropInfo::PeriodDay: if (!mGroupByType) {
-					wxString period;
-					if (obj.GetActPeriod(it->mAid, period))
-					{
-						double dperiod;
-						if (period.ToCDouble(&dperiod))
-						{
-							variant = wxString::Format("%g", dperiod);
-						}
-					}
-				} break;
-				case FavAPropInfo::NextDate: {
-					wxDateTime dt;
-					int ret = obj.GetActNext(it->mAid, dt);
-					switch (ret)
-					{
-					case 1: {
-						if (dt.GetDateOnly() == dt)
-							variant = wxString::Format("%s", dt.Format(format_d));
-						else
-							variant = wxString::Format("%s %s", dt.Format(format_d), dt.Format(format_t));
-					}break;
-					case -1: {
-						variant = mActNotExecuted;
-					}
-					default: break;
-					}//switch (ret)
-				}break;
-				case FavAPropInfo::LeftDay: {
-					double left;
-					int ret = obj.GetActLeft(it->mAid, left);
-					switch (ret)
-					{
-					case 1: {
-						variant = wxString::Format("%g", left);
-					}break;
-					case -1: {
-						variant = mActNotExecuted;
-					}break;
-					default: break;
-					}//switch (ret)
-				}break;
-				default: {
-					int64_t aid = it->mAid;
-					FavAPropInfo info = it->mAInfo;
-
-					const auto& idxFAV = obj.GetFavAPropValue().get<0>();
-					auto fit = idxFAV.find(boost::make_tuple(aid, info));
-					if (idxFAV.end() != fit)
-					{
-						const auto str_value = (*fit)->mValue;
-						if (str_value == "null")
-							variant = mActNotExecuted;
-						else
-							variant = str_value;
-					}
-				}break;
-				}//switch (it->mAInfo)
-				return;
-			}//if (idxCol.end() != it)
-
-			const auto& idxOPropCol = mOPropColumns.get<1>();
-			auto prop_it = idxOPropCol.find(col);
-			if (idxOPropCol.end() != prop_it)
-			{
-				const auto favOPrpop = obj.GetFavOPropValue();
-				auto val_it = favOPrpop.find(prop_it->mPid);
-				if (favOPrpop.cend() != val_it)
-					variant = (*val_it)->mValue;
-			}
-		}break;
-		}//switch (col)
-	}
-
-	virtual void GetValue(wxVariant &variant,
-		const wxDataViewItem &dvitem, unsigned int col) const override
-	{
-		const auto node = static_cast<const IIdent64*> (dvitem.GetID());
-		const auto ident = node;
-		
-		const auto cls = dynamic_cast<const ICls64*>(ident);
-		if (cls)
-		{
-			GetClsValue(variant, col, *cls);
-			return;
-		}
-		const auto obj = dynamic_cast<const IObj64*>(ident);
-		if (obj)
-		{
-			GetObjValue(variant, col, *obj);
-			return;
-		}
-		GetErrorValue(variant, col);
-	}
-	virtual bool GetAttr(const wxDataViewItem &item, unsigned int col,
-		wxDataViewItemAttr &attr) const override
-	{
-		
-		if (!item.IsOk())
-			return false;
-
-		const auto node = static_cast<const IIdent64*> (item.GetID());
-		const auto obj = dynamic_cast<const IObj64*>(node);
-		if(!obj)
-			return false;
-
-
-
-		switch (col)
-		{
-		case 0:/*case 1:*/case 2:/*case 3:*/{
-			if (0 == col || (2 == col && ClsKind::Single != obj->GetCls()->GetKind()))
-			{
-				attr.SetBold(true);
-				return true;
-			}
-		}break;
-		default:{
-			const auto& idxCol = mActColumns.get<1>();
-			const auto it = idxCol.find(col);
-			if (idxCol.end() != it)
-			{
-				switch (it->mAInfo){
-				default: break;
-				case FavAPropInfo::NextDate: { //next
-					wxDateTime next;
-					int ret = obj->GetActNext(it->mAid, next);
-					switch (ret)
-					{
-					case 1: {
-						if (next.IsEarlierThan(wxDateTime::Now() + wxTimeSpan(240, 0, 0, 0)))
-						{
-							attr.SetBold(true);
-							if (next.IsEarlierThan(wxDateTime::Now()))
-								attr.SetColour(*wxRED);
-							else
-								attr.SetColour(wxColour(230, 130, 30));
-							return true;
-						}
-					}break;
-					case -1: {
-						attr.SetBold(true);
-						attr.SetColour(*wxRED);
-						return true;
-					}break;
-					default: break;
-					}//switch (ret)
-				}break;
-				case FavAPropInfo::LeftDay: {
-					double left;
-					int ret = obj->GetActLeft(it->mAid, left);
-					switch (ret)
-					{
-					case 1: {
-						if (left < 10)
-						{
-							attr.SetBold(true);
-							if (left<0)
-							{
-								//attr.SetBackgroundColour(wxColour(255, 200, 200));
-								attr.SetColour(*wxRED);
-							}
-							else
-							{
-								//attr.SetBackgroundColour(*wxYELLOW);
-								attr.SetColour(wxColour(230, 130, 30));
-							}//else if (left<0)
-							return true;
-						}
-					}break;
-					case -1: {
-						attr.SetBold(true);
-						attr.SetColour(*wxRED);
-						return true;
-					}break;
-					default: break;
-					}//switch (ret)
-
-				}break;
-				}//switch (it->mAInfo)
-			}//if (idxCol.end() != it)
-		}break;
-		}//switch (col)
-
-		return false;
-	}
-	virtual bool SetValue(const wxVariant &variant, const wxDataViewItem &item,
-		unsigned int col)override
-	{
-		return false;
-	}
-	
-	virtual int Compare(const wxDataViewItem &item1, const wxDataViewItem &item2
-		, unsigned int column, bool ascending) const override
-	{
-		wxVariant value1, value2;
-		GetValue(value1, item1, column);
-		GetValue(value2, item2, column);
-
-		if (mCurrentRoot)
-		{
-			if (static_cast<const IIdent64*> (item1.GetID()) == mCurrentRoot)
-				return -1;
-			else if (static_cast<const IIdent64*> (item2.GetID()) == mCurrentRoot)
-				return 1;
-		}
-
-		if (!ascending)
-			std::swap(value1, value2);
-
-		if (value1.IsNull())
-		{
-			if (!value2.IsNull())
-				return 1;
-		}
-		else
-			if (value2.IsNull())
-				return -1;
-
-		// all columns sorted by TRY FIRST numberic value
-		if (value1.GetType() == "string" || value1.GetType() == "wxDataViewIconText")
-		{
-			wxString str1;
-			wxString str2;
-
-			if (value1.GetType() == "wxDataViewIconText")
-			{
-				wxDataViewIconText iconText1, iconText2;
-
-				iconText1 << value1;
-				iconText2 << value2;
-				str1 = iconText1.GetText();
-				str2 = iconText2.GetText();
-			}
-			else
-			{
-				str1 = value1.GetString();
-				str2 = value2.GetString();
-			}
-			//wxRegEx mStartNum = "(^[0-9]+)";
-			if (mStartNum.Matches(str1))
-			{
-				size_t start1;
-				size_t len1;
-				double num1;
-				bool match = mStartNum.GetMatch(&start1, &len1);
-				if (match && str1.substr(start1, len1).ToDouble(&num1))
-				{
-					if (mStartNum.Matches(str2))
-					{
-						size_t start2;
-						size_t len2;
-						double num2;
-						match = mStartNum.GetMatch(&start2, &len2);
-						if (match && str2.substr(start2, len2).ToDouble(&num2))
-						{
-							if (num1 < num2)
-								return -1;
-							else if (num1 > num2)
-								return 1;
-							str1.erase(start1, start1 + len1);
-							str2.erase(start2, start2 + len2);
-						}
-						else
-							return 1;
-					}//if (mStartNum.Matches(str2))
-				}//if (match && str1.substr(start, len).ToLong(&num1))
-				else
-				{
-					if (mStartNum.Matches(str2))
-					{
-						size_t start2;
-						size_t len2;
-						double num2;
-						match = mStartNum.GetMatch(&start2, &len2);
-						if (match && str2.substr(start2, len2).ToDouble(&num2))
-							return -1;
-					}//if (mStartNum.Matches(str2))
-				}//else if (match && str1.substr(start, len).ToLong(&num1))
-			}//if (mStartNum.Matches(str1))
-
-			int res = str1.CmpNoCase(str2);
-			if (res)
-				return res;
-
-			// items must be different
-			wxUIntPtr id1 = wxPtrToUInt(item1.GetID()),
-				id2 = wxPtrToUInt(item2.GetID());
-			return ascending ? id1 - id2 : id2 - id1;
-		}//if (value1.GetType() == "string" || value1.GetType() == "wxDataViewIconText")
-		
-		return wxDataViewModel::Compare(item1, item2, column, ascending);
-	}
-
-	virtual wxDataViewItem GetParent(const wxDataViewItem &item) const override
-	{
-		if (!item.IsOk())
-			return wxDataViewItem(nullptr);
-
-		const auto ident = static_cast<const IIdent64*> (item.GetID());
-		const auto cls = dynamic_cast<const ICls64*>(ident);
-		if (cls)
-			return wxDataViewItem(nullptr);
-
-		const auto& obj = dynamic_cast<const IObj64*>(ident);
-		if (obj)
-			return wxDataViewItem((void*)obj->GetCls().get());
-
-		return wxDataViewItem(nullptr);
-	}
-
-	virtual unsigned int GetChildren(const wxDataViewItem &parent
-		, wxDataViewItemArray &arr) const override
-	{
-		if (!parent.IsOk() )
-		{
-			if (mCurrentRoot && 1 < mCurrentRoot->GetId())
-			{
-				wxDataViewItem dvitem((void*)mCurrentRoot);
-				arr.push_back(dvitem);
-			}
-			for (const auto& child_cls : mClsList)
-			{
-				wxDataViewItem dvitem((void*)child_cls);
-				arr.push_back(dvitem);
-			}
-			return arr.size();
-		}
-		const auto ident = static_cast<const IIdent64*> (parent.GetID());
-		const auto cls = dynamic_cast<const ICls64*>(ident);
-		if (mGroupByType && cls)
-		{
-			const auto obj_list = cls->GetObjTable();
-			if (obj_list && obj_list->size())
-			{
-				for (const auto& sp_obj : *obj_list)
-				{
-					wxDataViewItem dvitem((void*)sp_obj.get());
-					arr.push_back(dvitem);
-				}
-				return arr.size();
-			}
-		}
-
-
-		return 0;
-	}
-
-	const IIdent64* GetCurrentRoot()const
-	{
-		return mCurrentRoot;
-	}
-	virtual bool  IsListModel() const override
-	{
-		return !mGroupByType;
-	}
-
-	void SetClsList(const std::vector<const IIdent64*>& current, const IIdent64* curr, bool group_by_type)
-	{
-		mGroupByType = group_by_type;
-		mCurrentRoot = curr;
-		mClsList = current;
-		Cleared();
-	}
-
-
-
-	const std::vector<const IIdent64*>& GetClsList()const
-	{
-		return mClsList;
-	}
-
-
-};
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -613,9 +41,9 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 		);
 	mTable = table;
 
-	auto dv_model = new wxDVTableBrowser();
-	table->AssociateModel(dv_model);
-	dv_model->DecRef();
+	mDvModel = new wxDVTableBrowser();
+	table->AssociateModel(mDvModel);
+	mDvModel->DecRef();
 	
 	#define ICON_HEIGHT 24+2
 	int row_height = table->GetCharHeight() + 2;// + 1px in bottom and top 
@@ -624,6 +52,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	table->SetRowHeight(row_height);
 	ResetColumns();
 
+	table->GetTargetWindow()->Bind(wxEVT_LEFT_UP, &ViewTableBrowser::OnCmd_LeftUp, this);
 	table->GetTargetWindow()->Bind(wxEVT_MOTION, &ViewTableBrowser::OnCmd_MouseMove, this);
 	mToolTipTimer.Bind(wxEVT_TIMER, [this](wxTimerEvent& evt) { ShowToolTip(); });
 
@@ -719,12 +148,9 @@ void ViewTableBrowser::ShowToolTip()
 	if (!col || !item.IsOk())
 		return;
 	
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (!dvmodel)
-		return;
 	wxString val;
 	wxVariant var;
-	dvmodel->GetValue(var, item, col->GetModelColumn());
+	mDvModel->GetValue(var, item, col->GetModelColumn());
 	if (col->GetModelColumn()==0)
 	{
 		wxDataViewIconText d;
@@ -761,7 +187,85 @@ void ViewTableBrowser::ShowToolTip()
 void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 {
 	mTable->GetTargetWindow()->SetToolTip(wxEmptyString);
-	mToolTipTimer.StartOnce(2000);
+	mToolTipTimer.StartOnce(1500);
+	SetCursorStandard();
+	
+	auto pos = evt.GetPosition();
+	pos = mTable->ScreenToClient((mTable->GetMainWindow()->ClientToScreen(pos)));
+
+	wxDataViewItem item(nullptr);
+	wxDataViewColumn* col = nullptr;
+	mTable->HitTest(pos, item, col);
+	if (!col || !item.IsOk() || mDvModel->IsTop(item))
+		return;
+
+	const auto model_column = col->GetModelColumn();
+	switch (model_column)
+	{
+	case 1:case 3: {
+		wxVariant var;
+		mDvModel->GetValue( var, item, model_column);
+		if(!var.GetString().empty())
+			SetCursorHand();
+		return;
+	}
+	default:break;
+	}
+
+	auto pval = mDvModel->GetPropVal(item, col->GetModelColumn());
+	if (pval && pval->mProp->IsLinkOrFile() && !pval->mValue.empty() )
+		SetCursorHand();
+}
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::OnCmd_LeftUp(wxMouseEvent& evt)
+{
+	auto pos = evt.GetPosition();
+	pos = mTable->ScreenToClient((mTable->GetMainWindow()->ClientToScreen(pos)));
+	wxDataViewItem item(nullptr);
+	wxDataViewColumn* col = nullptr;
+	mTable->HitTest(pos, item, col);
+	if (!col || !item.IsOk() || mDvModel->IsTop(item))
+		return;
+
+	const auto model_column = col->GetModelColumn();
+	const IIdent64* ident = static_cast<const IIdent64*> (item.GetID());
+	const auto& obj = dynamic_cast<const IObj64*>(ident);
+	
+	if (obj)
+		switch (model_column)
+		{
+		default:break;
+		case 1:{
+			sigGotoCls(obj->GetClsId());
+			return;
+		}break;
+		case 3: {
+			sigGotoObj(obj->GetParentId());
+			return;
+		}break;
+		}//switch (model_column)
+
+
+	auto pval = mDvModel->GetPropVal(item, col->GetModelColumn());
+	if (!pval || pval->mValue.empty() )
+		return;
+
+	const wxString full_path = pval->mValue;
+
+	const _TCHAR* path = full_path.wc_str();
+	const _TCHAR* parametrs = L"";
+
+	SHELLEXECUTEINFOW ShExecInfo = { 0 };
+	ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+	ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+	ShExecInfo.hwnd = NULL;
+	ShExecInfo.lpVerb = NULL;
+	ShExecInfo.lpFile = path;
+	ShExecInfo.lpParameters = parametrs;
+	ShExecInfo.lpDirectory = NULL;
+	ShExecInfo.nShow = SW_SHOW;
+	ShExecInfo.hInstApp = NULL;
+	BOOL ret = ShellExecuteExW(&ShExecInfo);
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_Activate(wxDataViewEvent& evt)
@@ -779,36 +283,42 @@ void ViewTableBrowser::OnCmd_Activate(wxDataViewEvent& evt)
 	}
 	else
 	{
+		wxBusyCursor busyCursor;
 		const IIdent64* node = static_cast<const IIdent64*> (item.GetID());
-		const ICls64* cls = dynamic_cast<const ICls64*> (node);
-		if (cls)
+		if (node->GetId() == mParentCid)
+			sigUp();
+		else
 		{
-			wxBusyCursor busyCursor;
-			
-			if(cls->GetId() == mParentCid)
-				sigUp();
-			else
+			const int mode = mDvModel->GetMode();
+			if (0 == mode) 
 			{
-				// если убрать этот локер, выделится первый элемент,
-				// даже в обратной сортировке
-				wxWindowUpdateLocker lock(mTable);
-				sigActivate(cls->GetId());
+				const ICls64* cls = dynamic_cast<const ICls64*> (node);
+				if (cls)
+				{
+					// если убрать этот локер, выделится первый элемент,
+					// даже в обратной сортировке
+					wxWindowUpdateLocker lock(mTable);
+					sigActivate(cls->GetId());
+				}
 			}
-				
+			else if (1 == mode)
+			{
+				const IObj64* obj = dynamic_cast<const IObj64*> (node);
+				if (obj)
+				{
+					wxWindowUpdateLocker lock(mTable);
+					sigActivate(obj->GetId());
+				}
+			}
+
 		}
-			
-	}
+	}// else if (mTable->GetModel()->IsContainer(item))
 
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_Expanding(wxDataViewEvent& evt)
 {
 	TEST_FUNC_TIME;
-
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (!dvmodel || mTable->GetModel()->IsListModel())
-		return;
-
 	auto item = evt.GetItem();
 
 	const IIdent64* node = static_cast<const IIdent64*> (item.GetID());
@@ -899,11 +409,7 @@ const IIdent64* ViewTableBrowser::FindChildCls(const int64_t& id)const
 	//	if (cls && cls->GetId() == id)
 	//		return cls;
 	//}
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (!dvmodel)
-		return nullptr;
-
-	const auto& cls_list = dvmodel->GetClsList();
+	const auto& cls_list = mDvModel->GetClsList();
 
 
 	if (cls_list.empty())
@@ -933,16 +439,11 @@ const IIdent64* ViewTableBrowser::GetTopChildCls()const
 	//	return cls;
 	//return nullptr;
 
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (!dvmodel)
-		return nullptr;
-
-
 	if (1 < mParentCid)	//(mParent && 1 != mParent->GetId())
-		return dvmodel->GetCurrentRoot();
+		return mDvModel->GetCurrentRoot();
 
-	if (!dvmodel->GetClsList().empty())
-		return dvmodel->GetClsList().front();
+	if (!mDvModel->GetClsList().empty())
+		return mDvModel->GetClsList().front();
 	return nullptr;
 }
 //-----------------------------------------------------------------------------
@@ -973,15 +474,11 @@ void ViewTableBrowser::StoreSelect()
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::RestoreSelect()
 {
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (!dvmodel)
-		return;
-	
 	wxDataViewItem dvitem;
 
-	if (dvmodel->IsListModel())
+	if (mDvModel->IsListModel())
 	{
-		const IIdent64* ident = static_cast<const IIdent64*> (dvmodel->GetCurrentRoot());
+		const IIdent64* ident = static_cast<const IIdent64*> (mDvModel->GetCurrentRoot());
 		const auto& cls = dynamic_cast<const ICls64*>(ident);
 		if (cls && ClsKind::Abstract == cls->GetKind())
 		{
@@ -1038,12 +535,10 @@ void ViewTableBrowser::RestoreSelect()
 		const auto finded = GetTopChildCls();
 		if (finded)
 			dvitem = wxDataViewItem((void*)finded);
+		dvitem = mTable->GetTopItem();
 	}
 
-	auto model = mTable->GetModel();
-	
 	mTable->UnselectAll();
-
 	if (dvitem.IsOk())
 	{
 		mTable->EnsureVisible(dvitem);
@@ -1088,19 +583,15 @@ void ViewTableBrowser::ResetColumns()
 {
 	wxWindowUpdateLocker lock(mTable);
 
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (!dvmodel)
-		return;
-
 	auto table = mTable;
 
 	if (4 == table->GetColumnCount() )
 		return;
 
 	table->ClearColumns();
-	dvmodel->mActColumns.clear();
-	dvmodel->mCPropColumns.clear();
-	dvmodel->mOPropColumns.clear();
+	mDvModel->mActColumns.clear();
+	mDvModel->mCPropColumns.clear();
+	mDvModel->mOPropColumns.clear();
 
 	auto renderer1 = new wxDataViewIconTextRenderer();
 	//auto attr = renderer1->GetAttr();
@@ -1131,10 +622,6 @@ void ViewTableBrowser::ResetColumns()
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec)
 {
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (!dvmodel)
-		return;
-
 	const auto col_qty = mTable->GetColumnCount();
 	auto last_col = mTable->GetColumnAt(col_qty - 1);
 	
@@ -1145,7 +632,7 @@ void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec
 		{
 			const auto& fav_cprop = cls->GetFavCPropValue();
 			for (const auto& cprop : fav_cprop)
-				AppendPropColumn(dvmodel->mCPropColumns, cprop);
+				AppendPropColumn(mDvModel->mCPropColumns, cprop);
 
 			const auto& fav_act = cls->GetFavAProp();
 			for (const auto& aprop : fav_act)
@@ -1162,15 +649,19 @@ void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec
 
 				const auto& fav_cprop = cls->GetFavCPropValue();
 				for (const auto& cprop : fav_cprop)
-					AppendPropColumn(dvmodel->mCPropColumns, cprop);
+					AppendPropColumn(mDvModel->mCPropColumns, cprop);
 
-				const auto& fav_act = cls->GetFavAProp();
-				for (const auto& aprop : fav_act)
+				const auto& fav_cact = cls->GetFavAProp();
+				for (const auto& aprop : fav_cact)
 					AppendActColumn(aprop);
+
+				const auto& fav_oact = obj->GetFavAPropValue();
+				for (const auto& aprop_val : fav_oact)
+					AppendActColumn(aprop_val->mFavActProp);
 
 				const auto& fav_prop = obj->GetFavOPropValue();
 				for (const auto& oprop : fav_prop)
-					AppendPropColumn(dvmodel->mOPropColumns, oprop);
+					AppendPropColumn(mDvModel->mOPropColumns, oprop);
 
 				
 
@@ -1187,14 +678,10 @@ void ViewTableBrowser::RebuildClsColumns(const std::vector<const IIdent64*>& vec
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::AppendActColumn(const std::shared_ptr<const FavAProp>& aprop)
 {
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (!dvmodel)
-		return;
-
 	auto aid = aprop->mAct->GetId();
 	FavAPropInfo info = aprop->mInfo;
 
-	auto& idx0 = dvmodel->mActColumns.get<0>();
+	auto& idx0 = mDvModel->mActColumns.get<0>();
 	auto it = idx0.find(boost::make_tuple(aid, info));
 	if (idx0.end() == it)
 	{
@@ -1209,7 +696,7 @@ void ViewTableBrowser::AppendActColumn(const std::shared_ptr<const FavAProp>& ap
 		col->SetBitmap(ico);
 		
 		ActColumn acol(aid, info, column_idx);
-		dvmodel->mActColumns.emplace(acol);
+		mDvModel->mActColumns.emplace(acol);
 	}
 }
 //-----------------------------------------------------------------------------
@@ -1265,6 +752,7 @@ void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>& v
 											, const IIdent64* parent
 											, const wxString&
 											, bool group_by_type
+											, int mode
 											) //override;
 {
 	TEST_FUNC_TIME;
@@ -1290,11 +778,7 @@ void ViewTableBrowser::SetBeforeRefreshCls(const std::vector<const IIdent64*>& v
 		
 	ResetColumns();
 	mParentCid = 0;
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (dvmodel)
-	{
-		dvmodel->SetClsList(vec, nullptr, group_by_type);
-	}
+	mDvModel->SetClsList(vec, nullptr, group_by_type, mode);
 	
 	
 	//wxBusyCursor busyCursor;
@@ -1308,6 +792,7 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& ve
 											, const IIdent64* root
 											, const wxString& ss
 											, bool group_by_type
+											, int mode
 											) //override;
 {
 	TEST_FUNC_TIME;
@@ -1315,26 +800,32 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& ve
 		wxBusyCursor busyCursor;
 		wxWindowUpdateLocker lock(mTable);
 
-		auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-		if (!dvmodel)
-			return;
-
-		auto col3 = mTable->GetColumn(1);
-		if (root)
+		auto clsColumn = mTable->GetColumn(1);
+		auto pathColumn = mTable->GetColumn(3);
+		switch (mode)
 		{
-			// and CLASS catalog 
-			col3->SetHidden(true);
-		}
-		else
-		{
-			col3->SetHidden(!mTable->GetModel()->IsListModel());
+		case 0: {
+			pathColumn->SetHidden(false);
+			if (root)
+				clsColumn->SetHidden(true);
+			else
+				clsColumn->SetHidden(!mTable->GetModel()->IsListModel());
+		}break;
+		case 1: {
+			clsColumn->SetHidden(!mTable->GetModel()->IsListModel());
+			pathColumn->SetHidden((bool)root);
+		}break;
+		default: break;
 		}
 
 
 		mParentCid = root ? root->GetId() : 0;
-		dvmodel->SetClsList(vec, (root && 1 != root->GetId()) ? root : nullptr, group_by_type);
+		mDvModel->SetClsList(vec
+			, (root && 1 != root->GetId()) ? root : nullptr
+			, group_by_type
+			, mode );
 
-		if (!dvmodel->IsListModel())
+		if (!mDvModel->IsListModel())
 		{
 			bool tmp_autosize = mColAutosize;
 			mColAutosize = false;
@@ -1354,8 +845,9 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& ve
 			RebuildClsColumns(vec);
 		}
 		AutosizeColumns();
+		RestoreSelect();
 	}
-	RestoreSelect();
+	
 	
 
 }
@@ -1365,12 +857,6 @@ void ViewTableBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& ve
 void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IIdent64*>& obj_list)// override;
 {
 	TEST_FUNC_TIME;
-
-
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (!dvmodel || mTable->GetModel()->IsListModel())
-		return;
-
 	wxBusyCursor busyCursor;
 	wxWindowUpdateLocker lock(mTable);
 
@@ -1393,7 +879,7 @@ void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IId
 		{
 			//wxDataViewItem cls((void*)item->GetCls().get());
 			wxDataViewItem obj((void*)item);
-			dvmodel->ItemChanged(obj);
+			mDvModel->ItemChanged(obj);
 		}
 		break;
 	case Operation::BeforeDelete:	
@@ -1402,7 +888,7 @@ void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IId
 			const auto obj = dynamic_cast<const IObj64*>(item);
 			wxDataViewItem item_cls((void*)obj->GetCls().get());
 			wxDataViewItem item_obj((void*)item);
-			dvmodel->ItemDeleted(item_cls, item_obj);
+			mDvModel->ItemDeleted(item_cls, item_obj);
 		}
 		break;
 	case Operation::AfterDelete:	break;
@@ -1477,16 +963,12 @@ void wh::ViewTableBrowser::SetShowFav()
 void wh::ViewTableBrowser::SetInsertType() const //override;
 {
 	int64_t parent_cid = 1;
-	auto dvmodel = dynamic_cast<wxDVTableBrowser*>(mTable->GetModel());
-	if (dvmodel)
+	auto rootIdent = mDvModel->GetCurrentRoot();
+	if (rootIdent)
 	{
-		auto rootIdent = dvmodel->GetCurrentRoot();
-		if (rootIdent)
-		{
-			const auto* cls = dynamic_cast<const ICls64*>(rootIdent);
-			if(cls)
-				parent_cid = cls->GetId();
-		}
+		const auto* cls = dynamic_cast<const ICls64*>(rootIdent);
+		if(cls)
+			parent_cid = cls->GetId();
 	}
 	sigClsInsert(parent_cid);
 }
@@ -1689,6 +1171,7 @@ void ViewToolbarBrowser::SetAfterRefreshCls(const std::vector<const IIdent64*>& 
 											, const IIdent64* root
 											, const wxString& ss
 											, bool group_by_type
+											, int mode
 										) //override;
 {
 	int show;
@@ -1762,6 +1245,46 @@ ViewBrowserPage::ViewBrowserPage(wxWindow* parent)
 	auto path_panel = new wxAuiPanel(panel);
 	path_panel->mAuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, face_colour);
 	path_panel->mAuiMgr.GetArtProvider()->SetColor(wxAUI_DOCKART_SASH_COLOUR, face_colour);
+	// browswer mode
+
+	long style = wxAUI_TB_DEFAULT_STYLE
+		| wxAUI_TB_PLAIN_BACKGROUND
+		//| wxAUI_TB_TEXT
+		//| wxAUI_TB_HORZ_TEXT
+		//| wxAUI_TB_OVERFLOW
+		;
+	mModeToolBar = new wxAuiToolBar(path_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
+	//tool_bar->AddTool(wxID_REFRESH, "Обновить", mgr->m_ico_refresh16, "Обновить (CTRL+R или CTRL+F5)");
+	mModeTool = mModeToolBar->AddTool(whID_CATALOG_SELECT, "Каталог", mgr->m_ico_dir_obj16
+		, "Выбрать Каталог(CTRL+D)");
+	mModeTool->SetHasDropDown(true);
+	mModeToolBar->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN
+		, [this, mgr](wxCommandEvent& evt)
+	{
+		wxAuiToolBar* tb = static_cast<wxAuiToolBar*>(evt.GetEventObject());
+		tb->SetToolSticky(evt.GetId(), true);
+		wxMenu add_menu;
+		AppendBitmapMenu(&add_menu, whID_CATALOG_PATH, "Каталог по местоположению", mgr->m_ico_dir_obj16);
+		AppendBitmapMenu(&add_menu, whID_CATALOG_TYPE, "Каталог по типу", mgr->m_ico_dir_cls16);
+		//auto fav_item = AppendBitmapMenu(&add_menu, whID_CATALOG_FAVORITE, "Изранное", mgr->m_ico_favorite16);
+		//fav_item->Enable(false);
+		wxRect rect = tb->GetToolRect(evt.GetId());
+		wxPoint pt = tb->ClientToScreen(rect.GetBottomLeft());
+		pt = tb->ScreenToClient(pt);
+		tb->PopupMenu(&add_menu, pt);
+		tb->SetToolSticky(evt.GetId(), false);
+		tb->Refresh();
+
+	}
+	, whID_CATALOG_SELECT);
+	mModeToolBar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigMode(1); }, whID_CATALOG_PATH);
+	mModeToolBar->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigMode(0); }, whID_CATALOG_TYPE);
+	mModeToolBar->Realize();
+	wxAuiPaneInfo bcb_pi;
+	bcb_pi.Name(wxT("PathToolBar")).Top().CaptionVisible(false)//.Dock()
+		.PaneBorder(false).Resizable(false);
+	path_panel->mAuiMgr.AddPane(mModeToolBar, bcb_pi);
+
 	// path
 	mViewPathBrowser = std::make_shared<ViewPathBrowser>(path_panel);
 	const auto path_bs = mViewPathBrowser->GetWnd()->GetBestSize();
@@ -1815,9 +1338,7 @@ void ViewBrowserPage::OnCmd_Find(wxCommandEvent& evt)
 			ss = txtCtrl->GetValue();
 
 	}
-		
-	if(!ss.empty())
-		sigFind(ss);
+	sigFind(ss);
 }
 //-----------------------------------------------------------------------------
 //virtual 
@@ -1842,24 +1363,26 @@ ViewBrowserPage::GetViewTableBrowser()const //override;
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewBrowserPage::SetPathMode(const int mode)// override;
-{
-
-}
-//-----------------------------------------------------------------------------
-//virtual 
-void ViewBrowserPage::SetPathString(const ICls64& path_string) //override;
-{
-
-}
-//-----------------------------------------------------------------------------
-//virtual 
 void ViewBrowserPage::SetAfterRefreshCls(const std::vector<const IIdent64*>& vec
 	, const IIdent64* root
 	, const wxString& ss
 	, bool
+	, int mode
 	) //override;
 {
 	mCtrlFind->SetValue(ss);
 	sigUpdateTitle();
+
+	auto mgr = ResMgr::GetInstance();
+	if (0 == mode)
+	{
+		mModeTool->SetBitmap(mgr->m_ico_dir_cls16);
+		mModeToolBar->Refresh();
+	}
+	else if (1 == mode)
+	{
+		mModeTool->SetBitmap(mgr->m_ico_dir_obj16);
+		mModeToolBar->Refresh();
+	}
+
 }

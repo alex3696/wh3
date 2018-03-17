@@ -695,9 +695,13 @@ class ModelBrowser
 	std::unique_ptr<ModelObjPath> mObjPath;
 
 	DbCache		mCache;
-	//ClsCache	mClsCache;
-	//ObjCache	mObjCache;
-	void LoadClsList();
+	
+	void Load_ObjDir_ClsList();
+	void Load_ObjDir_ObjList();
+	void Load_ObjDir_ObjList(int64_t cid);
+	//void Load_ObjDir_ObjList(int64_t cid);
+
+	void Load_ClsDir_ClsList();
 	void LoadSearch();
 
 	void UpdateUntitledProperties();
@@ -716,15 +720,17 @@ public:
 	void SetSearchString(const wxString&);
 	void SetGroupedByType(bool);
 
-	const ICls64& GetRootCls()const;
+	const wxString GetRootTitle()const;
 
-	void DoRefresh();
+	void DoRefresh(bool sigBefore=true);
 	void DoActivate(int64_t cid);
 	void DoRefreshObjects(int64_t cid);
 	void DoUp();
 	void DoFind(const wxString&);
 	void DoGroupByType(bool enable_group_by_type);
 	void DoToggleGroupByType();
+	void DoSetMode(int);
+	void Goto(int mode,int64_t id);
 		
 	using SigPathChange = sig::signal<void(const wxString&)>;
 	SigPathChange sigAfterPathChange;
@@ -734,6 +740,7 @@ public:
 								, const IIdent64*
 								, const wxString&
 								, bool
+								, int
 							)
 					>;
 	
@@ -757,6 +764,7 @@ class ModelPageBrowser : public IModelWindow
 	ModelBrowser mModelBrowser;
 public:
 	ModelPageBrowser();
+	ModelPageBrowser(int mode, int64_t rood_id, bool group, const wxString& ss);
 
 	ModelBrowser *const GetModelBrowser(){ return &mModelBrowser; }
 

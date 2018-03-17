@@ -340,6 +340,7 @@
     <ClCompile Include="..\..\SRC\ReportPresenter.cpp" />
     <ClCompile Include="..\..\SRC\ReportView.cpp" />
     <ClCompile Include="..\..\SRC\ViewBrowser.cpp" />
+    <ClCompile Include="..\..\SRC\ViewBrowserDVModel.cpp" />
     <ClCompile Include="..\..\SRC\ViewDetail.cpp" />
     <ClCompile Include="..\..\SRC\ViewFav.cpp" />
     <ClCompile Include="..\..\SRC\ViewFilterList.cpp" />
@@ -441,6 +442,7 @@
     <ClInclude Include="..\..\INCLUDE\ModelObjPropList.h" />
     <ClInclude Include="..\..\INCLUDE\ModelUndo.h" />
     <ClInclude Include="..\..\INCLUDE\ViewBrowser.h" />
+    <ClInclude Include="..\..\INCLUDE\ViewBrowserDVModel.h" />
     <ClInclude Include="..\..\INCLUDE\ViewDetail.h" />
     <ClInclude Include="..\..\INCLUDE\ViewFav.h" />
     <ClInclude Include="..\..\INCLUDE\ViewFilterList.h" />

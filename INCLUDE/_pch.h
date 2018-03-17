@@ -106,7 +106,7 @@ typedef boost::error_info<struct tag_wxstr,wxString>		wxstr;
 #include "wxComboBtn.h"
 static const wxString wxEmptyString2;
 wxMenuItem* AppendBitmapMenu(wxMenu* menu, int id, const wxString& label, const wxBitmap &bmp);
-
+wxString GetAppVersion();
 //---------------------------------------------------------------------------
 class wxFuncTester
 {

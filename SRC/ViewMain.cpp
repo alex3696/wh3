@@ -21,7 +21,8 @@ enum GUIID
 	CMD_MKPAGE_OBJBYPATH,
 	CMD_MKPAGE_HISTORY,
 	CMD_MKPAGE_REPORT,
-	CMD_MKPAGE_BROWSER
+	CMD_MKPAGE_BROWSERCLS,
+	CMD_MKPAGE_BROWSEROBJ
 
 };
 //---------------------------------------------------------------------------
@@ -74,7 +75,9 @@ ViewMain::ViewMain()
 	mMainFrame->Bind(wxEVT_COMMAND_MENU_SELECTED
 		, [this](wxCommandEvent){ sigMkPageReportList(); }, CMD_MKPAGE_REPORT);
 	mMainFrame->Bind(wxEVT_COMMAND_MENU_SELECTED
-		, [this](wxCommandEvent){ sigMkPageBrowser(); }, CMD_MKPAGE_BROWSER);
+		, [this](wxCommandEvent){ sigMkPageBrowserCls(); }, CMD_MKPAGE_BROWSERCLS);
+	mMainFrame->Bind(wxEVT_COMMAND_MENU_SELECTED
+		, [this](wxCommandEvent) { sigMkPageBrowserObj(); }, CMD_MKPAGE_BROWSEROBJ);
 	mMainFrame->Bind(wxEVT_COMMAND_MENU_SELECTED
 		, [this](wxCommandEvent) { sigShowDoc(); }, wxID_HELP_INDEX);
 	mMainFrame->Bind(wxEVT_COMMAND_MENU_SELECTED
@@ -158,13 +161,16 @@ void ViewMain::BuildMenu()
 	item->SetBitmap(resmgr->m_ico_acts16);
 	dir->Append(item);
 	dir->AppendSeparator();
-	item = new wxMenuItem(dir, CMD_MKPAGE_OBJBYPATH, "Каталог объектов по местоположению");
+	item = new wxMenuItem(dir, CMD_MKPAGE_OBJBYPATH, "Каталог объектов по местоположению(устаревший)");
 	item->SetBitmap(resmgr->m_ico_folder_obj24);
 	dir->Append(item);
 	item = new wxMenuItem(dir, CMD_MKPAGE_OBJBYTYPE, "Каталог объектов по типу(устаревший)");
 	item->SetBitmap(resmgr->m_ico_folder_type24);
 	dir->Append(item);
-	item = new wxMenuItem(dir, CMD_MKPAGE_BROWSER, "Каталог объектов по типу");
+	item = new wxMenuItem(dir, CMD_MKPAGE_BROWSEROBJ, "Каталог объектов по местоположению");
+	item->SetBitmap(resmgr->m_ico_folder_obj24);
+	dir->Append(item);
+	item = new wxMenuItem(dir, CMD_MKPAGE_BROWSERCLS, "Каталог объектов по типу");
 	item->SetBitmap(resmgr->m_ico_folder_type24);
 	dir->Append(item);
 	dir->AppendSeparator();
@@ -207,11 +213,11 @@ void ViewMain::BuildToolbar()
 	//m_MainToolBar->AddSeparator();
 
 	const wxString str_mktab_objdir = "Каталог объектов по местоположению";
-	mToolBar->AddTool(CMD_MKPAGE_OBJBYPATH, str_mktab_objdir
+	mToolBar->AddTool(CMD_MKPAGE_BROWSEROBJ, str_mktab_objdir
 		, resmgr->m_ico_folder_obj24, str_mktab_objdir);
 
 	const wxString cat_obj_by_type = "Каталог объектов по типу";
-	mToolBar->AddTool(CMD_MKPAGE_BROWSER, cat_obj_by_type
+	mToolBar->AddTool(CMD_MKPAGE_BROWSERCLS, cat_obj_by_type
 		, resmgr->m_ico_folder_type24, cat_obj_by_type);
 
 	//mToolBar->AddTool(CMD_MKPAGE_GROUP, "Группы", m_ResMgr->m_ico_usergroup24);

@@ -361,6 +361,11 @@ public:
 	virtual const wxArrayString& GetVar()const = 0;
 	virtual bool GetVarStrict()const = 0;
 
+	inline bool IsLinkOrFile()const
+	{
+		const auto kind = GetKind();
+		return (FieldType::ftLink == kind || FieldType::ftFile == kind);
+	}
 };
 using ConstPropTable = boost::multi_index_container
 <

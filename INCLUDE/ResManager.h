@@ -128,6 +128,9 @@ public:
 	DEF_INIT_ICO16(act_period);
 	DEF_INIT_ICO16(act_next);
 	DEF_INIT_ICO16(act_left);
+	DEF_INIT_ICO16(dir_obj);
+	DEF_INIT_ICO16(dir_cls);
+	DEF_INIT_ICO16(favorite);
 protected:
 
 	ResMgr(){	}

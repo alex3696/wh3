@@ -12,8 +12,8 @@ namespace wh{
 class IViewTableBrowser : public IViewWindow
 {
 public:
-	virtual void SetBeforeRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool)=0;
-	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool) = 0;
+	virtual void SetBeforeRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool, int)=0;
+	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool, int) = 0;
 	virtual void SetAct() = 0;
 	virtual void SetMove() = 0;
 	virtual void SetShowDetail() = 0;
@@ -27,6 +27,8 @@ public:
 
 	sig::signal<void(int64_t)> sigActivate;
 	sig::signal<void(int64_t)> sigRefreshClsObjects;
+	sig::signal<void(int64_t)> sigGotoCls;
+	sig::signal<void(int64_t)> sigGotoObj;
 
 	sig::signal<void()> sigRefresh;
 	sig::signal<void()> sigUp;
@@ -55,7 +57,7 @@ class IViewToolbarBrowser : public IViewWindow
 {
 public:
 	virtual void SetVisibleFilters(bool enable) = 0;
-	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool) = 0;
+	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool, int) = 0;
 	
 	sig::signal<void()> sigRefresh;
 	sig::signal<void()> sigUp;
@@ -91,11 +93,10 @@ public:
 	virtual std::shared_ptr<IViewTableBrowser>		GetViewTableBrowser()const = 0;
 	virtual std::shared_ptr<IViewToolbarBrowser>	GetViewToolbarBrowser()const = 0;
 
-	virtual void SetPathMode(const int mode) = 0;
-	virtual void SetPathString(const ICls64& node) = 0;
-	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool) = 0;
+	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool, int) = 0;
 
-	sig::signal<void(const wxString&)> sigFind;
+	sig::signal<void(const wxString&)>	sigFind;
+	sig::signal<void(int)>				sigMode;
 };
 
 

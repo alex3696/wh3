@@ -21,9 +21,9 @@ CtrlTableBrowser::CtrlTableBrowser(
 	namespace ph = std::placeholders;
 
 	connModel_BeforeRefreshCls = mModel->GetModelBrowser()->sigBeforeRefreshCls
-		.connect(std::bind(&IViewTableBrowser::SetBeforeRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4));
+		.connect(std::bind(&IViewTableBrowser::SetBeforeRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4, ph::_5));
 	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
-		.connect(std::bind(&IViewTableBrowser::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4));
+		.connect(std::bind(&IViewTableBrowser::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4, ph::_5));
 	connModel_ObjOperation = mModel->GetModelBrowser()->sigObjOperation
 		.connect(std::bind(&IViewTableBrowser::SetObjOperation, mView.get(), ph::_1, ph::_2));
 
@@ -31,6 +31,10 @@ CtrlTableBrowser::CtrlTableBrowser(
 		.connect(std::bind(&CtrlTableBrowser::Activate, this, ph::_1));
 	connViewCmd_RefreshClsObjects = mView->sigRefreshClsObjects
 		.connect(std::bind(&CtrlTableBrowser::RefreshClsObjects, this, ph::_1));
+	connViewCmd_GotoCls = mView->sigGotoCls
+		.connect(std::bind(&CtrlTableBrowser::GotoCls, this, ph::_1));
+	connViewCmd_GotoObj = mView->sigGotoObj
+		.connect(std::bind(&CtrlTableBrowser::GotoObj, this, ph::_1));
 
 	connViewCmd_Refresh = mView->sigRefresh
 		.connect(std::bind(&CtrlTableBrowser::Refresh, this));
@@ -90,6 +94,16 @@ void CtrlTableBrowser::Activate(int64_t cid)
 void CtrlTableBrowser::RefreshClsObjects(int64_t cid)
 {
 	mModel->GetModelBrowser()->DoRefreshObjects (cid);
+}
+//---------------------------------------------------------------------------
+void CtrlTableBrowser::GotoCls(int64_t cid)
+{
+	mModel->GetModelBrowser()->Goto(0, cid);
+}
+//---------------------------------------------------------------------------
+void CtrlTableBrowser::GotoObj(int64_t oid)
+{
+	mModel->GetModelBrowser()->Goto(1, oid);
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::SetAct()
@@ -335,7 +349,7 @@ CtrlToolbarBrowser::CtrlToolbarBrowser(
 	namespace ph = std::placeholders;
 
 	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
-		.connect(std::bind(&IViewToolbarBrowser::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4));
+		.connect(std::bind(&IViewToolbarBrowser::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4, ph::_5));
 
 	connViewCmd_Refresh = mView->sigRefresh
 		.connect(std::bind(&CtrlToolbarBrowser::Refresh, this));
@@ -483,13 +497,21 @@ CtrlPageBrowser::CtrlPageBrowser(
 
 	connViewCmd_Find = mView->sigFind
 		.connect(std::bind(&CtrlPageBrowser::Find, this, ph::_1));
+	connViewCmd_Mode = mView->sigMode
+		.connect(std::bind(&CtrlPageBrowser::SetMode, this, ph::_1));
+
 
 	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
-		.connect(std::bind(&IViewBrowserPage::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4));
+		.connect(std::bind(&IViewBrowserPage::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4, ph::_5));
 
 }
 //---------------------------------------------------------------------------
 void CtrlPageBrowser::Find(const wxString& str)
 {
 	mModel->GetModelBrowser()->DoFind(str);
+}
+//---------------------------------------------------------------------------
+void CtrlPageBrowser::SetMode(int mode)
+{
+	mModel->GetModelBrowser()->DoSetMode(mode);
 }

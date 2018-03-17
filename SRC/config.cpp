@@ -69,6 +69,7 @@ void  MGuiCfg::LoadClientInfo(const boost::property_tree::wptree& cfg)
 	TEST_FUNC_TIME;
 	auto cnt = whDataMgr::GetInstance()->mContainer;
 	auto last_login = cnt->GetObject<wxDateTime>(L"ClientInfoLastLogin");
+	auto version = cnt->GetObject<wxString>(L"ClientInfoVersion");
 
 	auto it = cfg.find(L"ClientInfo");
 	if (cfg.not_found() != it)
@@ -79,8 +80,9 @@ void  MGuiCfg::LoadClientInfo(const boost::property_tree::wptree& cfg)
 		if (!last_login->ParseISOCombined(dt_str, 'T'))
 			if (!last_login->ParseISOCombined(dt_str, ' '))
 				if (!last_login->ParseDateTime(dt_str, &end))
-					if (!last_login->ParseDate(dt_str))
-						return;
+					last_login->ParseDate(dt_str);
+
+		*version = wxString(it->second.get<std::wstring>(L"Version", L"0.0.0.0"));
 	}
 }
 //-----------------------------------------------------------------------------
@@ -91,6 +93,7 @@ void  MGuiCfg::SaveClientInfo(boost::property_tree::wptree& cfg)
 	ptree content;
 	//content.put(L"LastLogin", (wxDateTime::Now()- wxTimeSpan(720, 0, 0, 0)).Format().wc_str() );
 	content.put(L"LastLogin", wxDateTime::Now().FormatISOCombined().wc_str() );
+	content.put(L"Version", GetAppVersion().wc_str());
 	cfg.push_back(std::make_pair(L"ClientInfo", content));
 }
 //-----------------------------------------------------------------------------

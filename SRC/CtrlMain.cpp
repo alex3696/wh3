@@ -49,8 +49,10 @@ CtrlMain::CtrlMain(const std::shared_ptr<ViewMain>& view, const std::shared_ptr<
 		.connect(std::bind(&CtrlMain::MkPageHistory, this));
 	connViewCmd_MkPageReportList = mView->sigMkPageReportList
 		.connect(std::bind(&CtrlMain::MkPageReportList, this));
-	connViewCmd_MkPageBrowser = mView->sigMkPageBrowser
-		.connect(std::bind(&CtrlMain::MkPageBrowser, this));
+	connViewCmd_MkPageBrowserCls = mView->sigMkPageBrowserCls
+		.connect(std::bind(&CtrlMain::MkPageBrowserCls, this));
+	connViewCmd_MkPageBrowserObj = mView->sigMkPageBrowserObj
+		.connect(std::bind(&CtrlMain::MkPageBrowserObj, this));
 
 
 	connViewCmd_DoConnectDB = mView->sigDoConnectDB
@@ -148,9 +150,14 @@ void CtrlMain::MkPageReportList()
 	mCtrlNotebook->MkWindow("CtrlPageReportList");
 }
 //---------------------------------------------------------------------------
-void CtrlMain::MkPageBrowser()
+void CtrlMain::MkPageBrowserCls()
 {
-	mCtrlNotebook->MkWindow("CtrlPageBrowser");
+	mCtrlNotebook->MkWindow("CtrlPageBrowserCls");
+}
+//---------------------------------------------------------------------------
+void CtrlMain::MkPageBrowserObj()
+{
+	mCtrlNotebook->MkWindow("CtrlPageBrowserObj");
 }
 //---------------------------------------------------------------------------
 std::shared_ptr<CtrlNotebook> CtrlMain::GetNotebook()

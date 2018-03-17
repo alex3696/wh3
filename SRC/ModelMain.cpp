@@ -23,8 +23,17 @@ void ModelMain::Load(const boost::property_tree::wptree& app_cfg)//override
 	whDataMgr::GetInstance()->mRecentDstOidPresenter->Load(app_cfg);
 
 	auto cnt = whDataMgr::GetInstance()->mContainer;
+
+
+	const auto& version = *cnt->GetObject<std::wstring>(L"ClientInfoVersion");
+	const auto appvers = GetAppVersion();
+	
 	auto last_login = cnt->GetObject<wxDateTime>(L"ClientInfoLastLogin");
-	if (!last_login->IsValid() || wxDateTime::Now() > (*last_login + wxTimeSpan(720, 0, 0, 0)))
+	if (!last_login->IsValid()
+		|| wxDateTime::Now() > (*last_login + wxTimeSpan(720, 0, 0, 0))
+		|| appvers > version
+		)
+
 		sigShowHelp("whatsnew");
 }
 //---------------------------------------------------------------------------

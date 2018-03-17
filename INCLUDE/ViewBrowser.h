@@ -2,61 +2,8 @@
 #define __VIEW_BROWSER_H
 
 #include "IViewBrowser.h"
+#include "ViewBrowserDVModel.h"
 namespace wh{
-//-----------------------------------------------------------------------------
-struct ActColumn
-{
-	int64_t			mAid;
-	FavAPropInfo	mAInfo;
-	int				mColumn;
-	
-	ActColumn() 
-		:mAid(0), mAInfo(FavAPropInfo::UnnownProp), mColumn(0)
-	{}
-	ActColumn(const int64_t& aid, FavAPropInfo acol,int idx)
-		:mAid(aid), mAInfo(acol), mColumn(idx)
-	{}
-};
-//-----------------------------------------------------------------------------
-using ActColumns = boost::multi_index_container
-<
-	ActColumn,
-	indexed_by
-	<
-		ordered_unique < 
-							composite_key
-							<
-								ActColumn
-								, member<ActColumn, int64_t, &ActColumn::mAid>
-								, member<ActColumn, FavAPropInfo, &ActColumn::mAInfo>
-							> 
-						>
-		, ordered_unique<member<ActColumn, int, &ActColumn::mColumn>>
-	>
->;
-//-----------------------------------------------------------------------------
-struct PropColumn
-{
-	int64_t			mPid;
-	int				mColumn;
-
-	PropColumn()
-		:mPid(0), mColumn(0)
-	{}
-	PropColumn(const int64_t& pid,  int idx)
-		:mPid(pid), mColumn(idx)
-	{}
-};
-//-----------------------------------------------------------------------------
-using PropColumns = boost::multi_index_container
-<
-	PropColumn,
-	indexed_by
-	<
-		  ordered_unique<member<PropColumn, int64_t, &PropColumn::mPid>>
-		, ordered_unique<member<PropColumn, int, &PropColumn::mColumn>>
-	>
->;
 
 //-----------------------------------------------------------------------------
 class ViewTableBrowser : public IViewTableBrowser
@@ -65,21 +12,37 @@ class ViewTableBrowser : public IViewTableBrowser
 	wxTimer	mToolTipTimer;
 	void ShowToolTip();
 	void OnCmd_MouseMove(wxMouseEvent& evt);
+	void OnCmd_LeftUp(wxMouseEvent& evt);
+	// link
+	bool mIsCursorHand = false;
+	void SetCursorHand()
+	{
+		if(!mIsCursorHand)
+		{
+			mIsCursorHand = true;
+			mTable->GetMainWindow()->SetCursor(wxCursor(wxCURSOR_HAND));
+		}
+	}
+	void SetCursorStandard()
+	{
+		if (mIsCursorHand)
+		{
+			mIsCursorHand = false;
+			mTable->GetMainWindow()->SetCursor(*wxSTANDARD_CURSOR);
+		}
+	}
 
 	int64_t							mParentCid = 0;
 	
 	wxDataViewColumn* mSortCol = nullptr;
 	bool mSortAsc = true;
 	
-	
-	
 	int64_t mClsSelected = 0;
 	int64_t mObjSelected = 0;
 	std::set<int64_t> mExpandedCls;
 
-	wxDataViewCtrl* mTable;
-	
-
+	wxDataViewCtrl*		mTable;
+	wxDVTableBrowser*	mDvModel;
 
 	bool mColAutosize = true;
 	
@@ -100,7 +63,6 @@ protected:
 	void OnCmd_Activate(wxDataViewEvent& evt);
 	void OnCmd_Expanding(wxDataViewEvent& evt);
 	void OnCmd_Expanded(wxDataViewEvent& evt);
-
 	void OnCmd_Collapseded(wxDataViewEvent& evt);
 	
 public:
@@ -111,8 +73,10 @@ public:
 		return mTable;
 	}
 
-	virtual void SetBeforeRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool) override;
-	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool) override;
+	virtual void SetBeforeRefreshCls(const std::vector<const IIdent64*>&
+		, const IIdent64*, const wxString&, bool, int mode) override;
+	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&
+		, const IIdent64*, const wxString&, bool, int mode) override;
 
 	virtual void SetObjOperation(Operation, const std::vector<const IIdent64*>&) override;
 	virtual void SetAct() override;
@@ -140,7 +104,8 @@ public:
 	}
 
 	virtual void SetVisibleFilters(bool enable) override;
-	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool) override;
+	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&
+		, const IIdent64*, const wxString&, bool, int mode) override;
 
 
 };
@@ -148,6 +113,7 @@ public:
 class ViewPathBrowser : public IViewPathBrowser
 {
 	wxTextCtrl* mPathCtrl;
+	
 public:
 	ViewPathBrowser(wxWindow* parent);
 	ViewPathBrowser(const std::shared_ptr<IViewWindow>& parent);
@@ -171,6 +137,9 @@ class ViewBrowserPage : public IViewBrowserPage
 	
 
 	wxSearchCtrl* mCtrlFind;
+
+	wxAuiToolBar* mModeToolBar;
+	wxAuiToolBarItem* mModeTool;
 	void OnCmd_Find(wxCommandEvent& evt = wxCommandEvent());
 protected:
 	virtual void SetShow()override
@@ -190,9 +159,8 @@ public:
 	virtual std::shared_ptr<IViewTableBrowser>		GetViewTableBrowser()const override;
 	
 
-	virtual void SetPathMode(const int mode) override;
-	virtual void SetPathString(const ICls64& node) override;
-	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool) override;
+	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&
+		, const IIdent64*, const wxString&, bool, int mode) override;
 };
 
 

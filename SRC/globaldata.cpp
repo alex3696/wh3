@@ -342,7 +342,7 @@ void whDataMgr::InitContainer()
 	//	("CtrlNotebook", "ViewNotebook", "ModelNotebook");
 	
 	mContainer->RegInstanceDeferredNI<wxDateTime>("ClientInfoLastLogin");
-
+	mContainer->RegInstanceDeferredNI<wxString>("ClientInfoVersion");
 	
 	/////////////////
 	// page user  //
@@ -481,6 +481,28 @@ void whDataMgr::InitContainer()
 		("ViewBrowserPage", "ViewNotebook");
 	mContainer->RegFactory<ICtrlWindow, CtrlPageBrowser, ViewBrowserPage, ModelPageBrowser >
 		("CtrlPageBrowser", "ViewBrowserPage", "ModelPageBrowser");
+
+	////////////////////////
+	// Browser2 - with object path
+	//mContainer->RegInstanceNI<int>("BrowserMode");
+	//mContainer->RegInstanceNI<int64_t>("BrowserRootId");
+	//mContainer->RegInstanceNI<bool>("BrowserGroup");
+	//mContainer->RegInstanceNI<wxString>("BrowserSearchString");
+	//mContainer->RegFactoryNI<ModelPageBrowser, int, int64_t, bool, const wxString&>
+	//	("ModelPageBrowserObj"
+	//	"BrowserMode", "BrowserRootId", "BrowserGroup", "BrowserSearchString");
+	mContainer->RegFactoryBind<ModelPageBrowser
+		, ModelPageBrowser, int, int64_t, bool, wxString>
+		("ModelPageBrowserObj", 1, 1, true, wxEmptyString);
+	mContainer->RegFactoryBind<ModelPageBrowser
+		, ModelPageBrowser, int, int64_t, bool, wxString>
+		("ModelPageBrowserCls", 0, 1, true, wxEmptyString);
+	//mContainer->RegFactory<IViewBrowserPage, ViewBrowserPage, IViewNotebook >
+	//	("ViewBrowserPage", "ViewNotebook");
+	mContainer->RegFactory<ICtrlWindow, CtrlPageBrowser, ViewBrowserPage, ModelPageBrowser >
+		("CtrlPageBrowserObj", "ViewBrowserPage", "ModelPageBrowserObj");
+	mContainer->RegFactory<ICtrlWindow, CtrlPageBrowser, ViewBrowserPage, ModelPageBrowser >
+		("CtrlPageBrowserCls", "ViewBrowserPage", "ModelPageBrowserCls");
 
 	////////////////////
 	// ClsEditor      //

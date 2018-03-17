@@ -18,6 +18,8 @@ class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPag
 
 	sig::scoped_connection connViewCmd_Activate;
 	sig::scoped_connection connViewCmd_RefreshClsObjects;
+	sig::scoped_connection connViewCmd_GotoCls;
+	sig::scoped_connection connViewCmd_GotoObj;
 
 	sig::scoped_connection connViewCmd_Refresh;
 	sig::scoped_connection connViewCmd_Up;
@@ -49,6 +51,8 @@ public:
 	void Up();
 	void Activate(int64_t cid);
 	void RefreshClsObjects(int64_t cid);
+	void GotoCls(int64_t cid);
+	void GotoObj(int64_t oid);
 
 	void SetAct();
 	void SetMove();
@@ -148,6 +152,7 @@ class CtrlPageBrowser final : public CtrlWindowBase<IViewBrowserPage, ModelPageB
 	std::shared_ptr<CtrlTableBrowser>	mCtrlTableBrowser;
 
 	sig::scoped_connection connViewCmd_Find;
+	sig::scoped_connection connViewCmd_Mode;
 	
 	sig::scoped_connection connModel_AfterRefreshCls;
 public:
@@ -156,6 +161,7 @@ public:
 
 
 	void Find(const wxString&);
+	void SetMode(int);
 };
 
 
