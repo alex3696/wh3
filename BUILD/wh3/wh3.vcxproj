@@ -73,10 +73,6 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(BOOST);$(PGSQL)\include;C:\_SAV\LIB\wxdatabaselayer\include;c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\include;$(IncludePath)</IncludePath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(WXWIN)\lib\vc_dll;C:\_SAV\LIB\wxdatabaselayer\lib\vc_dll;c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\lib\vc_dll;$(LibraryPath)</LibraryPath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(BOOST);$(PGSQL)\include;C:\_SAV\LIB\wxdatabaselayer\include;c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\include;$(IncludePath)</IncludePath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\_SAV\LIB\wxdatabaselayer\lib\vc_dll;c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\lib\vc_dll;$(WXWIN)\lib\vc_dll;$(LibraryPath);$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
     <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</PreBuildEventUseInBuild>
     <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreBuildEventUseInBuild>
   </PropertyGroup>
@@ -98,7 +94,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(WXWIN)\include\msvc;$(WXWIN)\include;..\..\RESOURCES;..\..\INCLUDE;..\..\INCLUDE\FB_FORMS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(WXWIN)\include\msvc;$(WXWIN)\lib\vc_lib\mswud;$(WXWIN)\include;$(BOOST);$(PGSQL)\include;C:\_SAV\LIB\wxdatabaselayer\include;c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\include;..\..\RESOURCES;..\..\INCLUDE;..\..\INCLUDE\FB_FORMS;$(IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__DEBUG;_WINDOWS;STRICT;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;__WXMSW__;__WX__;__WXDEBUG__;wxUSE_UNICODE;WXUSINGDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -112,10 +108,11 @@
       <EnablePREfast>false</EnablePREfast>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>wxcode_msw28ud_databaselayer_postgresql.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>wxcode_msw28ud_databaselayer_postgresql.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalLibraryDirectories>$(WXWIN)\lib\vc_dll;C:\_SAV\LIB\wxdatabaselayer\lib\vc_dll;c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\lib\vc_dll;$(LibraryPath)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -175,7 +172,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='StaticRelease|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(BOOST);$(PGSQL)\include;$(WXWIN)\lib\vc_lib\mswu;$(WXWIN)\include;c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\include;C:\_SAV\LIB\wxdatabaselayer\include;..\..\RESOURCES;..\..\INCLUDE;..\..\INCLUDE\FB_FORMS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(BOOST);c:\_SAV\LIB\postgresql-10.3\src\interfaces\libpq;$(PGSQL)\include;$(WXWIN)\lib\vc_lib\mswu;$(WXWIN)\include;c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\include;C:\_SAV\LIB\wxdatabaselayer\include;..\..\RESOURCES;..\..\INCLUDE;..\..\INCLUDE\FB_FORMS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__DEBUG;_WINDOWS;STRICT;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;__WXMSW__;__WXDEBUG__;wxUSE_UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -213,7 +210,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(WXWIN)\include\msvc;$(WXWIN)\include;..\..\RESOURCES;..\..\INCLUDE;..\..\INCLUDE\FB_FORMS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(WXWIN)\lib\vc_lib\mswu;$(WXWIN)\include;$(PGSQL)\include;C:\_SAV\LIB\wxdatabaselayer\include;c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\include;$(BOOST);..\..\RESOURCES;..\..\INCLUDE;..\..\INCLUDE\FB_FORMS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;STRICT;_CRT_SECURE_NO_DEPRECATE;__WXMSW__;__WX__;__WXNEBUG__;wxUSE_UNICODE;WXUSINGDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -225,12 +222,13 @@
       <AdditionalOptions>/Zm200 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>wxcode_msw28u_databaselayer_postgresql.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>wxbase31u.lib;wxmsw31u_core.lib;wxmsw31u_aui.lib;wxmsw31u_adv.lib;wxmsw31u_propgrid.lib;wxbase31u_net.lib;wxcode_msw28u_databaselayer_postgresql.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalLibraryDirectories>$(WXWIN)\lib\vc_dll;C:\_SAV\LIB\wxdatabaselayer\lib\vc_dll;c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\lib\vc_dll</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
       <Command>autobuildnumber.exe wh3.rc "VER_FILEVERSION"</Command>
