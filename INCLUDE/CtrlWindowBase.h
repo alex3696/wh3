@@ -21,6 +21,13 @@ protected:
 	sig::scoped_connection connModelClose;
 	sig::scoped_connection connModelShow;
 
+	virtual void DisconnectModel()
+	{
+		connModelUpdateTitle.disconnect();
+		connModelClose.disconnect();
+		connModelShow.disconnect();
+	}
+
 	virtual void ConnectView()
 	{
 		if (!mView)
@@ -32,12 +39,14 @@ protected:
 			.connect(std::bind(&IModelWindow::Close , mModel.get()));
 		connViewShow = mView->sigShow
 			.connect(std::bind(&IModelWindow::Show, mModel.get()));
+		ConnectModel();// receive signals from model if View exists
 	}
 	virtual void DisconnectView()
 	{
 		connViewUpdateTitle.disconnect();
 		connViewClose.disconnect();
 		connViewShow.disconnect();
+		DisconnectModel();// don`t receive signals from model while View is NULL
 	}
 
 	virtual void ConnectModel()
