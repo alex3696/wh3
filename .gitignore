@@ -59,3 +59,4 @@ BUILD/.vs/wh3/v15/Browse.VC.db
 BUILD/.vs/wh3/v15/Browse.VC.opendb
 BUILD/wh3/StaticDebug/wh3.res
 BUILD/wh3/StaticRelease/wh3.res
+BUILD/Release/wh3.pgd

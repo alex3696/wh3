@@ -247,7 +247,7 @@ void ViewTableBrowser::OnCmd_LeftUp(wxMouseEvent& evt)
 
 
 	auto pval = mDvModel->GetPropVal(item, col->GetModelColumn());
-	if (!pval || pval->mValue.empty() )
+	if (!pval || pval->mValue.empty() || !pval->mProp->IsLinkOrFile() )
 		return;
 
 	const wxString full_path = pval->mValue;
