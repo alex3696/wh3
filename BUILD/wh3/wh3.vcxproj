@@ -210,7 +210,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(WXWIN)\lib\vc_lib\mswu;$(WXWIN)\include;$(PGSQL)\include;C:\_SAV\LIB\wxdatabaselayer\include;c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\include;$(BOOST);..\..\RESOURCES;..\..\INCLUDE;..\..\INCLUDE\FB_FORMS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(WXWIN)\include\msvc;$(WXWIN)\lib\vc_lib\mswu;$(WXWIN)\include;$(PGSQL)\include;C:\_SAV\LIB\wxdatabaselayer\include;c:\_SAV\LIB\databaselayer_src_1.8\databaselayer\include;$(BOOST);..\..\RESOURCES;..\..\INCLUDE;..\..\INCLUDE\FB_FORMS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;STRICT;_CRT_SECURE_NO_DEPRECATE;__WXMSW__;__WX__;__WXNEBUG__;wxUSE_UNICODE;WXUSINGDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
