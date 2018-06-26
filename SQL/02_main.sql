@@ -932,6 +932,49 @@ LANGUAGE 'plpgsql';
 CREATE TRIGGER tr_bu_obj_name BEFORE UPDATE ON obj_name FOR EACH ROW EXECUTE PROCEDURE ftr_bu_obj_name();
 GRANT EXECUTE ON FUNCTION ftr_bu_obj_name() TO "ObjDesigner";
 
+---------------------------------------------------------------------------------------------------
+-- тригер перед удалением объекта
+---------------------------------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS ftr_bd_obj_name() CASCADE;
+CREATE OR REPLACE FUNCTION ftr_bd_obj_name()  RETURNS trigger AS
+$body$
+DECLARE
+  privileges_exist SMALLINT;
+BEGIN
+  PERFORM FROM wh_membership WHERE groupname='Admin' AND username= CURRENT_USER;
+  IF FOUND THEN -- если в группе 'Admin', то всё можно 
+    RETURN OLD;
+  END IF;
+
+  IF OLD.usr_insert<>CURRENT_USER THEN -- если создатель обьекта НЕ тот же пользователь
+    RAISE EXCEPTION ' %: can`t delete wrong user obj_name=% ',TG_NAME, OLD;
+  END IF;
+
+  -- не обязательно т.к. GRANT INSERT, DELETE ON TABLE public.obj_name TO "ObjDesigner";
+  WITH RECURSIVE groups AS (
+    SELECT groupid,groupname,userid,username FROM wh_membership WHERE username= CURRENT_USER
+    UNION ALL
+      SELECT t.groupid,t.groupname,t.userid,t.username
+      FROM groups AS c, 
+           wh_membership  AS t
+      WHERE c.groupid = t.userid
+    )
+    SELECT groupid INTO privileges_exist FROM groups WHERE groupname='ObjDesigner';
+  IF NOT FOUND THEN -- если НЕ имеются права ObjDesigner
+    RAISE EXCEPTION ' %: can`t delete no privileges for user obj_name=% ',TG_NAME, OLD;
+  END IF;
+
+  IF OLD.dt_insert < CURRENT_TIMESTAMP - '7 00:00:00'::interval THEN -- время редактирований  вышло
+    RAISE EXCEPTION ' %: can`t delete time is up obj_name=% ',TG_NAME, OLD;
+  END IF;
+
+  RETURN OLD;
+END;
+$body$
+LANGUAGE 'plpgsql';
+CREATE TRIGGER tr_bd_obj_name BEFORE DELETE ON obj_name FOR EACH ROW EXECUTE PROCEDURE ftr_bd_obj_name();
+GRANT EXECUTE ON FUNCTION ftr_bd_obj_name() TO "ObjDesigner";
+
 ----------------------------------------------------------------------------------
 -- Триггер обеспечивающий уникальность действия (+периода) на всю подветку класса 
 
