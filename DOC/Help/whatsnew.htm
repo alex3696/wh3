@@ -14,17 +14,17 @@ xmlns="http://www.w3.org/TR/REC-html40">
  <o:DocumentProperties>
   <o:Author>snake</o:Author>
   <o:LastAuthor>snake</o:LastAuthor>
-  <o:Revision>27</o:Revision>
-  <o:TotalTime>59</o:TotalTime>
+  <o:Revision>29</o:Revision>
+  <o:TotalTime>67</o:TotalTime>
   <o:LastPrinted>2018-01-15T07:05:00Z</o:LastPrinted>
   <o:Created>2018-03-05T13:47:00Z</o:Created>
-  <o:LastSaved>2018-03-23T13:17:00Z</o:LastSaved>
+  <o:LastSaved>2018-06-26T16:58:00Z</o:LastSaved>
   <o:Pages>1</o:Pages>
-  <o:Words>489</o:Words>
-  <o:Characters>2793</o:Characters>
-  <o:Lines>23</o:Lines>
-  <o:Paragraphs>6</o:Paragraphs>
-  <o:CharactersWithSpaces>3276</o:CharactersWithSpaces>
+  <o:Words>551</o:Words>
+  <o:Characters>3142</o:Characters>
+  <o:Lines>26</o:Lines>
+  <o:Paragraphs>7</o:Paragraphs>
+  <o:CharactersWithSpaces>3686</o:CharactersWithSpaces>
   <o:Version>14.00</o:Version>
  </o:DocumentProperties>
  <o:OfficeDocumentSettings>
@@ -101,7 +101,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
   <w:LsdException Locked="false" Priority="39" Name="toc 7"/>
   <w:LsdException Locked="false" Priority="39" Name="toc 8"/>
   <w:LsdException Locked="false" Priority="39" Name="toc 9"/>
-  <w:LsdException Locked="false" Priority="0" QFormat="true" Name="caption"/>
+  <w:LsdException Locked="false" QFormat="true" Name="caption"/>
   <w:LsdException Locked="false" Priority="10" SemiHidden="false"
    UnhideWhenUsed="false" QFormat="true" Name="Title"/>
   <w:LsdException Locked="false" Priority="1" Name="Default Paragraph Font"/>
@@ -405,6 +405,7 @@ h1
 	font-weight:bold;}
 p.MsoCaption, li.MsoCaption, div.MsoCaption
 	{mso-style-noshow:yes;
+	mso-style-priority:99;
 	mso-style-qformat:yes;
 	margin-top:6.0pt;
 	margin-right:0cm;
@@ -419,8 +420,7 @@ p.MsoCaption, li.MsoCaption, div.MsoCaption
 	mso-bidi-font-family:Tahoma;
 	font-style:italic;}
 a:link, span.MsoHyperlink
-	{mso-style-noshow:yes;
-	mso-style-priority:99;
+	{mso-style-priority:99;
 	color:blue;
 	mso-themecolor:hyperlink;
 	text-decoration:underline;
@@ -433,7 +433,8 @@ a:visited, span.MsoHyperlinkFollowed
 	text-decoration:underline;
 	text-underline:single;}
 p
-	{mso-style-priority:99;
+	{mso-style-noshow:yes;
+	mso-style-priority:99;
 	mso-margin-top-alt:auto;
 	margin-right:0cm;
 	margin-bottom:7.1pt;
@@ -841,8 +842,8 @@ ul
 <div class=WordSection1>
 
 <p style='margin-bottom:0cm;margin-bottom:.0001pt;line-height:normal'><a
-href="index.htm">к содержанию</a><span lang=EN-US style='mso-ansi-language:
-EN-US'><span style='mso-tab-count:1'>           </span><a href="whatwill.htm"><span
+href="index.htm">к содержанию</a><span style='mso-tab-count:1'>           </span><span
+lang=EN-US style='mso-ansi-language:EN-US'><a href="whatwill.htm"><span
 lang=RU style='mso-ansi-language:RU'>Что будет</span></a></span></p>
 
 <h1>Что нового в версии </h1>
@@ -850,7 +851,34 @@ lang=RU style='mso-ansi-language:RU'>Что будет</span></a></span></p>
 <p class=MsoNormal>Ознакомиться с подробным списком изменений можно на <a
 href="https://github.com/alex3696/wh3/commits/master"><span class=SpellE>GitHub</span></a></p>
 
-<p class=MsoNormal><o:p>&nbsp;</o:p></p>
+<h1>3.0.6.3 <span class=GramE>( </span>26.06.2018)</h1>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-18.0pt;mso-list:l1 level1 lfo2'><![if !supportLists]><span
+style='font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family:
+Symbol'><span style='mso-list:Ignore'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>исправлены пути, обновлены WX3.1.1 для <span
+class=SpellE>релизной</span> сборки.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-18.0pt;mso-list:l1 level1 lfo2'><![if !supportLists]><span
+style='font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family:
+Symbol'><span style='mso-list:Ignore'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span class=SpellE>launcher</span> обновлён и
+теперь не делает поиск распространяемых библиотек MSCPP: <span class=SpellE>бинарник</span>
+и укомплектован redist2013 и redist2017</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-18.0pt;mso-list:l1 level1 lfo2'><![if !supportLists]><span
+style='font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family:
+Symbol'><span style='mso-list:Ignore'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]>добавлена <a href="Help_for_repairmanYAMBURG.htm">инструкция
+для инженера (Ямбург)</a></p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-18.0pt;mso-list:l1 level1 lfo2'><![if !supportLists]><span
+style='font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family:
+Symbol'><span style='mso-list:Ignore'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><![endif]><span lang=EN-US style='mso-ansi-language:EN-US'>SQL</span>:
+изменение в логике удаления объектов, теперь для группы «<span class=SpellE><span
+lang=EN-US style='mso-ansi-language:EN-US'>ObjDesigner</span></span>» допускается
+удалять только «свои» объекты, которые были созданы не более 7 суток назад</p>
 
 <h1>3.0.6.2 <span class=GramE>( </span>20.03.2018)</h1>
 
@@ -903,9 +931,9 @@ Symbol'><span style='mso-list:Ignore'>·<span style='font:7.0pt "Times New Roman"
 <p class=MsoListParagraphCxSpMiddle style='text-indent:-18.0pt;mso-list:l1 level1 lfo2'><![if !supportLists]><span
 style='font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family:
 Symbol'><span style='mso-list:Ignore'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-</span></span></span><![endif]>вывод <span class=SpellE>WhatIsNew</span> при обновлении
-версии (<span class=SpellE>WhatIsNew</span> так же выводится если не запускать
-программу 30 дней<span class=GramE> )</span></p>
+</span></span></span><![endif]>вывод <span class=SpellE>WhatIsNew</span> при
+обновлении версии (<span class=SpellE>WhatIsNew</span> так же выводится если не
+запускать программу 30 дней<span class=GramE> )</span></p>
 
 <p class=MsoListParagraphCxSpMiddle style='text-indent:-18.0pt;mso-list:l1 level1 lfo2'><![if !supportLists]><span
 style='font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family:
