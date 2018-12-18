@@ -733,6 +733,7 @@ GRANT DELETE,INSERT,UPDATE  ON TABLE report TO "TypeDesigner";
 DROP VIEW IF EXISTS obj CASCADE;
 CREATE OR REPLACE VIEW obj AS
 SELECT id, pid, title, cdif.cls_id, prop, qty, move_logid, act_logid, cdif.cls_kind 
+,obj_name.dt_insert, obj_name.usr_insert, obj_name.dt_update, obj_name.usr_update
 FROM obj_name
 LEFT JOIN (
 SELECT id, pid,1::NUMERIC AS qty,cls_id,cls_kind FROM obj_num

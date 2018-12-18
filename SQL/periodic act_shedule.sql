@@ -38,6 +38,7 @@ BEGIN
         ,acls.title AS "тип"
         ,obj.title  AS "объект"
         ,period     AS "период"
+        ,obj.dt_insert::DATE AS "Дата первой записи"
         ,prop->>obj_create AS "Дата выпуска"
         ,prop->>obj_insert AS "Дата ввода в эксплуатацию"
         ,(SELECT MAX(timemark)::DATE AS previos
