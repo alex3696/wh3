@@ -194,26 +194,6 @@ void ReportModel::Execute(const std::vector<wxString>& filter_vec)
 //-----------------------------------------------------------------------------
 void ReportModel::Export()
 {
-	wxString sexcel;
-	HKEY hKey;
-	DWORD dwType = REG_SZ;
-	wchar_t buf[255] = { 0 };
-	DWORD dwBufSize = sizeof(buf);
-
-	long lError = RegOpenKeyExW(HKEY_LOCAL_MACHINE,
-		L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\excel.exe",
-		0,
-		KEY_READ,
-		&hKey);
-	if (lError == ERROR_SUCCESS)
-	{
-		lError = RegQueryValueEx(hKey, L"Path", NULL, &dwType, (LPBYTE)buf, &dwBufSize);
-		if (lError == ERROR_SUCCESS)
-			sexcel = wxString(buf) + L"\\excel.exe";
-		//wxString sexcel = "\"c:\\Program Files (x86)\\Microsoft Office\\Office14\\excel.exe\"";
-	}
-
-
 	wxString fpath = wxStandardPaths::Get().GetTempDir();
 	
 	
@@ -256,20 +236,11 @@ void ReportModel::Export()
 		cout << std::endl;
 	}
 	cout.close();
-
-	HINSTANCE h;
-	if (sexcel.IsEmpty())
-		h = ShellExecuteW(NULL, L"open", ofname, NULL, fpath, SW_SHOWNORMAL);
-	else
-		h = ShellExecuteW(NULL, L"open", sexcel, fname, fpath, SW_SHOWNORMAL);
 	
-
-	
-	if (ERROR_FILE_NOT_FOUND == (long)h)
-		return;
-
-	if (ERROR_PATH_NOT_FOUND == (long)h)
-		return;
+	auto cont = whDataMgr::GetInstance()->mContainer;
+	auto fn = cont->GetObject<wxString>(wxString("CSVFilePath"));
+	(*fn) = ofname;
+	cont->GetObject<void>("CtrlCSVFileOpen");
 
 }
 //-----------------------------------------------------------------------------

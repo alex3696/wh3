@@ -45,6 +45,7 @@
 #include "ViewFav.h"
 
 #include "CtrlHelp.h"
+#include "CtrlCSVFile.h"
 
 using namespace wh;
 
@@ -538,6 +539,14 @@ void whDataMgr::InitContainer()
 	// Help          //
 	///////////////////
 	mContainer->RegInstanceDeferredNI<CtrlHelp>("CtrlHelp");
+
+	///////////////////////////////
+	// *.CSV excel or calc loader//
+	///////////////////////////////
+	mContainer->RegInstanceDeferredNI<CtrlCSVFile>("CtrlCSVFile");
+	mContainer->RegInstanceDeferredNI<wxString>("CSVFilePath");
+	mContainer->RegFactoryNI<CtrlCSVFileOpen, CtrlCSVFile, wxString >
+		("CtrlCSVFileOpen", "CtrlCSVFile", "CSVFilePath");
 
 
 }

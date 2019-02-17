@@ -276,6 +276,7 @@ public:
 		return mModelObjPropList;
 	}
 
+	void ConvertToExcel();
 
 	sig::signal<void(const std::shared_ptr<const ModelHistoryTableData>&)>	 sigAfterLoad;
 
@@ -297,6 +298,7 @@ public:
 	void Update();
 	void PageForward();
 	void PageBackward();
+	void ConvertToExcel();
 
 	void SetGuiModel(rec::PageHistory&& cfg);
 	void SetGuiModel(const rec::PageHistory& cfg);

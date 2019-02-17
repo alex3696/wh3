@@ -39,6 +39,7 @@ class CtrlToolbarHistory final : public CtrlWindowBase<IViewToolbarHistory, Mode
 	sig::scoped_connection connViewCmd_ShowFilterList;
 	sig::scoped_connection connViewCmd_ShowObjPropList;
 	sig::scoped_connection connViewCmd_ShowCfgWindow;
+	sig::scoped_connection connViewCmd_ConvertToExcel;
 
 	sig::scoped_connection connModel_LoadedHistoryTable;
 	sig::scoped_connection connModel_SetRowsOffset;
@@ -56,6 +57,7 @@ public:
 	void ShowFilterList(bool show = true);
 	void ShowObjPropList(bool show = true);
 	void ShowSetup();
+	void ConvertToExcel();
 
 };
 

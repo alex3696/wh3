@@ -205,6 +205,9 @@
     <Filter Include="MainFrame\MVP2\ContentWindows\Каталог объектов v2\ModelPath">
       <UniqueIdentifier>{a5b84d62-a643-4a98-992a-d1ec5b691432}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MainFrame\MVP2\CSVFile">
+      <UniqueIdentifier>{c0fec801-e207-4343-a6f2-b9f93d71cd6d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -587,6 +590,9 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\ViewBrowserDVModel.cpp">
       <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\CtrlCSVFile.cpp">
+      <Filter>MainFrame\MVP2\CSVFile</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1120,6 +1126,9 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ViewBrowserDVModel.h">
       <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\CtrlCSVFile.h">
+      <Filter>MainFrame\MVP2\CSVFile</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

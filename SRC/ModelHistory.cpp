@@ -36,6 +36,11 @@ void ModelPageHistory::PageBackward()
 	mDataModel.SetRowsOffset(offset);
 }
 //---------------------------------------------------------------------------
+void wh::ModelPageHistory::ConvertToExcel()
+{
+	mDataModel.ConvertToExcel();
+}
+//---------------------------------------------------------------------------
 void ModelPageHistory::SetGuiModel(rec::PageHistory&& cfg)
 {
 	if (mGuiModel != cfg)
@@ -542,7 +547,85 @@ void ModelHistory::SelectHistoryItem(const wxString& str_log_id)
 			mModelObjPropList->sigUpdatePropList(*ap, nullptr);
 		}
 	}
+}
+//---------------------------------------------------------------------------
+void wh::ModelHistory::ConvertToExcel()
+{
+	wxString fpath = wxStandardPaths::Get().GetTempDir();
 
 
-	
+	wxString fname = "rep.csv";
+	wxString ofname;
+	ofname = wxString::Format("%s\\%s", fpath, fname);
+
+	int i = 0;
+	std::ofstream cout;
+	cout.open(ofname.wc_str(), std::ofstream::binary | std::ofstream::out | std::ofstream::trunc);
+
+	while (!cout.is_open())
+	{
+		fname = wxString::Format("rep_%d.csv", i);
+		ofname = wxString::Format("%s\\%s", fpath, fname);
+		cout.open(ofname.wc_str(), std::ofstream::binary | std::ofstream::out | std::ofstream::trunc);
+		i++;
+	}
+	// generate column titles
+	cout << "\"Date\";" << "\"Time\";" << "\"User\";";
+	cout << "\"Type\";" << "\"Object\";";
+	cout << "\"Action\";" << "\"Qty\";";
+	cout << "\"Path\";" << "\"DstPath\";";
+	for (const auto& prop : mProp)
+			cout << "\"" << prop->GetTitle() << "\";";
+	cout << std::endl;
+
+	wxString format_d = wxLocale::GetInfo(wxLOCALE_SHORT_DATE_FMT, wxLOCALE_CAT_DATE);
+	wxString format_t = wxLocale::GetInfo(wxLOCALE_TIME_FMT);
+	wxDateTime dt;
+	for (const auto& log : mLog)
+	{
+		dt.ParseISOCombined(log->mTimestamp, ' ');
+		
+		cout << dt.Format(format_d) << ";" << dt.Format(format_t) << ";" << log->mUser << ";";
+		cout << log->mObj->GetCls().GetTitle() << ";'" << log->mObj->GetTitle() << "';";
+		cout << log->mDetail->GetActRec().GetTitle() << ";" << log->mDetail->GetQty() << ";";
+		
+		cout << log->mDetail->GetPath().AsString() << ";";
+
+		auto act_rec = std::dynamic_pointer_cast<LogActRec>(log->mDetail);
+		if (act_rec)
+		{
+			cout << ";";//DstPath
+			auto act_prop = log->mDetail->GetActProperties();
+			const auto& pid_idx = act_prop.get<0>();
+			for (const auto& prop : mProp)
+			{
+				const auto& it = pid_idx.find(prop->GetId());
+				if (pid_idx.end() != it)
+				{
+					wxString val = (*it)->GetValue();
+					val.Replace("\r", " ", true);
+					val.Replace("\n", " ", true);
+					val.Replace("\t", " ", true);
+					cout << "\"" << val << "\"";
+				}
+					
+				cout << ";";
+			}
+		}
+		else
+		{
+			cout << log->mDetail->GetDstPath().AsString() << ";";
+			for (const auto& prop : mProp)
+				cout << ";";
+		}
+		
+		cout << std::endl;
+
+	}
+	cout.close();
+
+	auto cont = whDataMgr::GetInstance()->mContainer;
+	auto fn = cont->GetObject<wxString>(wxString("CSVFilePath"));
+	(*fn) = ofname;
+	cont->GetObject<void>("CtrlCSVFileOpen");
 }

@@ -88,6 +88,9 @@ CtrlToolbarHistory::CtrlToolbarHistory(
 		.connect(std::bind(&CtrlToolbarHistory::ShowObjPropList, this, ph::_1));
 	connViewCmd_ShowCfgWindow = mView->sigShowCfgWindow
 		.connect(std::bind(&CtrlToolbarHistory::ShowSetup, this));
+
+	connViewCmd_ConvertToExcel = mView->sigConvertToExcel
+		.connect(std::bind(&CtrlToolbarHistory::ConvertToExcel, this));
 	
 	connModel_LoadedHistoryTable = mModel->GetModelHistory().sigAfterLoad.connect
 		([this](const std::shared_ptr<const ModelHistoryTableData>& rt)
@@ -153,6 +156,11 @@ void CtrlToolbarHistory::ShowObjPropList(bool show)
 void CtrlToolbarHistory::ShowSetup()
 {
 	mCtrlHistorySetup->ShowCfgWindow();
+}
+//---------------------------------------------------------------------------
+void wh::CtrlToolbarHistory::ConvertToExcel()
+{
+	mModel->ConvertToExcel();
 }
 
 //---------------------------------------------------------------------------
