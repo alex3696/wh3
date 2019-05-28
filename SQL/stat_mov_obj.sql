@@ -102,6 +102,7 @@ BEGIN
                     ORDER BY dst_oid,dst_otitle
                  )LOOP
     col_name:='(%'||mov_row.dst_oid||')'||mov_row.dst_otitle;
+    col_name:= NULLIF(REGEXP_REPLACE(col_name, '"', '','g') ,'');
     PERFORM FROM information_schema.columns 
       WHERE table_name   = 'stat_mov'  AND table_schema ~~* 'pg_temp%'
       AND column_name = col_name;
