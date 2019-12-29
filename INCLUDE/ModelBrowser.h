@@ -127,6 +127,9 @@ public:
 	wxString	mTitle;
 	wxString	mQty;
 	std::shared_ptr<ObjPath64> mPath;
+	wxString	mLockUser;
+	wxString	mLockTime;
+	wxString	mLockSession;
 
 	FavAPropValueTable	mFavAPropValueTable;
 	ConstPropValTable	mFavOPropValueTable;
@@ -188,6 +191,10 @@ public:
 	
 	virtual const FavAPropValueTable&	GetFavAPropValue()const override;
 	virtual const ConstPropValTable&	GetFavOPropValue()const override;
+
+	virtual wxString GetLockUser()const override;
+	virtual wxString GetLockTime()const override;
+	virtual wxString GetLockSession()const override;
 
 };
 //-----------------------------------------------------------------------------
@@ -683,6 +690,15 @@ public:
 
 class ModelBrowser
 {
+public:
+	enum class Mode
+	{
+		  ByType = 0
+		, ByPath = 1
+	};
+
+
+private:
 	static void ParseSearch(const wxString& ss, std::vector<wxString>& words);
 	
 	

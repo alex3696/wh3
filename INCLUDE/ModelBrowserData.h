@@ -8,17 +8,6 @@
 
 
 
-enum class BrowserMode
-{
-	Home = 0
-	, ByType = 1
-	, ByPath = 2
-	, FilterByType = 10
-	, FilterByPath = 20
-	, FindByType = 100
-	, FindByPath = 200
-};
-
 enum class Operation
 {
 	  BeforeInsert
@@ -502,6 +491,10 @@ public:
 	
 	virtual const FavAPropValueTable&	GetFavAPropValue()const = 0;
 	virtual const ConstPropValTable&	GetFavOPropValue()const = 0;
+
+	virtual wxString GetLockUser()const = 0;
+	virtual wxString GetLockTime()const = 0;
+	virtual wxString GetLockSession()const = 0;
 };
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

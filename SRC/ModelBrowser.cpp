@@ -360,12 +360,24 @@ const ConstPropValTable& ObjRec64::GetFavOPropValue() const
 {
 	return mFavOPropValueTable;
 }
-
-
-
-
-
-
+//-----------------------------------------------------------------------------
+//virtual 
+wxString ObjRec64::GetLockUser()const
+{
+	return mLockUser;
+}
+//-----------------------------------------------------------------------------
+//virtual 
+wxString ObjRec64::GetLockTime()const 
+{
+	return mLockTime;
+}
+//-----------------------------------------------------------------------------
+//virtual 
+wxString ObjRec64::GetLockSession()const
+{
+	return mLockSession;
+}
 
 
 
@@ -499,7 +511,9 @@ void ModelBrowser::Load_ObjDir_ObjList()
 			"SELECT obj.id, obj.title, obj.qty, obj.pid"
 			"		, acls.id, acls.title AS ctitle , acls.measure "
 			"		, fav_prop_info"
+			"		, lock_user, lock_time, lock_session "
 			" FROM obj_fav_info obj "
+			" LEFT JOIN lock_obj ON lock_obj.oid = obj.id  AND (CURRENT_TIMESTAMP-lock_time)<'10 min' "
 			" INNER JOIN acls ON acls.id = obj.cls_id AND acls.kind = obj.cls_kind "
 			" WHERE obj.id>0  AND obj.pid = %s "
 			" ORDER BY(substring(acls.title, '^[0-9]{1,9}')::INT, acls.title) ASC "
@@ -532,6 +546,10 @@ void ModelBrowser::Load_ObjDir_ObjList()
 			obj->mTitle =		table->GetAsString(1, i);
 			obj->mQty =			table->GetAsString(2, i);
 			obj->SetParentId(	table->GetAsString(3, i));
+
+			obj->mLockUser = table->GetAsString(8, i);
+			obj->mLockTime = table->GetAsString(9, i);
+			obj->mLockSession = table->GetAsString(10, i);
 			
 			obj->ParseFavProp(	table->GetAsString(7, i));
 
@@ -600,7 +618,9 @@ void ModelBrowser::Load_ObjDir_ObjList(int64_t cid)
 		"SELECT obj.id, obj.title, obj.qty, obj.pid"
 		"		, acls.id, acls.title AS ctitle , acls.measure "
 		"		, fav_prop_info"
+		"		, lock_user, lock_time, lock_session "
 		" FROM obj_fav_info obj "
+		" LEFT JOIN lock_obj ON lock_obj.oid = obj.id  AND (CURRENT_TIMESTAMP-lock_time)<'10 min' "
 		" INNER JOIN acls ON acls.id = obj.cls_id AND acls.kind = obj.cls_kind "
 		" WHERE obj.id>0  AND obj.pid = %s AND acls.id = %s"
 		" ORDER BY(substring(acls.title, '^[0-9]{1,9}')::INT, acls.title) ASC "
@@ -631,6 +651,10 @@ void ModelBrowser::Load_ObjDir_ObjList(int64_t cid)
 			obj->mTitle = table->GetAsString(1, i);
 			obj->mQty = table->GetAsString(2, i);
 			//obj->SetParentId(table->GetAsString(3, i));
+
+			obj->mLockUser = table->GetAsString(8, i);
+			obj->mLockTime = table->GetAsString(9, i);
+			obj->mLockSession = table->GetAsString(10, i);
 
 			obj->ParseFavProp(table->GetAsString(7, i));
 
@@ -740,7 +764,9 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 		"SELECT obj.id, obj.title, obj.qty, obj.pid "
 		"       ,get_path_objnum(obj.pid,1)  AS path"
 		"       ,fav_prop_info"
+		"		, lock_user, lock_time, lock_session "
 		" FROM obj_fav_info obj "
+		" LEFT JOIN lock_obj ON lock_obj.oid = obj.id  AND (CURRENT_TIMESTAMP-lock_time)<'10 min' "
 		" WHERE obj.id>0 AND obj.cls_id = %s "
 		" ORDER BY (substring(obj.title, '^[0-9]{1,9}')::INT, obj.title ) ASC "
 		, cls->GetIdAsString()
@@ -769,6 +795,9 @@ void ModelBrowser::DoRefreshObjects(int64_t cid)
 			obj->SetClsId(cls->GetId());
 			obj->ParseFavProp(table->GetAsString(5, i));
 
+			obj->mLockUser = table->GetAsString(6, i);
+			obj->mLockTime = table->GetAsString(7, i);
+			obj->mLockSession = table->GetAsString(8, i);
 		};
 
 		std::vector<const IIdent64*> toinsert;
@@ -883,7 +912,9 @@ void ModelBrowser::LoadSearch()
 		"	, get_path_objnum(obj.pid, 1)"
 		//"--, get_path_cls(cls.id, 1)"
 		"	, fav_prop_info"
+		"	, lock_user, lock_time, lock_session "
 		" FROM obj_fav_info obj"
+		" LEFT JOIN lock_obj ON lock_obj.oid = obj.id  AND (CURRENT_TIMESTAMP-lock_time)<'10 min' "
 		" INNER join acls cls  ON obj.cls_id = cls.id AND obj.cls_kind = cls.kind"
 		" %s"
 		" WHERE (%s)"
@@ -920,6 +951,10 @@ void ModelBrowser::LoadSearch()
 			table->GetAsString(10, row, obj->mPath->mStrPath);
 
 			obj->ParseFavProp(table->GetAsString(11, row));
+
+			obj->mLockUser = table->GetAsString(12, row);
+			obj->mLockTime = table->GetAsString(13, row);
+			obj->mLockSession = table->GetAsString(14, row);
 		};
 
 

@@ -93,6 +93,9 @@ public:
 	virtual const FavAPropValueTable&	GetFavAPropValue()const override { throw; }
 	virtual const ConstPropValTable&	GetFavOPropValue()const override { throw; }
 
+	virtual wxString GetLockUser()const override { throw; }
+	virtual wxString GetLockTime()const override { throw; }
+	virtual wxString GetLockSession()const override { throw; }
 };
 
 //-----------------------------------------------------------------------------

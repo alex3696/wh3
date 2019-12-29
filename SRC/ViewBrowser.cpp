@@ -128,7 +128,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 
 	entries[i++].Set(wxACCEL_CTRL, (int) 'W', wxID_CLOSE);
 
-	wxAcceleratorTable accel(16, entries);
+	wxAcceleratorTable accel(i+1, entries);
 	table->SetAcceleratorTable(accel);
 
 }
@@ -180,6 +180,12 @@ void ViewTableBrowser::ShowToolTip()
 			, cls->GetTitle(), obj->GetTitle()
 			, cls->GetIdAsString(), obj->GetIdAsString());
 
+		if(!mDvModel->IsTop(item) && !obj->GetLockUser().empty())
+		{
+			item_str += wxString::Format("\nLocked by %s at %s"
+				, obj->GetLockUser()
+				, obj->GetLockTime() );
+		}
 	}
 	mTable->GetTargetWindow()->SetToolTip(val+"\n\n"+ item_str);
 }
@@ -219,6 +225,9 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_LeftUp(wxMouseEvent& evt)
 {
+	if (!evt.ControlDown())
+		return;
+
 	auto pos = evt.GetPosition();
 	pos = mTable->ScreenToClient((mTable->GetMainWindow()->ClientToScreen(pos)));
 	wxDataViewItem item(nullptr);

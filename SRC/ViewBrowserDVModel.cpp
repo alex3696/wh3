@@ -128,7 +128,15 @@ void wxDVTableBrowser::GetObjValue(wxVariant &variant, unsigned int col
 
 	switch (col)
 	{
-	case 0: variant << wxDataViewIconText(obj.GetTitle(), *ico); break;
+	case 0: 
+		if(obj.GetLockUser().empty() )
+			variant << wxDataViewIconText(obj.GetTitle(), *ico);
+		else
+		{
+			const wxIcon obj_lock_icon("OBJ_LOCK_24", wxBITMAP_TYPE_ICO_RESOURCE, 24, 24);
+			variant << wxDataViewIconText(obj.GetTitle(), obj_lock_icon);
+		}
+		break;
 	case 1: variant = obj.GetCls()->GetTitle();	break;
 	case 2: variant = wxString::Format("%s (%s)"
 		, obj.GetQty()

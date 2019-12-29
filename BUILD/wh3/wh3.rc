@@ -12,6 +12,7 @@
 // Icon with lowest ID value placed first to ensure application icon
 // remains consiste	
 AMAIN                   ICON                    "..\\..\\RESOURCES\main.ico"
+OBJ_LOCK_24             ICON                    "..\\..\\RESOURCES\\24\\obj_lock.ico"
 /////////////////////////////////////////////////////////////////////////////
 // Version
 /////////////////////////////////////////////////////////////////////////////
