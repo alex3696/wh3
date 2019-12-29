@@ -9,6 +9,7 @@ namespace wh{
 template <class TVIEW, class TMODEL>
 class CtrlWindowBase : public ICtrlWindow
 {
+	sig::scoped_connection connViewDestroyed;
 protected:
 	std::shared_ptr<TVIEW>  mView;
 	std::shared_ptr<TMODEL> mModel;
@@ -37,6 +38,8 @@ protected:
 			.connect(std::bind(&IModelWindow::UpdateTitle, mModel.get()));
 		connViewClose = mView->sigClose
 			.connect(std::bind(&IModelWindow::Close , mModel.get()));
+		connViewDestroyed = mView->sigClose
+			.connect(std::bind(&CtrlWindowBase::RmView, this));
 		connViewShow = mView->sigShow
 			.connect(std::bind(&IModelWindow::Show, mModel.get()));
 		ConnectModel();// receive signals from model if View exists
