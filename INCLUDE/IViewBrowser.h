@@ -14,14 +14,13 @@ class IViewTableBrowser : public IViewWindow
 public:
 	virtual void SetBeforeRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool, int)=0;
 	virtual void SetAfterRefreshCls(const std::vector<const IIdent64*>&, const IIdent64*, const wxString&, bool, int) = 0;
-	virtual void SetAct() = 0;
-	virtual void SetMove() = 0;
 	virtual void SetShowDetail() = 0;
 	virtual void SetShowFav() = 0;
 	virtual void SetInsertType()const = 0;
 	virtual void SetInsertObj()const = 0;
 	virtual void SetDeleteSelected()const = 0;
 	virtual void SetUpdateSelected()const = 0;
+	virtual void SetSelectCurrent()const = 0;
 
 	virtual void SetObjOperation(Operation, const std::vector<const IIdent64*>&) = 0;
 
@@ -29,12 +28,14 @@ public:
 	sig::signal<void(int64_t)> sigRefreshClsObjects;
 	sig::signal<void(int64_t)> sigGotoCls;
 	sig::signal<void(int64_t)> sigGotoObj;
+	sig::signal<void(int64_t, bool)> sigSelectCls;
+	sig::signal<void(int64_t, int64_t, bool)> sigSelectObj;
 
 	sig::signal<void()> sigRefresh;
 	sig::signal<void()> sigUp;
 	
-	sig::signal<void(int64_t, int64_t)> sigMove;
-	sig::signal<void(int64_t, int64_t)> sigAct;
+	sig::signal<void()> sigMove;
+	sig::signal<void()> sigAct;
 	sig::signal<void(int64_t, int64_t)> sigShowDetail;
 
 	sig::signal<void(int64_t)> sigClsInsert;

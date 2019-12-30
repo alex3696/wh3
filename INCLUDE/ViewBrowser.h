@@ -59,12 +59,16 @@ class ViewTableBrowser : public IViewTableBrowser
 	void AppendPropColumn(PropColumns& prop_column,	const std::shared_ptr<const PropVal>& prop_val);
 	wxDataViewColumn* AppendTableColumn(const wxString& title, int model_id);
 	int GetTitleWidth(const wxString& title)const;
+	
+	bool IsSelectedItem(const wxDataViewItem& item)const;
+	void SetSelected(const wxDataViewItem& item, bool select)const;
+	void SetSelected()const;
 protected:
 	void OnCmd_Activate(wxDataViewEvent& evt);
 	void OnCmd_Expanding(wxDataViewEvent& evt);
 	void OnCmd_Expanded(wxDataViewEvent& evt);
 	void OnCmd_Collapseded(wxDataViewEvent& evt);
-	
+	void OnCmd_SelectionChanged(wxDataViewEvent& evt);
 public:
 	ViewTableBrowser(wxWindow* parent);
 	ViewTableBrowser(const std::shared_ptr<IViewWindow>& parent);
@@ -79,15 +83,14 @@ public:
 		, const IIdent64*, const wxString&, bool, int mode) override;
 
 	virtual void SetObjOperation(Operation, const std::vector<const IIdent64*>&) override;
-	virtual void SetAct() override;
-	virtual void SetMove() override;
 	virtual void SetShowDetail()override;
 	virtual void SetShowFav() override;
 	virtual void SetInsertType()const override;
 	virtual void SetInsertObj()const override;
 	virtual void SetDeleteSelected()const override;
 	virtual void SetUpdateSelected()const override;
-
+	virtual void SetSelectCurrent()const override;
+	
 };
 //-----------------------------------------------------------------------------
 class ViewToolbarBrowser : public IViewToolbarBrowser

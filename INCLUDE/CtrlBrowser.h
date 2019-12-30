@@ -12,6 +12,7 @@ class CtrlPageBrowser;
 //-----------------------------------------------------------------------------
 class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPageBrowser>
 {
+	sig::scoped_connection connModel_SelectCurrent;
 	sig::scoped_connection connModel_BeforeRefreshCls;
 	sig::scoped_connection connModel_AfterRefreshCls;
 	sig::scoped_connection connModel_ObjOperation;
@@ -20,6 +21,8 @@ class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPag
 	sig::scoped_connection connViewCmd_RefreshClsObjects;
 	sig::scoped_connection connViewCmd_GotoCls;
 	sig::scoped_connection connViewCmd_GotoObj;
+	sig::scoped_connection connViewCmd_SelectCls;
+	sig::scoped_connection connViewCmd_SelectObj;
 
 	sig::scoped_connection connViewCmd_Refresh;
 	sig::scoped_connection connViewCmd_Up;
@@ -53,11 +56,11 @@ public:
 	void RefreshClsObjects(int64_t cid);
 	void GotoCls(int64_t cid);
 	void GotoObj(int64_t oid);
+	void SelectCls(int64_t cid, bool select);
+	void SelectObj(int64_t oid, int64_t opid, bool select);
 
-	void SetAct();
-	void SetMove();
-	void Act(int64_t oid, int64_t parent_oid);
-	void Move(int64_t oid, int64_t parent_oid);
+	void Act();
+	void Move();
 	
 	void SetShowDetail();// ask view about selected item 
 	void ShowDetail(int64_t oid, int64_t parent_oid);// do action

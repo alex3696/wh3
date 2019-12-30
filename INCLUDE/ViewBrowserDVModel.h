@@ -75,6 +75,9 @@ class wxDVTableBrowser
 	const wxString format_d = wxLocale::GetInfo(wxLOCALE_SHORT_DATE_FMT, wxLOCALE_CAT_DATE);
 	const wxString format_t = wxLocale::GetInfo(wxLOCALE_TIME_FMT);
 	const wxString mActNotExecuted = "не выполнялось";
+
+	void GetValueInternal(wxVariant &variant,
+		const wxDataViewItem &dvitem, unsigned int col) const;
 public:
 	ActColumns		mActColumns;
 	PropColumns		mCPropColumns;

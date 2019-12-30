@@ -30,6 +30,7 @@ class Frame
 	std::shared_ptr<model::Obj > mActObj;
 	std::shared_ptr<model::Act > mSelectedAct;
 
+	void OnCancel(wxCommandEvent& evt = wxCommandEvent());
 	void OnClose(wxCloseEvent& evt);
 	void OnBackward(wxCommandEvent& evt = wxCommandEvent());
 	void OnForward(wxCommandEvent& evt = wxCommandEvent());

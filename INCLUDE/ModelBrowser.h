@@ -55,7 +55,7 @@ public:
 		, mTable(table)
 	{
 	}
-
+	virtual bool	IsSelected()const override;
 
 	void ParseFavProp(const wxString& favOPropValues);
 	
@@ -150,6 +150,7 @@ public:
 		:mId(id), mParentId(parentId), mClsId(clsId), mTable(table)
 	{
 	}
+	virtual bool	IsSelected()const override;
 	void ParseFavProp(const wxString& favOPropValues);
 
 
@@ -676,12 +677,27 @@ public:
 		mClsTable.Clear();
 		mActTable.Clear();
 		mPropTable.Clear();
+
+		mObjSelection.clear();
+		mClsSelection.clear();
+
 	}
 
 	ClsCache mClsTable;
 	ObjCache mObjTable;
 	ActCache mActTable;
 	PropCache mPropTable;
+
+	void ClearSelection()
+	{
+		mObjSelection.clear();
+		mClsSelection.clear();
+	}
+	
+
+	std::set<int64_t> mClsSelection;
+	std::set<ObjectKey> mObjSelection;
+
 };
 
 //-----------------------------------------------------------------------------
@@ -722,6 +738,9 @@ private:
 
 	void UpdateUntitledProperties();
 	void UpdateUntitledActs();
+
+	void ExecuteMoveObjects(const std::set<ObjectKey>& obj)const;
+	void ExecuteActObjects(const std::set<ObjectKey>& obj)const;
 public:
 	ModelBrowser();
 	~ModelBrowser();
@@ -747,6 +766,18 @@ public:
 	void DoToggleGroupByType();
 	void DoSetMode(int);
 	void Goto(int mode,int64_t id);
+
+	void OnSmdSelectCls(int64_t cid, bool select);
+	void OnCmdSelectObj(int64_t oid, int64_t opid, bool select);
+
+	void DoMove();
+	void DoAct();
+
+	sig::signal<void(bool)> sigSelectCurrent;
+
+	//void SetCurrentItem(int64_t cid);
+	//void SetCurrentItem(int64_t oid, int64_t opid);
+
 		
 	using SigPathChange = sig::signal<void(const wxString&)>;
 	SigPathChange sigAfterPathChange;

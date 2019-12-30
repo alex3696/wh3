@@ -108,14 +108,13 @@ void wxDVTableBrowser::GetClsValue(wxVariant &variant, unsigned int col
 				if (idxFAV.end() != fit)
 					variant = (*fit)->mValue;
 			}
-			return;
 		}//if (idxCol.end() != it)
-
-		auto prop_val = GetPropVal(cls, col);
-		if (prop_val)
-			variant = prop_val->mValue;
-
-
+		else
+		{
+			auto prop_val = GetPropVal(cls, col);
+			if (prop_val)
+				variant = prop_val->mValue;
+		}
 	}break;
 	}//switch (col)
 }
@@ -128,15 +127,17 @@ void wxDVTableBrowser::GetObjValue(wxVariant &variant, unsigned int col
 
 	switch (col)
 	{
-	case 0: 
-		if(obj.GetLockUser().empty() )
-			variant << wxDataViewIconText(obj.GetTitle(), *ico);
-		else
-		{
-			const wxIcon obj_lock_icon("OBJ_LOCK_24", wxBITMAP_TYPE_ICO_RESOURCE, 24, 24);
-			variant << wxDataViewIconText(obj.GetTitle(), obj_lock_icon);
-		}
-		break;
+	case 0:{
+		//const wxIcon  ico_sel = wxArtProvider::GetIcon(wxART_TICK_MARK, wxART_MENU);
+		const wxIcon  ico_lock_obj("OBJ_LOCK_24", wxBITMAP_TYPE_ICO_RESOURCE, 24, 24);
+	
+		//if (obj.IsSelected())
+		//	ico = &ico_sel;
+		if (!obj.GetLockUser().empty())
+			ico = &ico_lock_obj;
+	
+		variant << wxDataViewIconText(obj.GetTitle(), *ico);
+	}break;
 	case 1: variant = obj.GetCls()->GetTitle();	break;
 	case 2: variant = wxString::Format("%s (%s)"
 		, obj.GetQty()
@@ -228,21 +229,21 @@ void wxDVTableBrowser::GetObjValue(wxVariant &variant, unsigned int col
 				}
 			}break;
 			}//switch (it->mAInfo)
-			return;
 		}//if (idxCol.end() != it)
-
-		auto prop_val = GetPropVal(obj, col);
-		if (prop_val)
-			variant = prop_val->mValue;
+		else
+		{
+			auto prop_val = GetPropVal(obj, col);
+			if (prop_val)
+				variant = prop_val->mValue;
+		}
 
 	}break;
 	}//switch (col)
 }
 
 //-----------------------------------------------------------------------------
-//virtual 
-void wxDVTableBrowser::GetValue(wxVariant &variant,
-	const wxDataViewItem &dvitem, unsigned int col) const //override
+void wxDVTableBrowser::GetValueInternal(wxVariant &variant,
+	const wxDataViewItem &dvitem, unsigned int col) const
 {
 	if (IsTop(dvitem))
 	{
@@ -269,12 +270,21 @@ void wxDVTableBrowser::GetValue(wxVariant &variant,
 	}
 	GetErrorValue(variant, col);
 }
+
+//-----------------------------------------------------------------------------
+//virtual 
+void wxDVTableBrowser::GetValue(wxVariant &variant,
+	const wxDataViewItem &dvitem, unsigned int col) const //override
+{
+	GetValueInternal(variant, dvitem, col);
+	if (variant.IsNull())
+		variant = "";
+}
 //-----------------------------------------------------------------------------
 //virtual 
 bool wxDVTableBrowser::GetAttr(const wxDataViewItem &item, unsigned int col,
 	wxDataViewItemAttr &attr) const //override
 {
-
 	if (!item.IsOk() || IsTop(item))
 		return false;
 
@@ -282,6 +292,14 @@ bool wxDVTableBrowser::GetAttr(const wxDataViewItem &item, unsigned int col,
 	const auto obj = dynamic_cast<const IObj64*>(node);
 	if (obj)
 	{
+		if (obj->IsSelected())
+		{
+			attr.SetColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
+			attr.SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT));
+			attr.SetBold(true);
+			return true;
+		}
+
 		switch (col)
 		{
 		case 0: case 2: {
@@ -359,12 +377,14 @@ bool wxDVTableBrowser::GetAttr(const wxDataViewItem &item, unsigned int col,
 				}break;
 				}//switch (it->mAInfo)
 			}//if (idxCol.end() != it)
-
-			auto prop_val = GetPropVal(*obj, col);
-			if (prop_val && prop_val->mProp->IsLinkOrFile())
+			else
 			{
-				attr.SetColour(*wxBLUE);
-				return true;
+				auto prop_val = GetPropVal(*obj, col);
+				if (prop_val && prop_val->mProp->IsLinkOrFile())
+				{
+					attr.SetColour(*wxBLUE);
+					return true;
+				}
 			}
 		}break;
 		}//switch (col)
@@ -374,6 +394,13 @@ bool wxDVTableBrowser::GetAttr(const wxDataViewItem &item, unsigned int col,
 	const auto cls = dynamic_cast<const ICls64*>(node);
 	if (cls)
 	{
+		if (cls->IsSelected())
+		{
+			attr.SetColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
+			attr.SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT));
+			attr.SetBold(true);
+			return true;
+		}
 		auto prop_val = GetPropVal(*cls, col);
 		if (prop_val && prop_val->mProp->IsLinkOrFile())
 		{

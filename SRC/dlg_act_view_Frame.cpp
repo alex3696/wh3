@@ -38,10 +38,12 @@ Frame::Frame(wxWindow* parent,
 	
 	wxBoxSizer* msdbSizer = new wxBoxSizer(wxHORIZONTAL);
 	msdbSizer->Add(0, 0, 1, wxEXPAND, 5);
+	auto mbtnCancel = new wxButton(this, wxID_CANCEL);//," Закрыть" );
 	mbtnNextOK = new wxButton(this, wxID_FORWARD,"Далее");
 	mbtnPrevios = new wxButton(this, wxID_BACKWARD,"Назад");
 	msdbSizer->Add(mbtnPrevios, 0, wxALL, 5);
 	msdbSizer->Add(mbtnNextOK, 0, wxALL, 5);
+	msdbSizer->Add(mbtnCancel, 0, wxALL, 5);
 	szrMain->Add(msdbSizer, 0,  wxEXPAND, 10);
 	
 
@@ -49,6 +51,7 @@ Frame::Frame(wxWindow* parent,
 	this->Layout();
 
 	Bind(wxEVT_CLOSE_WINDOW, &Frame::OnClose, this);
+	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &Frame::OnCancel, this, wxID_CANCEL);
 	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &Frame::OnBackward, this, wxID_BACKWARD);
 	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &Frame::OnForward, this, wxID_FORWARD);
 	Bind(wxEVT_COMMAND_DATAVIEW_ITEM_ACTIVATED, &Frame::OnActivated, this);
@@ -74,15 +77,22 @@ void Frame::SetModel(std::shared_ptr<dlg_act::model::Obj>& model)
 
 void Frame::OnClose(wxCloseEvent& evt)
 {
+	OnCancel();
+}
+//-----------------------------------------------------------------------------
+
+void Frame::OnCancel(wxCommandEvent& evt)
+{
 	try
 	{
 		mActObj->Unlock();
 		EndModal(wxID_CANCEL);
 	}
 	catch (...)
-	{ 
+	{
 		wxLogError("error mActObj->Unlock() ");
 	}
+	EndModal(wxID_CANCEL);
 }
 //-----------------------------------------------------------------------------
 

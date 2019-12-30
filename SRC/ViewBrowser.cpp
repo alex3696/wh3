@@ -4,6 +4,7 @@
 #include "wxDataViewIconMLTextRenderer.h"
 #include "wxComboBtn.h"
 #include "config.h"
+#include <wx/uiaction.h>
 
 using namespace wh;
 
@@ -85,8 +86,8 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 			}
 			sigUp(); 
 		}, wxID_UP);
-	//table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigAct(); }, wxID_EXECUTE);
-	//table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigMove(); }, wxID_REPLACE);
+	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigAct(); }, wxID_EXECUTE);
+	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigMove(); }, wxID_REPLACE);
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {SetShowDetail(); }, wxID_VIEW_DETAILS);
 	table->GetTargetWindow()->Bind(wxEVT_MIDDLE_UP,	[this](wxMouseEvent&) {SetShowDetail(); });
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {SetInsertType(); }, wxID_NEW_TYPE);
@@ -105,6 +106,12 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
 		{ sigClosePage(); }, wxID_CLOSE);
+	
+	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
+		{ SetSelected(); }, wxID_ADD);
+	table->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED
+		, &ViewTableBrowser::OnCmd_SelectionChanged, this);
+
 
 	wxAcceleratorEntry entries[16];
 	char i = 0;
@@ -127,6 +134,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	entries[i++].Set(wxACCEL_NORMAL, WXK_F1, wxID_HELP_INDEX);
 
 	entries[i++].Set(wxACCEL_CTRL, (int) 'W', wxID_CLOSE);
+	entries[i++].Set(wxACCEL_NORMAL, WXK_INSERT, wxID_ADD);
 
 	wxAcceleratorTable accel(i+1, entries);
 	table->SetAcceleratorTable(accel);
@@ -552,7 +560,8 @@ void ViewTableBrowser::RestoreSelect()
 	{
 		mTable->EnsureVisible(dvitem);
 		mTable->SetCurrentItem(dvitem);
-		mTable->Select(dvitem);
+		//SetSelected(dvitem, true);
+		//mTable->Select(dvitem);
 	}
 
 	//auto new_sel = mTable->GetCurrentItem();
@@ -908,36 +917,6 @@ void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IId
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void ViewTableBrowser::SetAct()//override;
-{
-	auto item = mTable->GetCurrentItem();
-	if (!item.IsOk())
-		return;
-	const IIdent64* ident = static_cast<const IIdent64*> (item.GetID());
-	if (!ident)
-		return;
-	const auto& obj = dynamic_cast<const IObj64*>(ident);
-	if (!obj)
-		return;
-	sigAct(obj->GetId(), obj->GetParentId());
-}
-//-----------------------------------------------------------------------------
-//virtual 
-void ViewTableBrowser::SetMove()//override;
-{
-	auto item = mTable->GetCurrentItem();
-	if (!item.IsOk())
-		return;
-	const IIdent64* ident = static_cast<const IIdent64*> (item.GetID());
-	if (!ident)
-		return;
-	const auto& obj = dynamic_cast<const IObj64*>(ident);
-	if (!obj)
-		return;
-	sigMove(obj->GetId(), obj->GetParentId() );
-}
-//-----------------------------------------------------------------------------
-//virtual 
 void ViewTableBrowser::SetShowDetail()//override;
 {
 	const IIdent64* ident = static_cast<const IIdent64*> (mTable->GetCurrentItem().GetID());
@@ -1049,10 +1028,78 @@ void wh::ViewTableBrowser::SetUpdateSelected() const //override;
 	}
 	
 }
-
-
-
-
+//-----------------------------------------------------------------------------
+//virtual 
+void wh::ViewTableBrowser::SetSelectCurrent()const //override;
+{
+	auto item = mTable->GetCurrentItem();
+	SetSelected(item, true);
+}
+//-----------------------------------------------------------------------------
+void wh::ViewTableBrowser::SetSelected(const wxDataViewItem& item, bool select)const
+{
+	if (!item.IsOk())
+		return;
+	const IIdent64* ident = static_cast<const IIdent64*> (item.GetID());
+	if (!ident)
+		return;
+	const auto& cls = dynamic_cast<const ICls64*>(ident);
+	if (cls)
+	{
+		int64_t cid = cls->GetId();
+		sigSelectCls(cid, select);
+	}
+	else
+	{
+		const auto& obj = dynamic_cast<const IObj64*>(ident);
+		if (obj)
+		{
+			int64_t oid = obj->GetId();
+			int64_t parent_oid = obj->GetParentId();
+			sigSelectObj(oid, parent_oid, select);
+		}
+	}
+}
+//-----------------------------------------------------------------------------
+bool wh::ViewTableBrowser::IsSelectedItem(const wxDataViewItem& item)const
+{
+	if (!item.IsOk())
+		return false;
+	const IIdent64* ident = static_cast<const IIdent64*> (item.GetID());
+	if (!ident)
+		return false;
+	const auto& cls = dynamic_cast<const ICls64*>(ident);
+	if (cls)
+	{
+		return cls->IsSelected();
+	}
+	else
+	{
+		const auto& obj = dynamic_cast<const IObj64*>(ident);
+		if (obj)
+			return obj->IsSelected();
+	}
+	return false;
+}
+//-----------------------------------------------------------------------------
+//virtual 
+void wh::ViewTableBrowser::SetSelected() const //override;
+{
+	bool select = !IsSelectedItem(mTable->GetCurrentItem());
+	SetSelected(mTable->GetCurrentItem(), select);
+	wxUIActionSimulator sim;
+	sim.KeyDown(WXK_DOWN);
+	sim.KeyUp(WXK_UP);
+}
+//-----------------------------------------------------------------------------
+void wh::ViewTableBrowser::OnCmd_SelectionChanged(wxDataViewEvent& evt)
+{
+	/*
+	SetSelected(mCurrentItem, false);
+	mCurrentItem = evt.GetItem();
+	SetSelected(mCurrentItem, true);
+	*/
+}
 
 
 

@@ -1,6 +1,10 @@
 #include "_pch.h"
 #include "ModelBrowser.h"
 
+#include "dlg_act_view_Frame.h"
+#include "MoveObjPresenter.h"
+
+
 using namespace wh;
 
 
@@ -16,6 +20,17 @@ const std::shared_ptr<ObjRec64>  ObjCache::mNullObj = std::shared_ptr<ObjRec64>(
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//virtual 
+bool ClsRec64::IsSelected()const// override
+{
+	if (mTable->GetCache()->mClsSelection.empty())
+		return false;
+	const auto cid = this->GetId();
+	auto& idxId = mTable->GetCache()->mClsSelection;
+	auto it = idxId.find(cid);
+	return (idxId.end() != it);
+}
 //-----------------------------------------------------------------------------
 void ClsRec64::ParseFavProp(const wxString& str)
 {
@@ -188,6 +203,17 @@ void ObjRec64::ParseFavProp(const wxString& str)
 	{
 		ParsePropInfo(find_it->second);
 	}
+}
+//-----------------------------------------------------------------------------
+//virtual 
+bool ObjRec64::IsSelected()const// override
+{
+	if (mTable->GetCache()->mObjSelection.empty())
+		return false;
+	const auto okey = ObjectKey(this->GetId(), this->GetParentId());
+	auto& idxId = mTable->GetCache()->mObjSelection;
+	auto it = idxId.find(okey);
+	return (idxId.end() != it);
 }
 //-----------------------------------------------------------------------------
 void ObjRec64::ParseActInfo(const boost::property_tree::wptree& favAPropValues)
@@ -1103,6 +1129,7 @@ void ModelBrowser::DoRefresh(bool sigBefore)
 void ModelBrowser::DoActivate(int64_t id)
 {
 	mRootId = id;
+	mCache.ClearSelection();
 	DoRefresh();
 }
 //-----------------------------------------------------------------------------
@@ -1115,6 +1142,7 @@ void ModelBrowser::DoUp()
 		else if(1 == mMode)
 			mRootId = mObjPath->GetCurrent()->GetParentId();
 		SetSearchString(wxEmptyString);
+		mCache.ClearSelection();
 		DoRefresh();
 	}
 }
@@ -1129,18 +1157,21 @@ void ModelBrowser::DoFind(const wxString& str)
 			cls->mObjLoaded = false;
 	}
 	SetSearchString(str);
+	mCache.ClearSelection();
 	DoRefresh();
 }
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoGroupByType(bool enable_group_by_type)
 {
 	SetGroupedByType(enable_group_by_type);
+	mCache.ClearSelection();
 	DoRefresh();
 }
 //-----------------------------------------------------------------------------
 void wh::ModelBrowser::DoToggleGroupByType()
 {
 	mGroupByType = !mGroupByType;
+	mCache.ClearSelection();
 	DoRefresh();
 }
 //-----------------------------------------------------------------------------
@@ -1159,7 +1190,52 @@ void ModelBrowser::Goto(int mode, int64_t id)
 	SetMode(mode);
 	SetRootId(id);
 	SetSearchString(wxEmptyString);
+	mCache.ClearSelection();
 	DoRefresh(false);
+}
+//-----------------------------------------------------------------------------
+void ModelBrowser::OnSmdSelectCls(int64_t cid, bool select)
+{
+	if (!mCache.mObjSelection.empty())
+		return;
+
+	auto& idxId = mCache.mClsSelection;
+	auto it = idxId.find(cid);
+
+	if (select)
+		auto ins_it = idxId.emplace(cid);
+	else
+		idxId.erase(cid);
+	
+	/*
+	if (idxId.end() == it)
+	{
+		auto ins_it = idxId.emplace(cid);
+	}
+	else
+	{
+		idxId.erase(it);
+	}
+	*/
+}
+//-----------------------------------------------------------------------------
+void ModelBrowser::OnCmdSelectObj(int64_t oid, int64_t opid, bool select)
+{
+	if (!mCache.mClsSelection.empty())
+		return;
+
+	auto object = mCache.mObjTable.GetObjById(oid, opid);
+	if (!object )//|| !object->GetLockUser().IsEmpty())
+		return;
+
+	auto& idxId = mCache.mObjSelection;
+	auto obj_key = ObjectKey(oid, opid);
+
+	if (select)
+		auto ins_it = idxId.emplace(obj_key);
+	else
+		idxId.erase(obj_key);
+
 }
 //-----------------------------------------------------------------------------
 void ModelBrowser::UpdateUntitledProperties()
@@ -1204,6 +1280,91 @@ void ModelBrowser::UpdateUntitledProperties()
 			prop_table.InsertOrUpdate(id, fn);
 		}//for
 	}//if (table)
+}
+//-----------------------------------------------------------------------------
+void ModelBrowser::ExecuteMoveObjects(const std::set<ObjectKey>& obj)const
+{
+	if (obj.empty())
+		return;
+
+	TEST_FUNC_TIME;
+	try
+	{
+		auto ctrl = whDataMgr::GetInstance()->mContainer;
+		auto presenter = ctrl->GetObject<MoveObjPresenter>("MoveObjPresenter");
+		if (!presenter)
+			return;
+		presenter->SetMoveable(obj.begin()->mId, obj.begin()->mParentId);
+		presenter->OnViewUpdate();
+		presenter->ShowDialog();
+	}
+	catch (...)
+	{
+		// Transaction already rollbacked, dialog was destroyed, so nothinh to do
+		wxLogError("Объект занят другим пользователем (см.подробности)");
+	}
+}
+//-----------------------------------------------------------------------------
+void ModelBrowser::DoMove()
+{
+	if (!mCache.mClsSelection.empty())
+		return;
+
+	if (mCache.mObjSelection.empty())
+		sigSelectCurrent(true);
+
+	if (!mCache.mClsSelection.empty())
+		return;
+
+	ExecuteMoveObjects(mCache.mObjSelection);
+	if (1 == mCache.mObjSelection.size())
+		mCache.ClearSelection();
+	DoRefresh();
+}
+//-----------------------------------------------------------------------------
+void ModelBrowser::ExecuteActObjects(const std::set<ObjectKey>& obj)const
+{
+	if (obj.empty())
+		return;
+
+	TEST_FUNC_TIME;
+	rec::PathItem data;
+	data.mObj.mId = obj.begin()->mId;
+	data.mObj.mParent.mId = obj.begin()->mParentId;
+
+	using namespace dlg_act;
+	namespace view = dlg_act::view;
+	try
+	{
+		auto subj = std::make_shared<model::Obj >();
+		subj->SetData(data, true);
+
+		view::Frame dlg;
+		dlg.SetModel(subj);
+		dlg.ShowModal();
+	}
+	catch (...)
+	{
+		// Transaction already rollbacked, dialog was destroyed, so nothinh to do
+		wxLogError("Объект занят другим пользователем (см.подробности)");
+	}
+}
+//-----------------------------------------------------------------------------
+void ModelBrowser::DoAct()
+{
+	if (!mCache.mClsSelection.empty())
+		return;
+
+	if (mCache.mObjSelection.empty())
+		sigSelectCurrent(true);
+
+	if (!mCache.mClsSelection.empty())
+		return;
+
+	ExecuteActObjects(mCache.mObjSelection);
+	if (1==mCache.mObjSelection.size())
+		mCache.ClearSelection();
+	DoRefresh();
 }
 //-----------------------------------------------------------------------------
 void ModelBrowser::UpdateUntitledActs()

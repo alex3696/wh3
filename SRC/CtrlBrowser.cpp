@@ -6,10 +6,6 @@
 #include "CtrlFav.h"
 #include "CtrlHelp.h"
 
-
-#include "dlg_act_view_Frame.h"
-#include "MoveObjPresenter.h"
-
 using namespace wh;
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -20,6 +16,8 @@ CtrlTableBrowser::CtrlTableBrowser(
 {
 	namespace ph = std::placeholders;
 
+	connModel_SelectCurrent = mModel->GetModelBrowser()->sigSelectCurrent
+		.connect(std::bind(&IViewTableBrowser::SetSelectCurrent, mView.get()));
 	connModel_BeforeRefreshCls = mModel->GetModelBrowser()->sigBeforeRefreshCls
 		.connect(std::bind(&IViewTableBrowser::SetBeforeRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4, ph::_5));
 	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
@@ -35,6 +33,11 @@ CtrlTableBrowser::CtrlTableBrowser(
 		.connect(std::bind(&CtrlTableBrowser::GotoCls, this, ph::_1));
 	connViewCmd_GotoObj = mView->sigGotoObj
 		.connect(std::bind(&CtrlTableBrowser::GotoObj, this, ph::_1));
+	connViewCmd_SelectCls = mView->sigSelectCls
+		.connect(std::bind(&CtrlTableBrowser::SelectCls, this, ph::_1, ph::_2));
+	connViewCmd_SelectObj = mView->sigSelectObj
+		.connect(std::bind(&CtrlTableBrowser::SelectObj, this
+			, ph::_1, ph::_2, ph::_3));
 
 	connViewCmd_Refresh = mView->sigRefresh
 		.connect(std::bind(&CtrlTableBrowser::Refresh, this));
@@ -42,9 +45,9 @@ CtrlTableBrowser::CtrlTableBrowser(
 		.connect(std::bind(&CtrlTableBrowser::Up, this));
 
 	connViewCmd_Act = mView->sigAct
-		.connect(std::bind(&CtrlTableBrowser::Act, this, ph::_1, ph::_2));
+		.connect(std::bind(&CtrlTableBrowser::Act, this));
 	connViewCmd_Move = mView->sigMove
-		.connect(std::bind(&CtrlTableBrowser::Move, this, ph::_1, ph::_2));
+		.connect(std::bind(&CtrlTableBrowser::Move, this));
 	connViewCmd_ShowObjDetail = mView->sigShowDetail
 		.connect(std::bind(&CtrlTableBrowser::ShowDetail, this, ph::_1, ph::_2));
 
@@ -106,60 +109,24 @@ void CtrlTableBrowser::GotoObj(int64_t oid)
 	mModel->GetModelBrowser()->Goto(1, oid);
 }
 //---------------------------------------------------------------------------
-void CtrlTableBrowser::SetAct()
+void CtrlTableBrowser::SelectCls(int64_t cid, bool select)
 {
-	mView->SetAct();
+	mModel->GetModelBrowser()->OnSmdSelectCls(cid, select);
 }
 //---------------------------------------------------------------------------
-void CtrlTableBrowser::SetMove()
+void CtrlTableBrowser::SelectObj(int64_t oid, int64_t opid, bool select)
 {
-	mView->SetMove();
+	mModel->GetModelBrowser()->OnCmdSelectObj(oid, opid, select);
 }
 //---------------------------------------------------------------------------
-void CtrlTableBrowser::Act(int64_t oid, int64_t parent_oid)
+void CtrlTableBrowser::Act()
 {
-	rec::PathItem data;
-	data.mObj.mId = oid;
-	data.mObj.mParent.mId = parent_oid;
-
-	using namespace dlg_act;
-	namespace view = dlg_act::view;
-	try
-	{
-		auto subj = std::make_shared<model::Obj >();
-		subj->SetData(data, true);
-
-		view::Frame dlg;
-		dlg.SetModel(subj);
-		dlg.ShowModal();
-	}
-	catch (...)
-	{
-		// Transaction already rollbacked, dialog was destroyed, so nothinh to do
-		wxLogError("Объект занят другим пользователем (см.подробности)");
-	}
-	mModel->GetModelBrowser()->DoRefresh();
+	mModel->GetModelBrowser()->DoAct();
 }
 //---------------------------------------------------------------------------
-void CtrlTableBrowser::Move(int64_t oid, int64_t parent_oid)
+void CtrlTableBrowser::Move()
 {
-	TEST_FUNC_TIME;
-	try
-	{
-		auto ctrl = whDataMgr::GetInstance()->mContainer;
-		auto presenter = ctrl->GetObject<MoveObjPresenter>("MoveObjPresenter");
-		if (!presenter)
-			return;
-		presenter->SetMoveable(oid, parent_oid);
-		presenter->OnViewUpdate();
-		presenter->ShowDialog();
-	}
-	catch (...)
-	{
-		// Transaction already rollbacked, dialog was destroyed, so nothinh to do
-		wxLogError("Объект занят другим пользователем (см.подробности)");
-	}
-	mModel->GetModelBrowser()->DoRefresh();
+	mModel->GetModelBrowser()->DoMove();
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::SetInsertType()
@@ -401,12 +368,12 @@ void CtrlToolbarBrowser::Up()
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::Act()
 {
-	mTableCtrl->SetAct();
+	mModel->GetModelBrowser()->DoAct();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::Move()
 {
-	mTableCtrl->SetMove();
+	mModel->GetModelBrowser()->DoMove();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::ShowDetail()
