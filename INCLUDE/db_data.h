@@ -7,6 +7,31 @@
 
 namespace wh{
 //-----------------------------------------------------------------------------
+class Bigint 
+{
+	//std::unique_ptr<int64_t> mIdPtr;
+	int64_t mId;
+public:
+	Bigint():mId(0){}
+	Bigint(const wxString& str){ str.ToLongLong(&mId); };
+	Bigint(const int64_t& val):mId(val) { };
+
+	//inline bool IsNull()const	{ return mIdPtr ? false : true; }
+	//inline void SetNull()		{ mIdPtr.reset(); }
+
+	wxString AsString()const	{ return wxString::Format("%d", mId); }
+	const int64_t&  AsInt64()const		{ return mId; }
+
+	operator wxString() const	{ return wxString::Format("%d", mId); }
+	operator int64_t() const	{ return mId; }
+
+	bool Set(const wxString& str){ return str.ToLongLong(&mId); };
+	void Set(const int64_t& val) { mId = val; };
+
+	Bigint& operator=(const wxString& str)	{ str.ToLongLong(&mId); return *this; };
+	Bigint& operator=(const int64_t& rv)	{ mId = rv; return *this; };
+};
+//-----------------------------------------------------------------------------
 class SqlData
 {
 public:

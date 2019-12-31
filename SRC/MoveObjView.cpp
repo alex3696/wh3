@@ -185,7 +185,12 @@ public:
 	}
 	virtual wxString		GetColumnType(unsigned int col) const 
 	{ 
-		return !col ? "wxDataViewIconText" : "string";
+		switch (col)
+		{
+		case 0: return "wxDataViewIconText";
+		default: break;
+		}
+		return "string";
 	}
 
 	virtual void GetValue(wxVariant &  variant,
@@ -222,10 +227,10 @@ public:
 			}
 			break;
 
-			default:
-				variant << wxDataViewIconText("*ERROR*", wxNullIcon);
-				break;
+			default: break;
 			}
+			if(variant.IsNull())
+				variant << wxDataViewIconText("*ERROR*", wxNullIcon);
 		}
 		break;
 		case 1:
@@ -238,10 +243,10 @@ public:
 			}
 		}//case 1:
 		break;
-		default:	
-			variant = "*ERROR*";
-			break;
+		default: break;
 		}
+		if (variant.IsNull())
+			variant << wxDataViewIconText("*ERROR*", wxNullIcon);
 
 	}
 	bool SetValue(const wxVariant &, const wxDataViewItem &, unsigned int)override
@@ -304,7 +309,9 @@ XMoveObjView::XMoveObjView(wxWindow* parent)
 	msdbSizer->Realize();
 	szrMain->Add(msdbSizer, 0, wxALL | wxEXPAND, 10);
 
-	mFrame->SetSize(600,500);
+	const wxIcon  ico("ICO_MOVE_24", wxBITMAP_TYPE_ICO_RESOURCE, 24, 24);
+	mFrame->SetIcon(ico);
+	mFrame->SetSize(mFrame->GetSize()*1.8);
 	mFrame->SetSizer(szrMain);
 	mFrame->Layout();
 
@@ -463,6 +470,24 @@ void XMoveObjView::BuildToolBar()
 
 	mToolBar->Realize();
 
+}
+//-----------------------------------------------------------------------------
+void XMoveObjView::AutosizeColumns()
+{
+	//TEST_FUNC_TIME;
+	wxBusyCursor busyCursor;
+	for (size_t i = 0; i < mTree->GetColumnCount(); i++)
+	{
+		auto col_pos = mTree->GetModelColumnIndex(i);
+		auto col = mTree->GetColumn(col_pos);
+		if (col)
+		{
+			unsigned int bs = mTree->GetBestColumnWidth(i);
+			if (bs > 300)
+				bs = 300;
+			col->SetWidth(bs);
+		}
+	}
 }
 //-----------------------------------------------------------------------------
 void XMoveObjView::BuildTree()
@@ -625,6 +650,7 @@ void XMoveObjView::UpdateDst(const ObjTree& tree)//override
 	dvmodel->SetDstTree(tree);
 
 	ExpandAll();
+	AutosizeColumns();
 }
 //---------------------------------------------------------------------------
 //virtual 

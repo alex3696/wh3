@@ -1194,7 +1194,7 @@ void ModelBrowser::Goto(int mode, int64_t id)
 	DoRefresh(false);
 }
 //-----------------------------------------------------------------------------
-void ModelBrowser::OnSmdSelectCls(int64_t cid, bool select)
+void ModelBrowser::DoSelectCls(int64_t cid, bool select)
 {
 	if (!mCache.mObjSelection.empty())
 		return;
@@ -1219,7 +1219,7 @@ void ModelBrowser::OnSmdSelectCls(int64_t cid, bool select)
 	*/
 }
 //-----------------------------------------------------------------------------
-void ModelBrowser::OnCmdSelectObj(int64_t oid, int64_t opid, bool select)
+void ModelBrowser::DoSelectObj(int64_t oid, int64_t opid, bool select)
 {
 	if (!mCache.mClsSelection.empty())
 		return;
@@ -1447,11 +1447,6 @@ ModelPageBrowser::ModelPageBrowser(int mode, int64_t rood_id, bool group, const 
 	mModelBrowser.SetGroupedByType(group);
 }
 
-//-----------------------------------------------------------------------------
-void ModelPageBrowser::DoEnableGroupByType(bool group_by_type)
-{
-	mModelBrowser.DoGroupByType(group_by_type);
-}
 //---------------------------------------------------------------------------
 //virtual 
 void ModelPageBrowser::UpdateTitle() //override;

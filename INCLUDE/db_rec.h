@@ -47,7 +47,22 @@ static bool ToClsKind(const wxString& str, ClsKind& kind)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+class ObjectKey
+{
+public:
+	ObjectKey(int64_t oid, int64_t poid)
+		:mId(oid), mParentId(poid)
+	{}
+	int64_t mId;
+	int64_t mParentId;
 
+	bool operator< (ObjectKey const& rhs)const
+	{
+		return mId < rhs.mId || mParentId < rhs.mParentId;
+	}
+
+};
 
 
 

@@ -111,12 +111,12 @@ void CtrlTableBrowser::GotoObj(int64_t oid)
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::SelectCls(int64_t cid, bool select)
 {
-	mModel->GetModelBrowser()->OnSmdSelectCls(cid, select);
+	mModel->GetModelBrowser()->DoSelectCls(cid, select);
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::SelectObj(int64_t oid, int64_t opid, bool select)
 {
-	mModel->GetModelBrowser()->OnCmdSelectObj(oid, opid, select);
+	mModel->GetModelBrowser()->DoSelectObj(oid, opid, select);
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::Act()

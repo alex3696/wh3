@@ -13,6 +13,7 @@
 // remains consiste	
 AMAIN                   ICON                    "..\\..\\RESOURCES\main.ico"
 OBJ_LOCK_24             ICON                    "..\\..\\RESOURCES\\24\\obj_lock.ico"
+ICO_MOVE_24             ICON                    "..\\..\\RESOURCES\\24\\move.ico"
 /////////////////////////////////////////////////////////////////////////////
 // Version
 /////////////////////////////////////////////////////////////////////////////

@@ -42,7 +42,7 @@ public:
 		wxWindowID id = wxID_ANY,
 		const wxString& title = wxEmptyString,
 		const wxPoint& pos = wxDefaultPosition,
-		const wxSize& size = wxSize(500, 400),//wxDefaultSize,
+		const wxSize& size = wxDefaultSize,
 		long style = wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER,
 		const wxString& name = wxDialogNameStr);
 

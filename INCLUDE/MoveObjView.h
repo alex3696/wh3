@@ -36,11 +36,11 @@ class XMoveObjView : public IMoveObjView
 
 	void BuildTree();
 	void BuildToolBar();
-
+	void AutosizeColumns();
 	void ExpandTree(const wxDataViewItem& dvitem,bool recursive=true);
 	void ExpandAll();
 	void OnClickSearchBtn(wxCommandEvent& event);
-
+	
 public:
 	XMoveObjView(wxWindow* parent);
 	XMoveObjView(const std::shared_ptr<IViewWindow>& parent);

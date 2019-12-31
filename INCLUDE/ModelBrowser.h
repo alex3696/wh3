@@ -767,8 +767,8 @@ public:
 	void DoSetMode(int);
 	void Goto(int mode,int64_t id);
 
-	void OnSmdSelectCls(int64_t cid, bool select);
-	void OnCmdSelectObj(int64_t oid, int64_t opid, bool select);
+	void DoSelectCls(int64_t cid, bool select);
+	void DoSelectObj(int64_t oid, int64_t opid, bool select);
 
 	void DoMove();
 	void DoAct();
@@ -814,12 +814,6 @@ public:
 	ModelPageBrowser(int mode, int64_t rood_id, bool group, const wxString& ss);
 
 	ModelBrowser *const GetModelBrowser(){ return &mModelBrowser; }
-
-	void DoEnableGroupByType(bool enable_group_by_type);
-
-	
-	sig::signal<void(bool)>	 sigUpdateGroupByType;
-
 
 	// IModelWindow
 	virtual void UpdateTitle()override;

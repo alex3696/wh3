@@ -16,6 +16,8 @@ Frame::Frame(wxWindow* parent,
 	//: wh::view::DlgBaseOkCancel(parent, id, title, pos, size, style, name)
 	: wxDialog(parent, id, title, pos, size, style, name)
 {
+	SetSize(GetSize()*1.8);
+
 	this->SetTitle("Выполнение действия");
 	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
 
