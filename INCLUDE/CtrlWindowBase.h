@@ -11,6 +11,9 @@ class CtrlWindowBase : public ICtrlWindow
 {
 	sig::scoped_connection connViewDestroyed;
 protected:
+	typedef TVIEW	T_View;
+	typedef TMODEL	T_Model;
+
 	std::shared_ptr<TVIEW>  mView;
 	std::shared_ptr<TMODEL> mModel;
 

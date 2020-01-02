@@ -51,7 +51,6 @@ public:
 	sig::signal<void()>					sigShowSettings;
 	sig::signal<void(const wxString&)>	sigShowHelp;
 
-	sig::signal<void()>					sigClosePage;
 };
 //-----------------------------------------------------------------------------
 class IViewToolbarBrowser : public IViewWindow
@@ -98,6 +97,7 @@ public:
 
 	sig::signal<void(const wxString&)>	sigFind;
 	sig::signal<void(int)>				sigMode;
+	sig::signal<void()>					sigClosePage;
 };
 
 

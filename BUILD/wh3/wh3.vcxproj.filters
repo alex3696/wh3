@@ -208,6 +208,15 @@
     <Filter Include="MainFrame\MVP2\ContentWindows\Подробности\Диалог перемещения\v2">
       <UniqueIdentifier>{4e2b3f0c-0f5b-4790-82ca-70cfa1415dea}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2">
+      <UniqueIdentifier>{4182bab1-7086-4fe3-924f-284419f672f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\ActBrowser">
+      <UniqueIdentifier>{0c2f03b5-c44a-4a7d-84ab-2323d07a870e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Каталог объектов v2\ModelActTable">
+      <UniqueIdentifier>{d6ba8813-837d-417b-bf57-0c9d02b3033c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -593,6 +602,24 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\ViewDetail.cpp">
       <Filter>MainFrame\MVP2\ContentWindows\Подробности</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\CtrlExecAct.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ModelExecAct.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ViewExecAct.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ViewActBrowser.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\ActBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ModelActBrowser.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\ActBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\CtrlActBrowser.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\ActBrowser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1129,6 +1156,30 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ViewDetail.h">
       <Filter>MainFrame\MVP2\ContentWindows\Подробности</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ModelExecAct.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\CtrlExecAct.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ViewExecAct.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ViewActBrowser.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\ActBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ViewActBrowserDVModel.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\ActBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\CtrlActBrowser.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\ActBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ModelActBrowser.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\ActBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ModelActTable.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2\ModelActTable</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

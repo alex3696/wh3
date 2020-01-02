@@ -2,6 +2,7 @@
 #define __MODEL_BROWSER_H
 
 #include "ModelBrowserData.h"
+#include "ModelActTable.h"
 #include "IModelWindow.h"
 #include "ModelFilterList.h"
 #include "ModelClsPath.h"
@@ -198,32 +199,7 @@ public:
 	virtual wxString GetLockSession()const override;
 
 };
-//-----------------------------------------------------------------------------
-class ActRec64 : public IAct64
-{
-private:
-	int64_t		mId;
-	wxString	mTitle;
-	wxString	mColour;
-	
-	ActCache*	mTable = nullptr;
-public:
-	//ObjRec64() {}
-	ActRec64(const int64_t id
-		, ActCache* table)
-		:mId(id), mTable(table)
-	{
-	}
 
-	virtual const int64_t&  GetId()const override { return mId; }
-	virtual const wxString& GetTitle()const override { return mTitle; };
-	virtual const wxString& GetColour()const override { return mColour; };
-
-	bool SetId(const wxString& str) { return str.ToLongLong(&mId); }
-	void SetId(const int64_t& val) { mId = val; }
-	void SetTitle(const wxString& str) { mTitle = str; };
-	void SetColour(const wxString& str) { mColour = str; };
-};
 //-----------------------------------------------------------------------------
 class PropRec64 : public IProp64
 {
@@ -479,67 +455,15 @@ public:
 //-----------------------------------------------------------------------------
 // ACT TABLE
 //-----------------------------------------------------------------------------
-class ActCache
+class ActCache: public ModelActTable
 {
-public:
-	typedef IAct64 RowType;
-
-	using Storage = boost::multi_index_container
-	<
-		std::shared_ptr<RowType>,
-		indexed_by
-		<
-			 ordered_unique <	extr_id_IIdent64 >
-			//, random_access<> //SQL order	
-			//, ordered_unique< extr_void_ptr_IIdent64 >
-		>
-	>;
 private:
-	Storage		mData;
 	DbCache*	mDbCache;
 public:
 	ActCache(DbCache* dbCache)
 		:mDbCache(dbCache)
 	{}
 	DbCache* GetCache()const { return mDbCache; }
-
-
-	inline const Storage& GetStorage()const { return mData; }
-	inline bool empty()const { mData.empty(); }
-	inline void Clear() { mData.clear(); }
-
-	size_t size()const
-	{
-		return mData.size();
-	}
-
-	using fnModify = std::function<void(const std::shared_ptr<RowType>& obj)>;
-
-	std::shared_ptr<const RowType> GetById(const int64_t& id)
-	{
-		auto& idxId = mData.get<0>();
-		auto it = idxId.find(id);
-		if (idxId.end() == it)
-			throw;
-		return *it;
-	}
-
-	const std::shared_ptr<RowType>& InsertOrUpdate(const int64_t& id, const fnModify& fn)
-	{
-		auto& idxId = mData.get<0>();
-		auto it = idxId.find(id);
-		if (idxId.end() == it)
-		{
-			auto act = std::make_shared<ActRec64>(id, this);
-			fn(act);
-			auto ins_it = idxId.emplace(act);
-			return *ins_it.first;
-		}
-		
-		idxId.modify(it, fn);
-		return *it;
-	}
-
 };
 
 //-----------------------------------------------------------------------------
@@ -704,7 +628,7 @@ public:
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-class ModelBrowser
+class ModelBrowser : public IModelWindow
 {
 public:
 	enum class Mode
@@ -722,6 +646,7 @@ private:
 	int64_t		mRootId;
 	bool		mGroupByType;
 	wxString	mSearchString;
+	std::set<ObjectKey> mSetObjects;
 
 	std::unique_ptr<ModelClsPath> mClsPath;
 	std::unique_ptr<ModelObjPath> mObjPath;
@@ -735,6 +660,8 @@ private:
 
 	void Load_ClsDir_ClsList();
 	void LoadSearch();
+	void LoadSetObjects();
+
 
 	void UpdateUntitledProperties();
 	void UpdateUntitledActs();
@@ -762,6 +689,8 @@ public:
 	void DoRefreshObjects(int64_t cid);
 	void DoUp();
 	void DoFind(const wxString&);
+	void DoSetObjects(const std::set<ObjectKey>& obj);
+
 	void DoGroupByType(bool enable_group_by_type);
 	void DoToggleGroupByType();
 	void DoSetMode(int);
@@ -808,12 +737,12 @@ class ModelPageBrowser : public IModelWindow
 
 	sig::scoped_connection connModelBrowser_AfterPathChange;
 
-	ModelBrowser mModelBrowser;
+	std::shared_ptr<ModelBrowser> mModelBrowser;
 public:
 	ModelPageBrowser();
 	ModelPageBrowser(int mode, int64_t rood_id, bool group, const wxString& ss);
 
-	ModelBrowser *const GetModelBrowser(){ return &mModelBrowser; }
+	std::shared_ptr<ModelBrowser> GetModelBrowser(){ return mModelBrowser; }
 
 	// IModelWindow
 	virtual void UpdateTitle()override;

@@ -3,7 +3,7 @@
 
 #include "dlg_act_view_Frame.h"
 #include "MoveObjPresenter.h"
-
+#include "CtrlExecAct.h"
 
 using namespace wh;
 
@@ -1020,6 +1020,118 @@ void ModelBrowser::LoadSearch()
 	sigAfterRefreshCls(toinsert, nullptr, mSearchString, mGroupByType, mMode);
 }
 //-----------------------------------------------------------------------------
+void ModelBrowser::LoadSetObjects()
+{
+	mSearchString.Clear();
+	mGroupByType = false;
+	mMode = 0;
+
+	TEST_FUNC_TIME;
+	{
+		std::vector<const IIdent64*> toinsert;
+		sigBeforeRefreshCls(toinsert, nullptr, mSearchString, mGroupByType, mMode);
+	}
+	mCache.ClearSelection();
+	std::vector<const IIdent64*> toinsert;
+	mCache.Clear();
+
+
+	wxString str_id;
+	for (const auto& it : mSetObjects)
+	{
+		str_id += wxString::Format(" OR (obj.id=%s AND obj.pid=%s)"
+			, it.GetId_AsString()
+			, it.GetParentId_AsString());
+	}
+	if (str_id.empty())
+		return;
+	str_id.Remove(0, 3);
+
+
+	whDataMgr::GetDB().BeginTransaction();
+
+	wxString query = wxString::Format(
+		"SELECT  cls.id AS cid, cls.pid AS parent_cid, cls.title AS ctitle, cls.kind, cls.measure"
+		"	, sum(qty) OVER(PARTITION BY cls.id)  AS cqty"
+		"	, obj.id AS oid, obj.pid AS parent_oid, obj.title AS otitle, qty"
+		"	, get_path_objnum(obj.pid, 1)"
+		"	, lock_user, lock_time, lock_session "
+		" FROM obj"
+		" LEFT JOIN lock_obj ON lock_obj.oid = obj.id  AND (CURRENT_TIMESTAMP-lock_time)<'10 min' "
+		" INNER join acls cls  ON obj.cls_id = cls.id AND obj.cls_kind = cls.kind"
+		" WHERE (%s)"
+		" ORDER BY"
+		"  (substring(cls.title, '^[0-9]{1,9}')::INT, cls.title) ASC"
+		" ,(substring(obj.title, '^[0-9]{1,9}')::INT, obj.title) ASC"
+		, str_id);
+
+	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+	if (table)
+	{
+		unsigned int rowQty = table->GetRowCount();
+		size_t row = 0;
+		const ClsCache::fnModify load_cls = [&table, &row](const std::shared_ptr<ClsRec64>& cls)
+		{
+			//cls->SetId(table->GetAsString(0, row));
+			cls->SetParentId(table->GetAsString(1, row));
+			table->GetAsString(2, row, cls->mTitle);
+			ToClsKind(table->GetAsString(3, row), cls->mKind);
+			table->GetAsString(4, row, cls->mMeasure);
+			table->GetAsString(5, row, cls->mObjQty);
+			cls->mObjLoaded = true;
+		};
+
+		const ObjCache::fnModify load_obj = [&table, &row](const std::shared_ptr<ObjRec64>& obj)
+		{
+			//obj->SetParentId(table->GetAsString(7, row));
+			obj->SetClsId(table->GetAsString(0, row));
+
+			table->GetAsString(8, row, obj->mTitle);
+			table->GetAsString(9, row, obj->mQty);
+
+			obj->mPath = std::make_shared<ObjPath64>();
+			table->GetAsString(10, row, obj->mPath->mStrPath);
+
+			obj->mLockUser = table->GetAsString(11, row);
+			obj->mLockTime = table->GetAsString(12, row);
+			obj->mLockSession = table->GetAsString(13, row);
+		};
+
+
+		std::set<int64_t> loaded_cid;
+		for (; row < rowQty; row++)
+		{
+			int64_t cid;
+			if (!table->GetAsString(0, row).ToLongLong(&cid))
+				throw;
+			auto ins_it = loaded_cid.emplace(cid);
+			if (ins_it.second)
+			{
+				const std::shared_ptr<ClsRec64>& curr = mCache.mClsTable.GetById(cid, load_cls);
+				if (mGroupByType)
+					toinsert.emplace_back(curr.get());
+			}
+
+			auto parent_oid_str = table->GetAsString(7, row);
+			int64_t oid, parent_oid;
+			if (table->GetAsString(6, row).ToLongLong(&oid)
+				&& table->GetAsString(7, row).ToLongLong(&parent_oid))
+			{
+				const std::shared_ptr<ObjRec64>& obj = mCache.mObjTable.GetObjById(oid, parent_oid, load_obj);
+				if (!obj)
+					throw;
+				if (!mGroupByType)
+					toinsert.emplace_back(obj.get());
+			}
+
+		}
+
+	}//if (table)
+	whDataMgr::GetDB().Commit();
+
+	sigAfterRefreshCls(toinsert, nullptr, mSearchString, mGroupByType, mMode);
+}
+//-----------------------------------------------------------------------------
 void ModelBrowser::Load_ClsDir_ClsList()
 {
 	wxString root_cls_id = mClsPath->GetCurrent()->GetIdAsString();
@@ -1086,6 +1198,13 @@ void ModelBrowser::Load_ClsDir_ClsList()
 void ModelBrowser::DoRefresh(bool sigBefore)
 {
 	TEST_FUNC_TIME;
+	if (!mSetObjects.empty())
+	{
+		LoadSetObjects();
+		sigAfterPathChange(wxEmptyString);
+		return;
+	}
+
 	if(sigBefore)
 	{
 		std::vector<const IIdent64*> toinsert;
@@ -1158,6 +1277,12 @@ void ModelBrowser::DoFind(const wxString& str)
 	}
 	SetSearchString(str);
 	mCache.ClearSelection();
+	DoRefresh();
+}
+//-----------------------------------------------------------------------------
+void ModelBrowser::DoSetObjects(const std::set<ObjectKey>& obj)
+{
+	mSetObjects = obj;
 	DoRefresh();
 }
 //-----------------------------------------------------------------------------
@@ -1327,6 +1452,20 @@ void ModelBrowser::ExecuteActObjects(const std::set<ObjectKey>& obj)const
 	if (obj.empty())
 		return;
 
+	auto container = whDataMgr::GetInstance()->mContainer;
+
+	auto ctrlActExecWindow = container->GetObject<CtrlActExecWindow>("CtrlActExecWindow");
+	if (ctrlActExecWindow)
+	{
+		ctrlActExecWindow->SetObjects(obj);
+		ctrlActExecWindow->Show();
+
+	}
+
+
+
+	/*
+
 	TEST_FUNC_TIME;
 	rec::PathItem data;
 	data.mObj.mId = obj.begin()->mId;
@@ -1348,6 +1487,7 @@ void ModelBrowser::ExecuteActObjects(const std::set<ObjectKey>& obj)const
 		// Transaction already rollbacked, dialog was destroyed, so nothinh to do
 		wxLogError("Объект занят другим пользователем (см.подробности)");
 	}
+	*/
 }
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoAct()
@@ -1432,19 +1572,20 @@ const wxString ModelBrowser::GetRootTitle()const
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 ModelPageBrowser::ModelPageBrowser()
+	: mModelBrowser(std::make_shared<ModelBrowser>())
 {
-	connModelBrowser_AfterPathChange = mModelBrowser.sigAfterPathChange
+	connModelBrowser_AfterPathChange = mModelBrowser->sigAfterPathChange
 		.connect(std::bind(&ModelPageBrowser::UpdateTitle, this));
 
 }
 //-----------------------------------------------------------------------------
 ModelPageBrowser::ModelPageBrowser(int mode, int64_t rood_id, bool group, const wxString& ss)
-	: ModelPageBrowser()
+	: mModelBrowser(std::make_shared<ModelBrowser>())
 {
-	mModelBrowser.SetMode(mode);
-	mModelBrowser.SetRootId(rood_id);
-	mModelBrowser.SetSearchString(ss);
-	mModelBrowser.SetGroupedByType(group);
+	mModelBrowser->SetMode(mode);
+	mModelBrowser->SetRootId(rood_id);
+	mModelBrowser->SetSearchString(ss);
+	mModelBrowser->SetGroupedByType(group);
 }
 
 //---------------------------------------------------------------------------
@@ -1453,23 +1594,23 @@ void ModelPageBrowser::UpdateTitle() //override;
 {
 	auto mgr = ResMgr::GetInstance();
 	const wxIcon* ico = &wxNullIcon;
-	if (0 == mModelBrowser.GetMode())
+	if (0 == mModelBrowser->GetMode())
 	{
 		ico = &mgr->m_ico_folder_type24;
 	}
-	else if (1 == mModelBrowser.GetMode())
+	else if (1 == mModelBrowser->GetMode())
 	{
 		ico = &mgr->m_ico_folder_obj24;
 	}
 
 	wxString title; 
-	auto root_id = mModelBrowser.GetRootId();
+	auto root_id = mModelBrowser->GetRootId();
 	if ( 1 >= root_id)
 		title = "/";
 	else
-		title = ".."+mModelBrowser.GetRootTitle();
+		title = ".."+mModelBrowser->GetRootTitle();
 
-	auto ss = mModelBrowser.GetSearchString();
+	auto ss = mModelBrowser->GetSearchString();
 	if (!ss.empty())
 		title = wxString::Format("поиск:'%s' в %s ", ss, title);
 		
@@ -1480,7 +1621,7 @@ void ModelPageBrowser::UpdateTitle() //override;
 //virtual 
 void ModelPageBrowser::Show()//override;
 {
-	mModelBrowser.DoRefresh();
+	mModelBrowser->DoRefresh();
 	sigShow();
 
 }
@@ -1494,22 +1635,22 @@ void ModelPageBrowser::Load(const boost::property_tree::wptree& page_val)//overr
 	bool group_type = page_val.get<bool>(L"CtrlPageBrowser.GroupByType", true);
 
 
-	mModelBrowser.SetMode(mode);
-	mModelBrowser.SetSearchString(search_string);
-	mModelBrowser.SetRootId(root_id);
-	mModelBrowser.SetGroupedByType(group_type);
+	mModelBrowser->SetMode(mode);
+	mModelBrowser->SetSearchString(search_string);
+	mModelBrowser->SetRootId(root_id);
+	mModelBrowser->SetGroupedByType(group_type);
 	
-	mModelBrowser.DoRefresh();
+	mModelBrowser->DoRefresh();
 
 }
 //---------------------------------------------------------------------------
 //virtual 
 void ModelPageBrowser::Save(boost::property_tree::wptree& page_val)//override;
 {
-	int mode = mModelBrowser.GetMode();
-	int64_t root_id = mModelBrowser.GetRootId();
-	wxString search_string = mModelBrowser.GetSearchString();
-	bool group_type = mModelBrowser.GetGroupedByType();
+	int mode = mModelBrowser->GetMode();
+	int64_t root_id = mModelBrowser->GetRootId();
+	wxString search_string = mModelBrowser->GetSearchString();
+	bool group_type = mModelBrowser->GetGroupedByType();
 
 	using ptree = boost::property_tree::wptree;
 	ptree content;

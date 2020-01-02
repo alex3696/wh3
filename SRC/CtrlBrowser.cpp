@@ -11,18 +11,18 @@ using namespace wh;
 //---------------------------------------------------------------------------
 CtrlTableBrowser::CtrlTableBrowser(
 	const std::shared_ptr<IViewTableBrowser>& view
-	, const std::shared_ptr<ModelPageBrowser>& model)
+	, const std::shared_ptr<ModelBrowser>& model)
 	: CtrlWindowBase(view, model)
 {
 	namespace ph = std::placeholders;
 
-	connModel_SelectCurrent = mModel->GetModelBrowser()->sigSelectCurrent
+	connModel_SelectCurrent = mModel->sigSelectCurrent
 		.connect(std::bind(&IViewTableBrowser::SetSelectCurrent, mView.get()));
-	connModel_BeforeRefreshCls = mModel->GetModelBrowser()->sigBeforeRefreshCls
+	connModel_BeforeRefreshCls = mModel->sigBeforeRefreshCls
 		.connect(std::bind(&IViewTableBrowser::SetBeforeRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4, ph::_5));
-	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
+	connModel_AfterRefreshCls = mModel->sigAfterRefreshCls
 		.connect(std::bind(&IViewTableBrowser::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4, ph::_5));
-	connModel_ObjOperation = mModel->GetModelBrowser()->sigObjOperation
+	connModel_ObjOperation = mModel->sigObjOperation
 		.connect(std::bind(&IViewTableBrowser::SetObjOperation, mView.get(), ph::_1, ph::_2));
 
 	connViewCmd_Activate = mView->sigActivate
@@ -74,59 +74,61 @@ CtrlTableBrowser::CtrlTableBrowser(
 	connViewCmd_ShowHelp = mView->sigShowHelp
 		.connect(std::bind(&CtrlTableBrowser::ShowHelp, this, ph::_1));
 
-	connViewCmd_Close = mView->sigClosePage
-		.connect(std::bind(&CtrlTableBrowser::ClosePage, this));
-
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::Refresh()
 {
-	mModel->GetModelBrowser()->DoRefresh();
+	mModel->DoRefresh();
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::Up()
 {
-	mModel->GetModelBrowser()->DoUp();
+	mModel->DoUp();
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::Activate(int64_t cid)
 {
-	mModel->GetModelBrowser()->DoActivate(cid);
+	mModel->DoActivate(cid);
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::RefreshClsObjects(int64_t cid)
 {
-	mModel->GetModelBrowser()->DoRefreshObjects (cid);
+	mModel->DoRefreshObjects (cid);
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::GotoCls(int64_t cid)
 {
-	mModel->GetModelBrowser()->Goto(0, cid);
+	mModel->Goto(0, cid);
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::GotoObj(int64_t oid)
 {
-	mModel->GetModelBrowser()->Goto(1, oid);
+	mModel->Goto(1, oid);
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::SelectCls(int64_t cid, bool select)
 {
-	mModel->GetModelBrowser()->DoSelectCls(cid, select);
+	mModel->DoSelectCls(cid, select);
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::SelectObj(int64_t oid, int64_t opid, bool select)
 {
-	mModel->GetModelBrowser()->DoSelectObj(oid, opid, select);
+	mModel->DoSelectObj(oid, opid, select);
+}
+//---------------------------------------------------------------------------
+void CtrlTableBrowser::SetObjects(const std::set<ObjectKey>& obj)
+{
+	mModel->DoSetObjects(obj);
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::Act()
 {
-	mModel->GetModelBrowser()->DoAct();
+	mModel->DoAct();
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::Move()
 {
-	mModel->GetModelBrowser()->DoMove();
+	mModel->DoMove();
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::SetInsertType()
@@ -175,7 +177,7 @@ void CtrlTableBrowser::ShowDetail(int64_t oid, int64_t parent_oid)
 //---------------------------------------------------------------------------
 void wh::CtrlTableBrowser::ToggleGroupByType()
 {
-	mModel->GetModelBrowser()->DoToggleGroupByType();
+	mModel->DoToggleGroupByType();
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::SetShowFav()
@@ -194,7 +196,7 @@ void CtrlTableBrowser::ShowFav(int64_t cid)
 		return;
 
 	ctrlFav->EditFav(cid);
-	mModel->GetModelBrowser()->DoRefresh();
+	mModel->DoRefresh();
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::ShowSettings()
@@ -212,24 +214,6 @@ void CtrlTableBrowser::ShowHelp(const wxString& index)
 	ctrl_help->Show(index);
 }
 //---------------------------------------------------------------------------
-void CtrlTableBrowser::ClosePage()
-{
-	auto container = whDataMgr::GetInstance()->mContainer;
-	auto nb = container->GetObject<CtrlNotebook>("CtrlNotebook");
-	if (!nb)
-		return;
-
-	auto table_wnd = mView->GetWnd();
-	if (!table_wnd)
-		return;
-
-	auto page_wnd = table_wnd->GetParent();
-	if (!page_wnd)
-		return;
-
-	nb->RmWindow(page_wnd);
-}
-//---------------------------------------------------------------------------
 void CtrlTableBrowser::ClsInsert(int64_t parent_cid)
 {
 	auto container = whDataMgr::GetInstance()->mContainer;
@@ -239,7 +223,7 @@ void CtrlTableBrowser::ClsInsert(int64_t parent_cid)
 		return;
 
 	ctrlClsEditor->Insert(parent_cid);
-	mModel->GetModelBrowser()->DoRefresh();
+	mModel->DoRefresh();
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::ClsDelete(int64_t cid)
@@ -251,7 +235,7 @@ void CtrlTableBrowser::ClsDelete(int64_t cid)
 		return;
 
 	ctrlClsEditor->Delete(cid);
-	mModel->GetModelBrowser()->DoRefresh();
+	mModel->DoRefresh();
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::ClsUpdate(int64_t cid)
@@ -263,7 +247,7 @@ void CtrlTableBrowser::ClsUpdate(int64_t cid)
 		return;
 
 	ctrlClsEditor->Update(cid);
-	mModel->GetModelBrowser()->DoRefresh();
+	mModel->DoRefresh();
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::ObjInsert(int64_t cid)
@@ -275,7 +259,7 @@ void CtrlTableBrowser::ObjInsert(int64_t cid)
 		return;
 
 	ctrlObjEditor->Insert(cid);
-	mModel->GetModelBrowser()->DoRefresh();
+	mModel->DoRefresh();
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::ObjDelete(int64_t oid, int64_t parent_oid)
@@ -287,7 +271,7 @@ void CtrlTableBrowser::ObjDelete(int64_t oid, int64_t parent_oid)
 		return;
 
 	ctrlObjEditor->Delete(oid, parent_oid);
-	mModel->GetModelBrowser()->DoRefresh();
+	mModel->DoRefresh();
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::ObjUpdate(int64_t oid, int64_t parent_oid)
@@ -299,7 +283,7 @@ void CtrlTableBrowser::ObjUpdate(int64_t oid, int64_t parent_oid)
 		return;
 
 	ctrlObjEditor->Update(oid, parent_oid);
-	mModel->GetModelBrowser()->DoRefresh();
+	mModel->DoRefresh();
 }
 
 
@@ -455,7 +439,7 @@ CtrlPageBrowser::CtrlPageBrowser(
 	, const std::shared_ptr<ModelPageBrowser>& model)
 	: CtrlWindowBase(view, model)
 {
-	mCtrlTableBrowser = std::make_shared<CtrlTableBrowser>(view->GetViewTableBrowser(), model);
+	mCtrlTableBrowser = std::make_shared<CtrlTableBrowser>(view->GetViewTableBrowser(), model->GetModelBrowser());
 	mCtrlToolbarBrowser = std::make_shared<CtrlToolbarBrowser>(view->GetViewToolbarBrowser(), model, mCtrlTableBrowser.get());
 	mCtrlPathBrowser = std::make_shared<CtrlPathBrowser>(view->GetViewPathBrowser(), model);
 
@@ -471,6 +455,9 @@ CtrlPageBrowser::CtrlPageBrowser(
 	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
 		.connect(std::bind(&IViewBrowserPage::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4, ph::_5));
 
+
+	connViewCmd_Close = mView->sigClosePage
+		.connect(std::bind(&CtrlPageBrowser::ClosePage, this));
 }
 //---------------------------------------------------------------------------
 void CtrlPageBrowser::Find(const wxString& str)
@@ -481,4 +468,22 @@ void CtrlPageBrowser::Find(const wxString& str)
 void CtrlPageBrowser::SetMode(int mode)
 {
 	mModel->GetModelBrowser()->DoSetMode(mode);
+}
+//---------------------------------------------------------------------------
+void CtrlPageBrowser::ClosePage()
+{
+	auto container = whDataMgr::GetInstance()->mContainer;
+	auto nb = container->GetObject<CtrlNotebook>("CtrlNotebook");
+	if (!nb)
+		return;
+
+	auto table_wnd = mView->GetWnd();
+	if (!table_wnd)
+		return;
+
+	auto page_wnd = table_wnd->GetParent();
+	if (!page_wnd)
+		return;
+
+	nb->RmWindow(page_wnd);
 }

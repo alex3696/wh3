@@ -10,7 +10,7 @@ namespace wh{
 
 class CtrlPageBrowser;
 //-----------------------------------------------------------------------------
-class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPageBrowser>
+class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelBrowser>
 {
 	sig::scoped_connection connModel_SelectCurrent;
 	sig::scoped_connection connModel_BeforeRefreshCls;
@@ -44,11 +44,11 @@ class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelPag
 	sig::scoped_connection connViewCmd_ShowSettings;
 	sig::scoped_connection connViewCmd_ShowHelp;
 
-	sig::scoped_connection connViewCmd_Close;
+	
 
 public:
 	CtrlTableBrowser(const std::shared_ptr<IViewTableBrowser>& view
-		, const  std::shared_ptr<ModelPageBrowser>& model);
+		, const  std::shared_ptr<ModelBrowser>& model);
 
 	void Refresh();
 	void Up();
@@ -58,6 +58,7 @@ public:
 	void GotoObj(int64_t oid);
 	void SelectCls(int64_t cid, bool select);
 	void SelectObj(int64_t oid, int64_t opid, bool select);
+	void SetObjects(const std::set<ObjectKey>& obj);
 
 	void Act();
 	void Move();
@@ -85,7 +86,7 @@ public:
 	void ShowSettings();
 	void ShowHelp(const wxString& index);
 
-	void ClosePage();
+	
 };
 //-----------------------------------------------------------------------------
 class CtrlToolbarBrowser final : public CtrlWindowBase<IViewToolbarBrowser, ModelPageBrowser>
@@ -158,6 +159,8 @@ class CtrlPageBrowser final : public CtrlWindowBase<IViewBrowserPage, ModelPageB
 	sig::scoped_connection connViewCmd_Mode;
 	
 	sig::scoped_connection connModel_AfterRefreshCls;
+
+	sig::scoped_connection connViewCmd_Close;
 public:
 	CtrlPageBrowser(const std::shared_ptr<IViewBrowserPage>& view
 		, const  std::shared_ptr<ModelPageBrowser>& model);
@@ -165,6 +168,7 @@ public:
 
 	void Find(const wxString&);
 	void SetMode(int);
+	void ClosePage();
 };
 
 

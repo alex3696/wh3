@@ -62,6 +62,18 @@ public:
 		return mId < rhs.mId || mParentId < rhs.mParentId;
 	}
 
+	wxString GetId_AsString()const
+	{
+		wxLongLong ll(mId);
+		return ll.ToString();
+	}
+
+	wxString GetParentId_AsString()const
+	{
+		wxLongLong ll(mParentId);
+		return ll.ToString();
+	}
+
 };
 
 

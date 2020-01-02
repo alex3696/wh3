@@ -105,9 +105,6 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 		{ sigShowHelp("ViewBrowserPage"); }, wxID_HELP_INDEX);
 
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
-		{ sigClosePage(); }, wxID_CLOSE);
-	
-	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
 		{ SetSelected(); }, wxID_ADD);
 	table->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED
 		, &ViewTableBrowser::OnCmd_SelectionChanged, this);
@@ -203,6 +200,9 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 	mTable->GetTargetWindow()->SetToolTip(wxEmptyString);
 	mToolTipTimer.StartOnce(1500);
 	SetCursorStandard();
+
+	if (!evt.ControlDown())
+		return;
 	
 	auto pos = evt.GetPosition();
 	pos = mTable->ScreenToClient((mTable->GetMainWindow()->ClientToScreen(pos)));
@@ -1378,6 +1378,10 @@ ViewBrowserPage::ViewBrowserPage(wxWindow* parent)
 		{
 			sigFind(wxEmptyString);
 		});
+
+	panel->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
+	{ sigClosePage(); }, wxID_CLOSE);
+
 }
 //-----------------------------------------------------------------------------
 void ViewBrowserPage::OnCmd_Find(wxCommandEvent& evt)

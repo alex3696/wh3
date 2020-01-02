@@ -47,6 +47,9 @@
 #include "CtrlHelp.h"
 #include "CtrlCSVFile.h"
 
+#include "ViewExecAct.h"
+#include "CtrlExecAct.h"
+
 using namespace wh;
 
 //---------------------------------------------------------------------------
@@ -548,5 +551,15 @@ void whDataMgr::InitContainer()
 	mContainer->RegFactoryNI<CtrlCSVFileOpen, CtrlCSVFile, wxString >
 		("CtrlCSVFileOpen", "CtrlCSVFile", "CSVFilePath");
 
+
+	////////////////////
+	// Execute Act   //
+	///////////////////
+	mContainer->RegInstanceNI<ModelActExecWindow>
+		("ModelActExecWindow");
+	mContainer->RegInstanceDeferredNI<ViewExecActWindow, IViewWindow>
+		("ViewExecActWindow", "ViewMain");
+	mContainer->RegInstanceDeferredNI<CtrlActExecWindow, ViewExecActWindow, ModelActExecWindow >
+		("CtrlActExecWindow", "ViewExecActWindow", "ModelActExecWindow");
 
 }
