@@ -122,6 +122,7 @@ class IAct64 : public IIdent64
 public:
 	virtual const wxString& GetColour()const = 0;
 	virtual const wxString& GetNote()const = 0;
+	virtual bool IsSelected()const { return false; };
 };
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

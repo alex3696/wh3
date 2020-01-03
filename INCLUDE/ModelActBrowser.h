@@ -8,23 +8,29 @@ namespace wh{
 //---------------------------------------------------------------------------
 class ModelActBrowserWindow : public IModelWindow
 {
-	ModelActTable mActTable;
-
-	
 public:
+	using FuncActivateCallback 
+		= std::function<int(const ModelActTable::RowType& obj)>;
+
 	ModelActBrowserWindow();
 	
-	void DoRefresh();
+	void DoSwap(std::shared_ptr<ModelActTable> table);
 	void UpdateExist();
 	void SetActs(const std::set<int64_t>& act_idents);
+	void DoActivate(int64_t aid);
 
-	using SigRefresh = sig::signal<void(const std::vector<const IIdent64*>& ) >;
-	using SigOperation = sig::signal<void(Operation op, const std::vector<const IIdent64*>&)>;
+	void SetActivateCallback(const FuncActivateCallback& fn);
 
+	using SigRefresh = sig::signal<void(std::shared_ptr<const ModelActTable>)>;
 	SigRefresh		sigBeforeRefresh;
 	SigRefresh		sigAfterRefresh;
-	SigOperation	sigOperation;
 	
+	//using SigOperation = sig::signal<void(Operation op, const std::vector<const IIdent64*>&)>;
+	//SigOperation	sigOperation;
+private:
+	std::shared_ptr<ModelActTable>	mActTable;
+	FuncActivateCallback			mFuncActivateCallback;
+
 };
 //---------------------------------------------------------------------------
 

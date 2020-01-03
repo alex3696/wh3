@@ -12,6 +12,8 @@ namespace wh {
 //-----------------------------------------------------------------------------
 class ViewExecActWindow final : public IViewWindow
 {
+
+
 	wxDialog*			mPanel;
 
 	std::shared_ptr<ViewTableBrowser>	mObjBrowser;
@@ -26,8 +28,13 @@ public:
 
 	virtual std::shared_ptr<ViewTableBrowser>		GetViewObjBrowser()const;
 	virtual std::shared_ptr<ViewActBrowser>	GetViewActBrowser()const;
-protected:
 
+	sig::signal<void()> sigUnlock;
+protected:
+	void OnClose(wxCloseEvent& evt);
+	void OnCancel(wxCommandEvent& evt = wxCommandEvent());
+	void OnOk(wxCommandEvent& evt = wxCommandEvent());
+	void OnActivated(wxDataViewEvent &evt = wxDataViewEvent());
 private:
 
 	

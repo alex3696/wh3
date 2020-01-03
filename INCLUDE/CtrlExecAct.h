@@ -47,16 +47,17 @@ public:
 //---------------------------------------------------------------------------
 class CtrlActExecWindow final : public CtrlWindowBase<ViewExecActWindow, ModelActExecWindow>
 {
-	
+	sig::scoped_connection connViewCmd_Unlock;
+
+
 	std::shared_ptr<CtrlActBrowser>			mCtrlActBrowser;
 	std::shared_ptr<CtrlTableObjBrowser_RO>	mCtrlObjBrowser;
-
 public:
 	CtrlActExecWindow(	const std::shared_ptr<ViewExecActWindow>& view
 		, const std::shared_ptr<ModelActExecWindow>& model );
 
 	void SetObjects(const std::set<ObjectKey>& obj);
-
+	void Unlock();
 };
 
 

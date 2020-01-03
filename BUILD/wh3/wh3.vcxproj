@@ -353,6 +353,7 @@
     <ClCompile Include="..\..\SRC\ReportPresenter.cpp" />
     <ClCompile Include="..\..\SRC\ReportView.cpp" />
     <ClCompile Include="..\..\SRC\ViewActBrowser.cpp" />
+    <ClCompile Include="..\..\SRC\ViewActBrowserDVModel.cpp" />
     <ClCompile Include="..\..\SRC\ViewBrowser.cpp" />
     <ClCompile Include="..\..\SRC\ViewBrowserDVModel.cpp" />
     <ClCompile Include="..\..\SRC\ViewDetail.cpp" />

@@ -86,6 +86,8 @@ bool App::OnInit()
 	gmgr->mContainer->RegInstance("CtrlMain", ctrl_main);
 	gmgr->mContainer->RegInstance("ViewMain", view_main);
 	
+	wxToolTip::Enable(true);
+	wxToolTip::SetAutoPop(15000);
 	SetTopWindow(view_main->GetWnd());
 	ctrl_main->Show();
 

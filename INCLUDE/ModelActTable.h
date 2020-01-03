@@ -46,8 +46,9 @@ public:
 		std::shared_ptr<RowType>,
 		indexed_by
 		<
-			 ordered_unique <	extr_id_IIdent64 >
-			//, random_access<> //SQL order	
+			 ordered_unique <extr_id_IIdent64 >
+			, random_access<> //SQL order	
+			//, ordered_unique <extr_title_IIdent64 >
 			//, ordered_unique< extr_void_ptr_IIdent64 >
 		>
 	>;

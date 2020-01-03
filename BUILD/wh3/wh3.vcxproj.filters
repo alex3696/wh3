@@ -621,6 +621,9 @@
     <ClCompile Include="..\..\SRC\CtrlActBrowser.cpp">
       <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\ActBrowser</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\SRC\ViewActBrowserDVModel.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\ActBrowser</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\INCLUDE\_pch.h">

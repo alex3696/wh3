@@ -41,6 +41,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 		 //| wxDV_MULTIPLE
 		);
 	mTable = table;
+	mTable->GetTargetWindow()->GetToolTip()->SetAutoPop(10000);
 
 	mDvModel = new wxDVTableBrowser();
 	table->AssociateModel(mDvModel);

@@ -1,7 +1,7 @@
 #ifndef __VIEWACTBROWSERDVMODEL_H
 #define __VIEWACTBROWSERDVMODEL_H
 
-#include "ModelBrowserData.h"
+#include "ModelActTable.h"
 
 namespace wh {
 //---------------------------------------------------------------------------
@@ -10,17 +10,17 @@ namespace wh {
 class wxDVTableActBrowser
 	: public wxDataViewModel
 {
-	const IIdent64* mCurrentRoot = nullptr;
+	std::shared_ptr<const ModelActTable> mTable;
 
 	void GetErrorValue(wxVariant &variant, unsigned int col) const;
 	void GetValueInternal(wxVariant &variant,
 		const wxDataViewItem &dvitem, unsigned int col) const;
 	void GetActValue(wxVariant &variant, unsigned int col
-		, const ICls64& cls) const;
+		, const IAct64& cls) const;
 
 public:
-	wxDVTableActBrowser() {};
-	~wxDVTableActBrowser() {};
+	wxDVTableActBrowser();
+	~wxDVTableActBrowser();
 
 	virtual unsigned int	GetColumnCount() const override;
 	virtual wxString		GetColumnType(unsigned int col) const override;
@@ -32,8 +32,8 @@ public:
 		const wxDataViewItem &dvitem, unsigned int col) const override;
 	virtual bool GetAttr(const wxDataViewItem &item, unsigned int col,
 		wxDataViewItemAttr &attr) const override;
-	virtual bool SetValue(const wxVariant &variant, const wxDataViewItem &item,
-		unsigned int col)override;
+	virtual bool SetValue(const wxVariant &variant, 
+		const wxDataViewItem &item, unsigned int col)override;
 
 	virtual int Compare(const wxDataViewItem &item1, const wxDataViewItem &item2
 		, unsigned int column, bool ascending) const override;
@@ -42,10 +42,11 @@ public:
 
 	virtual unsigned int GetChildren(const wxDataViewItem &parent
 		, wxDataViewItemArray &arr) const override;
+	virtual bool  IsListModel() const override;
 
 	//
-	const IIdent64* GetCurrentRoot()const;
-	virtual bool  IsListModel() const override;
+	void SetData(std::shared_ptr<const ModelActTable>& table);
+	
 
 
 };

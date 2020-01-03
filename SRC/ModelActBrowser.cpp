@@ -7,20 +7,24 @@ using namespace wh;
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 ModelActBrowserWindow::ModelActBrowserWindow()
+	:mActTable(std::make_shared<ModelActTable>())
 {
 }
 //---------------------------------------------------------------------------
-void wh::ModelActBrowserWindow::DoRefresh()
+void wh::ModelActBrowserWindow::DoSwap(std::shared_ptr<ModelActTable> table)
 {
+	sigBeforeRefresh(mActTable);
+	mActTable.swap(table);
+	sigAfterRefresh(mActTable);
 }
 //---------------------------------------------------------------------------
 void wh::ModelActBrowserWindow::UpdateExist()
 {
-	if (mActTable.empty())
+	if (mActTable->empty())
 		return;
 
 	wxString str_id;
-	for (const auto& it : mActTable.GetStorage() )
+	for (const auto& it : mActTable->GetStorage())
 	{
 		if (it->GetTitle().empty())// do not load if title already exists
 			str_id += wxString::Format(" OR id=%s", it->GetIdAsString());
@@ -57,16 +61,29 @@ void wh::ModelActBrowserWindow::UpdateExist()
 			if (!table->GetAsString(0, row).ToLongLong(&id))
 				throw;
 
-			mActTable.InsertOrUpdate(id, fn);
+			mActTable->InsertOrUpdate(id, fn);
 		}//for
 	}//if (table)
+	sigAfterRefresh(mActTable);
 }
 //---------------------------------------------------------------------------
 void wh::ModelActBrowserWindow::SetActs(const std::set<int64_t>& act_idents)
 {
-	mActTable.Clear();
-	const ModelActTable::fnModify empty_fn;
+	mActTable->Clear();
+	const ModelActTable::fnModify empty_fn 
+		= [](const std::shared_ptr<ModelActTable::RowType>&) {};
 	for (const auto& aid : act_idents)
-		mActTable.InsertOrUpdate(aid, empty_fn);
+		mActTable->InsertOrUpdate(aid, empty_fn);
 }
 //---------------------------------------------------------------------------
+void wh::ModelActBrowserWindow::DoActivate(int64_t aid)
+{
+	auto act = mActTable->GetById(aid);
+	if(act && mFuncActivateCallback)
+		mFuncActivateCallback(*act);
+}
+//---------------------------------------------------------------------------
+void wh::ModelActBrowserWindow::SetActivateCallback(const FuncActivateCallback & fn)
+{
+	mFuncActivateCallback = fn;
+}

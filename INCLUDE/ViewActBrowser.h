@@ -2,7 +2,7 @@
 #define __VIEWACTBROWSER_H
 
 #include "IViewWindow.h"
-#include "ModelBrowserData.h"
+#include "ModelActTable.h"
 #include "ViewActBrowserDVModel.h"
 
 namespace wh {
@@ -11,6 +11,11 @@ namespace wh {
 //---------------------------------------------------------------------------
 class ViewActBrowser : public IViewWindow
 {
+	// tooltip 
+	wxTimer	mToolTipTimer;
+	void ShowToolTip();
+	void OnCmd_MouseMove(wxMouseEvent& evt);
+
 	wxDataViewColumn* mSortCol = nullptr;
 	bool mSortAsc = true;
 	wxDataViewCtrl*			mTable;
@@ -40,13 +45,12 @@ public:
 		return mTable;
 	}
 
-	virtual void SetBeforeRefresh();
-	virtual void SetAfterRefresh();
-	virtual void SetOperation(Operation, const std::vector<const IIdent64*>&);
-	virtual void SetInsert()const;
-	virtual void SetDelete()const;
-	virtual void SetUpdate()const;
-	virtual void SetSelectCurrent()const;
+	void SetBeforeRefresh(std::shared_ptr<const ModelActTable> );
+	void SetAfterRefresh(std::shared_ptr<const ModelActTable> );
+	void SetSelectCurrent()const;
+
+	sig::signal<void(int64_t)>	sigActivate;
+
 	
 	sig::signal<void()>		sigRefresh;
 	sig::signal<void(int64_t, bool)> sigSelect;

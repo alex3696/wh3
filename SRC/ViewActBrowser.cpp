@@ -24,9 +24,9 @@ ViewActBrowser::ViewActBrowser(wxWindow* parent)
 	);
 	mTable = table;
 
-	//mDvModel = new wxDataViewModel();
-	//table->AssociateModel(mDvModel);
-	//mDvModel->DecRef();
+	mDvModel = new wxDVTableActBrowser();
+	table->AssociateModel(mDvModel);
+	mDvModel->DecRef();
 
 	#define ICON_HEIGHT 24+2
 	int row_height = table->GetCharHeight() + 2;// + 1px in bottom and top 
@@ -35,55 +35,83 @@ ViewActBrowser::ViewActBrowser(wxWindow* parent)
 	table->SetRowHeight(row_height);
 	ResetColumns();
 
-
-	table->Bind(wxEVT_DATAVIEW_COLUMN_HEADER_CLICK, [this](wxDataViewEvent& evt)
-	{ StoreSelect(); evt.Skip(); });
-	table->Bind(wxEVT_DATAVIEW_COLUMN_SORTED, [this](wxDataViewEvent& evt)
-	{ RestoreSelect(); });
-
+	table->Bind(wxEVT_DATAVIEW_COLUMN_HEADER_CLICK
+		, [this](wxDataViewEvent& evt) { StoreSelect(); evt.Skip(); });
+	table->Bind(wxEVT_DATAVIEW_COLUMN_SORTED
+		, [this](wxDataViewEvent& evt) { RestoreSelect(); });
 	table->Bind(wxEVT_DATAVIEW_ITEM_ACTIVATED
 		, &ViewActBrowser::OnCmd_Activate, this);
-
-	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) 
-		{ sigRefresh(); }, wxID_REFRESH);
-
-
 	table->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED
 		, &ViewActBrowser::OnCmd_SelectionChanged, this);
+	table->GetTargetWindow()->Bind(wxEVT_MOTION
+		, &ViewActBrowser::OnCmd_MouseMove, this);
+	table->Bind(wxEVT_COMMAND_MENU_SELECTED
+		, [this](wxCommandEvent&) { sigRefresh(); }, wxID_REFRESH);
 
-
+	mToolTipTimer.Bind(wxEVT_TIMER
+		, [this](wxTimerEvent& evt) { ShowToolTip(); });
+	
 	wxAcceleratorEntry entries[2];
 	char i = 0;
 	entries[i++].Set(wxACCEL_CTRL, (int) 'R', wxID_REFRESH);
 	entries[i++].Set(wxACCEL_NORMAL, WXK_F5, wxID_REFRESH);
-
 	wxAcceleratorTable accel(i + 1, entries);
 	table->SetAcceleratorTable(accel);
-
 }
 //-----------------------------------------------------------------------------
 
-void wh::ViewActBrowser::StoreSelect()
+void ViewActBrowser::StoreSelect()
 {
 }
 //-----------------------------------------------------------------------------
-void wh::ViewActBrowser::RestoreSelect()
+void ViewActBrowser::RestoreSelect()
 {
 }
 //-----------------------------------------------------------------------------
-void wh::ViewActBrowser::AutosizeColumns()
+void ViewActBrowser::AutosizeColumns()
+{
+	if (!mColAutosize)
+		return;
+	TEST_FUNC_TIME;
+	wxBusyCursor busyCursor;
+	for (size_t i = 0; i < mTable->GetColumnCount(); i++)
+	{
+		auto col_pos = mTable->GetModelColumnIndex(i);
+		auto col = mTable->GetColumn(col_pos);
+		if (col)
+		{
+			auto bs = mTable->GetBestColumnWidth(i);
+			if (bs > 300)
+				bs = 300;
+			col->SetWidth(bs);
+		}
+	}
+}
+//-----------------------------------------------------------------------------
+void ViewActBrowser::ResetColumns()
+{
+	wxWindowUpdateLocker lock(mTable);
+
+	mTable->ClearColumns();
+	auto renderer1 = new wxDataViewIconTextRenderer();
+
+	auto col0 = mTable->AppendTextColumn("Имя", 0, wxDATAVIEW_CELL_INERT, -1
+		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+	auto col1 = mTable->AppendTextColumn("Описание", 1, wxDATAVIEW_CELL_INERT, 150
+		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+	/*
+	auto col2 = mTable->AppendTextColumn("Цвет", 2, wxDATAVIEW_CELL_INERT, -1
+		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+	auto col3 = mTable->AppendTextColumn("#", 3, wxDATAVIEW_CELL_INERT, -1
+		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+	*/
+}
+//-----------------------------------------------------------------------------
+void ViewActBrowser::RebuildColumns()
 {
 }
 //-----------------------------------------------------------------------------
-void wh::ViewActBrowser::ResetColumns()
-{
-}
-//-----------------------------------------------------------------------------
-void wh::ViewActBrowser::RebuildColumns()
-{
-}
-//-----------------------------------------------------------------------------
-wxDataViewColumn * wh::ViewActBrowser::AppendTableColumn(const wxString & title, int model_id)
+wxDataViewColumn * ViewActBrowser::AppendTableColumn(const wxString & title, int model_id)
 {
 	auto col = mTable->AppendTextColumn(title, model_id
 		, wxDATAVIEW_CELL_INERT
@@ -94,7 +122,7 @@ wxDataViewColumn * wh::ViewActBrowser::AppendTableColumn(const wxString & title,
 	return col;
 }
 //-----------------------------------------------------------------------------
-int wh::ViewActBrowser::GetTitleWidth(const wxString& title)const
+int ViewActBrowser::GetTitleWidth(const wxString& title)const
 {
 	const int spw = mTable->GetTextExtent(" ").GetWidth();
 	int hw = mTable->GetTextExtent(title).GetWidth() + spw * 4 + 24;
@@ -105,7 +133,7 @@ int wh::ViewActBrowser::GetTitleWidth(const wxString& title)const
 	return hw;
 }
 //-----------------------------------------------------------------------------
-bool wh::ViewActBrowser::IsSelectedItem(const wxDataViewItem& item)const
+bool ViewActBrowser::IsSelectedItem(const wxDataViewItem& item)const
 {
 	if (!item.IsOk())
 		return false;
@@ -115,12 +143,12 @@ bool wh::ViewActBrowser::IsSelectedItem(const wxDataViewItem& item)const
 	const auto& act = dynamic_cast<const IAct64*>(ident);
 	if (act)
 	{
-		//return act->IsSelected();
+		return act->IsSelected();
 	}
 	return false;
 }
 //-----------------------------------------------------------------------------
-void wh::ViewActBrowser::SetSelected(const wxDataViewItem & item, bool select) const
+void ViewActBrowser::SetSelected(const wxDataViewItem & item, bool select) const
 {
 	if (!item.IsOk())
 		return;
@@ -135,47 +163,87 @@ void wh::ViewActBrowser::SetSelected(const wxDataViewItem & item, bool select) c
 	}
 }
 //-----------------------------------------------------------------------------
-void wh::ViewActBrowser::SetSelected() const
+void ViewActBrowser::SetSelected() const
 {
 	bool select = !IsSelectedItem(mTable->GetCurrentItem());
 	SetSelected(mTable->GetCurrentItem(), select);
 }
 //-----------------------------------------------------------------------------
-void wh::ViewActBrowser::OnCmd_Activate(wxDataViewEvent & evt)
+void ViewActBrowser::OnCmd_Activate(wxDataViewEvent & evt)
+{
+	wxDataViewItem item = evt.GetItem();
+	if (!item.IsOk())
+		return;
+	const IIdent64* ident = static_cast<const IIdent64*> (item.GetID());
+	if (!ident)
+		return;
+	const auto& act = dynamic_cast<const IAct64*>(ident);
+	if (!act)
+		return;
+
+	sigActivate(act->GetId());
+}
+//-----------------------------------------------------------------------------
+void ViewActBrowser::OnCmd_SelectionChanged(wxDataViewEvent & evt)
 {
 }
 //-----------------------------------------------------------------------------
-void wh::ViewActBrowser::OnCmd_SelectionChanged(wxDataViewEvent & evt)
+void ViewActBrowser::SetBeforeRefresh(std::shared_ptr<const ModelActTable> table)
 {
+
 }
 //-----------------------------------------------------------------------------
-void wh::ViewActBrowser::SetBeforeRefresh()
+void ViewActBrowser::SetAfterRefresh(std::shared_ptr<const ModelActTable> table)
 {
+	TEST_FUNC_TIME;
+	wxBusyCursor busyCursor;
+	wxWindowUpdateLocker lock(mTable);
+
+	mDvModel->SetData(table);
+	AutosizeColumns();
+	RestoreSelect();
 }
 //-----------------------------------------------------------------------------
-void wh::ViewActBrowser::SetAfterRefresh()
-{
-}
-//-----------------------------------------------------------------------------
-void wh::ViewActBrowser::SetOperation(Operation, const std::vector<const IIdent64*>&)
-{
-}
-//-----------------------------------------------------------------------------
-void wh::ViewActBrowser::SetInsert()const
-{
-}
-//-----------------------------------------------------------------------------
-void wh::ViewActBrowser::SetDelete()const
-{
-}
-//-----------------------------------------------------------------------------
-void wh::ViewActBrowser::SetUpdate()const
-{
-}
-//-----------------------------------------------------------------------------
-void wh::ViewActBrowser::SetSelectCurrent()const
+void ViewActBrowser::SetSelectCurrent()const
 {
 	auto item = mTable->GetCurrentItem();
 	SetSelected(item, true);
 }
 //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void ViewActBrowser::ShowToolTip()
+{
+	if (!mTable->GetMainWindow()->IsMouseInWindow())
+		return;
+
+	wxPoint pos = wxGetMousePosition();
+	pos = mTable->ScreenToClient(pos);
+
+	wxDataViewItem item(nullptr);
+	wxDataViewColumn* col = nullptr;
+
+	mTable->HitTest(pos, item, col);
+	if (!col || !item.IsOk())
+		return;
+
+	wxString val;
+	wxVariant var;
+	mDvModel->GetValue(var, item, col->GetModelColumn());
+	val = var.GetString();
+
+	const auto* ident = static_cast<const IAct64*> (item.GetID());
+	if (!ident)
+		return;
+
+	wxString item_str = wxString::Format("#[%s]\t%s"
+		, ident->GetIdAsString(), ident->GetColour());
+
+	mTable->GetTargetWindow()->SetToolTip(val + "\n\n" + item_str);
+}
+//-----------------------------------------------------------------------------
+void ViewActBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
+{
+	mTable->GetTargetWindow()->SetToolTip(wxEmptyString);
+	mToolTipTimer.StartOnce(1500);
+}
+

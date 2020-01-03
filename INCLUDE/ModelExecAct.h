@@ -12,12 +12,17 @@ namespace wh {
 
 class ModelActExecWindow : public IModelWindow
 {
+	std::set<ObjectKey> mObjects;
 public:
 	std::shared_ptr<ModelActBrowserWindow>	mModelActBrowser;
 	std::shared_ptr<ModelBrowser>			mModelObjBrowser;
 		
 	ModelActExecWindow();
-	void SetObjects(const std::set<ObjectKey>& obj);
+	void LockObjects(const std::set<ObjectKey>& obj);
+	void UnlockObjects();
+	void DoShowActProperty();
+	void DoShowActList();
+	void DoExecute();
 
 	// IModelWindow
 	virtual void UpdateTitle()override;
