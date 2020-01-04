@@ -388,7 +388,6 @@ public:
 	using ObjTable = std::vector<std::shared_ptr<const IObj64>>;
 	using ClsTable = std::vector<std::shared_ptr<const ICls64>>;
 
-	virtual bool	IsSelected()const { return false; };
 	virtual int64_t GetParentId()const = 0;
 
 	virtual		  ClsKind   GetKind()const = 0;
@@ -430,7 +429,6 @@ class IObj64 : public IIdent64
 public:
 	using ChildsTable = std::vector<std::shared_ptr<IObj64>>;
 
-	virtual bool						IsSelected()const { return false; };
 	virtual wxString					GetQty()const = 0;
 	virtual SpClsConst					GetCls()const = 0;
 

@@ -56,7 +56,6 @@ public:
 		, mTable(table)
 	{
 	}
-	virtual bool	IsSelected()const override;
 
 	void ParseFavProp(const wxString& favOPropValues);
 	
@@ -151,7 +150,6 @@ public:
 		:mId(id), mParentId(parentId), mClsId(clsId), mTable(table)
 	{
 	}
-	virtual bool	IsSelected()const override;
 	void ParseFavProp(const wxString& favOPropValues);
 
 
@@ -601,27 +599,12 @@ public:
 		mClsTable.Clear();
 		mActTable.Clear();
 		mPropTable.Clear();
-
-		mObjSelection.clear();
-		mClsSelection.clear();
-
 	}
 
 	ClsCache mClsTable;
 	ObjCache mObjTable;
 	ActCache mActTable;
 	PropCache mPropTable;
-
-	void ClearSelection()
-	{
-		mObjSelection.clear();
-		mClsSelection.clear();
-	}
-	
-
-	std::set<int64_t> mClsSelection;
-	std::set<ObjectKey> mObjSelection;
-
 };
 
 //-----------------------------------------------------------------------------
@@ -696,17 +679,10 @@ public:
 	void DoSetMode(int);
 	void Goto(int mode,int64_t id);
 
-	void DoSelectCls(int64_t cid, bool select);
-	void DoSelectObj(int64_t oid, int64_t opid, bool select);
-
 	void DoMove();
 	void DoAct();
 
-	sig::signal<void(bool)> sigSelectCurrent;
-
-	//void SetCurrentItem(int64_t cid);
-	//void SetCurrentItem(int64_t oid, int64_t opid);
-
+	sig::signal<void(std::vector<const IIdent64*>&)> sigGetSelection;
 		
 	using SigPathChange = sig::signal<void(const wxString&)>;
 	SigPathChange sigAfterPathChange;

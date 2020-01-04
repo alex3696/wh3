@@ -292,14 +292,6 @@ bool wxDVTableBrowser::GetAttr(const wxDataViewItem &item, unsigned int col,
 	const auto obj = dynamic_cast<const IObj64*>(node);
 	if (obj)
 	{
-		if (obj->IsSelected())
-		{
-			attr.SetColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
-			attr.SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT));
-			attr.SetBold(true);
-			return true;
-		}
-
 		switch (col)
 		{
 		case 0: case 2: {
@@ -394,13 +386,6 @@ bool wxDVTableBrowser::GetAttr(const wxDataViewItem &item, unsigned int col,
 	const auto cls = dynamic_cast<const ICls64*>(node);
 	if (cls)
 	{
-		if (cls->IsSelected())
-		{
-			attr.SetColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
-			attr.SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT));
-			attr.SetBold(true);
-			return true;
-		}
 		auto prop_val = GetPropVal(*cls, col);
 		if (prop_val && prop_val->mProp->IsLinkOrFile())
 		{

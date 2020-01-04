@@ -8,6 +8,20 @@ namespace wh{
 //-----------------------------------------------------------------------------
 class ViewTableBrowser : public IViewTableBrowser
 {
+	// selection 
+	std::set<const IIdent64*>	mClsSelection;
+	std::set<const IIdent64*>	mObjSelection;
+	std::set<int64_t>	mClsSelected;
+	std::set<ObjectKey>	mObjSelected;
+	
+	void StoreSelect();
+	void RestoreSelect();
+	void SetSelected()const;
+	void OnCmd_SelectionChanged(wxDataViewEvent& evt);
+	virtual void GetSelection(std::vector<const IIdent64*>&) override;
+	//sig::signal<void(int64_t, int64_t, bool)> sigSelectObj;
+
+
 	// tooltip 
 	wxTimer	mToolTipTimer;
 	void ShowToolTip();
@@ -15,30 +29,16 @@ class ViewTableBrowser : public IViewTableBrowser
 	void OnCmd_LeftUp(wxMouseEvent& evt);
 	// link
 	bool mIsCursorHand = false;
-	void SetCursorHand()
-	{
-		if(!mIsCursorHand)
-		{
-			mIsCursorHand = true;
-			mTable->GetMainWindow()->SetCursor(wxCursor(wxCURSOR_HAND));
-		}
-	}
-	void SetCursorStandard()
-	{
-		if (mIsCursorHand)
-		{
-			mIsCursorHand = false;
-			mTable->GetMainWindow()->SetCursor(*wxSTANDARD_CURSOR);
-		}
-	}
+	bool IsCursorHand()const;
+	void SetCursorHand();
+	void SetCursorStandard();
 
 	int64_t							mParentCid = 0;
 	
 	wxDataViewColumn* mSortCol = nullptr;
 	bool mSortAsc = true;
 	
-	int64_t mClsSelected = 0;
-	int64_t mObjSelected = 0;
+
 	std::set<int64_t> mExpandedCls;
 
 	wxDataViewCtrl*		mTable;
@@ -49,8 +49,6 @@ class ViewTableBrowser : public IViewTableBrowser
 	const IIdent64* FindChildCls(const int64_t& id)const;
 	const IIdent64* GetTopChildCls()const;
 	
-	void StoreSelect();
-	void RestoreSelect();
 	void AutosizeColumns();
 
 	void ResetColumns();
@@ -60,15 +58,13 @@ class ViewTableBrowser : public IViewTableBrowser
 	wxDataViewColumn* AppendTableColumn(const wxString& title, int model_id);
 	int GetTitleWidth(const wxString& title)const;
 	
-	bool IsSelectedItem(const wxDataViewItem& item)const;
-	void SetSelected(const wxDataViewItem& item, bool select)const;
-	void SetSelected()const;
+
 protected:
 	void OnCmd_Activate(wxDataViewEvent& evt);
 	void OnCmd_Expanding(wxDataViewEvent& evt);
 	void OnCmd_Expanded(wxDataViewEvent& evt);
 	void OnCmd_Collapseded(wxDataViewEvent& evt);
-	void OnCmd_SelectionChanged(wxDataViewEvent& evt);
+
 public:
 	ViewTableBrowser(wxWindow* parent);
 	ViewTableBrowser(const std::shared_ptr<IViewWindow>& parent);
@@ -89,7 +85,7 @@ public:
 	virtual void SetInsertObj()const override;
 	virtual void SetDeleteSelected()const override;
 	virtual void SetUpdateSelected()const override;
-	virtual void SetSelectCurrent()const override;
+
 	
 };
 //-----------------------------------------------------------------------------

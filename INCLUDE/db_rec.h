@@ -59,7 +59,11 @@ public:
 
 	bool operator< (ObjectKey const& rhs)const
 	{
-		return mId < rhs.mId || mParentId < rhs.mParentId;
+		if (mId < rhs.mId)
+			return true;
+		else if (mId == rhs.mId)
+			return mParentId < rhs.mParentId;
+		return false;
 	}
 
 	wxString GetId_AsString()const

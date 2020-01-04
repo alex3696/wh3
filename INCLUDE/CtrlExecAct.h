@@ -9,7 +9,6 @@
 namespace wh {
 class CtrlTableObjBrowser_RO final : public CtrlWindowBase<IViewTableBrowser, ModelBrowser>
 {
-	sig::scoped_connection connModel_SelectCurrent;
 	sig::scoped_connection connModel_BeforeRefreshCls;
 	sig::scoped_connection connModel_AfterRefreshCls;
 	sig::scoped_connection connModel_ObjOperation;
@@ -19,8 +18,6 @@ public:
 		: CtrlWindowBase(view, model)
 	{
 		namespace ph = std::placeholders;
-		connModel_SelectCurrent = mModel->sigSelectCurrent
-			.connect(std::bind(&T_View::SetSelectCurrent, mView.get()));
 		connModel_BeforeRefreshCls = mModel->sigBeforeRefreshCls
 			.connect(std::bind(&T_View::SetBeforeRefreshCls
 				, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4, ph::_5));
@@ -55,6 +52,7 @@ class CtrlActExecWindow final : public CtrlWindowBase<ViewExecActWindow, ModelAc
 public:
 	CtrlActExecWindow(	const std::shared_ptr<ViewExecActWindow>& view
 		, const std::shared_ptr<ModelActExecWindow>& model );
+	~CtrlActExecWindow();
 
 	void SetObjects(const std::set<ObjectKey>& obj);
 	void Unlock();

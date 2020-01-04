@@ -36,7 +36,8 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 {
 	auto table = new wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize
 		, wxDV_ROW_LINES 
-		 | wxDV_VERT_RULES 
+		| wxDV_VERT_RULES 
+		| wxDV_MULTIPLE
 		 //| wxDV_HORIZ_RULES
 		 //| wxDV_MULTIPLE
 		);
@@ -96,8 +97,8 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {SetDeleteSelected(); }, wxID_DELETE);
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {SetUpdateSelected(); }, wxID_EDIT);
 
-	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) 
-		{ sigToggleGroupByType(); }, wxID_VIEW_LIST);
+	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
+	{ sigToggleGroupByType(); }, wxID_VIEW_LIST);
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
 		{ SetShowFav(); }, wxID_PROPERTIES);
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
@@ -105,11 +106,17 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
 		{ sigShowHelp("ViewBrowserPage"); }, wxID_HELP_INDEX);
 
+	// multiselect support
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
-		{ SetSelected(); }, wxID_ADD);
+		{ SetSelected(); }, wxID_FILE1);
 	table->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED
 		, &ViewTableBrowser::OnCmd_SelectionChanged, this);
 
+	table->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent&)
+	{
+		mTable = nullptr;
+		mDvModel = nullptr;
+	});
 
 	wxAcceleratorEntry entries[16];
 	char i = 0;
@@ -132,7 +139,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	entries[i++].Set(wxACCEL_NORMAL, WXK_F1, wxID_HELP_INDEX);
 
 	entries[i++].Set(wxACCEL_CTRL, (int) 'W', wxID_CLOSE);
-	entries[i++].Set(wxACCEL_NORMAL, WXK_INSERT, wxID_ADD);
+	entries[i++].Set(wxACCEL_NORMAL, WXK_INSERT, wxID_FILE1);
 
 	wxAcceleratorTable accel(i+1, entries);
 	table->SetAcceleratorTable(accel);
@@ -141,7 +148,7 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::ShowToolTip()
 {
-	if (!mTable->GetMainWindow()->IsMouseInWindow())
+	if (!mTable || !mTable->GetMainWindow()->IsMouseInWindow())
 		return;
 
 	wxPoint pos = wxGetMousePosition();
@@ -202,7 +209,7 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 	mToolTipTimer.StartOnce(1500);
 	SetCursorStandard();
 
-	if (!evt.ControlDown())
+	if (!evt.AltDown())
 		return;
 	
 	auto pos = evt.GetPosition();
@@ -234,7 +241,7 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_LeftUp(wxMouseEvent& evt)
 {
-	if (!evt.ControlDown())
+	if (!evt.AltDown())
 		return;
 
 	auto pos = evt.GetPosition();
@@ -284,6 +291,32 @@ void ViewTableBrowser::OnCmd_LeftUp(wxMouseEvent& evt)
 	ShExecInfo.nShow = SW_SHOW;
 	ShExecInfo.hInstApp = NULL;
 	BOOL ret = ShellExecuteExW(&ShExecInfo);
+}
+//-----------------------------------------------------------------------------
+bool ViewTableBrowser::IsCursorHand()const
+{
+	//const auto& cur_cursor = mTable->GetMainWindow()->GetCursor();
+	//const auto& hand_cursor = wxCursor(wxCURSOR_HAND);
+	return mIsCursorHand;
+}
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::SetCursorHand()
+{
+	if (!IsCursorHand())
+	{
+		mIsCursorHand = false;
+		mTable->GetMainWindow()->SetCursor(wxCursor(wxCURSOR_HAND));
+	}
+		
+}
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::SetCursorStandard()
+{
+	if (IsCursorHand())
+	{
+		mIsCursorHand = false;
+		mTable->GetMainWindow()->SetCursor(*wxSTANDARD_CURSOR);
+	}
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_Activate(wxDataViewEvent& evt)
@@ -467,25 +500,42 @@ const IIdent64* ViewTableBrowser::GetTopChildCls()const
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::StoreSelect()
 {
-	mClsSelected = 0;
-	mObjSelected = 0;
-
-	const IIdent64* ident = static_cast<const IIdent64*> (mTable->GetCurrentItem().GetID());
-	if (ident)
+	mClsSelected.clear();
+	mObjSelected.clear();
+	wxDataViewEvent evt;
+	OnCmd_SelectionChanged(evt);
+	for (const IIdent64* ident : mClsSelection)
+	{
+		const auto& cls = dynamic_cast<const ICls64*>(ident);
+		if (cls)
+			mClsSelected.emplace(cls->GetId());
+	}
+	for (const auto ident : mObjSelection)
 	{
 		const auto& obj = dynamic_cast<const IObj64*>(ident);
 		if (obj)
 		{
-			mObjSelected = obj->GetId();
-			mClsSelected = obj->GetCls()->GetId();
+			mObjSelected.emplace(ObjectKey(obj->GetId(), obj->GetParentId()));
 		}
-		else
-		{
-			const auto& cls = dynamic_cast<const ICls64*>(ident);
-			if (cls)
-				mClsSelected = cls->GetId();
-		}
-	}//if (ident)
+	}
+
+	// if UP action 
+	auto item = mTable->GetCurrentItem();
+	auto ident = static_cast<const IIdent64*> (item.GetID());
+	if (!ident)
+		return;
+	const ICls64* cls = dynamic_cast<const ICls64*>(ident);
+	const IObj64* obj = dynamic_cast<const IObj64*>(ident);
+	if (obj)
+	{
+		mObjSelected.emplace(ObjectKey(obj->GetId(), obj->GetParentId()));
+		mExpandedCls.emplace(obj->GetClsId());
+	}
+	else if (cls)
+	{
+		mClsSelected.emplace(cls->GetId());
+		mExpandedCls.emplace(cls->GetId());
+	}
 
 }
 
@@ -493,87 +543,92 @@ void ViewTableBrowser::StoreSelect()
 void ViewTableBrowser::RestoreSelect()
 {
 	wxDataViewItem dvitem;
+	wxDataViewItemArray arr;
+	// indexing
 
-	if (mDvModel->IsListModel())
+	std::map<int64_t, const IIdent64*> clsIdx;
+	std::map<ObjectKey, const IIdent64*> objIdx;
+
+	const auto& top_list = mDvModel->GetClsList();
+	for (const auto& ident : top_list)
 	{
-		const IIdent64* ident = static_cast<const IIdent64*> (mDvModel->GetCurrentRoot());
-		const auto& cls = dynamic_cast<const ICls64*>(ident);
-		if (cls && ClsKind::Abstract == cls->GetKind())
-		{
-			if (mClsSelected)
-			{
-				const auto finded = FindChildCls(mClsSelected);
-				if (finded)
-					dvitem = wxDataViewItem((void*)finded);
-			}
-		}
+		const auto obj = dynamic_cast<const IObj64*>(ident);
+		if (obj)
+			objIdx.emplace(ObjectKey(obj->GetId(), obj->GetParentId()), ident);
 		else
-		{
-			if (mObjSelected)
+		{ 
+			const auto cls = dynamic_cast<const ICls64*>(ident);
+			if (cls)
 			{
-				const auto finded = FindChildCls(mObjSelected);
-				if (finded)
-					dvitem = wxDataViewItem((void*)finded);
-			}
-
-		}
-	}
-	else
-	{
-		if (mClsSelected)
-		{
-			const auto finded = FindChildCls(mClsSelected);
-			if (finded)
-			{
-				//auto id = finded->GetIdAsString();
-				//auto title = finded->GetTitle();
-				dvitem = wxDataViewItem((void*)finded);
-
-				if (!mTable->GetModel()->IsListModel() && mObjSelected)
+				const auto ex = mExpandedCls.find(cls->GetId());
+				if (mExpandedCls.end() != ex)
 				{
-					//sigActivate(finded);
-					mTable->Expand(dvitem);// finded cls
-					const auto& cls = dynamic_cast<const ICls64*>(finded);
-					const auto objTable = cls->GetObjTable();
-					auto it = std::find_if(objTable->cbegin(), objTable->cend()
-						, [this](const std::shared_ptr<const IObj64>& it)
-					{
-						return it->GetId() == mObjSelected;
-					});
-
-					if (objTable->cend() != it)
-						dvitem = wxDataViewItem((void*)(it->get()));
+					wxDataViewEvent evt;
+					evt.SetItem(wxDataViewItem((void*)cls));
+					//OnCmd_Expanding(evt);
 				}
-			}//if (finded)
+				clsIdx.emplace(cls->GetId(), ident);
+				const auto objTable = cls->GetObjTable();
+				if (objTable)
+				{
+					const std::vector<std::shared_ptr<const IObj64>> ot = *objTable;
+					for (size_t i = 0; i < ot.size(); ++i)
+					{
+						const auto idnt = ot[i].get();
+						objIdx.emplace(
+							ObjectKey(ot[i]->GetId(), ot[i]->GetParentId()), idnt);
+					}// for (const auto& obj : ot);
+				}//if (objTable)
+			}//if (cls)
 		}
 	}
 
-	if (!dvitem.IsOk())
+	// select
+	if (mObjSelected.empty())
 	{
-		const auto finded = GetTopChildCls();
-		if (finded)
-			dvitem = wxDataViewItem((void*)finded);
-		dvitem = mTable->GetTopItem();
-	}
+		for (const auto& cls_id : mClsSelected)
+		{
+			const auto find_it = clsIdx.find(cls_id);
+			if (clsIdx.end() != find_it)
+			{
+				const IIdent64* finded = find_it->second;
+				dvitem = wxDataViewItem((void*)finded);
+				arr.Add(dvitem);
 
-	mTable->UnselectAll();
-	if (dvitem.IsOk())
+			}
+		}// for
+	}// if
+	else //if (mClsSelected.empty())
 	{
-		mTable->EnsureVisible(dvitem);
-		mTable->SetCurrentItem(dvitem);
-		//SetSelected(dvitem, true);
-		//mTable->Select(dvitem);
-	}
-
-	//auto new_sel = mTable->GetCurrentItem();
-	//const auto ident = static_cast<const IIdent64*> (new_sel.GetID());
-	//const auto cls = dynamic_cast<const ICls64*>(ident);
-	//if (cls)
-	//{
-	//	auto title = cls->GetTitle();
-	//	auto id = cls->GetIdAsString();
-	//}
+		for (const auto& okey : mObjSelected)
+		{
+			const auto find_it = objIdx.find(okey);
+			if (objIdx.end() != find_it)
+			{
+				const IIdent64* finded = find_it->second;
+				dvitem = wxDataViewItem((void*)finded);
+				arr.Add(dvitem);
+			}
+		}// for
+	}//else if
 	
+	if(arr.empty())
+	{
+		dvitem = mTable->GetTopItem();
+		arr.Add(dvitem);
+	}
+	mTable->SetSelections(arr);
+
+	if (arr.size())
+	{
+		dvitem = *arr.rbegin();
+		if (dvitem.IsOk())
+		{
+			mTable->EnsureVisible(dvitem);
+			mTable->SetCurrentItem(dvitem);
+		}
+	}
+	return;
 }
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::AutosizeColumns()
@@ -1031,75 +1086,94 @@ void wh::ViewTableBrowser::SetUpdateSelected() const //override;
 }
 //-----------------------------------------------------------------------------
 //virtual 
-void wh::ViewTableBrowser::SetSelectCurrent()const //override;
+void wh::ViewTableBrowser::GetSelection(std::vector<const IIdent64*>& sel)
 {
-	auto item = mTable->GetCurrentItem();
-	SetSelected(item, true);
-}
-//-----------------------------------------------------------------------------
-void wh::ViewTableBrowser::SetSelected(const wxDataViewItem& item, bool select)const
-{
-	if (!item.IsOk())
-		return;
-	const IIdent64* ident = static_cast<const IIdent64*> (item.GetID());
-	if (!ident)
-		return;
-	const auto& cls = dynamic_cast<const ICls64*>(ident);
-	if (cls)
-	{
-		int64_t cid = cls->GetId();
-		sigSelectCls(cid, select);
-	}
-	else
-	{
-		const auto& obj = dynamic_cast<const IObj64*>(ident);
-		if (obj)
-		{
-			int64_t oid = obj->GetId();
-			int64_t parent_oid = obj->GetParentId();
-			sigSelectObj(oid, parent_oid, select);
-		}
-	}
-}
-//-----------------------------------------------------------------------------
-bool wh::ViewTableBrowser::IsSelectedItem(const wxDataViewItem& item)const
-{
-	if (!item.IsOk())
-		return false;
-	const IIdent64* ident = static_cast<const IIdent64*> (item.GetID());
-	if (!ident)
-		return false;
-	const auto& cls = dynamic_cast<const ICls64*>(ident);
-	if (cls)
-	{
-		return cls->IsSelected();
-	}
-	else
-	{
-		const auto& obj = dynamic_cast<const IObj64*>(ident);
-		if (obj)
-			return obj->IsSelected();
-	}
-	return false;
+	wxDataViewEvent evt;
+	OnCmd_SelectionChanged(evt);
+	for (const IIdent64* ident : mClsSelection)
+		sel.emplace_back(ident);
+	for (const auto ident : mObjSelection)
+		sel.emplace_back(ident);
 }
 //-----------------------------------------------------------------------------
 //virtual 
 void wh::ViewTableBrowser::SetSelected() const //override;
 {
-	bool select = !IsSelectedItem(mTable->GetCurrentItem());
-	SetSelected(mTable->GetCurrentItem(), select);
 	wxUIActionSimulator sim;
-	sim.KeyDown(WXK_DOWN);
-	sim.KeyUp(WXK_UP);
+	sim.KeyDown(WXK_DOWN, wxMOD_SHIFT);
+	sim.KeyUp(WXK_DOWN, wxMOD_SHIFT);
+
 }
 //-----------------------------------------------------------------------------
 void wh::ViewTableBrowser::OnCmd_SelectionChanged(wxDataViewEvent& evt)
 {
-	/*
-	SetSelected(mCurrentItem, false);
-	mCurrentItem = evt.GetItem();
-	SetSelected(mCurrentItem, true);
-	*/
+	mObjSelection.clear();
+	mClsSelection.clear();
+
+	const auto sel_count = mTable->GetSelectedItemsCount();
+
+	if (0 == sel_count)
+	{
+		mTable->UnselectAll();
+		return;
+	}
+	wxDataViewItemArray arr;
+	mTable->GetSelections(arr);
+
+	size_t i = 0;
+	wxDataViewItem selected_item;
+	const IIdent64* ident=nullptr;
+	for (; i < sel_count; i++)
+	{
+		selected_item = arr[i];
+		ident = static_cast<const IIdent64*> (selected_item.GetID());
+		if (!ident || mDvModel->IsTop(selected_item))
+			mTable->Unselect(selected_item);
+		else
+		{
+			i++;
+			break;
+		}
+			
+	} 
+
+	const ICls64* cls = dynamic_cast<const ICls64*>(ident);
+	const IObj64* obj = dynamic_cast<const IObj64*>(ident);
+	if (obj)
+		mObjSelection.emplace(ident);
+	else if (cls)
+		mClsSelection.emplace(ident);
+	else
+		mTable->UnselectAll();
+
+	for ( ; i < sel_count; i++)
+	{
+		selected_item = arr[i];
+		ident = static_cast<const IIdent64*> (selected_item.GetID());
+		if (!ident || mDvModel->IsTop(selected_item))
+			mTable->Unselect(selected_item);
+		
+		cls = dynamic_cast<const ICls64*>(ident);
+		obj = dynamic_cast<const IObj64*>(ident);
+
+		if (mClsSelection.empty())
+		{
+			if (obj)
+				mObjSelection.emplace(ident);
+			else
+				mTable->Unselect(selected_item);
+		}
+		else if (mObjSelection.empty())
+		{
+			if (cls)
+				mClsSelection.emplace(ident);
+			else
+				mTable->Unselect(selected_item);
+		}
+		else
+			mTable->Unselect(selected_item);
+	}
+
 }
 
 

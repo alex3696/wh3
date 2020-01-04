@@ -48,10 +48,23 @@ ViewExecActWindow::ViewExecActWindow(wxWindow* parent)
 	mPanel->Layout();
 	mPanel->Centre(wxBOTH);
 
-	mPanel->Bind(wxEVT_CLOSE_WINDOW, &ViewExecActWindow::OnClose, this);
+	//mPanel->Bind(wxEVT_CLOSE_WINDOW, &ViewExecActWindow::OnClose, this);
+
+	
+	mPanel->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent&) 
+	{
+		mObjBrowser.reset();
+		mActBrowser.reset();
+		mPanel = nullptr;
+	});
+
 	mPanel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ViewExecActWindow::OnCancel, this, wxID_CANCEL);
 	mPanel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ViewExecActWindow::OnOk, this, wxID_OK);
 
+}
+//-----------------------------------------------------------------------------
+ViewExecActWindow::~ViewExecActWindow()
+{
 }
 //-----------------------------------------------------------------------------
 ViewExecActWindow::ViewExecActWindow(const std::shared_ptr<IViewWindow>& parent)

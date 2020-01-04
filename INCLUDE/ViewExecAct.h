@@ -22,6 +22,7 @@ class ViewExecActWindow final : public IViewWindow
 public:
 	ViewExecActWindow(wxWindow* parent);
 	ViewExecActWindow(const std::shared_ptr<IViewWindow>& parent);
+	~ViewExecActWindow();
 	virtual wxWindow* GetWnd()const override {	return mPanel;	}
 	virtual void SetShow()override;
 	virtual void SetUpdateTitle(const wxString&, const wxIcon&)override;

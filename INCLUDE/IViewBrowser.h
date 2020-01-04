@@ -20,7 +20,7 @@ public:
 	virtual void SetInsertObj()const = 0;
 	virtual void SetDeleteSelected()const = 0;
 	virtual void SetUpdateSelected()const = 0;
-	virtual void SetSelectCurrent()const = 0;
+	virtual void GetSelection(std::vector<const IIdent64*>&) =0;
 
 	virtual void SetObjOperation(Operation, const std::vector<const IIdent64*>&) = 0;
 
@@ -28,8 +28,6 @@ public:
 	sig::signal<void(int64_t)> sigRefreshClsObjects;
 	sig::signal<void(int64_t)> sigGotoCls;
 	sig::signal<void(int64_t)> sigGotoObj;
-	sig::signal<void(int64_t, bool)> sigSelectCls;
-	sig::signal<void(int64_t, int64_t, bool)> sigSelectObj;
 
 	sig::signal<void()> sigRefresh;
 	sig::signal<void()> sigUp;

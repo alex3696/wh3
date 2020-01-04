@@ -64,6 +64,11 @@ void ModelActExecWindow::LockObjects(const std::set<ObjectKey>& obj)
 	mModelActBrowser->DoSwap(act_table);
 }
 //---------------------------------------------------------------------------
+ModelActExecWindow::~ModelActExecWindow()
+{
+
+}
+//---------------------------------------------------------------------------
 void ModelActExecWindow::UnlockObjects()
 {
 	wxString query;

@@ -18,6 +18,7 @@ public:
 	std::shared_ptr<ModelBrowser>			mModelObjBrowser;
 		
 	ModelActExecWindow();
+	~ModelActExecWindow();
 	void LockObjects(const std::set<ObjectKey>& obj);
 	void UnlockObjects();
 	void DoShowActProperty();

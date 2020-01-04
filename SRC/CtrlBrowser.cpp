@@ -16,8 +16,9 @@ CtrlTableBrowser::CtrlTableBrowser(
 {
 	namespace ph = std::placeholders;
 
-	connModel_SelectCurrent = mModel->sigSelectCurrent
-		.connect(std::bind(&IViewTableBrowser::SetSelectCurrent, mView.get()));
+	connModel_GetSelection = mModel->sigGetSelection
+		.connect(std::bind(&IViewTableBrowser::GetSelection
+			, mView.get(), ph::_1 ));
 	connModel_BeforeRefreshCls = mModel->sigBeforeRefreshCls
 		.connect(std::bind(&IViewTableBrowser::SetBeforeRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4, ph::_5));
 	connModel_AfterRefreshCls = mModel->sigAfterRefreshCls
@@ -33,11 +34,6 @@ CtrlTableBrowser::CtrlTableBrowser(
 		.connect(std::bind(&CtrlTableBrowser::GotoCls, this, ph::_1));
 	connViewCmd_GotoObj = mView->sigGotoObj
 		.connect(std::bind(&CtrlTableBrowser::GotoObj, this, ph::_1));
-	connViewCmd_SelectCls = mView->sigSelectCls
-		.connect(std::bind(&CtrlTableBrowser::SelectCls, this, ph::_1, ph::_2));
-	connViewCmd_SelectObj = mView->sigSelectObj
-		.connect(std::bind(&CtrlTableBrowser::SelectObj, this
-			, ph::_1, ph::_2, ph::_3));
 
 	connViewCmd_Refresh = mView->sigRefresh
 		.connect(std::bind(&CtrlTableBrowser::Refresh, this));
@@ -104,21 +100,6 @@ void CtrlTableBrowser::GotoCls(int64_t cid)
 void CtrlTableBrowser::GotoObj(int64_t oid)
 {
 	mModel->Goto(1, oid);
-}
-//---------------------------------------------------------------------------
-void CtrlTableBrowser::SelectCls(int64_t cid, bool select)
-{
-	mModel->DoSelectCls(cid, select);
-}
-//---------------------------------------------------------------------------
-void CtrlTableBrowser::SelectObj(int64_t oid, int64_t opid, bool select)
-{
-	mModel->DoSelectObj(oid, opid, select);
-}
-//---------------------------------------------------------------------------
-void CtrlTableBrowser::SetObjects(const std::set<ObjectKey>& obj)
-{
-	mModel->DoSetObjects(obj);
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::Act()

@@ -16,8 +16,6 @@ class ViewActBrowser : public IViewWindow
 	void ShowToolTip();
 	void OnCmd_MouseMove(wxMouseEvent& evt);
 
-	wxDataViewColumn* mSortCol = nullptr;
-	bool mSortAsc = true;
 	wxDataViewCtrl*			mTable;
 	wxDVTableActBrowser*	mDvModel;
 	bool mColAutosize = true;
@@ -44,6 +42,7 @@ public:
 	{
 		return mTable;
 	}
+	~ViewActBrowser();
 
 	void SetBeforeRefresh(std::shared_ptr<const ModelActTable> );
 	void SetAfterRefresh(std::shared_ptr<const ModelActTable> );

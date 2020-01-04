@@ -12,6 +12,8 @@ CtrlActBrowser::CtrlActBrowser(
 	:CtrlWindowBase(view, model)
 {
 	namespace ph = std::placeholders;
+	if (!view)
+		return;
 
 	connModel_BeforeRefresh = mModel->sigBeforeRefresh
 		.connect(std::bind(&T_View::SetBeforeRefresh, mView.get(), ph::_1));

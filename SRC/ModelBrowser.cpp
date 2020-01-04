@@ -21,17 +21,6 @@ const std::shared_ptr<ObjRec64>  ObjCache::mNullObj = std::shared_ptr<ObjRec64>(
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-//virtual 
-bool ClsRec64::IsSelected()const// override
-{
-	if (mTable->GetCache()->mClsSelection.empty())
-		return false;
-	const auto cid = this->GetId();
-	auto& idxId = mTable->GetCache()->mClsSelection;
-	auto it = idxId.find(cid);
-	return (idxId.end() != it);
-}
-//-----------------------------------------------------------------------------
 void ClsRec64::ParseFavProp(const wxString& str)
 {
 	mFavProp.clear();
@@ -203,17 +192,6 @@ void ObjRec64::ParseFavProp(const wxString& str)
 	{
 		ParsePropInfo(find_it->second);
 	}
-}
-//-----------------------------------------------------------------------------
-//virtual 
-bool ObjRec64::IsSelected()const// override
-{
-	if (mTable->GetCache()->mObjSelection.empty())
-		return false;
-	const auto okey = ObjectKey(this->GetId(), this->GetParentId());
-	auto& idxId = mTable->GetCache()->mObjSelection;
-	auto it = idxId.find(okey);
-	return (idxId.end() != it);
 }
 //-----------------------------------------------------------------------------
 void ObjRec64::ParseActInfo(const boost::property_tree::wptree& favAPropValues)
@@ -1035,7 +1013,6 @@ void ModelBrowser::LoadSetObjects()
 		std::vector<const IIdent64*> toinsert;
 		sigBeforeRefreshCls(toinsert, nullptr, mSearchString, mGroupByType, mMode);
 	}
-	mCache.ClearSelection();
 	std::vector<const IIdent64*> toinsert;
 	mCache.Clear();
 
@@ -1253,7 +1230,6 @@ void ModelBrowser::DoRefresh(bool sigBefore)
 void ModelBrowser::DoActivate(int64_t id)
 {
 	mRootId = id;
-	mCache.ClearSelection();
 	DoRefresh();
 }
 //-----------------------------------------------------------------------------
@@ -1266,7 +1242,6 @@ void ModelBrowser::DoUp()
 		else if(1 == mMode)
 			mRootId = mObjPath->GetCurrent()->GetParentId();
 		SetSearchString(wxEmptyString);
-		mCache.ClearSelection();
 		DoRefresh();
 	}
 }
@@ -1281,7 +1256,6 @@ void ModelBrowser::DoFind(const wxString& str)
 			cls->mObjLoaded = false;
 	}
 	SetSearchString(str);
-	mCache.ClearSelection();
 	DoRefresh();
 }
 //-----------------------------------------------------------------------------
@@ -1294,14 +1268,12 @@ void ModelBrowser::DoSetObjects(const std::set<ObjectKey>& obj)
 void ModelBrowser::DoGroupByType(bool enable_group_by_type)
 {
 	SetGroupedByType(enable_group_by_type);
-	mCache.ClearSelection();
 	DoRefresh();
 }
 //-----------------------------------------------------------------------------
 void wh::ModelBrowser::DoToggleGroupByType()
 {
 	mGroupByType = !mGroupByType;
-	mCache.ClearSelection();
 	DoRefresh();
 }
 //-----------------------------------------------------------------------------
@@ -1320,52 +1292,7 @@ void ModelBrowser::Goto(int mode, int64_t id)
 	SetMode(mode);
 	SetRootId(id);
 	SetSearchString(wxEmptyString);
-	mCache.ClearSelection();
 	DoRefresh(false);
-}
-//-----------------------------------------------------------------------------
-void ModelBrowser::DoSelectCls(int64_t cid, bool select)
-{
-	if (!mCache.mObjSelection.empty())
-		return;
-
-	auto& idxId = mCache.mClsSelection;
-	auto it = idxId.find(cid);
-
-	if (select)
-		auto ins_it = idxId.emplace(cid);
-	else
-		idxId.erase(cid);
-	
-	/*
-	if (idxId.end() == it)
-	{
-		auto ins_it = idxId.emplace(cid);
-	}
-	else
-	{
-		idxId.erase(it);
-	}
-	*/
-}
-//-----------------------------------------------------------------------------
-void ModelBrowser::DoSelectObj(int64_t oid, int64_t opid, bool select)
-{
-	if (!mCache.mClsSelection.empty())
-		return;
-
-	auto object = mCache.mObjTable.GetObjById(oid, opid);
-	if (!object )//|| !object->GetLockUser().IsEmpty())
-		return;
-
-	auto& idxId = mCache.mObjSelection;
-	auto obj_key = ObjectKey(oid, opid);
-
-	if (select)
-		auto ins_it = idxId.emplace(obj_key);
-	else
-		idxId.erase(obj_key);
-
 }
 //-----------------------------------------------------------------------------
 void ModelBrowser::UpdateUntitledProperties()
@@ -1437,18 +1364,16 @@ void ModelBrowser::ExecuteMoveObjects(const std::set<ObjectKey>& obj)const
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoMove()
 {
-	if (!mCache.mClsSelection.empty())
-		return;
-
-	if (mCache.mObjSelection.empty())
-		sigSelectCurrent(true);
-
-	if (!mCache.mClsSelection.empty())
-		return;
-
-	ExecuteMoveObjects(mCache.mObjSelection);
-	if (1 == mCache.mObjSelection.size())
-		mCache.ClearSelection();
+	std::set<ObjectKey> sel_obj;
+	std::vector<const IIdent64*> selection;
+	sigGetSelection(selection);
+	for (const auto& ident : selection)
+	{
+		const auto& obj = dynamic_cast<const IObj64*>(ident);
+		if (obj)
+			sel_obj.emplace(ObjectKey(obj->GetId(), obj->GetParentId()));
+	}
+	ExecuteMoveObjects(sel_obj);
 	DoRefresh();
 }
 //-----------------------------------------------------------------------------
@@ -1497,18 +1422,16 @@ void ModelBrowser::ExecuteActObjects(const std::set<ObjectKey>& obj)const
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoAct()
 {
-	if (!mCache.mClsSelection.empty())
-		return;
-
-	if (mCache.mObjSelection.empty())
-		sigSelectCurrent(true);
-
-	if (!mCache.mClsSelection.empty())
-		return;
-
-	ExecuteActObjects(mCache.mObjSelection);
-	if (1==mCache.mObjSelection.size())
-		mCache.ClearSelection();
+	std::set<ObjectKey> sel_obj;
+	std::vector<const IIdent64*> selection;
+	sigGetSelection(selection);
+	for (const auto& ident : selection)
+	{
+		const auto& obj = dynamic_cast<const IObj64*>(ident);
+		if (obj)
+			sel_obj.emplace(ObjectKey(obj->GetId(), obj->GetParentId()));
+	}
+	ExecuteActObjects(sel_obj);
 	DoRefresh();
 }
 //-----------------------------------------------------------------------------

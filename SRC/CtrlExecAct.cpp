@@ -16,10 +16,15 @@ CtrlActExecWindow::CtrlActExecWindow(
 	mCtrlActBrowser = std::make_shared<CtrlActBrowser>
 		(view->GetViewActBrowser(), model->mModelActBrowser);
 	
+	namespace ph = std::placeholders;
 	connViewCmd_Unlock = mView->sigUnlock
 		.connect(std::bind(&CtrlActExecWindow::Unlock, this));
 
 };
+//---------------------------------------------------------------------------
+CtrlActExecWindow::~CtrlActExecWindow()
+{
+}
 //---------------------------------------------------------------------------
 void CtrlActExecWindow::SetObjects(const std::set<ObjectKey>& obj)
 {

@@ -12,7 +12,7 @@ class CtrlPageBrowser;
 //-----------------------------------------------------------------------------
 class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelBrowser>
 {
-	sig::scoped_connection connModel_SelectCurrent;
+	sig::scoped_connection connModel_GetSelection;
 	sig::scoped_connection connModel_BeforeRefreshCls;
 	sig::scoped_connection connModel_AfterRefreshCls;
 	sig::scoped_connection connModel_ObjOperation;
@@ -21,8 +21,6 @@ class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelBro
 	sig::scoped_connection connViewCmd_RefreshClsObjects;
 	sig::scoped_connection connViewCmd_GotoCls;
 	sig::scoped_connection connViewCmd_GotoObj;
-	sig::scoped_connection connViewCmd_SelectCls;
-	sig::scoped_connection connViewCmd_SelectObj;
 
 	sig::scoped_connection connViewCmd_Refresh;
 	sig::scoped_connection connViewCmd_Up;
@@ -56,9 +54,6 @@ public:
 	void RefreshClsObjects(int64_t cid);
 	void GotoCls(int64_t cid);
 	void GotoObj(int64_t oid);
-	void SelectCls(int64_t cid, bool select);
-	void SelectObj(int64_t oid, int64_t opid, bool select);
-	void SetObjects(const std::set<ObjectKey>& obj);
 
 	void Act();
 	void Move();

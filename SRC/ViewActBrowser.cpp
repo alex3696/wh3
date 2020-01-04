@@ -16,13 +16,17 @@ ViewActBrowser::ViewActBrowser(const std::shared_ptr<IViewWindow>& parent)
 //-----------------------------------------------------------------------------
 ViewActBrowser::ViewActBrowser(wxWindow* parent)
 {
-	auto table = new wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize
+	mTable = nullptr;
+	mDvModel = nullptr;
+	
+	mTable = new wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize
 		, wxDV_ROW_LINES
 		| wxDV_VERT_RULES
 		//| wxDV_HORIZ_RULES
 		//| wxDV_MULTIPLE
 	);
-	mTable = table;
+	
+	wxDataViewCtrl* table = mTable;
 
 	mDvModel = new wxDVTableActBrowser();
 	table->AssociateModel(mDvModel);
@@ -50,6 +54,12 @@ ViewActBrowser::ViewActBrowser(wxWindow* parent)
 
 	mToolTipTimer.Bind(wxEVT_TIMER
 		, [this](wxTimerEvent& evt) { ShowToolTip(); });
+
+	table->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent&)
+	{
+		mTable = nullptr;
+		mDvModel = nullptr;
+	});
 	
 	wxAcceleratorEntry entries[2];
 	char i = 0;
@@ -57,9 +67,14 @@ ViewActBrowser::ViewActBrowser(wxWindow* parent)
 	entries[i++].Set(wxACCEL_NORMAL, WXK_F5, wxID_REFRESH);
 	wxAcceleratorTable accel(i + 1, entries);
 	table->SetAcceleratorTable(accel);
+
 }
 //-----------------------------------------------------------------------------
-
+ViewActBrowser::~ViewActBrowser()
+{
+	//mToolTipTimer.Stop();
+}
+//-----------------------------------------------------------------------------
 void ViewActBrowser::StoreSelect()
 {
 }
@@ -93,7 +108,7 @@ void ViewActBrowser::ResetColumns()
 	wxWindowUpdateLocker lock(mTable);
 
 	mTable->ClearColumns();
-	auto renderer1 = new wxDataViewIconTextRenderer();
+	//auto renderer1 = new wxDataViewIconTextRenderer();
 
 	auto col0 = mTable->AppendTextColumn("Èìÿ", 0, wxDATAVIEW_CELL_INERT, -1
 		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
@@ -195,6 +210,8 @@ void ViewActBrowser::SetBeforeRefresh(std::shared_ptr<const ModelActTable> table
 //-----------------------------------------------------------------------------
 void ViewActBrowser::SetAfterRefresh(std::shared_ptr<const ModelActTable> table)
 {
+	if (!mDvModel)
+		return;
 	TEST_FUNC_TIME;
 	wxBusyCursor busyCursor;
 	wxWindowUpdateLocker lock(mTable);
@@ -213,7 +230,7 @@ void ViewActBrowser::SetSelectCurrent()const
 //-----------------------------------------------------------------------------
 void ViewActBrowser::ShowToolTip()
 {
-	if (!mTable->GetMainWindow()->IsMouseInWindow())
+	if (!mTable || !mTable->GetMainWindow()->IsMouseInWindow())
 		return;
 
 	wxPoint pos = wxGetMousePosition();
