@@ -9,8 +9,6 @@ namespace wh{
 class ViewTableBrowser : public IViewTableBrowser
 {
 	// selection 
-	std::set<const IIdent64*>	mClsSelection;
-	std::set<const IIdent64*>	mObjSelection;
 	std::set<int64_t>	mClsSelected;
 	std::set<ObjectKey>	mObjSelected;
 	
@@ -18,9 +16,7 @@ class ViewTableBrowser : public IViewTableBrowser
 	void RestoreSelect();
 	void SetSelected()const;
 	void OnCmd_SelectionChanged(wxDataViewEvent& evt);
-	virtual void GetSelection(std::vector<const IIdent64*>&) override;
-	//sig::signal<void(int64_t, int64_t, bool)> sigSelectObj;
-
+	virtual void GetSelection(std::vector<const IIdent64*>&)const override;
 
 	// tooltip 
 	wxTimer	mToolTipTimer;

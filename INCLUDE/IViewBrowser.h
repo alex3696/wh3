@@ -20,7 +20,7 @@ public:
 	virtual void SetInsertObj()const = 0;
 	virtual void SetDeleteSelected()const = 0;
 	virtual void SetUpdateSelected()const = 0;
-	virtual void GetSelection(std::vector<const IIdent64*>&) =0;
+	virtual void GetSelection(std::vector<const IIdent64*>&)const =0;
 
 	virtual void SetObjOperation(Operation, const std::vector<const IIdent64*>&) = 0;
 
