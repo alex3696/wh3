@@ -10,7 +10,7 @@ class ModelActBrowserWindow : public IModelWindow
 {
 public:
 	using FuncActivateCallback 
-		= std::function<int(const ModelActTable::RowType& obj)>;
+		= std::function<int(const ModelActTable::RowType& act)>;
 
 	ModelActBrowserWindow();
 	

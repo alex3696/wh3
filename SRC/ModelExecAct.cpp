@@ -10,7 +10,20 @@ using namespace wh;
 ModelActExecWindow::ModelActExecWindow()
 	:mModelActBrowser(std::make_shared<ModelActBrowserWindow>())
 	, mModelObjBrowser(std::make_shared<ModelBrowser>())
+	, mAct(0,nullptr )
 {
+	mOnActivateAct = [this](const ModelActTable::RowType& act)->int
+	{
+		mAct.SetId(act.GetId());
+		mAct.SetTitle(act.GetTitle());
+		mAct.SetColour(act.GetColour());
+		mAct.SetNote(act.GetNote());
+
+		DoShowActProperty();
+		return 0;
+	};
+
+	mModelActBrowser->SetActivateCallback(mOnActivateAct);
 }
 //---------------------------------------------------------------------------
 void ModelActExecWindow::LockObjects(const std::set<ObjectKey>& obj)
@@ -62,6 +75,8 @@ void ModelActExecWindow::LockObjects(const std::set<ObjectKey>& obj)
 	whDataMgr::GetDB().Commit();
 
 	mModelActBrowser->DoSwap(act_table);
+
+		
 }
 //---------------------------------------------------------------------------
 ModelActExecWindow::~ModelActExecWindow()
@@ -86,12 +101,29 @@ void ModelActExecWindow::UnlockObjects()
 //---------------------------------------------------------------------------
 void ModelActExecWindow::DoShowActProperty()
 {
+	wxString query;
+	whDataMgr::GetDB().BeginTransaction();
+
+	query = wxString::Format(
+			" SELECT prop.id, prop.title, prop.kind, prop.var, prop.var_strict "
+			" FROM ref_act_prop "
+			" LEFT JOIN prop ON ref_act_prop.prop_id = prop.id "
+			" WHERE act_id = %s "
+			" ORDER BY prop.title"
+			, mAct.GetIdAsString() );
+
+	whDataMgr::GetDB().Exec(query);
+	whDataMgr::GetDB().Commit();
+
+	mCurrentPage = 2;
+	sigSelectPage(mCurrentPage);
 
 }
 //---------------------------------------------------------------------------
 void ModelActExecWindow::DoShowActList()
 {
-
+	mCurrentPage = 1;
+	sigSelectPage(mCurrentPage);
 }
 //---------------------------------------------------------------------------
 void ModelActExecWindow::DoExecute()
@@ -108,7 +140,13 @@ void ModelActExecWindow::UpdateTitle()
 //virtual 
 void ModelActExecWindow::Show()
 { 
-	sigShow(); 
+	if (1 == mObjects.size())
+		mCurrentPage = 1;
+	else
+		mCurrentPage = 0;
+
+	sigSelectPage(mCurrentPage);
+	sigShow();
 }
 //---------------------------------------------------------------------------
 //virtual 

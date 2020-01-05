@@ -12,7 +12,12 @@ namespace wh {
 
 class ModelActExecWindow : public IModelWindow
 {
+	int	 mCurrentPage = 0;
 	std::set<ObjectKey> mObjects;
+	
+	ActRec64 mAct;
+
+	ModelActBrowserWindow::FuncActivateCallback mOnActivateAct;
 public:
 	std::shared_ptr<ModelActBrowserWindow>	mModelActBrowser;
 	std::shared_ptr<ModelBrowser>			mModelObjBrowser;
@@ -32,6 +37,7 @@ public:
 	virtual void Load(const boost::property_tree::wptree& page_val)override;
 	virtual void Save(boost::property_tree::wptree& page_val)override;
 
+	sig::signal<void(int)> sigSelectPage;
 };
 //---------------------------------------------------------------------------
 
