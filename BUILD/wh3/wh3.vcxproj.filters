@@ -91,9 +91,6 @@
     <Filter Include="Controls\PropertyGridExt">
       <UniqueIdentifier>{bbc13c25-6046-4343-a21f-67d9ce5fb900}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Панель избранного">
-      <UniqueIdentifier>{0f33df8f-12bd-4c0e-b36d-6ae826cc03b8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Controls\Шаблон пути">
       <UniqueIdentifier>{e8360862-bd18-4129-bc5c-51b283f2679f}</UniqueIdentifier>
     </Filter>
@@ -111,12 +108,6 @@
     </Filter>
     <Filter Include="MainFrame\dlgConnectionCfg">
       <UniqueIdentifier>{7f8588ff-31e0-430d-94ab-39c1f0c8af3a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Панель избранного\model">
-      <UniqueIdentifier>{d380434e-c1b6-471a-ba44-a65da80b923f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Панель избранного\view">
-      <UniqueIdentifier>{0afd9a5a-23e7-4e85-bed9-0215001a1bc5}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common\RecentDstOid">
       <UniqueIdentifier>{4d4fdce2-59b3-4a35-a763-93c5bd70ff51}</UniqueIdentifier>
@@ -428,24 +419,6 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\ConnectionCfgDlg.cpp">
       <Filter>MainFrame\dlgConnectionCfg</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\MFav.cpp">
-      <Filter>Панель избранного\model</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\MFavFilterCls.cpp">
-      <Filter>Панель избранного\model</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\MFavFilterPath.cpp">
-      <Filter>Панель избранного\model</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\MFavViewPropActCommon.cpp">
-      <Filter>Панель избранного\model</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\MFavViewPropActUsr.cpp">
-      <Filter>Панель избранного\model</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\MFavViewPropCls.cpp">
-      <Filter>Панель избранного\model</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\whPGFileLinkProperty.cpp">
       <Filter>Controls\PropertyGridExt</Filter>
@@ -895,24 +868,6 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ConnectionCfgDlg.h">
       <Filter>MainFrame\dlgConnectionCfg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MFavFilterCls.h">
-      <Filter>Панель избранного\model</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MFavFilterPath.h">
-      <Filter>Панель избранного\model</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MFavViewPropCls.h">
-      <Filter>Панель избранного\model</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MFavViewPropActCommon.h">
-      <Filter>Панель избранного\model</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MFavViewPropActUsr.h">
-      <Filter>Панель избранного\model</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MFav.h">
-      <Filter>Панель избранного\model</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\whPGFileLinkProperty.h">
       <Filter>Controls\PropertyGridExt</Filter>

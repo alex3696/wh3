@@ -282,12 +282,6 @@
     <ClCompile Include="..\..\SRC\DClsEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsMoveEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsPropEditor.cpp" />
-    <ClCompile Include="..\..\SRC\MFav.cpp" />
-    <ClCompile Include="..\..\SRC\MFavFilterCls.cpp" />
-    <ClCompile Include="..\..\SRC\MFavFilterPath.cpp" />
-    <ClCompile Include="..\..\SRC\MFavViewPropActCommon.cpp" />
-    <ClCompile Include="..\..\SRC\MFavViewPropActUsr.cpp" />
-    <ClCompile Include="..\..\SRC\MFavViewPropCls.cpp" />
     <ClCompile Include="..\..\SRC\ModelActBrowser.cpp" />
     <ClCompile Include="..\..\SRC\ModelBrowser.cpp" />
     <ClCompile Include="..\..\SRC\ModelClsPath.cpp" />
@@ -496,12 +490,6 @@
     <ClInclude Include="..\..\INCLUDE\MoveObjPresenter.h" />
     <ClInclude Include="..\..\INCLUDE\MoveObjView.h" />
     <ClInclude Include="..\..\INCLUDE\PageGroupList.h" />
-    <ClInclude Include="..\..\INCLUDE\MFavFilterCls.h" />
-    <ClInclude Include="..\..\INCLUDE\MFavFilterPath.h" />
-    <ClInclude Include="..\..\INCLUDE\MFav.h" />
-    <ClInclude Include="..\..\INCLUDE\MFavViewPropActCommon.h" />
-    <ClInclude Include="..\..\INCLUDE\MFavViewPropActUsr.h" />
-    <ClInclude Include="..\..\INCLUDE\MFavViewPropCls.h" />
     <ClInclude Include="..\..\INCLUDE\DGroupEditor.h" />
     <ClInclude Include="..\..\INCLUDE\dlgselectcls_ctrlpnl.h" />
     <ClInclude Include="..\..\INCLUDE\dlg_act_model_Act.h" />
