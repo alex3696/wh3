@@ -1,7 +1,6 @@
 #ifndef __VIEWEXECACT_H
 #define __VIEWEXECACT_H
 
-#include "_pch.h"
 #include "CtrlWindowBase.h"
 #include "ViewBrowser.h"
 #include "ViewActBrowser.h"

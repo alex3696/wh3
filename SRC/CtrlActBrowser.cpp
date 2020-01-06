@@ -20,12 +20,17 @@ CtrlActBrowser::CtrlActBrowser(
 	connModel_AfterRefresh = mModel->sigAfterRefresh
 		.connect(std::bind(&T_View::SetAfterRefresh, mView.get(), ph::_1));
 
+	connModel_GetSelect = mModel->sigGetSelection
+		.connect(std::bind(&T_View::GetSelection, mView.get(), ph::_1));
+
+
+
 	connViewCmd_Activate = mView->sigActivate
-		.connect(std::bind(&CtrlActBrowser::Activate, this, ph::_1));
+		.connect(std::bind(&CtrlActBrowser::Activate, this));
 
 };
 //---------------------------------------------------------------------------
-void CtrlActBrowser::Activate(int64_t aid)
+void CtrlActBrowser::Activate()
 {
-	mModel->DoActivate(aid);
+	mModel->DoActivate();
 }

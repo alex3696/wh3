@@ -47,7 +47,7 @@ class CtrlActExecWindow final : public CtrlWindowBase<ViewExecActWindow, ModelAc
 	sig::scoped_connection connModel_SelectPage;
 	sig::scoped_connection connViewCmd_Unlock;
 	sig::scoped_connection connViewCmd_SelectAct;
-
+	sig::scoped_connection connViewCmd_Execute;
 
 	std::shared_ptr<CtrlActBrowser>			mCtrlActBrowser;
 	std::shared_ptr<CtrlTableObjBrowser_RO>	mCtrlObjBrowser;
@@ -57,7 +57,8 @@ public:
 	~CtrlActExecWindow();
 
 	void SetObjects(const std::set<ObjectKey>& obj);
-	void DoSelectAct();
+	void SelectAct();
+	void Execute();
 	void Unlock();
 };
 

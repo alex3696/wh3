@@ -208,6 +208,9 @@
     <Filter Include="MainFrame\MVP2\ContentWindows\Каталог объектов v2\ModelActTable">
       <UniqueIdentifier>{d6ba8813-837d-417b-bf57-0c9d02b3033c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\PropPG">
+      <UniqueIdentifier>{1cef9664-c4fc-4c86-9890-7e8bc08bdc0f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -596,6 +599,15 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\ViewActBrowserDVModel.cpp">
       <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\ActBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\CtrlPropPg.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\PropPG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ModelPropPg.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\PropPG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SRC\ViewPropPg.cpp">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\PropPG</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1138,6 +1150,15 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ModelActTable.h">
       <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2\ModelActTable</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\SRC\CtrlPropPg.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\PropPG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\SRC\ModelPropPg.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\PropPG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\SRC\ViewPropPg.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\PropPG</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

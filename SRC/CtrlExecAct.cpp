@@ -24,7 +24,10 @@ CtrlActExecWindow::CtrlActExecWindow(
 	connViewCmd_Unlock = mView->sigUnlock
 		.connect(std::bind(&CtrlActExecWindow::Unlock, this));
 	connViewCmd_SelectAct = mView->sigSelectAct
-		.connect(std::bind(&CtrlActExecWindow::DoSelectAct, this));
+		.connect(std::bind(&CtrlActExecWindow::SelectAct, this));
+	connViewCmd_Execute = mView->sigExecute
+		.connect(std::bind(&CtrlActExecWindow::SelectAct, this));
+
 
 };
 //---------------------------------------------------------------------------
@@ -37,12 +40,17 @@ void CtrlActExecWindow::SetObjects(const std::set<ObjectKey>& obj)
 	mModel->LockObjects(obj);
 }
 //---------------------------------------------------------------------------
-void wh::CtrlActExecWindow::DoSelectAct()
+void CtrlActExecWindow::SelectAct()
 {
-
+	mModel->DoSelectAct();
 }
 //---------------------------------------------------------------------------
-void wh::CtrlActExecWindow::Unlock()
+void CtrlActExecWindow::Execute()
+{
+	mModel->DoExecute();
+}
+//---------------------------------------------------------------------------
+void CtrlActExecWindow::Unlock()
 {
 	mModel->UnlockObjects();
 }

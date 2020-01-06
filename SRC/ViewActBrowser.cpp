@@ -186,17 +186,7 @@ void ViewActBrowser::SetSelected() const
 //-----------------------------------------------------------------------------
 void ViewActBrowser::OnCmd_Activate(wxDataViewEvent & evt)
 {
-	wxDataViewItem item = evt.GetItem();
-	if (!item.IsOk())
-		return;
-	const IIdent64* ident = static_cast<const IIdent64*> (item.GetID());
-	if (!ident)
-		return;
-	const auto& act = dynamic_cast<const IAct64*>(ident);
-	if (!act)
-		return;
-
-	sigActivate(act->GetId());
+	sigActivate();
 }
 //-----------------------------------------------------------------------------
 void ViewActBrowser::OnCmd_SelectionChanged(wxDataViewEvent & evt)
@@ -221,10 +211,18 @@ void ViewActBrowser::SetAfterRefresh(std::shared_ptr<const ModelActTable> table)
 	RestoreSelect();
 }
 //-----------------------------------------------------------------------------
-void ViewActBrowser::SetSelectCurrent()const
+void ViewActBrowser::GetSelection(std::set<int64_t>& sel)const
 {
 	auto item = mTable->GetCurrentItem();
-	SetSelected(item, true);
+	if (!item.IsOk())
+		return;
+	const IIdent64* ident = static_cast<const IIdent64*> (item.GetID());
+	if (!ident)
+		return;
+	const auto& act = dynamic_cast<const IAct64*>(ident);
+	if (!act)
+		return;
+	sel.emplace(act->GetId());
 }
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -261,6 +259,6 @@ void ViewActBrowser::ShowToolTip()
 void ViewActBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 {
 	mTable->GetTargetWindow()->SetToolTip(wxEmptyString);
-	mToolTipTimer.StartOnce(1500);
+	mToolTipTimer.StartOnce(15000);
 }
 

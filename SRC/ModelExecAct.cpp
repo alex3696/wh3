@@ -126,6 +126,11 @@ void ModelActExecWindow::DoShowActList()
 	sigSelectPage(mCurrentPage);
 }
 //---------------------------------------------------------------------------
+void ModelActExecWindow::DoSelectAct()
+{
+	mModelActBrowser->DoActivate();
+}
+//---------------------------------------------------------------------------
 void ModelActExecWindow::DoExecute()
 {
 

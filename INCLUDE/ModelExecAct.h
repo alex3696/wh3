@@ -28,7 +28,9 @@ public:
 	void UnlockObjects();
 	void DoShowActProperty();
 	void DoShowActList();
+	void DoSelectAct();
 	void DoExecute();
+	
 
 	// IModelWindow
 	virtual void UpdateTitle()override;

@@ -76,8 +76,15 @@ void wh::ModelActBrowserWindow::SetActs(const std::set<int64_t>& act_idents)
 		mActTable->InsertOrUpdate(aid, empty_fn);
 }
 //---------------------------------------------------------------------------
-void wh::ModelActBrowserWindow::DoActivate(int64_t aid)
+void wh::ModelActBrowserWindow::DoActivate()
 {
+	std::set<int64_t> sel;
+	sigGetSelection(sel);
+	if (sel.empty())
+		return;
+
+	int64_t aid = *sel.begin();
+
 	auto act = mActTable->GetById(aid);
 	if(act && mFuncActivateCallback)
 		mFuncActivateCallback(*act);

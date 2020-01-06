@@ -276,6 +276,7 @@
     <ClCompile Include="..\..\SRC\CtrlMain.cpp" />
     <ClCompile Include="..\..\SRC\CtrlObjEditor.cpp" />
     <ClCompile Include="..\..\SRC\CtrlObjPropList.cpp" />
+    <ClCompile Include="..\..\SRC\CtrlPropPg.cpp" />
     <ClCompile Include="..\..\SRC\CtrlUndo.cpp" />
     <ClCompile Include="..\..\SRC\DActEditor.cpp" />
     <ClCompile Include="..\..\SRC\DClsActEditor.cpp" />
@@ -293,6 +294,7 @@
     <ClCompile Include="..\..\SRC\ModelMain.cpp" />
     <ClCompile Include="..\..\SRC\ModelObjPath.cpp" />
     <ClCompile Include="..\..\SRC\ModelObjPropList.cpp" />
+    <ClCompile Include="..\..\SRC\ModelPropPg.cpp" />
     <ClCompile Include="..\..\SRC\ModelUndo.cpp" />
     <ClCompile Include="..\..\SRC\MoveObjModel.cpp" />
     <ClCompile Include="..\..\SRC\MoveObjPresenter.cpp" />
@@ -358,6 +360,7 @@
     <ClCompile Include="..\..\SRC\ViewHistorySetup.cpp" />
     <ClCompile Include="..\..\SRC\ViewMain.cpp" />
     <ClCompile Include="..\..\SRC\ViewObjPropList.cpp" />
+    <ClCompile Include="..\..\SRC\ViewPropPg.cpp" />
     <ClCompile Include="..\..\SRC\ViewUndo.cpp" />
     <ClCompile Include="..\..\SRC\VTableCtrl.cpp" />
     <ClCompile Include="..\..\SRC\TableRowEditor.cpp" />
@@ -589,6 +592,9 @@
     <ClInclude Include="..\..\INCLUDE\wxDataViewRenderer.h" />
     <ClInclude Include="..\..\INCLUDE\FB_FORMS\whLogin.h" />
     <ClInclude Include="..\..\INCLUDE\whDB.h" />
+    <ClInclude Include="..\..\SRC\CtrlPropPg.h" />
+    <ClInclude Include="..\..\SRC\ModelPropPg.h" />
+    <ClInclude Include="..\..\SRC\ViewPropPg.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wh3.rc" />

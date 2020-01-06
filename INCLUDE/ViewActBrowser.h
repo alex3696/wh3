@@ -46,9 +46,9 @@ public:
 
 	void SetBeforeRefresh(std::shared_ptr<const ModelActTable> );
 	void SetAfterRefresh(std::shared_ptr<const ModelActTable> );
-	void SetSelectCurrent()const;
+	void GetSelection(std::set<int64_t>&)const;
 
-	sig::signal<void(int64_t)>	sigActivate;
+	sig::signal<void()>	sigActivate;
 
 	
 	sig::signal<void()>		sigRefresh;
