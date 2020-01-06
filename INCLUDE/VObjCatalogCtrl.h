@@ -44,7 +44,6 @@ class VObjCatalogCtrl
 	void OnCmdReload(wxCommandEvent& evt);
 	void OnCmdUp(wxCommandEvent& evt);
 	void OnCmdDetail(wxCommandEvent& evt);
-	void OnCmdFavProp(wxCommandEvent& evt);
 	void OnCmdMove(wxCommandEvent& evt);
 	void OnCmdAct(wxCommandEvent& evt);
 	void OnMkObj(wxCommandEvent& evt);

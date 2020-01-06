@@ -267,7 +267,6 @@ struct ClsActAccess
 	
 	SqlString	mPeriod;
 };
-
 //-----------------------------------------------------------------------------
 /// Разрешения действий класса
 struct ClsSlotAccess
@@ -292,7 +291,6 @@ struct ClsSlotAccess
 	SqlString	mDstArrId;		//SqlString	mDstPath;
 	SqlString	mDstArrTitle;	//SqlString	mDstPath;
 };
-
 //-----------------------------------------------------------------------------
 /// Модель группы пользователей 
 struct Role
@@ -300,10 +298,7 @@ struct Role
 	wxString	mID;
 	wxString	mLabel;	
 	wxString	mComment;
-
 };
-
-
 //-----------------------------------------------------------------------------
 /// Пользователь - запись из БД
 struct User
@@ -317,18 +312,13 @@ struct User
 	wxString	mPassword;
 
 };
-
 //-----------------------------------------------------------------------------
 /// Пользователь - запись из БД
 struct UserRole
 {
 	wxString	mID;
 	wxString	mLabel;
-
-
-
 };
-
 //-----------------------------------------------------------------------------
 struct PathItem
 {
@@ -337,55 +327,14 @@ struct PathItem
 };
 //-----------------------------------------------------------------------------
 typedef PathItem ObjInfo;
-
-//-----------------------------------------------------------------------------
-struct FavProp
-{
-
-	wxString	mID;
-	wxString	mLabel;
-	wxString	mType;
-
-	std::shared_ptr<std::set<wxString> > mCls;
-
-	FavProp()
-		:mCls(new std::set<wxString>)
-	{}
-	FavProp(const FavProp& r)
-	{
-		mID = r.mID;
-		mLabel = r.mLabel;
-		mType = r.mType;
-		mCls.reset(new std::set<wxString>(*r.mCls));
-	}
-};
-
-using FavProps = boost::multi_index_container	
-	<
-		FavProp,
-		indexed_by	
-		<
-			random_access<>
-			, ordered_unique< BOOST_MULTI_INDEX_MEMBER(FavProp, wxString, mLabel)> 
-		>
-	>;
-//-----------------------------------------------------------------------------
-struct FavoriteProp : public Prop
-{
-	bool mSelected;
-};
-
-
 //-----------------------------------------------------------------------------
 enum CatType
 {
 	catCls = 0,
 	catObj = 1,
 	catCustom = 2,
-	catFav = 3
 };
 //-----------------------------------------------------------------------------
-
 struct CatCfg
 {
 	CatType mCatType;
@@ -406,94 +355,28 @@ struct CatCfg
 		, mShowDebugColumns(debugColumns)
 	{
 	}
-
 };
 //-----------------------------------------------------------------------------
-
-/** Узел избранного */
-class Fav
-{
-public:
-	wxString		mId;
-	wxString		mTitle;
-	wxString		mNote;
-	wxString		mUsr;
-	unsigned int 	mViewGroup;
-};
-//-------------------------------------------------------------------------
-
-/** Фильтр по Классу  */
-class FavFilterCls
-{
-public:
-	//wxString	mFId;		// подвязываем к Fav потому не загружаем
-	wxString	mCId;
-	wxString	mCTitle;	//только для отображения в базе нет
-	wxString	mCKind;		//только для отображения в базе нет
-};
-//-------------------------------------------------------------------------
-
-/** Фильтр по местоположению  */
-class FavFilterPath
-{
-public:
-	unsigned long	mFId;
-	unsigned long	mParentOId;
-	wxString		mPath;
-};
-//-------------------------------------------------------------------------
-
-/** Вид свойств класса */
-class FavViewPropCls
-{
-public:
-	unsigned long	mFId;
-	unsigned long	mPId;
-};
-//-------------------------------------------------------------------------
-
-/** Вид общих свойств действия*/
-class FavViewPropActCommon
-{
-public:
-	unsigned long	mFId;
-	unsigned long	mAId;
-
-	bool			mShowDateTime;
-	bool			mShowUser;
-	bool			mShowSrcPath;
-	bool			mShowQty;
-};
-//-------------------------------------------------------------------------
-
-/** Вид пользовательских свойств*/
-class FavViewPropActUsr
-{
-public:
-	unsigned long	mFId;
-	unsigned long	mAId;
-	unsigned long	mPId;
-};
-
 struct PageUser{};
+//-----------------------------------------------------------------------------
 struct PageGroup{};
+//-----------------------------------------------------------------------------
 struct PageProp{};
+//-----------------------------------------------------------------------------
 struct PageAct{};
-
+//-----------------------------------------------------------------------------
 struct PageObjByPath
 {
 	wxString mParent_Oid;
 };
 //-----------------------------------------------------------------------------
-
 struct PageObjByType
 {
 	wxString mParent_Cid;
 };
 //-----------------------------------------------------------------------------
-
 typedef PathItem PageDetail;
-
+//-----------------------------------------------------------------------------
 struct PageHistory
 {
 	size_t	mRowsLimit = 50;
@@ -521,17 +404,17 @@ struct PageHistory
 		return !operator==(rv);
 	}
 };
-
+//-----------------------------------------------------------------------------
 struct PageReportList
 {
 	wxString mSelected_id;
 };
-
+//-----------------------------------------------------------------------------
 struct PageReport
 {
 	wxString mReportId;
 };
-
+//-----------------------------------------------------------------------------
 
 
 }//namespace rec

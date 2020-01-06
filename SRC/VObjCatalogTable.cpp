@@ -81,35 +81,9 @@ void VObjCatalogTable::SetModel(std::shared_ptr<IModel> model)
 		mCatalogModel = std::dynamic_pointer_cast<wh::object_catalog::MObjCatalog>(model);
 		mDataViewModel->SetModel(model);
 		
-		auto funcOnChange = std::bind(&VObjCatalogTable::OnAfterUpdateFavProp,
-			this, std::placeholders::_1, std::placeholders::_2);
-
-
-		mCatalogUpdate 
-			= mCatalogModel->mFavProps->DoConnect(moAfterUpdate, funcOnChange);
-
-		/*
-		mConnAppend = mCatalogModel->mTypeArray->ConnectAppendSlot(
-			std::bind(&VObjCatalogTable::OnAppend, this, sph::_1, sph::_2));
-		mConnRemove = mCatalogModel->mTypeArray->ConnectRemoveSlot(
-			std::bind(&VObjCatalogTable::OnRemove, this, sph::_1, sph::_2));
-		mConnChange = mCatalogModel->mTypeArray->ConnectChangeSlot(
-			std::bind(&VObjCatalogTable::OnChange, this, sph::_1, sph::_2));
-
-		*/
-		
-		OnAfterUpdateFavProp(mCatalogModel->mFavProps.get(), nullptr);
-		
 		//mDataViewModel->Reset();
 		
 	}
-}
-//---------------------------------------------------------------------------
-void VObjCatalogTable::OnAfterUpdateFavProp(const IModel* model,
-	const object_catalog::MFavProp::T_Data* data)
-{
-	ResetColumns();
-	BuildColumns();
 }
 
 //---------------------------------------------------------------------------
@@ -144,33 +118,7 @@ void VObjCatalogTable::ResetColumns()
 //---------------------------------------------------------------------------
 void VObjCatalogTable::BuildColumns()
 {
-	
 
-	if (msNull != mCatalogModel->mFavProps->GetState())
-	{
-		int colIndex = 6;
-		for (const auto& prop : mCatalogModel->GetFavProps())
-		{
-			wxString name = prop.mLabel;
-			unsigned int width = 50;
-
-			auto fieldType = ToFieldType(prop.mType);
-			if (ftText != fieldType)
-			{
-				wxWindowDC dc(this);
-				auto dcWidth = dc.GetTextExtent(name).GetWidth() + 20;
-				auto typeWidth = GetColumnWidthBy(fieldType);
-				//width = (dcWidth > typeWidth && dcWidth < typeWidth*3) ? dcWidth : typeWidth;
-				width = (typeWidth * 3 - dcWidth > 0) ? dcWidth : typeWidth;
-			}
-			else
-				EnableAutosizeColumn(colIndex - 1);
-
-			AppendTextColumn(name, colIndex++, wxDATAVIEW_CELL_INERT, width,
-				wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
-		}
-	}
-	
 	this->OnResize(wxSizeEvent());
 
 }

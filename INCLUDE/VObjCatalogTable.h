@@ -54,8 +54,6 @@ protected:
 
 
 	sig::scoped_connection mCatalogUpdate;
-	void OnAfterUpdateFavProp(const IModel* model, 
-		const object_catalog::MFavProp::T_Data* data);
 	void RebuildColumns();
 	void ResetColumns();
 	void BuildColumns();

@@ -6,7 +6,6 @@
 
 #include "dlg_act_view_Frame.h"
 #include "dlg_mkobj_view_Frame.h"
-#include "dlg_favprop_SelectFrame.h"
 
 #include "DClsEditor.h"
 #include "config.h"
@@ -121,7 +120,6 @@ void VObjCatalogCtrl::BuildToolbar(bool is_dlg)
 	{
 		mUpTool = mToolBar->AddTool(wxID_PROPERTIES, "Выбрать свойства",
 			m_ResMgr->m_ico_favprop_select24);
-		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdFavProp, this, wxID_PROPERTIES);
 
 		mUpTool = mToolBar->AddTool(wxID_VIEW_DETAILS, "Подробно", m_ResMgr->m_ico_views24);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &VObjCatalogCtrl::OnCmdDetail, this, wxID_VIEW_DETAILS);
@@ -439,38 +437,7 @@ void VObjCatalogCtrl::OnCmdDetail(wxCommandEvent& evt)
 		nb2->MkWindow("CtrlPageDetail");
 	}
 }
-//-----------------------------------------------------------------------------
-void VObjCatalogCtrl::OnCmdFavProp(wxCommandEvent& evt)
-{
-	auto selectedItem = mTableView->GetSelection();
-	if (!selectedItem.IsOk())
-		return;
-	auto modelInterface = static_cast<IModel*> (selectedItem.GetID());
-	namespace cat = object_catalog;
 
-	
-	cat::MTypeItem* selectedCls(nullptr);
-
-	cat::MObjItem* objItem = dynamic_cast<cat::MObjItem*> (modelInterface);
-	if (objItem)
-	{
-		cat::MObjArray* objArray = dynamic_cast<cat::MObjArray*> (objItem->GetParent());
-		if (objArray)
-			selectedCls = dynamic_cast<cat::MTypeItem*> (objArray->GetParent());
-	}
-	else
-		selectedCls = dynamic_cast<cat::MTypeItem*> (modelInterface);
-	
-	if (!selectedCls)
-		return;
-
-	dlg::favprop::view::SelectFrame dlg(this);
-
-	selectedCls->mFavProp->Load();
-	dlg.SetModel(std::dynamic_pointer_cast<IModel>(selectedCls->mFavProp));
-	dlg.ShowModal();
-	OnCmdReload(wxCommandEvent(wxID_REFRESH));
-}
 //-----------------------------------------------------------------------------
 void VObjCatalogCtrl::OnCmdMove(wxCommandEvent& evt)
 {

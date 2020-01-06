@@ -3,7 +3,6 @@
 
 
 #include "MObjItem.h"
-#include "dlg_favprop_model.h"
 //#include "MObjCatalog.h"
 #include "MClsProp.h"
 #include "MClsAct.h"
@@ -23,7 +22,6 @@ MTypeItem(const char option
 		= ModelOption::EnableParentNotify
 		| ModelOption::EnableNotifyFromChild);
 
-	std::shared_ptr<dlg::favprop::model::FavPropArray> mFavProp;	
 	std::shared_ptr<MObjArray>	mObjArray;
 	wxString					mQty;
 

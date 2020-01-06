@@ -204,20 +204,6 @@ bool MObjArray::GetSelectChildsQuery(wxString& query)const
 		const auto& catalogData = catalog->GetRoot();
 
 		wxString fields, leftJoin;
-		if (catalog->IsPropEnabled()) //ClsKind::Single == typeItemData.GetClsType()
-		{
-			wxString qq;
-			for (const auto& it : catalog->GetFavProps())
-				qq += wxString::Format("\"%s\" TEXT,", it.mID);
-			
-			if (!qq.IsEmpty())
-			{
-				qq.replace(qq.size() - 1, 1, " ");
-				leftJoin = wxString::Format(" LEFT JOIN LATERAL jsonb_to_record(o.prop) as x(%s) ON true "
-					, qq);
-				fields = ", x.*";
-			}
-		}
 
 		if (catalog->IsObjTree())
 		{

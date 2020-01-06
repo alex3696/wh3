@@ -8,7 +8,6 @@
 
 #include "MObjCatPath.h"
 #include "MTypeNode.h"
-#include "MFavProp.h"
 
 namespace wh{
 namespace object_catalog {
@@ -28,7 +27,6 @@ public:
 
 	std::shared_ptr<TModelData<bool>> mAutoLoadObj;
 	std::shared_ptr<MTypeArray>		mTypeArray;
-	std::shared_ptr<MFavProp>		mFavProps;
 	std::shared_ptr<model::MPath>	mPath;
 	
 	void SetCatFilter(long pid, bool enable = true);	
@@ -61,13 +59,6 @@ public:
 
 	virtual void LoadChilds()override;
 
-
-	const rec::FavProps& GetFavProps()const
-	{
-		return mFavProps->GetData();
-	}
-
-	
 	void DoUp();
 	
 	void Find(const wxString& cls);

@@ -25,23 +25,11 @@
     <Filter Include="Каталог объектов\Основная панель\модель узлов-типов">
       <UniqueIdentifier>{51fa9859-667e-4b53-b8fe-466f4e2d44e9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Каталог объектов\Основная панель\модель избранных свойств">
-      <UniqueIdentifier>{2f270684-075a-4446-bec2-b50f899e2d76}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Каталог объектов\Основная панель\model">
       <UniqueIdentifier>{bcbf5ed3-683c-4abe-8ecd-cffd64a455c6}</UniqueIdentifier>
     </Filter>
     <Filter Include="Каталог объектов\Создание объекта">
       <UniqueIdentifier>{2a545cbd-ca0b-440b-8e92-6d14012aac1d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Каталог объектов\Диалог выбора свойств">
-      <UniqueIdentifier>{02164e9e-710c-4c35-bb85-6256d67126ff}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Каталог объектов\Диалог выбора свойств\model">
-      <UniqueIdentifier>{124450df-a04e-4dcb-94f2-ec6235bc304e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Каталог объектов\Диалог выбора свойств\view">
-      <UniqueIdentifier>{955c8a45-a9d1-4ec5-ac29-af25cd1b251c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Templates">
       <UniqueIdentifier>{51e3b3f8-3007-4205-a1a3-8f1476b62c46}</UniqueIdentifier>
@@ -333,9 +321,6 @@
     <ClCompile Include="..\..\SRC\VObjCatalogCtrl.cpp">
       <Filter>Каталог объектов\Основная панель\GUI</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SRC\MFavProp.cpp">
-      <Filter>Каталог объектов\Основная панель\модель избранных свойств</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\SRC\dlg_act_view_Frame.cpp">
       <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий</Filter>
     </ClCompile>
@@ -362,21 +347,6 @@
     </ClCompile>
     <ClCompile Include="..\..\SRC\dlg_mkobj_view_Frame.cpp">
       <Filter>Каталог объектов\Создание объекта</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\dlg_favprop_model.cpp">
-      <Filter>Каталог объектов\Диалог выбора свойств\model</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\dlg_favprop_dvmodel.cpp">
-      <Filter>Каталог объектов\Диалог выбора свойств\view</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\dlg_favprop_dvtable.cpp">
-      <Filter>Каталог объектов\Диалог выбора свойств\view</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\dlg_favprop_ctrlpnl.cpp">
-      <Filter>Каталог объектов\Диалог выбора свойств\view</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\SRC\dlg_favprop_SelectFrame.cpp">
-      <Filter>Каталог объектов\Диалог выбора свойств\view</Filter>
     </ClCompile>
     <ClCompile Include="..\..\SRC\PGClsPid.cpp">
       <Filter>Controls\PropertyGridExt</Filter>
@@ -770,9 +740,6 @@
     <ClInclude Include="..\..\INCLUDE\VObjCatalogCtrl.h">
       <Filter>Каталог объектов\Основная панель\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\MFavProp.h">
-      <Filter>Каталог объектов\Основная панель\модель избранных свойств</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dlg_act_view_Frame.h">
       <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий</Filter>
     </ClInclude>
@@ -799,21 +766,6 @@
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\dlg_mkobj_view_Frame.h">
       <Filter>Каталог объектов\Создание объекта</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\dlg_favprop_model.h">
-      <Filter>Каталог объектов\Диалог выбора свойств\model</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\dlg_favprop_dvmodel.h">
-      <Filter>Каталог объектов\Диалог выбора свойств\view</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\dlg_favprop_dvtable.h">
-      <Filter>Каталог объектов\Диалог выбора свойств\view</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\dlg_favprop_ctrlpnl.h">
-      <Filter>Каталог объектов\Диалог выбора свойств\view</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\INCLUDE\dlg_favprop_SelectFrame.h">
-      <Filter>Каталог объектов\Диалог выбора свойств\view</Filter>
     </ClInclude>
     <ClInclude Include="..\..\INCLUDE\VPropCtrlPanel.h">
       <Filter>VProp</Filter>

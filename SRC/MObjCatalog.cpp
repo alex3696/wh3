@@ -11,7 +11,6 @@ MObjCatalog::MObjCatalog(const char option)
 	:TModelData<rec::CatCfg>(option)
 	, mPath(new model::MPath)
 	, mTypeArray(new MTypeArray)
-	, mFavProps(new MFavProp)
 	, mFilter(new MFilterArray)
 	, mFilterCat(new MFilter)
 	, mAutoLoadObj(new TModelData<bool>)
@@ -24,7 +23,6 @@ MObjCatalog::MObjCatalog(const char option)
 
 	this->Insert(mPath);
 	this->Insert(mTypeArray);
-	this->Insert(mFavProps);
 	this->Insert(mFilter);
 
 	// 0
@@ -82,12 +80,7 @@ void MObjCatalog::SetCfg(const rec::CatCfg& cfg)
 void MObjCatalog::LoadChilds()
 {
 	mPath->Load();
-
-	if(IsPropEnabled())
-		mFavProps->Load();
-	
 	mTypeArray->Load();
-	
 }
 //-------------------------------------------------------------------------
 bool MObjCatalog::IsObjTree()const
@@ -102,23 +95,6 @@ bool MObjCatalog::IsShowDebug()const
 	const auto& cfg = this->GetData();
 	return cfg.mShowDebugColumns;
 }
-//-------------------------------------------------------------------------
-bool MObjCatalog::IsPropEnabled()const
-{
-	if (IsAbstractTree())
-		return false;
-
-	const auto& cfg = this->GetData();
-	return cfg.mEnableProp && cfg.mEnableObj;
-}
-//-------------------------------------------------------------------------
-void MObjCatalog::PropEnable(bool enable)
-{
-	auto cfg = this->GetData();
-	cfg.mEnableProp = enable;
-	this->SetData(cfg);
-}
-
 //-------------------------------------------------------------------------
 bool MObjCatalog::IsObjEnabled()const
 {
@@ -183,7 +159,6 @@ void MObjCatalog::DoUp()
 		SetCatFilter(pid);
 		Load();
 		break;
-	case rec::catFav:
 	default:break;
 	}
 
