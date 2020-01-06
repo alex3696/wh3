@@ -10,7 +10,9 @@ using namespace wh;
 ModelActExecWindow::ModelActExecWindow()
 	:mModelActBrowser(std::make_shared<ModelActBrowserWindow>())
 	, mModelObjBrowser(std::make_shared<ModelBrowser>())
+	, mModelPropPg(std::make_shared<ModelPropPg>())
 	, mAct(0,nullptr )
+
 {
 	mOnActivateAct = [this](const ModelActTable::RowType& act)->int
 	{
@@ -112,9 +114,38 @@ void ModelActExecWindow::DoShowActProperty()
 			" ORDER BY prop.title"
 			, mAct.GetIdAsString() );
 
+	
 	whDataMgr::GetDB().Exec(query);
+	
+	auto prop_table = std::make_shared<ModelPropTable>();
+	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
+	if (table)
+	{
+		const unsigned int rowQty = table->GetRowCount();
+		size_t row = 0;
+		const ModelPropTable::fnModify fn = [this, &table, &row]
+		(const std::shared_ptr<ModelPropTable::RowType>& irec)
+		{
+			auto record = std::dynamic_pointer_cast<PropRec64>(irec);
+			//record->SetId(table->GetAsString(0, row));
+			record->SetTitle(table->GetAsString(1, row));
+			record->SetKind(table->GetAsString(2, row));
+			record->SetVar(table->GetAsString(3, row));
+			record->SetVarStrict(table->GetAsString(4, row));
+		};
+		for (; row < rowQty; row++)
+		{
+			int64_t id;
+			if (!table->GetAsString(0, row).ToLongLong(&id))
+				throw;
+
+			prop_table->InsertOrUpdate(id, fn);
+		}//for
+	}
 	whDataMgr::GetDB().Commit();
 
+	mModelPropPg->DoSwap(prop_table);
+	
 	mCurrentPage = 2;
 	sigSelectPage(mCurrentPage);
 

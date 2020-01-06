@@ -5,6 +5,7 @@
 #include "ModelExecAct.h"
 #include "CtrlBrowser.h"
 #include "CtrlActBrowser.h"
+#include "CtrlPropPg.h"
 
 namespace wh {
 class CtrlTableObjBrowser_RO final : public CtrlWindowBase<IViewTableBrowser, ModelBrowser>
@@ -51,6 +52,7 @@ class CtrlActExecWindow final : public CtrlWindowBase<ViewExecActWindow, ModelAc
 
 	std::shared_ptr<CtrlActBrowser>			mCtrlActBrowser;
 	std::shared_ptr<CtrlTableObjBrowser_RO>	mCtrlObjBrowser;
+	std::shared_ptr<CtrlPropPg>				mCtrlPropPG;
 public:
 	CtrlActExecWindow(	const std::shared_ptr<ViewExecActWindow>& view
 		, const std::shared_ptr<ModelActExecWindow>& model );

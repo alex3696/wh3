@@ -199,6 +199,9 @@
     <Filter Include="MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\PropPG">
       <UniqueIdentifier>{1cef9664-c4fc-4c86-9890-7e8bc08bdc0f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MainFrame\MVP2\ContentWindows\Каталог объектов v2\ModelPropTable">
+      <UniqueIdentifier>{ad3fcf75-0d1a-4249-a3ab-47e2bd405eb5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SRC\_pch.cpp">
@@ -1111,6 +1114,9 @@
     </ClInclude>
     <ClInclude Include="..\..\SRC\ViewPropPg.h">
       <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\PropPG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ModelPropTable.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2\ModelPropTable</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

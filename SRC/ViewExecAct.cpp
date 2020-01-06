@@ -36,10 +36,10 @@ ViewExecActWindow::ViewExecActWindow(wxWindow* parent)
 
 	//Panel Property list
 	mPropListPanel = new wxPanel(mPanel);
-	auto mPg = new wxPropertyGrid(mPropListPanel);
+	mPropPG = std::make_shared<ViewPropPg>(mPropListPanel);
 	wxSizer *propListSzr = new wxBoxSizer(wxVERTICAL);
 	mPropListPanel->SetSizer(propListSzr);
-	propListSzr->Add(mPg, 1, wxEXPAND, 5);
+	propListSzr->Add(mPropPG->GetWnd(), 1, wxEXPAND, 5);
 	
 	mActListPanel->Hide();
 	mPropListPanel->Hide();
@@ -67,8 +67,10 @@ ViewExecActWindow::ViewExecActWindow(wxWindow* parent)
 	//mPanel->Bind(wxEVT_CLOSE_WINDOW, &ViewExecActWindow::OnClose, this);
 
 	
-	mPanel->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent&) 
+	mPanel->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent& evt) 
 	{
+		if (evt.GetWindow() != mPanel)
+			return;
 		mObjBrowser.reset();
 		mActBrowser.reset();
 		mPanel = nullptr;
@@ -116,6 +118,12 @@ std::shared_ptr<ViewTableBrowser> ViewExecActWindow::GetViewObjBrowser()const
 std::shared_ptr<ViewActBrowser> ViewExecActWindow::GetViewActBrowser()const
 {
 	return mActBrowser;
+}
+//-----------------------------------------------------------------------------
+//virtual 
+std::shared_ptr<ViewPropPg> ViewExecActWindow::GetViewPropPG()const
+{
+	return mPropPG;
 }
 //-----------------------------------------------------------------------------
 void ViewExecActWindow::OnClose(wxCloseEvent& evt)

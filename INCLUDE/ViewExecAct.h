@@ -4,6 +4,7 @@
 #include "CtrlWindowBase.h"
 #include "ViewBrowser.h"
 #include "ViewActBrowser.h"
+#include "ViewPropPg.h"
 
 namespace wh {
 //---------------------------------------------------------------------------
@@ -24,6 +25,7 @@ class ViewExecActWindow final : public IViewWindow
 
 	std::shared_ptr<ViewTableBrowser>	mObjBrowser;
 	std::shared_ptr<ViewActBrowser>		mActBrowser;
+	std::shared_ptr<ViewPropPg>			mPropPG;
 
 public:
 	ViewExecActWindow(wxWindow* parent);
@@ -35,6 +37,7 @@ public:
 
 	virtual std::shared_ptr<ViewTableBrowser>	GetViewObjBrowser()const;
 	virtual std::shared_ptr<ViewActBrowser>		GetViewActBrowser()const;
+	virtual std::shared_ptr<ViewPropPg>			GetViewPropPG()const;
 
 	void SetSelectPage(int);
 

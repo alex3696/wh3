@@ -55,8 +55,10 @@ ViewActBrowser::ViewActBrowser(wxWindow* parent)
 	mToolTipTimer.Bind(wxEVT_TIMER
 		, [this](wxTimerEvent& evt) { ShowToolTip(); });
 
-	table->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent&)
+	table->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent& evt)
 	{
+		if (evt.GetWindow() != mTable)
+			return;
 		mTable = nullptr;
 		mDvModel = nullptr;
 	});

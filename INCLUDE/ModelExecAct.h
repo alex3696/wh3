@@ -3,6 +3,7 @@
 
 #include "ModelActBrowser.h"
 #include "ModelBrowser.h"
+#include "ModelPropPg.h"
 
 
 namespace wh {
@@ -21,6 +22,8 @@ class ModelActExecWindow : public IModelWindow
 public:
 	std::shared_ptr<ModelActBrowserWindow>	mModelActBrowser;
 	std::shared_ptr<ModelBrowser>			mModelObjBrowser;
+	std::shared_ptr<ModelPropPg>			mModelPropPg;
+	
 		
 	ModelActExecWindow();
 	~ModelActExecWindow();

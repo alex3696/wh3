@@ -15,6 +15,9 @@ CtrlActExecWindow::CtrlActExecWindow(
 		(view->GetViewObjBrowser(), model->mModelObjBrowser );
 	mCtrlActBrowser = std::make_shared<CtrlActBrowser>
 		(view->GetViewActBrowser(), model->mModelActBrowser);
+	mCtrlPropPG = std::make_shared<CtrlPropPg>
+		(view->GetViewPropPG(), model->mModelPropPg);
+
 	
 	namespace ph = std::placeholders;
 	

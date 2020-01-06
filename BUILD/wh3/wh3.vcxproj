@@ -453,6 +453,7 @@
     <ClInclude Include="..\..\INCLUDE\ModelHistoryData.h" />
     <ClInclude Include="..\..\INCLUDE\ModelObjPath.h" />
     <ClInclude Include="..\..\INCLUDE\ModelObjPropList.h" />
+    <ClInclude Include="..\..\INCLUDE\ModelPropTable.h" />
     <ClInclude Include="..\..\INCLUDE\ModelUndo.h" />
     <ClInclude Include="..\..\INCLUDE\ViewActBrowser.h" />
     <ClInclude Include="..\..\INCLUDE\ViewActBrowserDVModel.h" />

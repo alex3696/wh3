@@ -112,8 +112,10 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	table->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED
 		, &ViewTableBrowser::OnCmd_SelectionChanged, this);
 
-	table->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent&)
+	table->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent& evt)
 	{
+		if (evt.GetWindow() != mTable)
+			return;
 		mTable = nullptr;
 		mDvModel = nullptr;
 	});
