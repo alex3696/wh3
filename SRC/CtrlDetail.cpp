@@ -2,7 +2,7 @@
 #include "CtrlDetail.h"
 
 #include "MoveObjPresenter.h"
-#include "dlg_act_view_Frame.h"
+#include "CtrlExecAct.h"
 #include "CtrlUndo.h"
 #include "ViewUndo.h"
 
@@ -75,14 +75,21 @@ void CtrlToolbarAct::DoMove()
 //---------------------------------------------------------------------------
 void CtrlToolbarAct::DoAct()
 {
+	auto container = whDataMgr::GetInstance()->mContainer;
+	std::set<ObjectKey> obj;
+
 	const rec::PathItem& data = mModel->mModelObjDetail->Get();
+
+	obj.emplace(ObjectKey(data.mObj.mId, data.mObj.mParent.mId));
+
 	try
 	{
-		auto subj = std::make_shared<dlg_act::model::Obj >();
-		subj->SetData(data, true);
-		dlg_act::view::Frame dlg;
-		dlg.SetModel(subj);
-		dlg.ShowModal();
+		auto ctrlActExecWindow = container->GetObject<CtrlActExecWindow>("CtrlActExecWindow");
+		if (ctrlActExecWindow)
+		{
+			ctrlActExecWindow->SetObjects(obj);
+			ctrlActExecWindow->Show();
+		}
 	}
 	catch (...)
 	{

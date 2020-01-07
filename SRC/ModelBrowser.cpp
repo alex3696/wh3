@@ -1,7 +1,6 @@
 #include "_pch.h"
 #include "ModelBrowser.h"
 
-#include "dlg_act_view_Frame.h"
 #include "MoveObjPresenter.h"
 #include "CtrlExecAct.h"
 #include "CtrlNotebook.h"

@@ -4,7 +4,6 @@
 #include "VObjCatalogCtrl.h"
 #include "MObjCatalog.h"
 
-#include "dlg_act_view_Frame.h"
 #include "dlg_mkobj_view_Frame.h"
 
 #include "DClsEditor.h"
@@ -458,33 +457,6 @@ void VObjCatalogCtrl::OnCmdMove(wxCommandEvent& evt)
 			wxLogError("Бла, бла - вобщем кто-то уже юзает этот объект");
 		}
 
-	}
-}
-//-----------------------------------------------------------------------------
-void VObjCatalogCtrl::OnCmdAct(wxCommandEvent& evt)
-{
-	rec::PathItem data;
-	if (GetSelectedObjKey(data))
-	{
-		using namespace dlg_act;
-		namespace view = dlg_act::view;
-		try
-		{
-			auto subj = std::make_shared<model::Obj >();
-			subj->SetData(data, true);
-
-			view::Frame dlg;
-			dlg.SetModel(subj);
-			dlg.ShowModal();
-			OnCmdReload(wxCommandEvent(wxID_REFRESH));
-		}
-		catch (...)
-		{
-			// Transaction already rollbacked
-			// dialog was destroyed
-			// so nothinh to do
-			wxLogError("Бла, бла - вобщем кто-то уже юзает этот объект");
-		}
 	}
 }
 //-----------------------------------------------------------------------------
