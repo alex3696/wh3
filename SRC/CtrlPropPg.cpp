@@ -15,9 +15,8 @@ CtrlPropPg::CtrlPropPg(const std::shared_ptr<ViewPropPg>& view
 		.connect(std::bind(&T_View::SetBeforeRefresh, mView.get(), ph::_1));
 	connModel_AfterRefresh = mModel->sigAfterRefresh
 		.connect(std::bind(&T_View::SetAfterRefresh, mView.get(), ph::_1));
-
-
-
+	connModel_GetPropValues = mModel->sigGetPropValues
+		.connect(std::bind(&T_View::GetPropValues, mView.get(), ph::_1));
 
 }
 

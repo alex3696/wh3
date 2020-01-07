@@ -90,11 +90,11 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 		}, wxID_UP);
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigAct(); }, wxID_EXECUTE);
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigMove(); }, wxID_REPLACE);
-	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {SetShowDetail(); }, wxID_VIEW_DETAILS);
-	table->GetTargetWindow()->Bind(wxEVT_MIDDLE_UP,	[this](wxMouseEvent&) {SetShowDetail(); });
+	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigShowDetail(); }, wxID_VIEW_DETAILS);
+	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {sigDelete(); }, wxID_DELETE);
+	table->GetTargetWindow()->Bind(wxEVT_MIDDLE_UP,	[this](wxMouseEvent&) {sigShowDetail(); });
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {SetInsertType(); }, wxID_NEW_TYPE);
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {SetInsertObj(); }, wxID_NEW_OBJECT);
-	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {SetDeleteSelected(); }, wxID_DELETE);
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {SetUpdateSelected(); }, wxID_EDIT);
 
 	table->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&)
@@ -306,7 +306,7 @@ void ViewTableBrowser::SetCursorHand()
 {
 	if (!IsCursorHand())
 	{
-		mIsCursorHand = false;
+		mIsCursorHand = true;
 		mTable->GetMainWindow()->SetCursor(wxCursor(wxCURSOR_HAND));
 	}
 		
@@ -955,20 +955,6 @@ void ViewTableBrowser::SetObjOperation(Operation op, const std::vector<const IId
 	//AutosizeColumns();
 }
 //-----------------------------------------------------------------------------
-//virtual 
-void ViewTableBrowser::SetShowDetail()//override;
-{
-	const IIdent64* ident = static_cast<const IIdent64*> (mTable->GetCurrentItem().GetID());
-	if (ident)
-	{
-		const auto& obj = dynamic_cast<const IObj64*>(ident);
-		if (obj)
-		{
-			sigShowDetail(obj->GetId(), obj->GetParentId());
-		}
-	}//if (ident)
-}
-//-----------------------------------------------------------------------------
 void wh::ViewTableBrowser::SetShowFav()
 {
 	const IIdent64* ident = static_cast<const IIdent64*> (mTable->GetCurrentItem().GetID());
@@ -1018,29 +1004,6 @@ void wh::ViewTableBrowser::SetInsertObj() const //override;
 		int64_t cid = obj->GetCls()->GetId();
 		sigObjInsert(cid);
 	}
-}
-//-----------------------------------------------------------------------------
-//virtual 
-void wh::ViewTableBrowser::SetDeleteSelected() const //override;
-{
-	const IIdent64* ident = static_cast<const IIdent64*> (mTable->GetCurrentItem().GetID());
-	if (!ident)
-		return;
-	const auto& cls = dynamic_cast<const ICls64*>(ident);
-	if (cls)
-	{
-		int64_t cid = cls->GetId();
-		sigClsDelete(cid);
-	}
-	const auto& obj = dynamic_cast<const IObj64*>(ident);
-	if (obj)
-	{
-		int64_t oid = obj->GetId();
-		int64_t parent_oid = obj->GetParentId();
-		sigObjDelete(oid, parent_oid);
-	}
-
-
 }
 //-----------------------------------------------------------------------------
 //virtual 

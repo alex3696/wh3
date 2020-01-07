@@ -25,7 +25,7 @@ public:
 		wxPGMultiButton* buttons = new wxPGMultiButton(propGrid, sz);
 
 		// Add regular buttons
-		buttons->Add(wxArtProvider::GetBitmap(wxART_EXECUTABLE_FILE, wxART_BUTTON));
+		buttons->Add(wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_MENU));
 		buttons->Add(wxString("..."));
 
 		auto btn0 = buttons->GetButton(0);

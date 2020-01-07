@@ -18,6 +18,7 @@ public:
 	
 	void SetBeforeRefresh(std::shared_ptr<const ModelPropTable>);
 	void SetAfterRefresh(std::shared_ptr<const ModelPropTable>);
+	void GetPropValues(std::map<int64_t, wxString>& values);
 protected:
 
 private:

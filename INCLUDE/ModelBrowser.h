@@ -545,6 +545,9 @@ public:
 
 	void DoMove();
 	void DoAct();
+	void DoShowDetails();
+	void DoDelete();
+
 
 	sig::signal<void(std::vector<const IIdent64*>&)> sigGetSelection;
 		

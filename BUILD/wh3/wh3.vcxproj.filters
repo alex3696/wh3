@@ -1106,17 +1106,17 @@
     <ClInclude Include="..\..\INCLUDE\ModelActTable.h">
       <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2\ModelActTable</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\SRC\CtrlPropPg.h">
-      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\PropPG</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\SRC\ModelPropPg.h">
-      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\PropPG</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\SRC\ViewPropPg.h">
-      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\PropPG</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\INCLUDE\ModelPropTable.h">
       <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2\ModelPropTable</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ViewPropPg.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\PropPG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\CtrlPropPg.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\PropPG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\ModelPropPg.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\v2\PropPG</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

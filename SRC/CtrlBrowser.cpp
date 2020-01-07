@@ -45,19 +45,17 @@ CtrlTableBrowser::CtrlTableBrowser(
 	connViewCmd_Move = mView->sigMove
 		.connect(std::bind(&CtrlTableBrowser::Move, this));
 	connViewCmd_ShowObjDetail = mView->sigShowDetail
-		.connect(std::bind(&CtrlTableBrowser::ShowDetail, this, ph::_1, ph::_2));
+		.connect(std::bind(&CtrlTableBrowser::ShowDetails, this));
+	connViewCmd_Delete = mView->sigDelete
+		.connect(std::bind(&CtrlTableBrowser::Delete, this));
 
 	connViewCmd_ClsInsert = mView->sigClsInsert
 		.connect(std::bind(&CtrlTableBrowser::ClsInsert, this, ph::_1));
-	connViewCmd_ClsDelete = mView->sigClsDelete
-		.connect(std::bind(&CtrlTableBrowser::ClsDelete, this, ph::_1));
 	connViewCmd_ClsUpdate = mView->sigClsUpdate
 		.connect(std::bind(&CtrlTableBrowser::ClsUpdate, this, ph::_1));
 
 	connViewCmd_ObjInsert = mView->sigObjInsert
 		.connect(std::bind(&CtrlTableBrowser::ObjInsert, this, ph::_1));
-	connViewCmd_ObjDelete = mView->sigObjDelete
-		.connect(std::bind(&CtrlTableBrowser::ObjDelete, this, ph::_1, ph::_2));
 	connViewCmd_ObjUpdate = mView->sigObjUpdate
 		.connect(std::bind(&CtrlTableBrowser::ObjUpdate, this, ph::_1, ph::_2));
 
@@ -122,38 +120,19 @@ void CtrlTableBrowser::SetInsertObj()
 	mView->SetInsertObj();
 }
 //---------------------------------------------------------------------------
-void CtrlTableBrowser::SetDelete()
-{
-	mView->SetDeleteSelected();
-}
-//---------------------------------------------------------------------------
 void CtrlTableBrowser::SetUpdate()
 {
 	mView->SetUpdateSelected();
 }
 //---------------------------------------------------------------------------
-void CtrlTableBrowser::SetShowDetail()
+void CtrlTableBrowser::ShowDetails()
 {
-	mView->SetShowDetail();
+	mModel->DoShowDetails();
 }
 //---------------------------------------------------------------------------
-void CtrlTableBrowser::ShowDetail(int64_t oid, int64_t parent_oid)
+void CtrlTableBrowser::Delete()
 {
-	auto container = whDataMgr::GetInstance()->mContainer;
-
-	auto detail_obj = container->GetObject<rec::ObjInfo>("DefaultDetailObjInfo");
-	if (!detail_obj)
-		return;
-
-	detail_obj->mObj.mId = oid;
-	detail_obj->mObj.mParent.mId = parent_oid;
-
-	auto nb2 = container->GetObject<CtrlNotebook>("CtrlNotebook");
-	if (nb2)
-	{
-		//nb2->MkWindow("CtrlPageDetailObj");
-		nb2->MkWindow("CtrlPageDetail");
-	}
+	mModel->DoDelete();
 }
 //---------------------------------------------------------------------------
 void wh::CtrlTableBrowser::ToggleGroupByType()
@@ -207,18 +186,6 @@ void CtrlTableBrowser::ClsInsert(int64_t parent_cid)
 	mModel->DoRefresh();
 }
 //---------------------------------------------------------------------------
-void CtrlTableBrowser::ClsDelete(int64_t cid)
-{
-	auto container = whDataMgr::GetInstance()->mContainer;
-
-	auto ctrlClsEditor = container->GetObject<CtrlClsEditor>("CtrlClsEditor");
-	if (!ctrlClsEditor)
-		return;
-
-	ctrlClsEditor->Delete(cid);
-	mModel->DoRefresh();
-}
-//---------------------------------------------------------------------------
 void CtrlTableBrowser::ClsUpdate(int64_t cid)
 {
 	auto container = whDataMgr::GetInstance()->mContainer;
@@ -240,18 +207,6 @@ void CtrlTableBrowser::ObjInsert(int64_t cid)
 		return;
 
 	ctrlObjEditor->Insert(cid);
-	mModel->DoRefresh();
-}
-//---------------------------------------------------------------------------
-void CtrlTableBrowser::ObjDelete(int64_t oid, int64_t parent_oid)
-{
-	auto container = whDataMgr::GetInstance()->mContainer;
-
-	auto ctrlObjEditor = container->GetObject<CtrlObjEditor>("CtrlObjEditor");
-	if (!ctrlObjEditor)
-		return;
-
-	ctrlObjEditor->Delete(oid, parent_oid);
 	mModel->DoRefresh();
 }
 //---------------------------------------------------------------------------
@@ -293,7 +248,7 @@ CtrlToolbarBrowser::CtrlToolbarBrowser(
 	connViewCmd_Move = mView->sigMove
 		.connect(std::bind(&CtrlToolbarBrowser::Move, this));
 	connViewCmd_ShowDetail = mView->sigShowDetail
-		.connect(std::bind(&CtrlToolbarBrowser::ShowDetail, this));
+		.connect(std::bind(&CtrlToolbarBrowser::ShowDetails, this));
 
 	connViewCmd_AddType = mView->sigInsertType
 		.connect(std::bind(&CtrlToolbarBrowser::InsertType, this));
@@ -341,9 +296,9 @@ void CtrlToolbarBrowser::Move()
 	mModel->GetModelBrowser()->DoMove();
 }
 //---------------------------------------------------------------------------
-void CtrlToolbarBrowser::ShowDetail()
+void CtrlToolbarBrowser::ShowDetails()
 {
-	mTableCtrl->SetShowDetail();
+	mModel->GetModelBrowser()->DoShowDetails();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::InsertType()
@@ -358,7 +313,7 @@ void CtrlToolbarBrowser::InsertObject()
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::Delete()
 {
-	mTableCtrl->SetDelete();
+	mModel->GetModelBrowser()->DoDelete();
 }
 //---------------------------------------------------------------------------
 void CtrlToolbarBrowser::Update()
@@ -431,11 +386,6 @@ CtrlPageBrowser::CtrlPageBrowser(
 		.connect(std::bind(&CtrlPageBrowser::Find, this, ph::_1));
 	connViewCmd_Mode = mView->sigMode
 		.connect(std::bind(&CtrlPageBrowser::SetMode, this, ph::_1));
-
-
-	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
-		.connect(std::bind(&IViewBrowserPage::SetAfterRefreshCls, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4, ph::_5));
-
 
 	connViewCmd_Close = mView->sigClosePage
 		.connect(std::bind(&CtrlPageBrowser::ClosePage, this));

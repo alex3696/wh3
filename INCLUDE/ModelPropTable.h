@@ -80,7 +80,7 @@ public:
 
 	using fnModify = std::function<void(const std::shared_ptr<RowType>& obj)>;
 
-	std::shared_ptr<const RowType> GetById(const int64_t& id)
+	std::shared_ptr<const RowType> GetById(const int64_t& id)const
 	{
 		auto& idxId = mData.get<0>();
 		auto it = idxId.find(id);

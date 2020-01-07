@@ -412,6 +412,7 @@
     <ClInclude Include="..\..\INCLUDE\CtrlActBrowser.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlCSVFile.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlExecAct.h" />
+    <ClInclude Include="..\..\INCLUDE\CtrlPropPg.h" />
     <ClInclude Include="..\..\INCLUDE\ModelActBrowser.h" />
     <ClInclude Include="..\..\INCLUDE\ModelActTable.h" />
     <ClInclude Include="..\..\INCLUDE\ModelClsPath.h" />
@@ -453,6 +454,7 @@
     <ClInclude Include="..\..\INCLUDE\ModelHistoryData.h" />
     <ClInclude Include="..\..\INCLUDE\ModelObjPath.h" />
     <ClInclude Include="..\..\INCLUDE\ModelObjPropList.h" />
+    <ClInclude Include="..\..\INCLUDE\ModelPropPg.h" />
     <ClInclude Include="..\..\INCLUDE\ModelPropTable.h" />
     <ClInclude Include="..\..\INCLUDE\ModelUndo.h" />
     <ClInclude Include="..\..\INCLUDE\ViewActBrowser.h" />
@@ -535,6 +537,7 @@
     <ClInclude Include="..\..\INCLUDE\ViewHistorySetup.h" />
     <ClInclude Include="..\..\INCLUDE\ViewMain.h" />
     <ClInclude Include="..\..\INCLUDE\ViewObjPropList.h" />
+    <ClInclude Include="..\..\INCLUDE\ViewPropPg.h" />
     <ClInclude Include="..\..\INCLUDE\ViewUndo.h" />
     <ClInclude Include="..\..\INCLUDE\VTableCtrl.h" />
     <ClInclude Include="..\..\INCLUDE\TableRowEditor.h" />
@@ -581,9 +584,6 @@
     <ClInclude Include="..\..\INCLUDE\wxDataViewRenderer.h" />
     <ClInclude Include="..\..\INCLUDE\FB_FORMS\whLogin.h" />
     <ClInclude Include="..\..\INCLUDE\whDB.h" />
-    <ClInclude Include="..\..\SRC\CtrlPropPg.h" />
-    <ClInclude Include="..\..\SRC\ModelPropPg.h" />
-    <ClInclude Include="..\..\SRC\ViewPropPg.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wh3.rc" />

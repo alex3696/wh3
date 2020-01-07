@@ -13,6 +13,7 @@ ViewExecActWindow::ViewExecActWindow(wxWindow* parent)
 
 	const wxIcon  ico("ICO_ACT_24", wxBITMAP_TYPE_ICO_RESOURCE, 24, 24);
 	mPanel->SetIcon(ico);
+	mPanel->SetMinSize(mPanel->GetSize());
 	mPanel->SetSize(mPanel->GetSize()*1.8);
 	wxSizer *mainSz = new wxBoxSizer(wxVERTICAL);
 	
@@ -71,15 +72,17 @@ ViewExecActWindow::ViewExecActWindow(wxWindow* parent)
 	{
 		if (evt.GetWindow() != mPanel)
 			return;
+		mTimer.Stop();
 		mObjBrowser.reset();
 		mActBrowser.reset();
+		mPropPG.reset();
 		mPanel = nullptr;
 	});
 
 	mPanel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ViewExecActWindow::OnCancel, this, wxID_CANCEL);
 	mPanel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ViewExecActWindow::OnOk, this, wxID_OK);
 	mPanel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ViewExecActWindow::OnBack, this, wxID_BACKWARD);
-
+	mTimer.Bind(wxEVT_TIMER, &ViewExecActWindow::OnTimer, this);
 }
 //-----------------------------------------------------------------------------
 ViewExecActWindow::~ViewExecActWindow()
@@ -93,10 +96,18 @@ ViewExecActWindow::ViewExecActWindow(const std::shared_ptr<IViewWindow>& parent)
 }
 //-----------------------------------------------------------------------------
 //virtual 
+void ViewExecActWindow::SetClose()//override;
+{
+	StopCountdown();
+	mPanel->EndModal(wxID_CANCEL);
+}
+//-----------------------------------------------------------------------------
+//virtual 
 void ViewExecActWindow::SetShow() //override
 {
-	mPanel->SetTitle(wxString::Format("Выполнение действия. Начато: %s",
-		wxDateTime::Now().Format()));
+	//mPanel->SetTitle(wxString::Format("Выполнение действия. Начато: %s",
+	//	wxDateTime::Now().Format()));
+	StartCountdown();
 	mPanel->ShowModal();
 }
 //-----------------------------------------------------------------------------
@@ -106,7 +117,6 @@ void ViewExecActWindow::SetUpdateTitle(const wxString& str, const wxIcon& ico)//
 	mPanel->SetTitle(str);
 	mPanel->SetIcon(ico);
 }
-
 //-----------------------------------------------------------------------------
 //virtual 
 std::shared_ptr<ViewTableBrowser> ViewExecActWindow::GetViewObjBrowser()const
@@ -129,9 +139,7 @@ std::shared_ptr<ViewPropPg> ViewExecActWindow::GetViewPropPG()const
 void ViewExecActWindow::OnClose(wxCloseEvent& evt)
 {
 	this->sigUnlock();
-	mPanel->EndModal(wxID_CANCEL);
-	//mPanel->Destroy();
-	//mPanel = nullptr;
+	SetClose();
 }
 //-----------------------------------------------------------------------------
 void ViewExecActWindow::OnCancel(wxCommandEvent& evt)
@@ -184,18 +192,22 @@ void ViewExecActWindow::SetSelectPage(int page)
 //-----------------------------------------------------------------------------
 void ViewExecActWindow::OnOk(wxCommandEvent& evt)
 {
-	if (mPropListPanel->IsShown())
-	{ 
-		sigExecute();
+	if (mObjListPanel->IsShown())
+	{
+		SetSelectPage(1);
 		return;
 	}
-	
 	if (mActListPanel->IsShown())
 	{
 		sigSelectAct();
 		return;
 	}
-	SetSelectPage(1);
+
+	if (mPropListPanel->IsShown())
+	{ 
+		sigExecute();
+		return;
+	}
 }
 //-----------------------------------------------------------------------------
 void ViewExecActWindow::OnBack(wxCommandEvent& evt)
@@ -212,7 +224,42 @@ void ViewExecActWindow::OnBack(wxCommandEvent& evt)
 	SetSelectPage(page);
 }
 //-----------------------------------------------------------------------------
-void ViewExecActWindow::OnActivated(wxDataViewEvent &evt)
+void ViewExecActWindow::OnTimer(wxTimerEvent &evt)
 {
+	StepCountdown();
+}
+//-----------------------------------------------------------------------------
+void ViewExecActWindow::StartCountdown()
+{
+	mMillSecLeft = 1000 * 60 * 10;//10min
+	mTimer.Start(1000 * 10);//10sec
+	mPanel->SetTitle("Выполнение действия");
+}
+//-----------------------------------------------------------------------------
+void ViewExecActWindow::StepCountdown()
+{
+	if (mMillSecLeft > 0)
+	{
+		mMillSecLeft -= 1000 * 10;
 
+		mPanel->SetTitle(wxString::Format(
+			"Выполнение действия."
+			" Автосброс блокировки объекта через %d:%d"
+			, mMillSecLeft / 1000 / 60
+			, (mMillSecLeft/1000) % 60 ));
+	}
+	else
+	{
+		mTimer.Stop();
+		mMillSecLeft = 0;
+		mPanel->SetTitle("Выполнение действия невозможно. "
+			"Перезапустите этот диалог ");
+	}
+
+
+}
+//-----------------------------------------------------------------------------
+void ViewExecActWindow::StopCountdown()
+{
+	mTimer.Stop();
 }

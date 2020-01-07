@@ -46,7 +46,7 @@ void ViewPropPg::SetAfterRefresh(std::shared_ptr<const ModelPropTable> table)
 	{
 		wxPGProperty* pgp = nullptr;
 		const wxString& pgp_title = curr->GetTitle();
-		const wxString  pgp_name = wxString::Format("ObjProp_%s", curr->GetIdAsString());
+		const wxString  pgp_name = wxString::Format("%s", curr->GetIdAsString());
 
 		switch (curr->GetKind())
 		{
@@ -85,7 +85,7 @@ void ViewPropPg::SetAfterRefresh(std::shared_ptr<const ModelPropTable> table)
 		break;
 
 		case ftLink:	pgp = new whPGFileLinkProperty(pgp_title, pgp_name);  break;
-		case ftFile:	pgp = new wxStringProperty(pgp_title, pgp_name);  break;
+		case ftFile:	pgp = new whPGFileLinkProperty(pgp_title, pgp_name);  break;
 		case ftJSON:	pgp = new wxLongStringProperty(pgp_title, pgp_name);  break;
 		default:break;
 		}
@@ -93,9 +93,31 @@ void ViewPropPg::SetAfterRefresh(std::shared_ptr<const ModelPropTable> table)
 	}
 	//mPG->FitColumns();
 	mPG->Sort(); // wxPG_SORT_TOP_LEVEL_ONLY
-	//auto w = mPG->FitColumns().x;
-	//mPG->ResetColumnSizes(true);
-	//mPG->SetSplitterPosition(w);
-	//mPG->SetSplitterLeft(true);
+	wxSize oldGridSize = mPG->GetGrid()->GetClientSize();
+	wxSize newSz = mPG->FitColumns();
+
+	if (newSz.x > oldGridSize.x / 2)
+		mPG->CenterSplitter(true);
+
 	
 }
+//-----------------------------------------------------------------------------
+void ViewPropPg::GetPropValues(std::map<int64_t, wxString>& arr)
+{
+	wxPropertyGridIterator it;
+
+	for (it = mPG->GetIterator(); !it.AtEnd(); ++it)
+	{
+		wxPGProperty* pgp = *it;
+		long long id;
+		if (pgp->GetName().ToLongLong(&id))
+		{
+			auto val = pgp->GetValueAsString();
+			val.Replace("\"", "\\\"");
+			arr.emplace(id, val);
+		}
+
+		
+	}
+}
+//-----------------------------------------------------------------------------

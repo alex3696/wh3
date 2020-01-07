@@ -4,6 +4,10 @@
 #include "dlg_act_view_Frame.h"
 #include "MoveObjPresenter.h"
 #include "CtrlExecAct.h"
+#include "CtrlNotebook.h"
+#include "CtrlClsEditor.h"
+#include "CtrlObjEditor.h"
+
 
 using namespace wh;
 
@@ -1392,32 +1396,6 @@ void ModelBrowser::ExecuteActObjects(const std::set<ObjectKey>& obj)const
 
 	}
 
-
-
-	/*
-
-	TEST_FUNC_TIME;
-	rec::PathItem data;
-	data.mObj.mId = obj.begin()->mId;
-	data.mObj.mParent.mId = obj.begin()->mParentId;
-
-	using namespace dlg_act;
-	namespace view = dlg_act::view;
-	try
-	{
-		auto subj = std::make_shared<model::Obj >();
-		subj->SetData(data, true);
-
-		view::Frame dlg;
-		dlg.SetModel(subj);
-		dlg.ShowModal();
-	}
-	catch (...)
-	{
-		// Transaction already rollbacked, dialog was destroyed, so nothinh to do
-		wxLogError("Объект занят другим пользователем (см.подробности)");
-	}
-	*/
 }
 //-----------------------------------------------------------------------------
 void ModelBrowser::DoAct()
@@ -1433,6 +1411,74 @@ void ModelBrowser::DoAct()
 	}
 	ExecuteActObjects(sel_obj);
 	DoRefresh();
+}
+//-----------------------------------------------------------------------------
+void ModelBrowser::DoShowDetails()
+{
+	auto container = whDataMgr::GetInstance()->mContainer;
+	std::vector<const IIdent64*> selection;
+	sigGetSelection(selection);
+	for (const auto& ident : selection)
+	{
+		const auto& obj = dynamic_cast<const IObj64*>(ident);
+		if (obj)
+		{
+			auto detail_obj = container->GetObject<rec::ObjInfo>("DefaultDetailObjInfo");
+			if (!detail_obj)
+				return;
+
+			detail_obj->mObj.mId = obj->GetId();
+			detail_obj->mObj.mParent.mId = obj->GetParentId();
+
+			auto nb2 = container->GetObject<CtrlNotebook>("CtrlNotebook");
+			if (nb2)
+			{
+				//nb2->MkWindow("CtrlPageDetailObj");
+				nb2->MkWindow("CtrlPageDetail");
+			}//if (nb2)
+		}//if (obj)
+	}//for (const auto& ident : selection)
+
+}
+//-----------------------------------------------------------------------------
+void ModelBrowser::DoDelete()
+{
+	auto container = whDataMgr::GetInstance()->mContainer;
+
+
+	std::set<ObjectKey> sel_obj;
+	std::vector<const IIdent64*> selection;
+	sigGetSelection(selection);
+	for (const auto& ident : selection)
+	{
+		const auto& obj = dynamic_cast<const IObj64*>(ident);
+		if (obj)
+		{
+			auto ctrlObjEditor = container->GetObject<CtrlObjEditor>("CtrlObjEditor");
+			if (!ctrlObjEditor)
+				return;
+
+			ctrlObjEditor->Delete(obj->GetId(), obj->GetParentId());
+			DoRefresh();
+		}
+		else
+		{
+			const auto& cls = dynamic_cast<const ICls64*>(ident);
+			if (cls)
+			{
+				
+				auto ctrlClsEditor = container->GetObject<CtrlClsEditor>("CtrlClsEditor");
+				if (!ctrlClsEditor)
+					return;
+
+				ctrlClsEditor->Delete(cls->GetId());
+				DoRefresh();
+			}
+		}
+			
+	}
+
+
 }
 //-----------------------------------------------------------------------------
 void ModelBrowser::UpdateUntitledActs()

@@ -19,6 +19,10 @@ class ModelActExecWindow : public IModelWindow
 	ActRec64 mAct;
 
 	ModelActBrowserWindow::FuncActivateCallback mOnActivateAct;
+
+	void UnlockObjectsWithoutTransaction();
+
+	int BuildExecQuery(wxString& query);
 public:
 	std::shared_ptr<ModelActBrowserWindow>	mModelActBrowser;
 	std::shared_ptr<ModelBrowser>			mModelObjBrowser;

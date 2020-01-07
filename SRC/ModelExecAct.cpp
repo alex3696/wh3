@@ -86,18 +86,24 @@ ModelActExecWindow::~ModelActExecWindow()
 
 }
 //---------------------------------------------------------------------------
-void ModelActExecWindow::UnlockObjects()
+void ModelActExecWindow::UnlockObjectsWithoutTransaction()
 {
 	wxString query;
-	whDataMgr::GetDB().BeginTransaction();
 	for (const auto& obj : mObjects)
 	{
 		query = wxString::Format(
 			"SELECT lock_reset(%s,%s)"
 			, obj.GetId_AsString()
-			, obj.GetParentId_AsString() );
+			, obj.GetParentId_AsString());
 		whDataMgr::GetDB().Exec(query);
 	}
+
+}
+//---------------------------------------------------------------------------
+void ModelActExecWindow::UnlockObjects()
+{
+	whDataMgr::GetDB().BeginTransaction();
+	UnlockObjectsWithoutTransaction();
 	whDataMgr::GetDB().Commit();
 }
 //---------------------------------------------------------------------------
@@ -143,12 +149,10 @@ void ModelActExecWindow::DoShowActProperty()
 		}//for
 	}
 	whDataMgr::GetDB().Commit();
-
-	mModelPropPg->DoSwap(prop_table);
 	
 	mCurrentPage = 2;
 	sigSelectPage(mCurrentPage);
-
+	mModelPropPg->DoSwap(prop_table);
 }
 //---------------------------------------------------------------------------
 void ModelActExecWindow::DoShowActList()
@@ -162,8 +166,94 @@ void ModelActExecWindow::DoSelectAct()
 	mModelActBrowser->DoActivate();
 }
 //---------------------------------------------------------------------------
+int ModelActExecWindow::BuildExecQuery(wxString& query)
+{
+	int ret = 0;
+
+	std::map<int64_t, wxString> propval;
+	mModelPropPg->sigGetPropValues(propval);
+	auto prop_table = mModelPropPg->GetPropTable();
+
+	wxString propdata;
+
+	for (const auto& it : propval)
+	{
+		if (it.second.empty())
+			ret++;
+
+		auto prop = prop_table->GetById(it.first);
+		if (prop)
+		{
+			wxString format;
+			switch (prop->GetKind())
+			{
+			case ftLong:
+			case ftDouble:	format = "'%s',%s,";
+				break;
+			default:		format = "'%s','%s',";
+				break;
+			}
+
+			propdata += wxString::Format(format
+				, prop->GetIdAsString()
+				, it.second);
+		}
+
+	}
+	if (propdata.empty())
+		return -1;
+	propdata.RemoveLast();
+	propdata = wxString::Format("jsonb_build_object(%s)", propdata);
+
+	query = wxString::Format(
+		"SELECT do_act(%%s, %s, %s)"
+		, mAct.GetIdAsString()
+		, propdata );
+
+	return ret;
+}
+//---------------------------------------------------------------------------
 void ModelActExecWindow::DoExecute()
 {
+	wxString query;
+	int ret = BuildExecQuery(query);
+	if (ret < 0)
+		return;
+
+	if (ret>0)
+	{
+		wxMessageDialog dialog(nullptr,
+			"Не все поля заполнены! Вы уверены, в том что надо сохранить?",
+			"Confirm\n",
+			wxCENTER |
+			wxNO_DEFAULT | wxYES_NO | wxICON_QUESTION);
+		int modalResult = dialog.ShowModal();
+		if (wxID_YES != modalResult)
+			return;
+	}
+
+	try {
+		whDataMgr::GetDB().BeginTransaction();
+
+		wxString qexec;
+		for (const auto& obj : mObjects)
+		{
+			qexec = wxString::Format(query
+				, obj.GetId_AsString());
+			whDataMgr::GetDB().Exec(qexec);
+		}
+		UnlockObjectsWithoutTransaction();
+		whDataMgr::GetDB().Commit();
+		sigClose();
+	}
+	catch (...)
+	{
+		whDataMgr::GetDB().RollBack();
+		wxLogError("error DoExecute");
+		
+	}
+
+	
 
 }
 //---------------------------------------------------------------------------

@@ -29,7 +29,7 @@ CtrlActExecWindow::CtrlActExecWindow(
 	connViewCmd_SelectAct = mView->sigSelectAct
 		.connect(std::bind(&CtrlActExecWindow::SelectAct, this));
 	connViewCmd_Execute = mView->sigExecute
-		.connect(std::bind(&CtrlActExecWindow::SelectAct, this));
+		.connect(std::bind(&CtrlActExecWindow::Execute, this));
 
 
 };

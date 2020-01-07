@@ -14,6 +14,7 @@ class CtrlPropPg : public CtrlWindowBase<ViewPropPg, ModelPropPg>
 {
 	sig::scoped_connection connModel_BeforeRefresh;
 	sig::scoped_connection connModel_AfterRefresh;
+	sig::scoped_connection connModel_GetPropValues;
 
 public:
 	CtrlPropPg(const std::shared_ptr<ViewPropPg>& view

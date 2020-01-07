@@ -22,6 +22,7 @@ class ViewExecActWindow final : public IViewWindow
 	wxButton*	mBtnBack;
 	wxButton*	mBtnForward;
 
+	wxTimer		mTimer;
 
 	std::shared_ptr<ViewTableBrowser>	mObjBrowser;
 	std::shared_ptr<ViewActBrowser>		mActBrowser;
@@ -33,6 +34,7 @@ public:
 	~ViewExecActWindow();
 	virtual wxWindow* GetWnd()const override {	return mPanel;	}
 	virtual void SetShow()override;
+	virtual void SetClose()override;
 	virtual void SetUpdateTitle(const wxString&, const wxIcon&)override;
 
 	virtual std::shared_ptr<ViewTableBrowser>	GetViewObjBrowser()const;
@@ -49,9 +51,12 @@ protected:
 	void OnCancel(wxCommandEvent& evt = wxCommandEvent());
 	void OnOk(wxCommandEvent& evt = wxCommandEvent());
 	void OnBack(wxCommandEvent& evt = wxCommandEvent());
-	void OnActivated(wxDataViewEvent &evt = wxDataViewEvent());
+	void OnTimer(wxTimerEvent &evt = wxTimerEvent());
 private:
-	
+	int mMillSecLeft;
+	void StartCountdown(); 
+	void StepCountdown();
+	void StopCountdown();
 
 
 	
