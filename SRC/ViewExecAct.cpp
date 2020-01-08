@@ -52,7 +52,6 @@ ViewExecActWindow::ViewExecActWindow(wxWindow* parent)
 	// buttons
 	wxBoxSizer* msdbSizer = new wxBoxSizer(wxHORIZONTAL);
 	msdbSizer->Add(0, 0, 1, wxEXPAND, 5);
-	msdbSizer->Add(0, 0, 1, wxEXPAND, 5);
 	mBtnBack = new wxButton(mPanel, wxID_BACKWARD, "< Назад");
 	mBtnForward = new wxButton(mPanel, wxID_OK, "Далее >");
 	auto mbtnCancel = new wxButton(mPanel, wxID_CANCEL, "Закрыть");
@@ -138,6 +137,7 @@ std::shared_ptr<ViewPropPg> ViewExecActWindow::GetViewPropPG()const
 //-----------------------------------------------------------------------------
 void ViewExecActWindow::OnClose(wxCloseEvent& evt)
 {
+	StopCountdown();
 	this->sigUnlock();
 	SetClose();
 }

@@ -178,7 +178,12 @@ int ModelActExecWindow::BuildExecQuery(wxString& query)
 
 	for (const auto& it : propval)
 	{
-		if (it.second.empty())
+		wxString value = it.second;
+		//value.Replace("\\", "\\\\", true);
+		//value.Replace("\"", "\\\\"", true);
+		value.Replace("%", "%%", true);
+		
+		if (value.empty())
 			ret++;
 
 		auto prop = prop_table->GetById(it.first);
@@ -196,7 +201,7 @@ int ModelActExecWindow::BuildExecQuery(wxString& query)
 
 			propdata += wxString::Format(format
 				, prop->GetIdAsString()
-				, it.second);
+				, value);
 		}
 
 	}
