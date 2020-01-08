@@ -3,13 +3,15 @@
 
 #include "IViewWindow.h"
 #include "MoveObjData.h"
+#include "ViewBrowser.h"
+
 
 namespace wh{
 
-class IMoveObjView
+class IMoveObjView : public IViewWindow
 {
 public:
-	virtual void ShowDialog() = 0;
+	virtual std::shared_ptr<ViewTableBrowser>	GetViewObjBrowser()const = 0;
 	virtual void UpdateRecent(const ObjTree& tree) = 0;
 	virtual void UpdateDst(const ObjTree& tree) = 0;
 	virtual void UpdateMoveable(const rec::PathItem& moveable) = 0;

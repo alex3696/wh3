@@ -243,6 +243,7 @@ void ViewTableBrowser::OnCmd_MouseMove(wxMouseEvent& evt)
 //-----------------------------------------------------------------------------
 void ViewTableBrowser::OnCmd_LeftUp(wxMouseEvent& evt)
 {
+	evt.Skip();
 	if (!evt.AltDown())
 		return;
 
@@ -667,7 +668,7 @@ void ViewTableBrowser::ResetColumns()
 		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 	//col3->GetRenderer()->EnableEllipsize(wxELLIPSIZE_START);
 
-	auto col2 = table->AppendTextColumn("Количество", 2, wxDATAVIEW_CELL_INERT, 150
+	auto col2 = table->AppendTextColumn("Количество", 2, wxDATAVIEW_CELL_EDITABLE, 150
 		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 
 	auto col4 = table->AppendTextColumn("Местоположение", 3, wxDATAVIEW_CELL_INERT, -1

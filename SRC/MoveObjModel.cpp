@@ -153,6 +153,11 @@ void Moveable::SetRecentEnable(bool enable)
 	whDataMgr::GetInstance()->mRecentDstOidPresenter->SetRecentEnable(i);
 }
 //-----------------------------------------------------------------------------
+void Moveable::LockObjects(const std::set<ObjectKey>& obj)
+{
+
+}
+//-----------------------------------------------------------------------------
 void Moveable::SetMoveable(int64_t oid, int64_t parent_oid)
 {
 	TEST_FUNC_TIME;

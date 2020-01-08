@@ -401,6 +401,7 @@
     <ClInclude Include="..\..\INCLUDE\BaseOkCancelDialog.h" />
     <ClInclude Include="..\..\INCLUDE\BaseRefControlPanel.h" />
     <ClInclude Include="..\..\INCLUDE\BtnProperty.h" />
+    <ClInclude Include="..\..\INCLUDE\CtrlBrowserRO.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlActBrowser.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlCSVFile.h" />
     <ClInclude Include="..\..\INCLUDE\CtrlExecAct.h" />

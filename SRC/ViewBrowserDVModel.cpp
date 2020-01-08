@@ -400,6 +400,17 @@ bool wxDVTableBrowser::GetAttr(const wxDataViewItem &item, unsigned int col,
 bool wxDVTableBrowser::SetValue(const wxVariant &variant, const wxDataViewItem &item,
 	unsigned int col)//override
 {
+	const auto node = static_cast<const IIdent64*> (item.GetID());
+	const auto ident = node;
+	const auto cls = dynamic_cast<const ICls64*>(ident);
+	if (cls)
+	{
+	}
+	const auto obj = dynamic_cast<const IObj64*>(ident);
+	if (obj)
+	{
+	}
+
 	return false;
 }
 

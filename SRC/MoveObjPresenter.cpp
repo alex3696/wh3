@@ -67,10 +67,15 @@ void MoveObjPresenter::SetMoveable(int64_t oid, int64_t parent_oid)
 	mModel->SetMoveable(oid, parent_oid);
 }
 //-----------------------------------------------------------------------------
+void MoveObjPresenter::SetObjects(const std::set<ObjectKey>& obj)
+{
+	mModel->LockObjects(obj);
+}
+//-----------------------------------------------------------------------------
 void MoveObjPresenter::ShowDialog()
 {
 	if (mView)
-		mView->ShowDialog();
+		mView->SetShow();
 }
 //-----------------------------------------------------------------------------
 void MoveObjPresenter::OnViewUpdate()

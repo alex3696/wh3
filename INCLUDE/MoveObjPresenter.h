@@ -4,10 +4,11 @@
 #include "_pch.h"
 #include "IMoveObjView.h"
 #include "MoveObjModel.h"
+#include "CtrlBrowserRO.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
-class MoveObjPresenter
+class MoveObjPresenter 
 {
 public:
 	MoveObjPresenter(const std::shared_ptr<IMoveObjView>& view,const std::shared_ptr<rec::PathItem>& moveable);
@@ -22,7 +23,11 @@ public:
 	void OnViewFindObj(const wxString& ss);
 	void OnViewClose();
 	void SetMoveable(int64_t oid, int64_t parent_oid);
+	void SetObjects(const std::set<ObjectKey>& obj);
 private:
+	std::shared_ptr<CtrlTableObjBrowser_RO>	mCtrlObjBrowser;
+
+
 	void SetView(IMoveObjView* view);
 	void SetMoveable(const rec::PathItem& moveable);
 

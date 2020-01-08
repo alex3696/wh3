@@ -1061,6 +1061,9 @@
     <ClInclude Include="..\..\INCLUDE\ViewActBrowserDVModel.h">
       <Filter>MainFrame\MVP2\ContentWindows\Подробности\Диалог действий\ActBrowser</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\INCLUDE\CtrlBrowserRO.h">
+      <Filter>MainFrame\MVP2\ContentWindows\Каталог объектов v2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="wh3.rc">

@@ -276,49 +276,63 @@ XMoveObjView::XMoveObjView(wxWindow* parent)
 	mFrame = new wxDialog(parent, wxID_ANY, "Перемещение"
 		, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
 
-	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
-
-	mLblMovableObj = new wxStaticText(mFrame, wxID_ANY, "[класс]объект/...[класс]объект(ед.изм)");
-	szrMain->Add(mLblMovableObj, 0, wxALL, 5);
-
-	mqtySpin = new wxSpinCtrl(mFrame, wxID_ANY, wxEmptyString, wxDefaultPosition,
-		wxDefaultSize, wxSP_ARROW_KEYS, 1, MAXINT, 1);
-	mqtyCtrl = new wxTextCtrl(mFrame, wxID_ANY, "1", wxDefaultPosition, wxDefaultSize, 0,
-		wxTextValidator(wxFILTER_NUMERIC));
-	szrMain->Add(mqtySpin, 0, wxALL | wxEXPAND, 0);
-	szrMain->Add(mqtyCtrl, 0, wxALL | wxEXPAND, 0);
-
-	//mLblDstObj = new wxStaticText(this, wxID_ANY, "В");
-	//szrMain->Add(mLblDstObj, 0, wxALL, 5);
-
-	auto staticline = new wxStaticLine(mFrame, wxID_ANY);
-	szrMain->Add(staticline, 0, wxEXPAND | wxALL, 5);
-
-	BuildToolBar();
-	szrMain->Add(mToolBar, 0, wxALL | wxEXPAND, 0);
-
-	BuildTree();
-	szrMain->Add(mTree, 1, wxALL | wxEXPAND, 0);
-
-
-	msdbSizer = new wxStdDialogButtonSizer();
-	mbtnOK = new wxButton(mFrame, wxID_OK);//,"Сохранить и закрыть" );
-	msdbSizer->AddButton(mbtnOK);
-	mbtnCancel = new wxButton(mFrame, wxID_CANCEL);//," Закрыть" );
-	msdbSizer->AddButton(mbtnCancel);
-	msdbSizer->Realize();
-	szrMain->Add(msdbSizer, 0, wxALL | wxEXPAND, 10);
-
 	const wxIcon  ico("ICO_MOVE_24", wxBITMAP_TYPE_ICO_RESOURCE, 24, 24);
 	mFrame->SetIcon(ico);
+	mFrame->SetMinSize(mFrame->GetSize());
 	mFrame->SetSize(mFrame->GetSize()*1.8);
+
+
+	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
+
+	//Panel Object list
+	mObjListPanel = new wxPanel(mFrame);
+	mObjBrowser = std::make_shared<ViewTableBrowser>(mObjListPanel);
+	
+	wxSizer *objListSzr = new wxBoxSizer(wxVERTICAL);
+	objListSzr->Add(mObjBrowser->GetWnd(), 1, wxEXPAND, 5);
+	mObjListPanel->SetSizer(objListSzr);
+
+	// destination panel
+	mDstPanel = new wxPanel(mFrame);
+	mLblMovableObj = new wxStaticText(mDstPanel, wxID_ANY, "[класс]объект/...[класс]объект(ед.изм)");
+	mqtySpin = new wxSpinCtrl(mDstPanel, wxID_ANY, wxEmptyString, wxDefaultPosition,
+		wxDefaultSize, wxSP_ARROW_KEYS, 1, MAXINT, 1);
+	mqtyCtrl = new wxTextCtrl(mDstPanel, wxID_ANY, "1", wxDefaultPosition, wxDefaultSize, 0,
+		wxTextValidator(wxFILTER_NUMERIC));
+	auto staticline = new wxStaticLine(mDstPanel, wxID_ANY);
+	BuildToolBar(mDstPanel);
+	BuildTree(mDstPanel);
+
+	wxSizer *dstSzr = new wxBoxSizer(wxVERTICAL);
+	dstSzr->Add(mLblMovableObj, 0, wxALL, 5);
+	dstSzr->Add(mqtySpin, 0, wxALL | wxEXPAND, 0);
+	dstSzr->Add(mqtyCtrl, 0, wxALL | wxEXPAND, 0);
+	dstSzr->Add(staticline, 0, wxEXPAND | wxALL, 5);
+	dstSzr->Add(mToolBar, 0, wxALL | wxEXPAND, 0);
+	dstSzr->Add(mTree, 1, wxALL | wxEXPAND, 0);
+	mDstPanel->SetSizer(dstSzr);
+	
+	szrMain->Add(mObjListPanel, 1, wxEXPAND, 5);
+	szrMain->Add(mDstPanel, 1, wxEXPAND, 5);
+
+	wxBoxSizer* msdbSizer = new wxBoxSizer(wxHORIZONTAL);
+	msdbSizer->Add(0, 0, 1, wxEXPAND, 5);
+	mBtnBack = new wxButton(mFrame, wxID_BACKWARD, "< Назад");
+	mBtnForward = new wxButton(mFrame, wxID_OK, "Далее >");
+	auto mbtnCancel = new wxButton(mFrame, wxID_CANCEL, "Закрыть");
+	msdbSizer->Add(mBtnBack, 0, wxALL, 5);
+	msdbSizer->Add(mBtnForward, 0, wxALL, 5);
+	msdbSizer->Add(mbtnCancel, 0, wxALL, 5);
+	szrMain->Add(msdbSizer, 0, wxEXPAND, 10);
+
 	mFrame->SetSizer(szrMain);
 	mFrame->Layout();
+	mFrame->Centre(wxBOTH);
 
 	mFrame->Bind(wxEVT_CLOSE_WINDOW, &XMoveObjView::OnClose, this);
 	mFrame->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &XMoveObjView::OnCancel, this, wxID_CANCEL);
 	mFrame->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &XMoveObjView::OnOk, this, wxID_OK);
-	
+	mFrame->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &XMoveObjView::OnBack, this, wxID_BACKWARD);
 	//mFrame->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent& evt) {	//this->sigClose();	});
 
 }
@@ -334,9 +348,9 @@ XMoveObjView::~XMoveObjView()
 	//mFrame = nullptr;
 }
 //-----------------------------------------------------------------------------
-void XMoveObjView::BuildToolBar()
+void XMoveObjView::BuildToolBar(wxWindow* parent)
 {
-	mToolBar = new wxAuiToolBar(mFrame, wxID_ANY, wxDefaultPosition, wxDefaultSize
+	mToolBar = new wxAuiToolBar(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize
 		, wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_PLAIN_BACKGROUND /*| wxAUI_TB_TEXT */);
 
 	{
@@ -353,7 +367,7 @@ void XMoveObjView::BuildToolBar()
 		const wxString	label(L"Обновить");
 		const wxIcon&	ico24 = ResMgr::GetInstance()->m_ico_refresh24;
 		mToolBar->AddTool(winid, label, ico24, label);
-		mFrame->Bind(wxEVT_COMMAND_MENU_SELECTED, eventFunctor, winid);
+		parent->Bind(wxEVT_COMMAND_MENU_SELECTED, eventFunctor, winid);
 	}
 
 	{
@@ -369,7 +383,7 @@ void XMoveObjView::BuildToolBar()
 		const wxString label = L"Показать/скрыть недавние";
 		const wxIcon& ico24 = ResMgr::GetInstance()->m_ico_history24;
 		mToolBar->AddTool(winid, label, ico24, label, wxITEM_CHECK);
-		mFrame->Bind(wxEVT_COMMAND_MENU_SELECTED, eventFunctor, winid);
+		parent->Bind(wxEVT_COMMAND_MENU_SELECTED, eventFunctor, winid);
 	}
 
 	{
@@ -397,7 +411,7 @@ void XMoveObjView::BuildToolBar()
 		auto tool = mToolBar->AddTool(winid, label, ico24, label, wxITEM_NORMAL);
 		tool->SetHasDropDown(true);
 
-		mFrame->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, [this, tool](wxAuiToolBarEvent& evt)
+		parent->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, [this, tool](wxAuiToolBarEvent& evt)
 		{
 			if (evt.IsDropDownClicked())
 			{
@@ -423,11 +437,11 @@ void XMoveObjView::BuildToolBar()
 
 		}, winid);
 
-		mFrame->Bind(wxEVT_COMMAND_MENU_SELECTED, eventFunctor, wxID_FIND);
+		parent->Bind(wxEVT_COMMAND_MENU_SELECTED, eventFunctor, wxID_FIND);
 
 		auto mgr = whDataMgr::GetInstance();
 
-		mFrame->Bind(wxEVT_COMMAND_MENU_SELECTED, [this, tool, mgr](wxCommandEvent& evt)
+		parent->Bind(wxEVT_COMMAND_MENU_SELECTED, [this, tool, mgr](wxCommandEvent& evt)
 		{
 			tool->SetBitmap(ResMgr::GetInstance()->m_ico_filter24);
 			mFindCtrl->SetHint("фильтр");
@@ -438,7 +452,7 @@ void XMoveObjView::BuildToolBar()
 		}
 		, wxID_FILE1);
 
-		mFrame->Bind(wxEVT_COMMAND_MENU_SELECTED, [this, tool, mgr](wxCommandEvent& evt)
+		parent->Bind(wxEVT_COMMAND_MENU_SELECTED, [this, tool, mgr](wxCommandEvent& evt)
 		{
 			tool->SetBitmap(wxArtProvider::GetBitmap(wxART_FIND, wxART_TOOLBAR));
 			mFindCtrl->SetHint("поиск");
@@ -490,9 +504,9 @@ void XMoveObjView::AutosizeColumns()
 	}
 }
 //-----------------------------------------------------------------------------
-void XMoveObjView::BuildTree()
+void XMoveObjView::BuildTree(wxWindow* parent)
 {
-	mTree = new wxDataViewCtrl(mFrame, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+	mTree = new wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
 		wxDV_ROW_LINES | wxDV_VERT_RULES /*| wxDV_HORIZ_RULES*/);
 
 	auto dvModel = new DvModel();
@@ -508,25 +522,78 @@ void XMoveObjView::BuildTree()
 	//mTree->SetRowHeight(ch * 2 + 0);
 	mTree->SetRowHeight(26);
 
-	mFrame->Bind(wxEVT_COMMAND_DATAVIEW_ITEM_ACTIVATED, &XMoveObjView::OnActivated, this);
+	parent->Bind(wxEVT_COMMAND_DATAVIEW_ITEM_ACTIVATED, &XMoveObjView::OnActivated, this);
 
 }
 //-----------------------------------------------------------------------------
-
-void XMoveObjView::OnClose(wxCloseEvent& evt)
+//virtual 
+void XMoveObjView::SetShow()//override;
 {
-	OnCancel();
+	SetSelectPage(0);
+	StartCountdown();
+	mFrame->ShowModal();
+}
+//---------------------------------------------------------------------------
+//virtual 
+void XMoveObjView::SetClose()//override;
+{
+	StopCountdown();
+	mFrame->EndModal(wxID_CANCEL);
 }
 //-----------------------------------------------------------------------------
-
-void XMoveObjView::OnCancel(wxCommandEvent& evt)
+void XMoveObjView::OnClose(wxCloseEvent& evt)
 {
 	this->sigClose();
 	mFrame->EndModal(wxID_CANCEL);
 }
 //-----------------------------------------------------------------------------
+void XMoveObjView::OnCancel(wxCommandEvent& evt)
+{
+	OnClose(wxCloseEvent());
+}
+//-----------------------------------------------------------------------------
+void XMoveObjView::OnBack(wxCommandEvent& evt)
+{
+	int page = 0;
+
+	if (mDstPanel->IsShown())
+		page = 0;
+	else 
+		page = 1;
+
+	SetSelectPage(page);
+}
+//-----------------------------------------------------------------------------
+void XMoveObjView::SetSelectPage(int page)
+{
+	switch (page)
+	{
+	default:
+	case 0:
+		mObjListPanel->Show();
+		mDstPanel->Hide();
+		mBtnBack->Hide();
+		mBtnForward->SetLabel("Вперёд >");
+		mFrame->Layout();
+		break;
+	case 1:
+		mObjListPanel->Hide();
+		mDstPanel->Show();
+		mBtnBack->Show();
+		mBtnForward->SetLabel("Выполнить");
+		mFrame->Layout();
+		break;
+	}
+}
+//-----------------------------------------------------------------------------
 void XMoveObjView::OnOk(wxCommandEvent& evt)
 {
+	if (!mDstPanel->IsShown())
+	{
+		SetSelectPage(1);
+		return;
+	}
+
 	auto selected = mTree->GetSelection();
 	auto sel_node = static_cast<Node*>(selected.GetID());
 	if (selected && sel_node->mTypeId == 20)
@@ -629,11 +696,11 @@ void XMoveObjView::OnClickSearchBtn(wxCommandEvent& event)
 	}//for (const auto& tp : dst_node.mChilds)
 	//ExpandAll();
 }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //virtual 
-void XMoveObjView::ShowDialog()//override 
-{ 
-	mFrame->ShowModal();
+std::shared_ptr<ViewTableBrowser> XMoveObjView::GetViewObjBrowser()const
+{
+	return mObjBrowser;
 }
 //---------------------------------------------------------------------------
 //virtual 
@@ -692,4 +759,43 @@ void XMoveObjView::EnableRecent(bool enable)//override
 	dvmodel->SetRecentEnable(enable);
 	ExpandAll();
 }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void XMoveObjView::OnTimer(wxTimerEvent &evt)
+{
+	StepCountdown();
+}
+//-----------------------------------------------------------------------------
+void XMoveObjView::StartCountdown()
+{
+	mMillSecLeft = 1000 * 60 * 10;//10min
+	mTimer.Start(1000 * 10);//10sec
+	mFrame->SetTitle("Перемещение");
+}
+//-----------------------------------------------------------------------------
+void XMoveObjView::StepCountdown()
+{
+	if (mMillSecLeft > 0)
+	{
+		mMillSecLeft -= 1000 * 10;
+
+		mFrame->SetTitle(wxString::Format(
+			"Перемещение."
+			" Автосброс блокировки объекта через %d:%d"
+			, mMillSecLeft / 1000 / 60
+			, (mMillSecLeft / 1000) % 60));
+	}
+	else
+	{
+		mTimer.Stop();
+		mMillSecLeft = 0;
+		mFrame->SetTitle("Выполнение перемещения невозможно. "
+			"Перезапустите этот диалог ");
+	}
+
+
+}
+//-----------------------------------------------------------------------------
+void XMoveObjView::StopCountdown()
+{
+	mTimer.Stop();
+}

@@ -136,6 +136,7 @@ public:
 		return mDst;
 	}
 
+	void LockObjects(const std::set<ObjectKey>& obj);
 	void SetMoveable(int64_t oid, int64_t parent_oid);
 	void SetMoveable(const rec::PathItem& moveable);
 	inline const rec::PathItem& GetMoveable()const	{ return mMoveble.GetData(); }
