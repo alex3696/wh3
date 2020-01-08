@@ -7,14 +7,23 @@ using namespace wh;
 MoveObjPresenter::MoveObjPresenter(const std::shared_ptr<IMoveObjView>& view
 								, const  std::shared_ptr<rec::PathItem>& moveable)
 {
-	SetMoveable(*moveable);
 	SetView(view.get());
+
+	if (!moveable)
+		return;
+	/*
+	std::set<ObjectKey> obj;
+	int64_t id = moveable->mObj.mId;
+	int64_t parent_id = moveable->mObj.mParent.mId;
+
+	obj.emplace(ObjectKey(id, parent_id));
+	SetObjects(obj);
+	*/
 }
 
 //-----------------------------------------------------------------------------
 MoveObjPresenter::~MoveObjPresenter()
 {
-	connViewUpdate.disconnect();
 	connViewEnableRecent.disconnect();
 	connViewFindObj.disconnect();
 	connViewClose.disconnect();
@@ -27,7 +36,6 @@ MoveObjPresenter::~MoveObjPresenter()
 void MoveObjPresenter::SetView(IMoveObjView* view)
 {
 	//отцепляем все сигналы этой вьюшки от этого презентера
-	connViewUpdate.disconnect();
 	connViewEnableRecent.disconnect();
 	connViewFindObj.disconnect();
 	connViewClose.disconnect();
@@ -38,9 +46,6 @@ void MoveObjPresenter::SetView(IMoveObjView* view)
 	if (mView)
 	{
 		namespace ph = std::placeholders;
-
-		auto fnU = std::bind(&MoveObjPresenter::OnViewUpdate, this);
-		connViewUpdate = mView->sigUpdate.connect(fnU);
 
 		auto fnER = std::bind(&MoveObjPresenter::OnViewEnableRecent, this, ph::_1);
 		connViewEnableRecent = mView->sigEnableRecent.connect(fnER);
@@ -57,31 +62,16 @@ void MoveObjPresenter::SetView(IMoveObjView* view)
 	}
 }
 //-----------------------------------------------------------------------------
-void MoveObjPresenter::SetMoveable(const rec::PathItem& moveable)
-{
-	mModel->SetMoveable(moveable); 
-}
-//-----------------------------------------------------------------------------
-void MoveObjPresenter::SetMoveable(int64_t oid, int64_t parent_oid)
-{
-	mModel->SetMoveable(oid, parent_oid);
-}
-//-----------------------------------------------------------------------------
 void MoveObjPresenter::SetObjects(const std::set<ObjectKey>& obj)
 {
 	mModel->LockObjects(obj);
+	OnModelUpdate();
 }
 //-----------------------------------------------------------------------------
-void MoveObjPresenter::ShowDialog()
+void MoveObjPresenter::Show()
 {
 	if (mView)
 		mView->SetShow();
-}
-//-----------------------------------------------------------------------------
-void MoveObjPresenter::OnViewUpdate()
-{ 
-	mModel->Load(); 
-	OnModelUpdate();
 }
 //-----------------------------------------------------------------------------
 void MoveObjPresenter::OnViewMove(const wxString& oid, const wxString& qty)
@@ -109,7 +99,7 @@ void MoveObjPresenter::OnViewClose()
 //-----------------------------------------------------------------------------
 void MoveObjPresenter::OnModelUpdate()
 {
-	auto p0 = GetTickCount();
+	TEST_FUNC_TIME;
 	if (mView)
 	{
 		mView->EnableRecent(mModel->GetRecentEnable());
@@ -118,5 +108,4 @@ void MoveObjPresenter::OnModelUpdate()
 		mView->UpdateDst(mModel->GetDst());
 		
 	}
-	wxLogMessage(wxString::Format("MoveObjPresenter:\t%d\t MoveObj update view", GetTickCount() - p0));
 }

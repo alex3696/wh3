@@ -47,6 +47,8 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	mDvModel = new wxDVTableBrowser();
 	table->AssociateModel(mDvModel);
 	mDvModel->DecRef();
+
+	mDvModel->SetEditableQty(true);
 	
 	#define ICON_HEIGHT 24+2
 	int row_height = table->GetCharHeight() + 2;// + 1px in bottom and top 
@@ -668,8 +670,11 @@ void ViewTableBrowser::ResetColumns()
 		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 	//col3->GetRenderer()->EnableEllipsize(wxELLIPSIZE_START);
 
-	auto col2 = table->AppendTextColumn("Количество", 2, wxDATAVIEW_CELL_EDITABLE, 150
+	wxDataViewCellMode qtyMode = mDvModel->IsEditableQty() ?
+		wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT;
+	auto col2 = table->AppendTextColumn("Количество", 2, qtyMode, 150
 		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+	col2->SetHidden(!mVisibleQtyCol);
 
 	auto col4 = table->AppendTextColumn("Местоположение", 3, wxDATAVIEW_CELL_INERT, -1
 		, wxALIGN_NOT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
@@ -1130,7 +1135,31 @@ void wh::ViewTableBrowser::OnCmd_SelectionChanged(wxDataViewEvent& evt)
 	}
 
 }
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::SetEditableQty(bool editable)
+{
+	if (mDvModel->IsEditableQty() == editable)
+		return;
 
+	mDvModel->SetEditableQty(editable);
+	mTable->ClearColumns();
+	ResetColumns();
+}
+//-----------------------------------------------------------------------------
+void ViewTableBrowser::SetVisibleQty(bool visible)
+{
+	auto col_idx = mTable->GetModelColumnIndex(2);
+	auto col = mTable->GetColumn(col_idx);
+	if (!col)
+		return;
+	if (col->IsShown() == visible)
+		return;
+
+	mVisibleQtyCol = visible;
+	mTable->ClearColumns();
+	ResetColumns();
+
+}
 
 
 

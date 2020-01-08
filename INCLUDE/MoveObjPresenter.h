@@ -14,28 +14,24 @@ public:
 	MoveObjPresenter(const std::shared_ptr<IMoveObjView>& view,const std::shared_ptr<rec::PathItem>& moveable);
 	~MoveObjPresenter();
 	
-	void ShowDialog();
+	void Show();
 	
 	// View connector functions
-	void OnViewUpdate();
 	void OnViewMove(const wxString& oid, const wxString& qty);
 	void OnViewEnableRecent(bool enable);
 	void OnViewFindObj(const wxString& ss);
 	void OnViewClose();
-	void SetMoveable(int64_t oid, int64_t parent_oid);
+	
 	void SetObjects(const std::set<ObjectKey>& obj);
 private:
 	std::shared_ptr<CtrlTableObjBrowser_RO>	mCtrlObjBrowser;
 
 
 	void SetView(IMoveObjView* view);
-	void SetMoveable(const rec::PathItem& moveable);
-
 
 	std::unique_ptr<Moveable>	mModel = std::make_unique<Moveable>();
 	IMoveObjView*				mView = nullptr;
 	// View connector
-	sig::scoped_connection connViewUpdate;
 	sig::scoped_connection connViewEnableRecent;
 	sig::scoped_connection connViewFindObj;
 	sig::scoped_connection connViewClose;

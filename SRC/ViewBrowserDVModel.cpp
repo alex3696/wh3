@@ -78,7 +78,7 @@ void wxDVTableBrowser::GetClsValue(wxVariant &variant, unsigned int col
 		switch (cls.GetKind())
 		{
 		case ClsKind::Single: case ClsKind::QtyByOne: case ClsKind::QtyByFloat:
-			variant = wxString::Format("%s (%s)", cls.GetObjectsQty(), cls.GetMeasure());
+			variant = wxString::Format("%s %s", cls.GetObjectsQty(), cls.GetMeasure());
 			break;
 		case ClsKind::Abstract:
 		default: break;
@@ -139,10 +139,37 @@ void wxDVTableBrowser::GetObjValue(wxVariant &variant, unsigned int col
 		variant << wxDataViewIconText(obj.GetTitle(), *ico);
 	}break;
 	case 1: variant = obj.GetCls()->GetTitle();	break;
-	case 2: variant = wxString::Format("%s (%s)"
-		, obj.GetQty()
-		, obj.GetCls()->GetMeasure());
-		break;
+	case 2: { 
+		switch (obj.GetCls()->GetKind())
+		{
+		case ClsKind::QtyByOne:
+		case ClsKind::QtyByFloat:
+			if (mEditableQtyCol)
+			{
+				ObjectKey key(obj.GetId(), obj.GetParentId());
+				const auto& it = mEditedValue.find(key);
+				if (mEditedValue.cend() == it)
+				{
+					variant = wxString::Format("%s %s"
+						, obj.GetQty()
+						, obj.GetCls()->GetMeasure());
+				}
+				else
+				{
+					variant = wxString::Format("%s %s"
+						, it->second
+						, obj.GetCls()->GetMeasure());
+				}
+			}
+			else
+			{
+				variant = wxString::Format("%s %s"
+					, obj.GetQty()
+					, obj.GetCls()->GetMeasure());
+			}
+		default: break;
+		}//switch (obj.GetCls()->GetKind())
+	}break;
 	case 3: if (obj.GetPath())
 		variant = obj.GetPath()->AsString();
 		break;
@@ -294,11 +321,18 @@ bool wxDVTableBrowser::GetAttr(const wxDataViewItem &item, unsigned int col,
 	{
 		switch (col)
 		{
-		case 0: case 2: {
-			if (0 == col || (2 == col && ClsKind::Single != obj->GetCls()->GetKind()))
+		case 0:{
+			attr.SetBold(true);
+		}break;
+		case 2:{
+			switch (obj->GetCls()->GetKind())
 			{
+			case ClsKind::QtyByOne:
+			case ClsKind::QtyByFloat:
 				attr.SetBold(true);
-				return true;
+				if (mEditableQtyCol)
+					attr.SetBackgroundColour(wxYELLOW->ChangeLightness(160));
+			default: break;
 			}
 		}break;
 		case 1:case 3: {
@@ -400,17 +434,68 @@ bool wxDVTableBrowser::GetAttr(const wxDataViewItem &item, unsigned int col,
 bool wxDVTableBrowser::SetValue(const wxVariant &variant, const wxDataViewItem &item,
 	unsigned int col)//override
 {
+	if(!mEditableQtyCol)
+		return false;
+
 	const auto node = static_cast<const IIdent64*> (item.GetID());
 	const auto ident = node;
 	const auto cls = dynamic_cast<const ICls64*>(ident);
 	if (cls)
-	{
-	}
+		return false;
 	const auto obj = dynamic_cast<const IObj64*>(ident);
-	if (obj)
-	{
-	}
+	if (!obj)
+		return false;
 
+	ClsKind kind = obj->GetCls()->GetKind();
+	ObjectKey key(obj->GetId(), obj->GetParentId());
+	wxString str_val = variant.GetString();
+	switch (kind)
+	{
+	case ClsKind::QtyByOne: {
+		unsigned long sval;
+		unsigned long ival;
+		if (str_val.ToCULong(&ival) && obj->GetQty().ToULong(&sval)
+			&& sval >= ival && 0 < ival)
+		{
+			mEditedValue[key]=str_val;
+			return true;
+		}
+		else
+		{
+			str_val.RemoveLast(obj->GetCls()->GetMeasure().size());
+			str_val.Trim();
+			if (str_val.ToCULong(&ival) && obj->GetQty().ToULong(&sval)
+				&& sval >= ival && 0 < ival)
+			{
+				mEditedValue[key] = str_val;
+				return true;
+			}
+		}
+			
+	}break;
+	case ClsKind::QtyByFloat: {
+		double sval;
+		double ival;
+		if (str_val.ToCDouble(&ival) && obj->GetQty().ToCDouble(&sval)
+			&& sval >= ival && 0 < ival)
+		{
+			mEditedValue[key] = str_val;
+			return true;
+		}
+		else
+		{
+			str_val.RemoveLast(obj->GetCls()->GetMeasure().size());
+			str_val.Trim();
+			if (str_val.ToCDouble(&ival) && obj->GetQty().ToCDouble(&sval)
+				&& sval >= ival && 0 < ival)
+			{
+				mEditedValue[key] = str_val;
+				return true;
+			}
+		}
+	}break;
+	default: break;
+	}
 	return false;
 }
 
@@ -594,6 +679,8 @@ void wxDVTableBrowser::SetClsList(const std::vector<const IIdent64*>& current
 	mCurrentRoot = curr;
 	mClsList = current;
 	mMode = mode;
+	mEditedValue.clear();
+
 	Cleared();
 }
 //-----------------------------------------------------------------------------

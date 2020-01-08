@@ -26,6 +26,8 @@ ViewExecActWindow::ViewExecActWindow(wxWindow* parent)
 	wxSizer *objListSzr = new wxBoxSizer(wxVERTICAL);
 	mObjListPanel->SetSizer(objListSzr);
 	mObjBrowser = std::make_shared<ViewTableBrowser>(mObjListPanel);
+	mObjBrowser->SetVisibleQty(false);
+	//mObjBrowser->SetEditableQty(false);
 	objListSzr->Add(mObjBrowser->GetWnd(), 1, wxEXPAND, 5);
 
 	//Panel Act list

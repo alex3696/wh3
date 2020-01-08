@@ -62,6 +62,9 @@ using PropColumns = boost::multi_index_container
 class wxDVTableBrowser
 	: public wxDataViewModel
 {
+	bool mEditableQtyCol = false;
+	std::map<ObjectKey, wxString> mEditedValue;
+
 	const IIdent64* mCurrentRoot = nullptr;
 	std::vector<const IIdent64*>	mClsList;
 	int mMode = 0;
@@ -127,7 +130,8 @@ public:
 	std::shared_ptr<const PropVal> GetPropVal(const ICls64& cls, int col_idx)const;
 	std::shared_ptr<const PropVal> GetPropVal(const wxDataViewItem &item, int col_idx)const;
 	inline bool IsTop(const wxDataViewItem &item)const;
-
+	void SetEditableQty(bool editable) { mEditableQtyCol = editable; }
+	bool IsEditableQty()const { return mEditableQtyCol; }
 };
 
 

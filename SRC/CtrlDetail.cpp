@@ -39,31 +39,26 @@ void CtrlToolbarAct::DoMove()
 	try
 	{
 		wxBusyCursor busyCursor;
-		auto p0 = GetTickCount();
-
-		wxLogMessage(wxString::Format("MoveObj:\t%d\t start", GetTickCount() - p0));
-		p0 = GetTickCount();
-		const rec::PathItem& data = mModel->mModelObjDetail->Get();
+		TEST_FUNC_TIME;
 		auto ctrl = whDataMgr::GetInstance()->mContainer;
-		
-		wxLogMessage(wxString::Format("MoveObj:\t%d\t init mov_obj", GetTickCount() - p0));
-		p0 = GetTickCount();
-		std::shared_ptr<rec::PathItem> mov_obj = std::make_shared<rec::PathItem>(data);
-		ctrl->RegInstance("MoveableObj", mov_obj);
-		//*moveable_sp = data;
-		
-		wxLogMessage(wxString::Format("MoveObj:\t%d\t get presenter", GetTickCount() - p0));
-		p0 = GetTickCount();
+		if (!ctrl)
+			return;
 		auto presenter = ctrl->GetObject<MoveObjPresenter>("MoveObjPresenter");
 		if (!presenter)
 			return;
 
-		wxLogMessage(wxString::Format("MoveObj:\t%d\t init", GetTickCount() - p0));
-		p0 = GetTickCount();
-		presenter->OnViewUpdate();
-		wxLogMessage(wxString::Format("MoveObj:\t%d\t TOTAL start time", GetTickCount() - p0));
+		const rec::PathItem& data = mModel->mModelObjDetail->Get();
+		std::shared_ptr<rec::PathItem> mov_obj = std::make_shared<rec::PathItem>(data);
+		ctrl->RegInstance("MoveableObj", mov_obj);
+		
+		std::set<ObjectKey> obj;
+		int64_t id = data.mObj.mId;
+		int64_t parent_id = data.mObj.mParent.mId;
+		obj.emplace(ObjectKey(id, parent_id));
 
-		presenter->ShowDialog();
+
+		presenter->SetObjects(obj);
+		presenter->Show();
 	}
 	catch (...)
 	{

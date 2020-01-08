@@ -1354,9 +1354,9 @@ void ModelBrowser::ExecuteMoveObjects(const std::set<ObjectKey>& obj)const
 		auto presenter = ctrl->GetObject<MoveObjPresenter>("MoveObjPresenter");
 		if (!presenter)
 			return;
-		presenter->SetMoveable(obj.begin()->mId, obj.begin()->mParentId);
-		presenter->OnViewUpdate();
-		presenter->ShowDialog();
+
+		presenter->SetObjects(obj);
+		presenter->Show();
 	}
 	catch (...)
 	{

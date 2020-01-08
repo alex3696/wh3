@@ -137,13 +137,13 @@ public:
 	}
 
 	void LockObjects(const std::set<ObjectKey>& obj);
-	void SetMoveable(int64_t oid, int64_t parent_oid);
-	void SetMoveable(const rec::PathItem& moveable);
+
+	
 	inline const rec::PathItem& GetMoveable()const	{ return mMoveble.GetData(); }
 
 	const ObjStore::iterator FindObj(const wxString& str)const;
 	
-	void Load();
+
 	void Move(const wxString& oid, const wxString& qty);
 	void Unlock();
 
@@ -152,6 +152,10 @@ private:
 	ObjTree						mRecent;
 	TDataModel<rec::PathItem>	mMoveble = rec::PathItem();
 	bool						mLock = false;
+
+	void Load();
+	void SetMoveable(int64_t oid, int64_t parent_oid);
+	void SetMoveable(const rec::PathItem& moveable);
 };// class Moveable
 
 

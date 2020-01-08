@@ -180,7 +180,7 @@ int ModelActExecWindow::BuildExecQuery(wxString& query)
 	{
 		wxString value = it.second;
 		//value.Replace("\\", "\\\\", true);
-		//value.Replace("\"", "\\\\"", true);
+		value.Replace("'", "''", true);
 		value.Replace("%", "%%", true);
 		
 		if (value.empty())

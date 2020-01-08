@@ -54,7 +54,7 @@ class ViewTableBrowser : public IViewTableBrowser
 	wxDataViewColumn* AppendTableColumn(const wxString& title, int model_id);
 	int GetTitleWidth(const wxString& title)const;
 	
-
+	bool mVisibleQtyCol = true;
 protected:
 	void OnCmd_Activate(wxDataViewEvent& evt);
 	void OnCmd_Expanding(wxDataViewEvent& evt);
@@ -80,6 +80,8 @@ public:
 	virtual void SetInsertObj()const override;
 	virtual void SetUpdateSelected()const override;
 
+	void SetEditableQty(bool editable);
+	void SetVisibleQty(bool visible);
 	
 };
 //-----------------------------------------------------------------------------

@@ -155,7 +155,16 @@ void Moveable::SetRecentEnable(bool enable)
 //-----------------------------------------------------------------------------
 void Moveable::LockObjects(const std::set<ObjectKey>& obj)
 {
+	if (obj.empty())
+		return;
 
+	rec::PathItem pi;
+	pi.mObj.mId = obj.begin()->mId;
+	pi.mObj.mParent.mId = obj.begin()->mParentId;
+	//mMoveble.SetData(pi);
+
+	SetMoveable(obj.begin()->mId, obj.begin()->mParentId);
+	Load();
 }
 //-----------------------------------------------------------------------------
 void Moveable::SetMoveable(int64_t oid, int64_t parent_oid)

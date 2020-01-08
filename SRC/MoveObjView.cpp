@@ -287,6 +287,8 @@ XMoveObjView::XMoveObjView(wxWindow* parent)
 	//Panel Object list
 	mObjListPanel = new wxPanel(mFrame);
 	mObjBrowser = std::make_shared<ViewTableBrowser>(mObjListPanel);
+	mObjBrowser->SetEditableQty(true);
+	mObjBrowser->SetVisibleQty(true);
 	
 	wxSizer *objListSzr = new wxBoxSizer(wxVERTICAL);
 	objListSzr->Add(mObjBrowser->GetWnd(), 1, wxEXPAND, 5);
