@@ -442,16 +442,6 @@ void whDataMgr::InitContainer()
 		("CtrlPageReport", "ViewReport", "ModelReport");
 
 	////////////////////
-	// move dialog //
-	///////////////////
-	mContainer->RegInstanceNI<rec::PathItem>("MoveableObj");
-	mContainer->RegInstanceDeferred<IMoveObjView, XMoveObjView, IViewWindow>
-		("MoveObjView", "ViewMain");
-	mContainer->RegFactory<MoveObjPresenter, MoveObjPresenter, IMoveObjView, rec::PathItem>
-		("MoveObjPresenter", "MoveObjView", "MoveableObj");
-
-
-	////////////////////
 	// Hystory  TEST  //
 	///////////////////
 	mContainer->RegInstanceDeferredNI<rec::PageHistory>("DefaultLogListInfo");
@@ -561,5 +551,15 @@ void whDataMgr::InitContainer()
 		("ViewExecActWindow", "ViewMain");
 	mContainer->RegInstanceDeferredNI<CtrlActExecWindow, ViewExecActWindow, ModelActExecWindow >
 		("CtrlActExecWindow", "ViewExecActWindow", "ModelActExecWindow");
+
+	////////////////////
+	// move dialog //
+	///////////////////
+	mContainer->RegInstanceNI<ModelMoveExecWindow>
+		("ModelMoveExecWindow");
+	mContainer->RegInstanceDeferred<IMoveObjView, XMoveObjView, IViewWindow>
+		("MoveObjView", "ViewMain");
+	mContainer->RegInstanceDeferredNI<CtrlMoveExecWindow, IMoveObjView, ModelMoveExecWindow >
+		("CtrlMoveExecWindow", "MoveObjView", "ModelMoveExecWindow");
 
 }

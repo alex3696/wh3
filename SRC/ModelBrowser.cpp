@@ -1347,21 +1347,14 @@ void ModelBrowser::ExecuteMoveObjects(const std::set<ObjectKey>& obj)const
 	if (obj.empty())
 		return;
 
-	TEST_FUNC_TIME;
-	try
-	{
-		auto ctrl = whDataMgr::GetInstance()->mContainer;
-		auto presenter = ctrl->GetObject<MoveObjPresenter>("MoveObjPresenter");
-		if (!presenter)
-			return;
+	auto container = whDataMgr::GetInstance()->mContainer;
 
-		presenter->SetObjects(obj);
-		presenter->Show();
-	}
-	catch (...)
+	auto ctrlMoveExecWindow = container->GetObject<CtrlMoveExecWindow>("CtrlMoveExecWindow");
+	if (ctrlMoveExecWindow)
 	{
-		// Transaction already rollbacked, dialog was destroyed, so nothinh to do
-		wxLogError("Объект занят другим пользователем (см.подробности)");
+		ctrlMoveExecWindow->SetObjects(obj);
+		ctrlMoveExecWindow->Show();
+
 	}
 }
 //-----------------------------------------------------------------------------

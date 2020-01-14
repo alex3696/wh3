@@ -36,29 +36,21 @@ CtrlToolbarAct::CtrlToolbarAct(
 //---------------------------------------------------------------------------
 void CtrlToolbarAct::DoMove()
 {
+	auto container = whDataMgr::GetInstance()->mContainer;
+	std::set<ObjectKey> obj;
+	const rec::PathItem& data = mModel->mModelObjDetail->Get();
+	obj.emplace(ObjectKey(data.mObj.mId, data.mObj.mParent.mId));
+
 	try
 	{
-		wxBusyCursor busyCursor;
 		TEST_FUNC_TIME;
-		auto ctrl = whDataMgr::GetInstance()->mContainer;
-		if (!ctrl)
-			return;
-		auto presenter = ctrl->GetObject<MoveObjPresenter>("MoveObjPresenter");
-		if (!presenter)
-			return;
-
-		const rec::PathItem& data = mModel->mModelObjDetail->Get();
-		std::shared_ptr<rec::PathItem> mov_obj = std::make_shared<rec::PathItem>(data);
-		ctrl->RegInstance("MoveableObj", mov_obj);
-		
-		std::set<ObjectKey> obj;
-		int64_t id = data.mObj.mId;
-		int64_t parent_id = data.mObj.mParent.mId;
-		obj.emplace(ObjectKey(id, parent_id));
-
-
-		presenter->SetObjects(obj);
-		presenter->Show();
+		wxBusyCursor busyCursor;
+		auto ctrlMoveExecWindow = container->GetObject<CtrlMoveExecWindow>("CtrlMoveExecWindow");
+		if (ctrlMoveExecWindow)
+		{
+			ctrlMoveExecWindow->SetObjects(obj);
+			ctrlMoveExecWindow->Show();
+		}
 	}
 	catch (...)
 	{
@@ -72,13 +64,13 @@ void CtrlToolbarAct::DoAct()
 {
 	auto container = whDataMgr::GetInstance()->mContainer;
 	std::set<ObjectKey> obj;
-
 	const rec::PathItem& data = mModel->mModelObjDetail->Get();
-
 	obj.emplace(ObjectKey(data.mObj.mId, data.mObj.mParent.mId));
 
 	try
 	{
+		TEST_FUNC_TIME;
+		wxBusyCursor busyCursor;
 		auto ctrlActExecWindow = container->GetObject<CtrlActExecWindow>("CtrlActExecWindow");
 		if (ctrlActExecWindow)
 		{

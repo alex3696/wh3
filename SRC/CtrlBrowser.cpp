@@ -381,6 +381,9 @@ CtrlPageBrowser::CtrlPageBrowser(
 
 
 	namespace ph = std::placeholders;
+	connModel_AfterRefreshCls = mModel->GetModelBrowser()->sigAfterRefreshCls
+		.connect(std::bind(&IViewBrowserPage::SetAfterRefreshCls
+			, mView.get(), ph::_1, ph::_2, ph::_3, ph::_4, ph::_5));
 
 	connViewCmd_Find = mView->sigFind
 		.connect(std::bind(&CtrlPageBrowser::Find, this, ph::_1));

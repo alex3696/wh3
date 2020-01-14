@@ -3,6 +3,7 @@
 
 #include "_pch.h"
 #include "MoveObjData.h"
+#include "ModelBrowser.h"
 
 namespace wh{
 //-----------------------------------------------------------------------------
@@ -119,44 +120,59 @@ inline std::shared_ptr<TDataModel<_Ty>> make_shared_model(_Types&&... _Args)
 
 //-----------------------------------------------------------------------------
 
-class Moveable
+class ModelMoveExecWindow : public IModelWindow
 {
-public:
-	Moveable();
+	int	 mCurrentPage = 0;
+	std::set<ObjectKey> mObjects;
+	ObjRec64 mDstObject;
 
+	//ModelActBrowserWindow::FuncActivateCallback mOnActivateDst;
+	void UnlockObjectsWithoutTransaction();
+
+	int BuildExecQuery(wxString& query);
+
+
+	ObjTree						mDst;
+	ObjTree						mRecent;
+
+public:
+	std::shared_ptr<ModelBrowser>			mModelObjBrowser;
+
+	ModelMoveExecWindow();
+	~ModelMoveExecWindow();
+	void LockObjects(const std::set<ObjectKey>& obj);
+	void UnlockObjects();
 	bool GetRecentEnable()const;
 	void SetRecentEnable(bool enable);
+	//void DoShowDstPage();
+	//void DoSelectDst();
+	void DoExecute();
 	
-	inline const ObjTree& GetRecent()const			
-	{ 
-		return mRecent;
-	}
-	inline const ObjTree& GetDst()const
-	{
-		return mDst;
-	}
+	
+	// IModelWindow
+	virtual void UpdateTitle()override;
+	virtual void Show()override;
+	virtual void Init()override;
+	virtual void Load(const boost::property_tree::wptree& page_val)override;
+	virtual void Save(boost::property_tree::wptree& page_val)override;
 
-	void LockObjects(const std::set<ObjectKey>& obj);
+	sig::signal<void(int)> sigSelectPage;
+
+	sig::signal<void(const ObjTree& tree)> sigUpdateRecent;
+	sig::signal<void(const ObjTree& tree)> sigUpdateDst;
+	sig::signal<void(bool)> sigEnableRecent;
 
 	
-	inline const rec::PathItem& GetMoveable()const	{ return mMoveble.GetData(); }
-
+	// deprecated
+	inline const ObjTree& GetRecent()const	{ return mRecent;	}
+	inline const ObjTree& GetDst()const		{ return mDst;	}
 	const ObjStore::iterator FindObj(const wxString& str)const;
 	
 
-	void Move(const wxString& oid, const wxString& qty);
-	void Unlock();
 
-private:
-	ObjTree						mDst;
-	ObjTree						mRecent;
-	TDataModel<rec::PathItem>	mMoveble = rec::PathItem();
-	bool						mLock = false;
 
-	void Load();
-	void SetMoveable(int64_t oid, int64_t parent_oid);
-	void SetMoveable(const rec::PathItem& moveable);
-};// class Moveable
+
+};// class ModelMoveExecWindow
 
 
 

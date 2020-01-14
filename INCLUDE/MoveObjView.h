@@ -59,7 +59,6 @@ public:
 	virtual std::shared_ptr<ViewTableBrowser>	GetViewObjBrowser()const;
 	virtual void UpdateRecent(const ObjTree& tree)override;
 	virtual void UpdateDst(const ObjTree& tree)override;
-	virtual void UpdateMoveable(const rec::PathItem& moveable)override;
 	virtual void EnableRecent(bool enable)override;
 	virtual wxWindow* GetWnd()const override { return mFrame; }
 	virtual void SetShow()override;

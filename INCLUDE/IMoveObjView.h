@@ -14,26 +14,15 @@ public:
 	virtual std::shared_ptr<ViewTableBrowser>	GetViewObjBrowser()const = 0;
 	virtual void UpdateRecent(const ObjTree& tree) = 0;
 	virtual void UpdateDst(const ObjTree& tree) = 0;
-	virtual void UpdateMoveable(const rec::PathItem& moveable) = 0;
 	virtual void EnableRecent(bool enable) = 0;
 
-	using SigUpdate = sig::signal<void()>;
-	SigUpdate sigUpdate;
-	//virtual sig::connection ConnSigUpdate(const SigUpdate::slot_type& slot) = 0;
+	sig::signal<void()> sigUpdate;
+	sig::signal<void(bool)> sigEnableRecent;
+	sig::signal<void(const wxString&)> sigFindObj;
 
-	using SigEnableRecent = sig::signal<void(bool)>;
-	SigEnableRecent sigEnableRecent;
-	//virtual sig::connection ConnSigEnableRecent(const SigEnableRecent::slot_type& slot) = 0;
+	sig::signal<void()> sigUnlock;
+	sig::signal<void()> sigExecute;
 
-	using SigFindObj = sig::signal<void(const wxString&)>;
-	SigFindObj sigFindObj;
-	//virtual sig::connection ConnSigFindObj(const SigFindObj::slot_type& slot) = 0;
-
-	using SigUnlock = sig::signal<void()>;
-	SigUnlock sigClose;
-
-	using SigMove = sig::signal<void(const wxString&, const wxString&)>;
-	SigMove sigMove;
 
 };
 

@@ -8,43 +8,31 @@
 
 namespace wh{
 //-----------------------------------------------------------------------------
-class MoveObjPresenter 
+class CtrlMoveExecWindow final : public CtrlWindowBase<IMoveObjView, ModelMoveExecWindow>
 {
-public:
-	MoveObjPresenter(const std::shared_ptr<IMoveObjView>& view,const std::shared_ptr<rec::PathItem>& moveable);
-	~MoveObjPresenter();
-	
-	void Show();
-	
-	// View connector functions
-	void OnViewMove(const wxString& oid, const wxString& qty);
-	void OnViewEnableRecent(bool enable);
-	void OnViewFindObj(const wxString& ss);
-	void OnViewClose();
-	
-	void SetObjects(const std::set<ObjectKey>& obj);
-private:
-	std::shared_ptr<CtrlTableObjBrowser_RO>	mCtrlObjBrowser;
-
-
-	void SetView(IMoveObjView* view);
-
-	std::unique_ptr<Moveable>	mModel = std::make_unique<Moveable>();
-	IMoveObjView*				mView = nullptr;
-	// View connector
-	sig::scoped_connection connViewEnableRecent;
-	sig::scoped_connection connViewFindObj;
-	sig::scoped_connection connViewClose;
-	sig::scoped_connection connViewMoveObj;
-	
 	// Model connector
 	sig::scoped_connection connModelUpdate;
-	// Model connector functions
-	void OnModelUpdate();
+	// View connector
+	sig::scoped_connection connViewCmd_Unlock;
+	sig::scoped_connection connViewCmd_Execute;
+	sig::scoped_connection connViewCmd_EnableRecent;
+	sig::scoped_connection connViewCmd_FindObj;
+
+	std::shared_ptr<CtrlTableObjBrowser_RO>	mCtrlObjBrowser;
+public:
+	CtrlMoveExecWindow(const std::shared_ptr<IMoveObjView>& view
+		,const std::shared_ptr<ModelMoveExecWindow>& model);
+	~CtrlMoveExecWindow();
+	
+	void SetObjects(const std::set<ObjectKey>& obj);
+	void Execute();
+	void Unlock();
+
+	void OnViewEnableRecent(bool enable);
+	void OnViewFindObj(const wxString& ss);
 
 
-
-};
+};//CtrlMoveExecWindow
 
 
 

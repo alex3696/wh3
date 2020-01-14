@@ -29,6 +29,8 @@ class DvModel
 
 	void SetTree(const ObjTree* tree, std::shared_ptr<Node>& node)
 	{
+		return;
+		/*
 		if (!tree)
 			return;
 
@@ -58,6 +60,7 @@ class DvModel
 			if (type_node->mChilds.size())
 				types.emplace_back(type_node);
 		}//for
+		*/
 	}
 
 	void RebuldTree()
@@ -331,11 +334,19 @@ XMoveObjView::XMoveObjView(wxWindow* parent)
 	mFrame->Layout();
 	mFrame->Centre(wxBOTH);
 
-	mFrame->Bind(wxEVT_CLOSE_WINDOW, &XMoveObjView::OnClose, this);
+	mFrame->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent& evt)
+	{
+		if (evt.GetWindow() != mFrame)
+			return;
+		mTimer.Stop();
+		mObjBrowser.reset();
+		mFrame = nullptr;
+	});
+
 	mFrame->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &XMoveObjView::OnCancel, this, wxID_CANCEL);
 	mFrame->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &XMoveObjView::OnOk, this, wxID_OK);
 	mFrame->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &XMoveObjView::OnBack, this, wxID_BACKWARD);
-	//mFrame->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent& evt) {	//this->sigClose();	});
+	mTimer.Bind(wxEVT_TIMER, &XMoveObjView::OnTimer, this);
 
 }
 //---------------------------------------------------------------------------
@@ -545,8 +556,9 @@ void XMoveObjView::SetClose()//override;
 //-----------------------------------------------------------------------------
 void XMoveObjView::OnClose(wxCloseEvent& evt)
 {
-	this->sigClose();
-	mFrame->EndModal(wxID_CANCEL);
+	StopCountdown();
+	this->sigUnlock();
+	SetClose();
 }
 //-----------------------------------------------------------------------------
 void XMoveObjView::OnCancel(wxCommandEvent& evt)
@@ -607,7 +619,8 @@ void XMoveObjView::OnOk(wxCommandEvent& evt)
 		else if (!mqtySpin->IsShown() && mqtyCtrl->IsShown())
 			qty = mqtyCtrl->GetValue();
 
-		sigMove(sel_obj->mId, qty);
+		//sigExecute(sel_obj->mId, qty);
+		sigExecute();
 		mFrame->EndModal(wxID_OK);
 	}// if (selected)
 }
@@ -720,36 +733,6 @@ void XMoveObjView::UpdateDst(const ObjTree& tree)//override
 
 	ExpandAll();
 	AutosizeColumns();
-}
-//---------------------------------------------------------------------------
-//virtual 
-void XMoveObjView::UpdateMoveable(const rec::PathItem& moveable)//override
-{ 
-	const wxString movLabel = wxString::Format("[%s]%s"
-		, moveable.mCls.mLabel.toStr()
-		, moveable.mObj.mLabel.toStr()
-		//,mMovable->GetData().mCls.mMeasure
-		);
-
-	mLblMovableObj->SetLabel(movLabel);
-
-	if (moveable.mCls.mType.IsNull())
-		return;
-	switch (moveable.mCls.GetClsType())
-	{
-	case wh::ClsKind::QtyByOne:
-		mqtySpin->Show();
-		mqtyCtrl->Hide();
-		break;
-	case wh::ClsKind::QtyByFloat:
-		mqtySpin->Hide();
-		mqtyCtrl->Show();
-		break;
-	default:
-		mqtySpin->Hide();
-		mqtyCtrl->Hide();
-		break;
-	}//switch
 }
 //---------------------------------------------------------------------------
 //virtual 
