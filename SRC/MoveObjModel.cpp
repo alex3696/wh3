@@ -45,7 +45,7 @@ void ModelMoveExecWindow::UnlockObjectsWithoutTransaction()
 void ModelMoveExecWindow::UnlockObjects()
 {
 	whDataMgr::GetDB().BeginTransaction();
-	//UnlockObjectsWithoutTransaction();
+	UnlockObjectsWithoutTransaction();
 	whDataMgr::GetDB().Commit();
 }
 //-----------------------------------------------------------------------------
@@ -54,46 +54,44 @@ int ModelMoveExecWindow::BuildExecQuery(wxString& query)
 	return 1;
 }
 
-//-----------------------------------------------------------------------------
-const ObjStore::iterator ModelMoveExecWindow::FindObj(const wxString& str)const
-{
-	std::function<bool(const Obj&)>
-		isInTitle = [&str](const Obj& obj)
-	{
-		return obj.mId.Find(str) != wxNOT_FOUND;
-	};
-
-	return std::find_if(mDst.mObj.cbegin(), mDst.mObj.cend(), isInTitle);
-}
 
 //-----------------------------------------------------------------------------
 void ModelMoveExecWindow::DoExecute()
 {
-	/*
-	const wxString& oid, const wxString& qty
-	whDataMgr::GetDB().BeginTransaction();
+	std::set<int64_t> sel;
+	sigGetSelection(sel);
+	if (sel.empty())
+		return;
+	int64_t dst_oid = *sel.begin();
+	wxString query;
 
-	const rec::PathItem& movable = mMoveble.GetData();
+	try {
+	
+		whDataMgr::GetDB().BeginTransaction();
 
-	wxString query = wxString::Format(
-		"SELECT do_move(%s,%s,%s,%s)"
-		, movable.mObj.mId.SqlVal()
-		, movable.mObj.mParent.mId.SqlVal()
-		, oid
-		, qty
-		);
-	whDataMgr::GetDB().Exec(query);
+		wxString qexec;
+		for (const auto& obj : mObjects)
+		{
+			qexec = wxString::Format(
+				"SELECT do_move(%s,%s,%u,%s)"
+				, obj.GetId_AsString()
+				, obj.GetParentId_AsString()
+				, dst_oid
+				, mModelObjBrowser->GetUpdatedQty(obj)
+			);
+			whDataMgr::GetDB().Exec(qexec);	
+		}//for 
+		UnlockObjectsWithoutTransaction();
+		whDataMgr::GetDB().Commit();
+		whDataMgr::GetInstance()->mRecentDstOidPresenter->Insert(dst_oid);
+		sigClose();
+	}
+	catch (...)
+	{
+		whDataMgr::GetDB().RollBack();
+		wxLogError("error DoExecute Move");
 
-	query = wxString::Format(
-		"SELECT lock_reset(%s,%s)"
-		, movable.mObj.mId.SqlVal()
-		, movable.mObj.mParent.mId.SqlVal());
-	whDataMgr::GetDB().Exec(query);
-
-	whDataMgr::GetDB().Commit();
-
-	whDataMgr::GetInstance()->mRecentDstOidPresenter->Insert(oid);
-	*/
+	}
 
 }
 //-----------------------------------------------------------------------------
@@ -106,29 +104,44 @@ void ModelMoveExecWindow::SetRecentEnable(bool enable)
 {
 	char i = enable ? 1 : 0;
 	whDataMgr::GetInstance()->mRecentDstOidPresenter->SetRecentEnable(i);
+	LockObjects(mObjects);
 }
 //-----------------------------------------------------------------------------
 void ModelMoveExecWindow::LockObjects(const std::set<ObjectKey>& obj)
 {
 	TEST_FUNC_TIME;
-	mObjects = obj;
 	wxBusyCursor busyCursor;
+	mObjects = obj;
+	mModelObjBrowser->DoSetObjects(obj);
 	mDst.Clear();
 	mRecent.Clear();
 
+	wxString query;
+	for (const auto& object : obj)
+	{
+		query += wxString::Format(
+			"INTERSECT"
+			" SELECT _dst_cls_id, _dst_obj_id, _dst_obj_label, _dst_obj_pid "
+			" FROM lock_for_move(%s, %s) "
+			, object.GetId_AsString()
+			, object.GetParentId_AsString());
+	}
+	if (query.IsEmpty())
+		return;
+	query.Remove(0, wxString("INTERSECT").size());
+
+	query = wxString::Format("SELECT _dst_cls_id, title "
+		", _dst_obj_id, _dst_obj_label, get_path_objnum(_dst_obj_pid, 1) "
+		" FROM (%s) dst "
+		" LEFT JOIN acls ON acls.id = _dst_cls_id "
+		" ORDER BY title ASC "
+		" , (substring(_dst_obj_label, '^[0-9]{1,9}')::INT, _dst_obj_label) ASC "
+		, query);
+
 	const auto& global_recent = whDataMgr::GetInstance()->mRecentDstOidPresenter;
 
-	wxString query = wxString::Format(
-		" SELECT _dst_cls_id, acls.title "
-		", _dst_obj_id, _dst_obj_label , get_path_objnum(_dst_obj_pid,1) AS DST_PATH "
-		" FROM lock_for_move(%s,%s) "
-		" LEFT JOIN acls ON acls.id = _dst_cls_id "
-		" ORDER BY "
-		"   acls.title ASC "
-		"   ,(substring(_dst_obj_label, '^[0-9]{1,9}')::INT, _dst_obj_label ) ASC "
-		, obj.begin()->GetId_AsString()
-		, obj.begin()->GetParentId_AsString()
-	);
+
+
 
 	whDataMgr::GetDB().BeginTransaction();
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
@@ -168,6 +181,12 @@ void ModelMoveExecWindow::LockObjects(const std::set<ObjectKey>& obj)
 	}//if (table)
 
 	whDataMgr::GetDB().Commit();
+
+	sigEnableRecent(GetRecentEnable());
+	sigUpdateRecent(mRecent);
+	sigUpdateDst(mDst);
+	
+
 }
 //---------------------------------------------------------------------------
 //virtual 

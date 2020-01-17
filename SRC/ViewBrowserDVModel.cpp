@@ -610,6 +610,9 @@ wxDataViewItem wxDVTableBrowser::GetParent(const wxDataViewItem &item) const //o
 	if (!item.IsOk() || IsTop(item))
 		return wxDataViewItem(nullptr);
 
+	if (IsListModel())
+		return wxDataViewItem(nullptr);
+
 	const auto ident = static_cast<const IIdent64*> (item.GetID());
 	const auto cls = dynamic_cast<const ICls64*>(ident);
 	if (cls)

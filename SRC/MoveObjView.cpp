@@ -29,8 +29,6 @@ class DvModel
 
 	void SetTree(const ObjTree* tree, std::shared_ptr<Node>& node)
 	{
-		return;
-		/*
 		if (!tree)
 			return;
 
@@ -60,7 +58,6 @@ class DvModel
 			if (type_node->mChilds.size())
 				types.emplace_back(type_node);
 		}//for
-		*/
 	}
 
 	void RebuldTree()
@@ -283,9 +280,10 @@ XMoveObjView::XMoveObjView(wxWindow* parent)
 	mFrame->SetIcon(ico);
 	mFrame->SetMinSize(mFrame->GetSize());
 	mFrame->SetSize(mFrame->GetSize()*1.8);
-
-
 	wxSizer* szrMain = new wxBoxSizer(wxVERTICAL);
+	mInfo = new wxStaticText(mFrame, wxID_ANY, wxEmptyString);
+	mInfo->Wrap(-1);
+	szrMain->Add(mInfo, 0, wxALL | wxEXPAND, 5);
 
 	//Panel Object list
 	mObjListPanel = new wxPanel(mFrame);
@@ -299,20 +297,10 @@ XMoveObjView::XMoveObjView(wxWindow* parent)
 
 	// destination panel
 	mDstPanel = new wxPanel(mFrame);
-	mLblMovableObj = new wxStaticText(mDstPanel, wxID_ANY, "[класс]объект/...[класс]объект(ед.изм)");
-	mqtySpin = new wxSpinCtrl(mDstPanel, wxID_ANY, wxEmptyString, wxDefaultPosition,
-		wxDefaultSize, wxSP_ARROW_KEYS, 1, MAXINT, 1);
-	mqtyCtrl = new wxTextCtrl(mDstPanel, wxID_ANY, "1", wxDefaultPosition, wxDefaultSize, 0,
-		wxTextValidator(wxFILTER_NUMERIC));
-	auto staticline = new wxStaticLine(mDstPanel, wxID_ANY);
 	BuildToolBar(mDstPanel);
 	BuildTree(mDstPanel);
 
 	wxSizer *dstSzr = new wxBoxSizer(wxVERTICAL);
-	dstSzr->Add(mLblMovableObj, 0, wxALL, 5);
-	dstSzr->Add(mqtySpin, 0, wxALL | wxEXPAND, 0);
-	dstSzr->Add(mqtyCtrl, 0, wxALL | wxEXPAND, 0);
-	dstSzr->Add(staticline, 0, wxEXPAND | wxALL, 5);
 	dstSzr->Add(mToolBar, 0, wxALL | wxEXPAND, 0);
 	dstSzr->Add(mTree, 1, wxALL | wxEXPAND, 0);
 	mDstPanel->SetSizer(dstSzr);
@@ -454,7 +442,7 @@ void XMoveObjView::BuildToolBar(wxWindow* parent)
 
 		auto mgr = whDataMgr::GetInstance();
 
-		parent->Bind(wxEVT_COMMAND_MENU_SELECTED, [this, tool, mgr](wxCommandEvent& evt)
+		mFrame->Bind(wxEVT_COMMAND_MENU_SELECTED, [this, tool, mgr](wxCommandEvent& evt)
 		{
 			tool->SetBitmap(ResMgr::GetInstance()->m_ico_filter24);
 			mFindCtrl->SetHint("фильтр");
@@ -465,7 +453,9 @@ void XMoveObjView::BuildToolBar(wxWindow* parent)
 		}
 		, wxID_FILE1);
 
-		parent->Bind(wxEVT_COMMAND_MENU_SELECTED, [this, tool, mgr](wxCommandEvent& evt)
+		mFrame->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &XMoveObjView::OnBack, this, wxID_BACKWARD);
+
+		mFrame->Bind(wxEVT_COMMAND_MENU_SELECTED, [this, tool, mgr](wxCommandEvent& evt)
 		{
 			tool->SetBitmap(wxArtProvider::GetBitmap(wxART_FIND, wxART_TOOLBAR));
 			mFindCtrl->SetHint("поиск");
@@ -542,7 +532,6 @@ void XMoveObjView::BuildTree(wxWindow* parent)
 //virtual 
 void XMoveObjView::SetShow()//override;
 {
-	SetSelectPage(0);
 	StartCountdown();
 	mFrame->ShowModal();
 }
@@ -578,25 +567,19 @@ void XMoveObjView::OnBack(wxCommandEvent& evt)
 	SetSelectPage(page);
 }
 //-----------------------------------------------------------------------------
-void XMoveObjView::SetSelectPage(int page)
+void XMoveObjView::GetSelection(std::set<int64_t>& sel)const
 {
-	switch (page)
+	auto item = mTree->GetCurrentItem();
+	if (!item.IsOk())
+		return;
+	auto sel_node = static_cast<Node*>(item.GetID());
+	if (sel_node->mTypeId == 20)
 	{
-	default:
-	case 0:
-		mObjListPanel->Show();
-		mDstPanel->Hide();
-		mBtnBack->Hide();
-		mBtnForward->SetLabel("Вперёд >");
-		mFrame->Layout();
-		break;
-	case 1:
-		mObjListPanel->Hide();
-		mDstPanel->Show();
-		mBtnBack->Show();
-		mBtnForward->SetLabel("Выполнить");
-		mFrame->Layout();
-		break;
+		auto sel_obj = static_cast<Obj*>(sel_node->mVal);
+		unsigned long ival;
+		
+		if (sel_obj->mId.ToCULong(&ival))
+			sel.emplace(ival);
 	}
 }
 //-----------------------------------------------------------------------------
@@ -607,22 +590,8 @@ void XMoveObjView::OnOk(wxCommandEvent& evt)
 		SetSelectPage(1);
 		return;
 	}
+	sigExecute();
 
-	auto selected = mTree->GetSelection();
-	auto sel_node = static_cast<Node*>(selected.GetID());
-	if (selected && sel_node->mTypeId == 20)
-	{
-		auto sel_obj = static_cast<Obj*>(sel_node->mVal);
-		wxString qty = "1";
-		if (mqtySpin->IsShown() && !mqtyCtrl->IsShown())
-			qty = wxString::Format("%d", mqtySpin->GetValue());
-		else if (!mqtySpin->IsShown() && mqtyCtrl->IsShown())
-			qty = mqtyCtrl->GetValue();
-
-		//sigExecute(sel_obj->mId, qty);
-		sigExecute();
-		mFrame->EndModal(wxID_OK);
-	}// if (selected)
 }
 //---------------------------------------------------------------------------
 void XMoveObjView::OnActivated(wxDataViewEvent& evt)
@@ -743,6 +712,37 @@ void XMoveObjView::EnableRecent(bool enable)//override
 	auto dvmodel = dynamic_cast<DvModel*>(mTree->GetModel());
 	dvmodel->SetRecentEnable(enable);
 	ExpandAll();
+}
+//-----------------------------------------------------------------------------
+void XMoveObjView::SetSelectPage(int page)
+{
+	switch (page)
+	{
+	default:
+	case 0:
+		mObjListPanel->Show();
+		mDstPanel->Hide();
+		mBtnBack->Hide();
+		mBtnForward->SetLabel("Вперёд >");
+		mInfo->SetLabel("Внимание! "
+			"Выбранные объекты заблокированы на 10 минут для выполнения перемещения."
+			"\nДля перехода к выбору действий нажмите кнопку 'Далее >'"
+			"\nДля именения количества перемещаемых объектов один клик на количество.");
+		mFrame->Layout();
+		break;
+	case 1:
+		mObjListPanel->Hide();
+		mDstPanel->Show();
+		mBtnBack->Show();
+		mBtnForward->SetLabel("Выполнить");
+		mInfo->SetLabel(
+			"Выберети объект, в который необходимо переместить выбранные объекты "
+			"\nДля выполнения перемещения нажмите кнопку 'Выполнить'"
+			"\nили двойной клик левой кнопкой мыши на необходимом объекте."
+		);
+		mFrame->Layout();
+		break;
+	}
 }
 //-----------------------------------------------------------------------------
 void XMoveObjView::OnTimer(wxTimerEvent &evt)

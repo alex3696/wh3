@@ -14,14 +14,10 @@ class XMoveObjView : public IMoveObjView
 	wxButton*				mBtnBack;
 	wxButton*				mBtnForward;
 	wxStdDialogButtonSizer*	msdbSizer;
-	wxStaticText*			mLblMovableObj;
-	wxStaticText*			mLblDstObj;
+	wxStaticText*			mInfo;
 	wxPanel*				mObjListPanel;
 	wxPanel*				mDstPanel;
 	std::shared_ptr<ViewTableBrowser>	mObjBrowser;
-
-	wxSpinCtrl* mqtySpin;
-	wxTextCtrl* mqtyCtrl;
 
 	wxTextCtrl*		mFindCtrl;
 	wxAuiToolBar*	mToolBar;
@@ -44,6 +40,8 @@ class XMoveObjView : public IMoveObjView
 	void ExpandTree(const wxDataViewItem& dvitem,bool recursive=true);
 	void ExpandAll();
 	void OnClickSearchBtn(wxCommandEvent& event);
+
+	
 	
 	wxTimer		mTimer;
 	int			mMillSecLeft;
@@ -56,15 +54,17 @@ public:
 	XMoveObjView(const std::shared_ptr<IViewWindow>& parent);
 	~XMoveObjView();
 
+	virtual void SetSelectPage(int);
 	virtual std::shared_ptr<ViewTableBrowser>	GetViewObjBrowser()const;
 	virtual void UpdateRecent(const ObjTree& tree)override;
 	virtual void UpdateDst(const ObjTree& tree)override;
 	virtual void EnableRecent(bool enable)override;
+	virtual void GetSelection(std::set<int64_t>& sel)const override;
+
 	virtual wxWindow* GetWnd()const override { return mFrame; }
 	virtual void SetShow()override;
 	virtual void SetClose()override;
 
-	void SetSelectPage(int page);
 };
 //---------------------------------------------------------------------------
 

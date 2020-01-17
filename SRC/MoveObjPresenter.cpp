@@ -17,6 +17,18 @@ CtrlMoveExecWindow::CtrlMoveExecWindow(
 
 	namespace ph = std::placeholders;
 
+	connModel_SelectPage = mModel->sigSelectPage
+		.connect(std::bind(&T_View::SetSelectPage, mView.get(), ph::_1));
+
+	connModel_EnableRecent = mModel->sigEnableRecent
+		.connect(std::bind(&T_View::EnableRecent , mView.get(), ph::_1));
+	connModel_UpdateRecent = mModel->sigUpdateRecent
+		.connect(std::bind(&T_View::UpdateRecent, mView.get(), ph::_1));
+	connModel_UpdateDst = mModel->sigUpdateDst
+		.connect(std::bind(&T_View::UpdateDst, mView.get(), ph::_1));
+	connModel_GetSelect = mModel->sigGetSelection
+		.connect(std::bind(&T_View::GetSelection, mView.get(), ph::_1));
+
 	connViewCmd_Unlock = mView->sigUnlock
 		.connect(std::bind(&CtrlMoveExecWindow::Unlock, this));
 	connViewCmd_Execute = mView->sigExecute
@@ -24,8 +36,6 @@ CtrlMoveExecWindow::CtrlMoveExecWindow(
 
 	connViewCmd_EnableRecent = mView->sigEnableRecent
 		.connect(std::bind(&CtrlMoveExecWindow::OnViewEnableRecent, this, ph::_1));
-	connViewCmd_FindObj = mView->sigFindObj
-		.connect(std::bind(&CtrlMoveExecWindow::OnViewFindObj, this, ph::_1));
 
 }
 //-----------------------------------------------------------------------------
@@ -56,8 +66,3 @@ void CtrlMoveExecWindow::OnViewEnableRecent(bool enable)
 	//OnModelUpdate();
 }
 //-----------------------------------------------------------------------------
-void CtrlMoveExecWindow::OnViewFindObj(const wxString& ss)
-{
-	mModel->FindObj(ss);
-	//OnModelUpdate();
-}

@@ -12,11 +12,17 @@ class CtrlMoveExecWindow final : public CtrlWindowBase<IMoveObjView, ModelMoveEx
 {
 	// Model connector
 	sig::scoped_connection connModelUpdate;
+
+	sig::scoped_connection connModel_SelectPage;
+	sig::scoped_connection connModel_EnableRecent;
+	sig::scoped_connection connModel_UpdateRecent;
+	sig::scoped_connection connModel_UpdateDst;
+	sig::scoped_connection connModel_GetSelect;
+
 	// View connector
 	sig::scoped_connection connViewCmd_Unlock;
 	sig::scoped_connection connViewCmd_Execute;
 	sig::scoped_connection connViewCmd_EnableRecent;
-	sig::scoped_connection connViewCmd_FindObj;
 
 	std::shared_ptr<CtrlTableObjBrowser_RO>	mCtrlObjBrowser;
 public:
@@ -29,7 +35,6 @@ public:
 	void Unlock();
 
 	void OnViewEnableRecent(bool enable);
-	void OnViewFindObj(const wxString& ss);
 
 
 };//CtrlMoveExecWindow

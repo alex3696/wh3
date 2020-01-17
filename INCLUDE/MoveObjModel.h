@@ -131,9 +131,8 @@ class ModelMoveExecWindow : public IModelWindow
 
 	int BuildExecQuery(wxString& query);
 
-
-	ObjTree						mDst;
-	ObjTree						mRecent;
+	ObjTree		mDst;
+	ObjTree		mRecent;
 
 public:
 	std::shared_ptr<ModelBrowser>			mModelObjBrowser;
@@ -158,17 +157,10 @@ public:
 
 	sig::signal<void(int)> sigSelectPage;
 
-	sig::signal<void(const ObjTree& tree)> sigUpdateRecent;
-	sig::signal<void(const ObjTree& tree)> sigUpdateDst;
-	sig::signal<void(bool)> sigEnableRecent;
-
-	
-	// deprecated
-	inline const ObjTree& GetRecent()const	{ return mRecent;	}
-	inline const ObjTree& GetDst()const		{ return mDst;	}
-	const ObjStore::iterator FindObj(const wxString& str)const;
-	
-
+	sig::signal<void(const ObjTree& tree)>	sigUpdateRecent;
+	sig::signal<void(const ObjTree& tree)>	sigUpdateDst;
+	sig::signal<void(bool)>					sigEnableRecent;
+	sig::signal<void(std::set<int64_t>&)>	sigGetSelection;
 
 
 
