@@ -144,29 +144,9 @@ void wxDVTableBrowser::GetObjValue(wxVariant &variant, unsigned int col
 		{
 		case ClsKind::QtyByOne:
 		case ClsKind::QtyByFloat:
-			if (mEditableQtyCol)
-			{
-				ObjectKey key(obj.GetId(), obj.GetParentId());
-				const auto& it = mEditedValue.find(key);
-				if (mEditedValue.cend() == it)
-				{
-					variant = wxString::Format("%s %s"
-						, obj.GetQty()
-						, obj.GetCls()->GetMeasure());
-				}
-				else
-				{
-					variant = wxString::Format("%s %s"
-						, it->second
-						, obj.GetCls()->GetMeasure());
-				}
-			}
-			else
-			{
-				variant = wxString::Format("%s %s"
-					, obj.GetQty()
-					, obj.GetCls()->GetMeasure());
-			}
+			variant = wxString::Format("%s %s"
+				, obj.GetQty()
+				, obj.GetCls()->GetMeasure());
 		default: break;
 		}//switch (obj.GetCls()->GetKind())
 	}break;
@@ -446,57 +426,9 @@ bool wxDVTableBrowser::SetValue(const wxVariant &variant, const wxDataViewItem &
 	if (!obj)
 		return false;
 
-	ClsKind kind = obj->GetCls()->GetKind();
-	ObjectKey key(obj->GetId(), obj->GetParentId());
 	wxString str_val = variant.GetString();
-	switch (kind)
-	{
-	case ClsKind::QtyByOne: {
-		unsigned long sval;
-		unsigned long ival;
-		if (str_val.ToCULong(&ival) && obj->GetQty().ToULong(&sval)
-			&& sval >= ival && 0 < ival)
-		{
-			mEditedValue[key]=str_val;
-			return true;
-		}
-		else
-		{
-			str_val.RemoveLast(obj->GetCls()->GetMeasure().size());
-			str_val.Trim();
-			if (str_val.ToCULong(&ival) && obj->GetQty().ToULong(&sval)
-				&& sval >= ival && 0 < ival)
-			{
-				mEditedValue[key] = str_val;
-				return true;
-			}
-		}
-			
-	}break;
-	case ClsKind::QtyByFloat: {
-		double sval;
-		double ival;
-		if (str_val.ToCDouble(&ival) && obj->GetQty().ToCDouble(&sval)
-			&& sval >= ival && 0 < ival)
-		{
-			mEditedValue[key] = str_val;
-			return true;
-		}
-		else
-		{
-			str_val.RemoveLast(obj->GetCls()->GetMeasure().size());
-			str_val.Trim();
-			if (str_val.ToCDouble(&ival) && obj->GetQty().ToCDouble(&sval)
-				&& sval >= ival && 0 < ival)
-			{
-				mEditedValue[key] = str_val;
-				return true;
-			}
-		}
-	}break;
-	default: break;
-	}
-	return false;
+	ObjectKey key(obj->GetId(), obj->GetParentId());
+	return sigSetQty(key, str_val).operator bool();
 }
 
 //-----------------------------------------------------------------------------
@@ -682,7 +614,6 @@ void wxDVTableBrowser::SetClsList(const std::vector<const IIdent64*>& current
 	mCurrentRoot = curr;
 	mClsList = current;
 	mMode = mode;
-	mEditedValue.clear();
 
 	Cleared();
 }

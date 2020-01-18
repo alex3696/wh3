@@ -127,6 +127,7 @@ class ObjRec64 : public IObj64
 public:
 	wxString	mTitle;
 	wxString	mQty;
+	wxString	mSavedQty;
 	std::shared_ptr<ObjPath64> mPath;
 	wxString	mLockUser;
 	wxString	mLockTime;
@@ -294,6 +295,8 @@ public:
 
 class ObjCache
 {
+	typedef ObjRec64 RowType;
+
 	struct extr_parentId_IObj64
 	{
 		typedef const int64_t result_type;
@@ -305,13 +308,13 @@ class ObjCache
 
 	using Cache = boost::multi_index_container
 	<
-		std::shared_ptr<ObjRec64>,
+		std::shared_ptr<RowType>,
 		indexed_by
 		<
 			 ordered_unique < 
 		                      composite_key
 		                      <
-		                       std::shared_ptr<ObjRec64>
+		                       std::shared_ptr<RowType>
 		                       , extr_id_IIdent64
 		                       , extr_parentId_IObj64
 							  > 
@@ -319,7 +322,7 @@ class ObjCache
 			, ordered_non_unique< 
 								 const_mem_fun
 								 <
-								  ObjRec64
+									RowType
 								  , int64_t
 								  , &ObjRec64::GetClsId
 								 > 
@@ -523,6 +526,7 @@ public:
 	int64_t		GetRootId()const;
 	wxString	GetSearchString()const;
 	bool		GetGroupedByType()const;
+	wxString	GetObjectUpdatedQty(const ObjectKey& key);
 
 	void SetMode(int);
 	void SetRootId(int64_t);
@@ -547,7 +551,7 @@ public:
 	void DoAct();
 	void DoShowDetails();
 	void DoDelete();
-
+	bool DoSetQty(const ObjectKey&, const wxString&);
 
 	sig::signal<void(std::vector<const IIdent64*>&)> sigGetSelection;
 		

@@ -411,6 +411,14 @@ bool ModelBrowser::GetGroupedByType()const
 	return mGroupByType;
 }
 //-----------------------------------------------------------------------------
+wxString ModelBrowser::GetObjectUpdatedQty(const ObjectKey& key)
+{
+	const auto obj = mCache.mObjTable.GetObjById(key.mId, key.mParentId);
+	if (!obj)
+		return wxEmptyString;
+	return obj->GetQty();;
+}
+//-----------------------------------------------------------------------------
 void ModelBrowser::SetMode(int mode)
 {
 	mMode = mode;
@@ -1470,6 +1478,85 @@ void ModelBrowser::DoDelete()
 			
 	}
 
+
+}
+//-----------------------------------------------------------------------------
+bool ModelBrowser::DoSetQty(const ObjectKey& key, const wxString& sval)
+{
+	bool ret;
+	ObjCache::fnModify fn = [&sval, &ret](const std::shared_ptr<ObjRec64>& obj)
+	{
+		ClsKind kind = obj->GetCls()->GetKind();
+
+		wxString str_val = sval;
+		switch (kind)
+		{
+		case ClsKind::QtyByOne: {
+			if (obj->mSavedQty.IsEmpty())
+				obj->mSavedQty = obj->mQty;
+
+			unsigned long sval;
+			unsigned long ival;
+			if (str_val.ToCULong(&ival) && obj->mSavedQty.ToULong(&sval)
+				&& sval >= ival && 0 < ival)
+			{
+				obj->mQty = str_val;
+				ret = true;
+				return;
+			}
+			else
+			{
+				str_val.RemoveLast(obj->GetCls()->GetMeasure().size());
+				str_val.Trim();
+				if (str_val.ToCULong(&ival) && obj->mSavedQty.ToULong(&sval)
+					&& sval >= ival && 0 < ival)
+				{
+					obj->mQty = str_val;
+					ret = true;
+					return;
+
+				}
+			}
+
+		}break;
+		case ClsKind::QtyByFloat: {
+			if (obj->mSavedQty.IsEmpty())
+				obj->mSavedQty = obj->mQty;
+
+			double sval;
+			double ival;
+			if (str_val.ToCDouble(&ival) && obj->mSavedQty.ToCDouble(&sval)
+				&& sval >= ival && 0 < ival)
+			{
+				obj->mQty = str_val;
+				ret = true;
+				return;
+
+			}
+			else
+			{
+				str_val.RemoveLast(obj->GetCls()->GetMeasure().size());
+				str_val.Trim();
+				if (str_val.ToCDouble(&ival) && obj->mSavedQty.ToCDouble(&sval)
+					&& sval >= ival && 0 < ival)
+				{
+					obj->mQty = str_val;
+					ret = true;
+					return;
+
+				}
+			}
+		}break;
+		default: break;
+		}
+		ret = false;
+	};
+
+
+	const auto obj = mCache.mObjTable.GetObjById(key.mId, key.mParentId, fn);
+	if (!obj)
+		return false;
+	return ret;
 
 }
 //-----------------------------------------------------------------------------

@@ -62,7 +62,9 @@ void ModelMoveExecWindow::DoExecute()
 	sigGetSelection(sel);
 	if (sel.empty())
 		return;
-	int64_t dst_oid = *sel.begin();
+	
+	wxLongLong ll(*sel.begin());
+	const auto dst_oid = ll.ToString();
 	wxString query;
 
 	try {
@@ -73,11 +75,11 @@ void ModelMoveExecWindow::DoExecute()
 		for (const auto& obj : mObjects)
 		{
 			qexec = wxString::Format(
-				"SELECT do_move(%s,%s,%u,%s)"
+				"SELECT do_move(%s,%s,%s,%s)"
 				, obj.GetId_AsString()
 				, obj.GetParentId_AsString()
 				, dst_oid
-				, mModelObjBrowser->GetUpdatedQty(obj)
+				, mModelObjBrowser->GetObjectUpdatedQty(obj)
 			);
 			whDataMgr::GetDB().Exec(qexec);	
 		}//for 

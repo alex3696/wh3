@@ -134,6 +134,7 @@ class ModelMoveExecWindow : public IModelWindow
 	ObjTree		mDst;
 	ObjTree		mRecent;
 
+
 public:
 	std::shared_ptr<ModelBrowser>			mModelObjBrowser;
 

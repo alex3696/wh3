@@ -18,7 +18,7 @@ public:
 	virtual void SetInsertType()const = 0;
 	virtual void SetInsertObj()const = 0;
 	virtual void SetUpdateSelected()const = 0;
-	virtual void GetSelection(std::vector<const IIdent64*>&)const =0;
+	virtual void GetSelection(std::vector<const IIdent64*>&)const = 0;
 
 	virtual void SetObjOperation(Operation, const std::vector<const IIdent64*>&) = 0;
 
@@ -34,6 +34,7 @@ public:
 	sig::signal<void()> sigAct;
 	sig::signal<void()> sigShowDetail;
 	sig::signal<void()> sigDelete;
+	sig::signal<bool(const ObjectKey&, const wxString&)> sigSetQty;
 
 	sig::signal<void(int64_t)> sigClsInsert;
 	sig::signal<void(int64_t)> sigClsUpdate;

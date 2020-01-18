@@ -12,6 +12,7 @@ class CtrlPageBrowser;
 //-----------------------------------------------------------------------------
 class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelBrowser>
 {
+	
 	sig::scoped_connection connModel_GetSelection;
 	sig::scoped_connection connModel_BeforeRefreshCls;
 	sig::scoped_connection connModel_AfterRefreshCls;
@@ -29,6 +30,7 @@ class CtrlTableBrowser final : public CtrlWindowBase<IViewTableBrowser, ModelBro
 	sig::scoped_connection connViewCmd_Move;
 	sig::scoped_connection connViewCmd_ShowObjDetail;
 	sig::scoped_connection connViewCmd_Delete;
+	sig::scoped_connection connViewCmd_UpdatedQty;
 
 	sig::scoped_connection connViewCmd_ClsInsert;
 	sig::scoped_connection connViewCmd_ClsUpdate;
@@ -56,6 +58,7 @@ public:
 	void Move();
 	void ShowDetails();
 	void Delete();
+	bool SetQty(const ObjectKey&, const wxString&);
 	
 	// ask view about selected item 
 	void SetInsertType();

@@ -49,6 +49,9 @@ CtrlTableBrowser::CtrlTableBrowser(
 	connViewCmd_Delete = mView->sigDelete
 		.connect(std::bind(&CtrlTableBrowser::Delete, this));
 
+	connViewCmd_UpdatedQty = mView->sigSetQty
+		.connect(std::bind(&CtrlTableBrowser::SetQty, this, ph::_1, ph::_2));
+	
 	connViewCmd_ClsInsert = mView->sigClsInsert
 		.connect(std::bind(&CtrlTableBrowser::ClsInsert, this, ph::_1));
 	connViewCmd_ClsUpdate = mView->sigClsUpdate
@@ -133,6 +136,11 @@ void CtrlTableBrowser::ShowDetails()
 void CtrlTableBrowser::Delete()
 {
 	mModel->DoDelete();
+}
+//---------------------------------------------------------------------------
+bool CtrlTableBrowser::SetQty(const ObjectKey& key, const wxString& str_val)
+{
+	return mModel->DoSetQty(key, str_val);
 }
 //---------------------------------------------------------------------------
 void wh::CtrlTableBrowser::ToggleGroupByType()

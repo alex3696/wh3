@@ -48,7 +48,9 @@ ViewTableBrowser::ViewTableBrowser(wxWindow* parent)
 	table->AssociateModel(mDvModel);
 	mDvModel->DecRef();
 
-	mDvModel->SetEditableQty(true);
+	mDvModel->sigSetQty.connect([this](const ObjectKey& k, const wxString& v)
+	{ return sigSetQty(k,v).operator bool(); });
+	
 	
 	#define ICON_HEIGHT 24+2
 	int row_height = table->GetCharHeight() + 2;// + 1px in bottom and top 

@@ -19,10 +19,10 @@ public:
 	//inline bool IsNull()const	{ return mIdPtr ? false : true; }
 	//inline void SetNull()		{ mIdPtr.reset(); }
 
-	wxString AsString()const	{ return wxString::Format("%d", mId); }
+	wxString AsString()const	{ return wxString::Format("%ld", mId); }
 	const int64_t&  AsInt64()const		{ return mId; }
 
-	operator wxString() const	{ return wxString::Format("%d", mId); }
+	operator wxString() const	{ return wxString::Format("%ld", mId); }
 	operator int64_t() const	{ return mId; }
 
 	bool Set(const wxString& str){ return str.ToLongLong(&mId); };
@@ -76,7 +76,7 @@ public:
 	operator wxString() const
 	{
 		if (mVal)
-			return wxString::Format("%d", *mVal);
+			return wxString::Format("%ld", *mVal);
 		//wxLog BOOST_THROW_EXCEPTION(error() << wxstr("data is null"));
 		return wxEmptyString2;
 	}
@@ -88,7 +88,7 @@ public:
 	}
 	virtual wxString SqlVal()const override
 	{
-		return (mVal) ? wxString::Format("%d", *mVal) : wxString("NULL");
+		return (mVal) ? wxString::Format("%ld", *mVal) : wxString("NULL");
 	}
 	inline wxString toStr()const
 	{
