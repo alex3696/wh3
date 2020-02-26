@@ -104,6 +104,7 @@ void ViewPropPg::SetAfterRefresh(std::shared_ptr<const ModelPropTable> table)
 //-----------------------------------------------------------------------------
 void ViewPropPg::GetPropValues(std::map<int64_t, wxString>& arr)
 {
+	mPG->EditorsValueWasModified();
 	mPG->CommitChangesFromEditor();
 	wxPropertyGridIterator it;
 
