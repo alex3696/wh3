@@ -26,6 +26,12 @@ protected:
 	mutable PostgresDatabaseLayer	m_Connection;
 	bool mTransactionOpened;
 
+	wxString mServer;
+	int mPort;
+	wxString mDatabase;
+	wxString mUser;
+	wxString mPassword;
+
 	//void ShowError(const DatabaseLayerException& err)const;
 public:
 	using Signal = sig::signal<void(const whDB&)>;

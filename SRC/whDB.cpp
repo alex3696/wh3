@@ -18,32 +18,49 @@ whDB::~whDB()
 	Close();
 }
 //------------------------------------------------------------------------------
+
 void whDB::BeginTransaction()	
 { 
 	TEST_FUNC_TIME;
-	try
-	{
-		m_Connection.BeginTransaction();
-		mTransactionOpened = true;
-	}
-	catch (DatabaseLayerException & e)
-	{
-		wxString str = wxString::Format("%d\t %s (%d)%s"
-			, GetTickCount() - ftester.GetStartTickCount()
-			, ftester.GetFuncName()
-			, e.GetErrorCode()
-			, e.GetErrorMessage().GetData());
-		wxLogError(str);
-		throw;
-	}
-	catch (...)
-	{
-		wxString str = wxString::Format("%d\t %s (-1)unknown error"
-			, GetTickCount() - ftester.GetStartTickCount()
-			, ftester.GetFuncName());
+	size_t i = 3;
+	bool isOk = false;
+	bool isException = false;
+
+	do {
+		try
+		{
+			if (isException)
+			{
+				Close();
+				m_Connection.Open(mServer, mPort, mDatabase, mUser, mPassword);
+			}
+			m_Connection.BeginTransaction();
+			mTransactionOpened = isOk = true;
+		}
+		catch (DatabaseLayerException & e)
+		{
+			wxString str = wxString::Format("%d\t %s (%d)%s "
+				" Ошибка соединия - переподключение(%d)"
+				, GetTickCount() - ftester.GetStartTickCount()
+				, ftester.GetFuncName()
+				, e.GetErrorCode()
+				, e.GetErrorMessage().GetData()
+				, i);
 			wxLogError(str);
-		throw;
-	}
+			isException = true;
+		}
+		catch (...)
+		{
+			wxString str = wxString::Format("%d\t %s (-1)unknown error"
+				, GetTickCount() - ftester.GetStartTickCount()
+				, ftester.GetFuncName());
+			wxLogError(str);
+		}
+	} while (--i && !isOk);
+
+	if (!isOk)
+		wxLogError("Невозможно переподключиться");
+
 }
 //------------------------------------------------------------------------------
 void whDB::Commit()
@@ -128,6 +145,16 @@ bool whDB::Open(const wxString& strServer, int nPort, const wxString& strDatabas
 		wxString str = wxString::Format("whDB::Open\t unknown error");
 		wxLogError(str);
 	}
+
+	if (result)
+	{
+		mServer = strServer;
+		mPort = nPort;
+		mDatabase = strDatabase;
+		mUser = strUser;
+		mPassword = strPassword;
+	}
+
 	return result;
 }
 //------------------------------------------------------------------------------
