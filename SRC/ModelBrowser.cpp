@@ -499,11 +499,16 @@ void ModelBrowser::Load_ObjDir_ClsList()
 		for (; row < rowQty; row++)
 		{
 			int64_t id;
-			if (!table->GetAsString(0, row).ToLongLong(&id))
-				throw;
-			const std::shared_ptr<ClsRec64>& curr = mCache.mClsTable.GetById(id, fn);
-
-			toinsert.emplace_back(curr.get());
+			const wxString id_str = table->GetAsString(0, row);
+			if (!id_str.ToLongLong(&id))
+			{
+				wxLogMessage("Can`t convert cls id string: " + id_str);
+			}
+			else
+			{
+				const std::shared_ptr<ClsRec64>& curr = mCache.mClsTable.GetById(id, fn);
+				toinsert.emplace_back(curr.get());
+			}
 		}
 
 	}//if (table)
@@ -1327,7 +1332,7 @@ void ModelBrowser::UpdateUntitledProperties()
 	auto table = whDataMgr::GetDB().ExecWithResultsSPtr(query);
 	if (table)
 	{
-		unsigned int rowQty = table->GetRowCount();
+		const unsigned int rowQty = table->GetRowCount();
 		size_t row = 0;
 		const PropCache::fnModify fn = [this, &table, &row]
 		(const std::shared_ptr<IProp64>& iact)
@@ -1343,9 +1348,13 @@ void ModelBrowser::UpdateUntitledProperties()
 		for (; row < rowQty; row++)
 		{
 			int64_t id;
-			if (!table->GetAsString(0, row).ToLongLong(&id))
-				throw;
-			prop_table.InsertOrUpdate(id, fn);
+			const wxString id_str = table->GetAsString(0, row);
+			if (!id_str.ToLongLong(&id))
+			{
+				wxLogMessage("Can`t convert prop id string: " + id_str);
+			}
+			else
+				prop_table.InsertOrUpdate(id, fn);
 		}//for
 	}//if (table)
 }
@@ -1597,10 +1606,13 @@ void ModelBrowser::UpdateUntitledActs()
 		for (; row < rowQty; row++)
 		{
 			int64_t id;
-			if (!table->GetAsString(0, row).ToLongLong(&id))
-				throw;
-
-			act_table.InsertOrUpdate(id, fn);
+			const wxString id_str = table->GetAsString(0, row);
+			if (!id_str.ToLongLong(&id))
+			{
+				wxLogMessage("Can`t convert act id string: " + id_str);
+			}
+			else
+				act_table.InsertOrUpdate(id, fn);
 		}//for
 	}//if (table)
 

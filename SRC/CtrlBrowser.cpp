@@ -75,42 +75,98 @@ CtrlTableBrowser::CtrlTableBrowser(
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::Refresh()
 {
-	mModel->DoRefresh();
+	try
+	{
+		mModel->DoRefresh();
+	}
+	catch(...)
+	{
+		wxLogError("Unknown exception in: mModel->DoRefresh");
+	}
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::Up()
 {
-	mModel->DoUp();
+	try
+	{
+		mModel->DoUp();
+	}
+	catch (...)
+	{
+		wxLogError("Unknown exception in: mModel->DoUp");
+	}
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::Activate(int64_t cid)
 {
-	mModel->DoActivate(cid);
+	try
+	{
+		mModel->DoActivate(cid);
+	}
+	catch (...)
+	{
+		wxLogError("Unknown exception in: mModel->DoActivate");
+	}
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::RefreshClsObjects(int64_t cid)
 {
-	mModel->DoRefreshObjects (cid);
+	try
+	{
+		mModel->DoRefreshObjects(cid);
+	}
+	catch (...)
+	{
+		wxLogError("Unknown exception in: mModel->DoRefreshObjects");
+	}
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::GotoCls(int64_t cid)
 {
-	mModel->Goto(0, cid);
+	try
+	{
+		mModel->Goto(0, cid);
+	}
+	catch (...)
+	{
+		wxLogError("Unknown exception in: mModel->Goto");
+	}
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::GotoObj(int64_t oid)
 {
-	mModel->Goto(1, oid);
+	try
+	{
+		mModel->Goto(1, oid);
+	}
+	catch (...)
+	{
+		wxLogError("Unknown exception in: mModel->Goto");
+	}
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::Act()
 {
-	mModel->DoAct();
+	try
+	{
+		mModel->DoAct();
+	}
+	catch (...)
+	{
+		wxLogError("Unknown exception in: mModel->DoAct");
+	}
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::Move()
 {
-	mModel->DoMove();
+	try
+	{
+		mModel->DoMove();
+	}
+	catch (...)
+	{
+		wxLogError("Unknown exception in: mModel->Move");
+	}
 }
 //---------------------------------------------------------------------------
 void CtrlTableBrowser::SetInsertType()
